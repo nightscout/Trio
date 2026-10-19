@@ -33,8 +33,8 @@ enum LiveActivityFontSize: String, Codable, Hashable, CaseIterable, Identifiable
             return .title2
         case .medium:
             return .title1
-        case .large,
-             .extraLarge:
+        case .extraLarge,
+             .large:
             return .largeTitle
         }
     }

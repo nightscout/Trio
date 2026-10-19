@@ -453,6 +453,70 @@
 		BD1179322F4E22C100F90001 /* CriticalAlertAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179312F4E22C100F90001 /* CriticalAlertAudioPlayer.swift */; };
 		CAF300000000000000000002 /* CriticalAlertAlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF300000000000000000001 /* CriticalAlertAlarmScheduler.swift */; };
 		CAF200000000000000000000 /* Trio/Resources/Sounds/alarm.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000000 /* Trio/Resources/Sounds/alarm.caf */; };
+		CAF500000000000000000001 /* Trio/Resources/Sounds/acoustic_cr_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000000 /* Trio/Resources/Sounds/acoustic_cr_harsh.caf */; };
+		CAF500000000000000000003 /* Trio/Resources/Sounds/acoustic_cr_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000002 /* Trio/Resources/Sounds/acoustic_cr_medium.caf */; };
+		CAF500000000000000000005 /* Trio/Resources/Sounds/acoustic_cr_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000004 /* Trio/Resources/Sounds/acoustic_cr_mild.caf */; };
+		CAF500000000000000000007 /* Trio/Resources/Sounds/acoustic_dcr_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000006 /* Trio/Resources/Sounds/acoustic_dcr_harsh.caf */; };
+		CAF500000000000000000009 /* Trio/Resources/Sounds/acoustic_dcr_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000008 /* Trio/Resources/Sounds/acoustic_dcr_medium.caf */; };
+		CAF50000000000000000000B /* Trio/Resources/Sounds/acoustic_dcr_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000000A /* Trio/Resources/Sounds/acoustic_dcr_mild.caf */; };
+		CAF50000000000000000000D /* Trio/Resources/Sounds/acoustic_dts_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000000C /* Trio/Resources/Sounds/acoustic_dts_harsh.caf */; };
+		CAF50000000000000000000F /* Trio/Resources/Sounds/acoustic_dts_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000000E /* Trio/Resources/Sounds/acoustic_dts_medium.caf */; };
+		CAF500000000000000000011 /* Trio/Resources/Sounds/acoustic_dts_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000010 /* Trio/Resources/Sounds/acoustic_dts_mild.caf */; };
+		CAF500000000000000000013 /* Trio/Resources/Sounds/acoustic_hg_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000012 /* Trio/Resources/Sounds/acoustic_hg_harsh.caf */; };
+		CAF500000000000000000015 /* Trio/Resources/Sounds/acoustic_hg_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000014 /* Trio/Resources/Sounds/acoustic_hg_medium.caf */; };
+		CAF500000000000000000017 /* Trio/Resources/Sounds/acoustic_hg_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000016 /* Trio/Resources/Sounds/acoustic_hg_mild.caf */; };
+		CAF500000000000000000019 /* Trio/Resources/Sounds/acoustic_lg_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000018 /* Trio/Resources/Sounds/acoustic_lg_harsh.caf */; };
+		CAF50000000000000000001B /* Trio/Resources/Sounds/acoustic_lg_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000001A /* Trio/Resources/Sounds/acoustic_lg_medium.caf */; };
+		CAF50000000000000000001D /* Trio/Resources/Sounds/acoustic_lg_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000001C /* Trio/Resources/Sounds/acoustic_lg_mild.caf */; };
+		CAF50000000000000000001F /* Trio/Resources/Sounds/acoustic_lgs_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000001E /* Trio/Resources/Sounds/acoustic_lgs_harsh.caf */; };
+		CAF500000000000000000021 /* Trio/Resources/Sounds/acoustic_lgs_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000020 /* Trio/Resources/Sounds/acoustic_lgs_medium.caf */; };
+		CAF500000000000000000023 /* Trio/Resources/Sounds/acoustic_lgs_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000022 /* Trio/Resources/Sounds/acoustic_lgs_mild.caf */; };
+		CAF500000000000000000025 /* Trio/Resources/Sounds/acoustic_ulg_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000024 /* Trio/Resources/Sounds/acoustic_ulg_harsh.caf */; };
+		CAF500000000000000000027 /* Trio/Resources/Sounds/acoustic_ulg_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000026 /* Trio/Resources/Sounds/acoustic_ulg_medium.caf */; };
+		CAF500000000000000000029 /* Trio/Resources/Sounds/acoustic_ulg_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000028 /* Trio/Resources/Sounds/acoustic_ulg_mild.caf */; };
+		CAF50000000000000000002B /* Trio/Resources/Sounds/electronic_cr_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000002A /* Trio/Resources/Sounds/electronic_cr_harsh.caf */; };
+		CAF50000000000000000002D /* Trio/Resources/Sounds/electronic_cr_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000002C /* Trio/Resources/Sounds/electronic_cr_medium.caf */; };
+		CAF50000000000000000002F /* Trio/Resources/Sounds/electronic_cr_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000002E /* Trio/Resources/Sounds/electronic_cr_mild.caf */; };
+		CAF500000000000000000031 /* Trio/Resources/Sounds/electronic_dcr_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000030 /* Trio/Resources/Sounds/electronic_dcr_harsh.caf */; };
+		CAF500000000000000000033 /* Trio/Resources/Sounds/electronic_dcr_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000032 /* Trio/Resources/Sounds/electronic_dcr_medium.caf */; };
+		CAF500000000000000000035 /* Trio/Resources/Sounds/electronic_dcr_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000034 /* Trio/Resources/Sounds/electronic_dcr_mild.caf */; };
+		CAF500000000000000000037 /* Trio/Resources/Sounds/electronic_dts_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000036 /* Trio/Resources/Sounds/electronic_dts_harsh.caf */; };
+		CAF500000000000000000039 /* Trio/Resources/Sounds/electronic_dts_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000038 /* Trio/Resources/Sounds/electronic_dts_medium.caf */; };
+		CAF50000000000000000003B /* Trio/Resources/Sounds/electronic_dts_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000003A /* Trio/Resources/Sounds/electronic_dts_mild.caf */; };
+		CAF50000000000000000003D /* Trio/Resources/Sounds/electronic_hg_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000003C /* Trio/Resources/Sounds/electronic_hg_harsh.caf */; };
+		CAF50000000000000000003F /* Trio/Resources/Sounds/electronic_hg_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000003E /* Trio/Resources/Sounds/electronic_hg_medium.caf */; };
+		CAF500000000000000000041 /* Trio/Resources/Sounds/electronic_hg_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000040 /* Trio/Resources/Sounds/electronic_hg_mild.caf */; };
+		CAF500000000000000000043 /* Trio/Resources/Sounds/electronic_lg_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000042 /* Trio/Resources/Sounds/electronic_lg_harsh.caf */; };
+		CAF500000000000000000045 /* Trio/Resources/Sounds/electronic_lg_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000044 /* Trio/Resources/Sounds/electronic_lg_medium.caf */; };
+		CAF500000000000000000047 /* Trio/Resources/Sounds/electronic_lg_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000046 /* Trio/Resources/Sounds/electronic_lg_mild.caf */; };
+		CAF500000000000000000049 /* Trio/Resources/Sounds/electronic_lgs_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000048 /* Trio/Resources/Sounds/electronic_lgs_harsh.caf */; };
+		CAF50000000000000000004B /* Trio/Resources/Sounds/electronic_lgs_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000004A /* Trio/Resources/Sounds/electronic_lgs_medium.caf */; };
+		CAF50000000000000000004D /* Trio/Resources/Sounds/electronic_lgs_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000004C /* Trio/Resources/Sounds/electronic_lgs_mild.caf */; };
+		CAF50000000000000000004F /* Trio/Resources/Sounds/electronic_ulg_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000004E /* Trio/Resources/Sounds/electronic_ulg_harsh.caf */; };
+		CAF500000000000000000051 /* Trio/Resources/Sounds/electronic_ulg_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000050 /* Trio/Resources/Sounds/electronic_ulg_medium.caf */; };
+		CAF500000000000000000053 /* Trio/Resources/Sounds/electronic_ulg_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000052 /* Trio/Resources/Sounds/electronic_ulg_mild.caf */; };
+		CAF500000000000000000055 /* Trio/Resources/Sounds/glass_bell.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000054 /* Trio/Resources/Sounds/glass_bell.caf */; };
+		CAF500000000000000000057 /* Trio/Resources/Sounds/hard_saw_wave.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000056 /* Trio/Resources/Sounds/hard_saw_wave.caf */; };
+		CAF500000000000000000059 /* Trio/Resources/Sounds/harp.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000058 /* Trio/Resources/Sounds/harp.caf */; };
+		CAF50000000000000000005B /* Trio/Resources/Sounds/meow.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000005A /* Trio/Resources/Sounds/meow.caf */; };
+		CAF50000000000000000005D /* Trio/Resources/Sounds/open_can.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000005C /* Trio/Resources/Sounds/open_can.caf */; };
+		CAF50000000000000000005F /* Trio/Resources/Sounds/open_wrapper.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000005E /* Trio/Resources/Sounds/open_wrapper.caf */; };
+		CAF500000000000000000061 /* Trio/Resources/Sounds/saw_wave.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000060 /* Trio/Resources/Sounds/saw_wave.caf */; };
+		CAF500000000000000000063 /* Trio/Resources/Sounds/sine_wave.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000062 /* Trio/Resources/Sounds/sine_wave.caf */; };
+		CAF500000000000000000065 /* Trio/Resources/Sounds/voice_cr_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000064 /* Trio/Resources/Sounds/voice_cr_amy.caf */; };
+		CAF500000000000000000067 /* Trio/Resources/Sounds/voice_cr_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000066 /* Trio/Resources/Sounds/voice_cr_bryce.caf */; };
+		CAF500000000000000000069 /* Trio/Resources/Sounds/voice_dcr_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000068 /* Trio/Resources/Sounds/voice_dcr_amy.caf */; };
+		CAF50000000000000000006B /* Trio/Resources/Sounds/voice_dcr_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000006A /* Trio/Resources/Sounds/voice_dcr_bryce.caf */; };
+		CAF50000000000000000006D /* Trio/Resources/Sounds/voice_dts_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000006C /* Trio/Resources/Sounds/voice_dts_amy.caf */; };
+		CAF50000000000000000006F /* Trio/Resources/Sounds/voice_dts_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000006E /* Trio/Resources/Sounds/voice_dts_bryce.caf */; };
+		CAF500000000000000000071 /* Trio/Resources/Sounds/voice_hg_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000070 /* Trio/Resources/Sounds/voice_hg_amy.caf */; };
+		CAF500000000000000000073 /* Trio/Resources/Sounds/voice_hg_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000072 /* Trio/Resources/Sounds/voice_hg_bryce.caf */; };
+		CAF500000000000000000075 /* Trio/Resources/Sounds/voice_lg_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000074 /* Trio/Resources/Sounds/voice_lg_amy.caf */; };
+		CAF500000000000000000077 /* Trio/Resources/Sounds/voice_lg_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000076 /* Trio/Resources/Sounds/voice_lg_bryce.caf */; };
+		CAF500000000000000000079 /* Trio/Resources/Sounds/voice_lgs_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF500000000000000000078 /* Trio/Resources/Sounds/voice_lgs_amy.caf */; };
+		CAF50000000000000000007B /* Trio/Resources/Sounds/voice_lgs_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000007A /* Trio/Resources/Sounds/voice_lgs_bryce.caf */; };
+		CAF50000000000000000007D /* Trio/Resources/Sounds/voice_ulg_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000007C /* Trio/Resources/Sounds/voice_ulg_amy.caf */; };
+		CAF50000000000000000007F /* Trio/Resources/Sounds/voice_ulg_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000007E /* Trio/Resources/Sounds/voice_ulg_bryce.caf */; };
 		CAF200000000000000000001 /* Trio/Resources/Sounds/bloom.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000001 /* Trio/Resources/Sounds/bloom.caf */; };
 		CAF200000000000000000002 /* Trio/Resources/Sounds/bloop.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000002 /* Trio/Resources/Sounds/bloop.caf */; };
 		CAF200000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf */; };
@@ -508,6 +572,7 @@
 		6D58D168F03780DA23CB2E52 /* QuickPickTreatmentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7DA23B64976670AC36D9E84 /* QuickPickTreatmentsTests.swift */; };
 		4A3C7DA31A04D14F83DC2957 /* CGMSensorStateLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71A58E19DE23455CB842C50C /* CGMSensorStateLogTests.swift */; };
 		BD11A001000000000000A003 /* DeviceAlertsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */; };
+		CAF600000000000000000002 /* AlarmSoundCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF600000000000000000001 /* AlarmSoundCatalogTests.swift */; };
 		BD11A001000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */; };
 		BD11A001000000000000A007 /* GlucoseAlertConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A007 /* GlucoseAlertConfigurationTests.swift */; };
 		BD11A001000000000000A008 /* GlucoseAlertTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A008 /* GlucoseAlertTests.swift */; };
@@ -1551,6 +1616,70 @@
 		BD1179312F4E22C100F90001 /* CriticalAlertAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalAlertAudioPlayer.swift; sourceTree = "<group>"; };
 		CAF300000000000000000001 /* CriticalAlertAlarmScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalAlertAlarmScheduler.swift; sourceTree = "<group>"; };
 		CAF100000000000000000000 /* Trio/Resources/Sounds/alarm.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/alarm.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000000 /* Trio/Resources/Sounds/acoustic_cr_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_cr_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000002 /* Trio/Resources/Sounds/acoustic_cr_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_cr_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000004 /* Trio/Resources/Sounds/acoustic_cr_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_cr_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000006 /* Trio/Resources/Sounds/acoustic_dcr_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_dcr_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000008 /* Trio/Resources/Sounds/acoustic_dcr_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_dcr_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000000A /* Trio/Resources/Sounds/acoustic_dcr_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_dcr_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000000C /* Trio/Resources/Sounds/acoustic_dts_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_dts_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000000E /* Trio/Resources/Sounds/acoustic_dts_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_dts_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000010 /* Trio/Resources/Sounds/acoustic_dts_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_dts_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000012 /* Trio/Resources/Sounds/acoustic_hg_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_hg_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000014 /* Trio/Resources/Sounds/acoustic_hg_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_hg_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000016 /* Trio/Resources/Sounds/acoustic_hg_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_hg_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000018 /* Trio/Resources/Sounds/acoustic_lg_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_lg_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000001A /* Trio/Resources/Sounds/acoustic_lg_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_lg_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000001C /* Trio/Resources/Sounds/acoustic_lg_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_lg_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000001E /* Trio/Resources/Sounds/acoustic_lgs_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_lgs_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000020 /* Trio/Resources/Sounds/acoustic_lgs_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_lgs_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000022 /* Trio/Resources/Sounds/acoustic_lgs_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_lgs_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000024 /* Trio/Resources/Sounds/acoustic_ulg_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_ulg_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000026 /* Trio/Resources/Sounds/acoustic_ulg_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_ulg_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000028 /* Trio/Resources/Sounds/acoustic_ulg_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_ulg_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000002A /* Trio/Resources/Sounds/electronic_cr_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_cr_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000002C /* Trio/Resources/Sounds/electronic_cr_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_cr_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000002E /* Trio/Resources/Sounds/electronic_cr_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_cr_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000030 /* Trio/Resources/Sounds/electronic_dcr_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_dcr_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000032 /* Trio/Resources/Sounds/electronic_dcr_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_dcr_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000034 /* Trio/Resources/Sounds/electronic_dcr_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_dcr_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000036 /* Trio/Resources/Sounds/electronic_dts_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_dts_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000038 /* Trio/Resources/Sounds/electronic_dts_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_dts_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000003A /* Trio/Resources/Sounds/electronic_dts_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_dts_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000003C /* Trio/Resources/Sounds/electronic_hg_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_hg_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000003E /* Trio/Resources/Sounds/electronic_hg_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_hg_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000040 /* Trio/Resources/Sounds/electronic_hg_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_hg_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000042 /* Trio/Resources/Sounds/electronic_lg_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_lg_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000044 /* Trio/Resources/Sounds/electronic_lg_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_lg_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000046 /* Trio/Resources/Sounds/electronic_lg_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_lg_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000048 /* Trio/Resources/Sounds/electronic_lgs_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_lgs_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000004A /* Trio/Resources/Sounds/electronic_lgs_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_lgs_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000004C /* Trio/Resources/Sounds/electronic_lgs_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_lgs_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000004E /* Trio/Resources/Sounds/electronic_ulg_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_ulg_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000050 /* Trio/Resources/Sounds/electronic_ulg_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_ulg_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000052 /* Trio/Resources/Sounds/electronic_ulg_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_ulg_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000054 /* Trio/Resources/Sounds/glass_bell.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/glass_bell.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000056 /* Trio/Resources/Sounds/hard_saw_wave.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/hard_saw_wave.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000058 /* Trio/Resources/Sounds/harp.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/harp.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000005A /* Trio/Resources/Sounds/meow.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/meow.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000005C /* Trio/Resources/Sounds/open_can.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/open_can.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000005E /* Trio/Resources/Sounds/open_wrapper.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/open_wrapper.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000060 /* Trio/Resources/Sounds/saw_wave.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/saw_wave.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000062 /* Trio/Resources/Sounds/sine_wave.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/sine_wave.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000064 /* Trio/Resources/Sounds/voice_cr_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_cr_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000066 /* Trio/Resources/Sounds/voice_cr_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_cr_bryce.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000068 /* Trio/Resources/Sounds/voice_dcr_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_dcr_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000006A /* Trio/Resources/Sounds/voice_dcr_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_dcr_bryce.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000006C /* Trio/Resources/Sounds/voice_dts_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_dts_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000006E /* Trio/Resources/Sounds/voice_dts_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_dts_bryce.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000070 /* Trio/Resources/Sounds/voice_hg_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_hg_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000072 /* Trio/Resources/Sounds/voice_hg_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_hg_bryce.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000074 /* Trio/Resources/Sounds/voice_lg_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_lg_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000076 /* Trio/Resources/Sounds/voice_lg_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_lg_bryce.caf; sourceTree = SOURCE_ROOT; };
+		CAF500000000000000000078 /* Trio/Resources/Sounds/voice_lgs_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_lgs_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000007A /* Trio/Resources/Sounds/voice_lgs_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_lgs_bryce.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000007C /* Trio/Resources/Sounds/voice_ulg_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_ulg_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF50000000000000000007E /* Trio/Resources/Sounds/voice_ulg_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_ulg_bryce.caf; sourceTree = SOURCE_ROOT; };
 		CAF100000000000000000001 /* Trio/Resources/Sounds/bloom.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bloom.caf; sourceTree = SOURCE_ROOT; };
 		CAF100000000000000000002 /* Trio/Resources/Sounds/bloop.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bloop.caf; sourceTree = SOURCE_ROOT; };
 		CAF100000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bright_alarm.caf; sourceTree = SOURCE_ROOT; };
@@ -1606,6 +1735,7 @@
 		C7DA23B64976670AC36D9E84 /* QuickPickTreatmentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickTreatmentsTests.swift; sourceTree = "<group>"; };
 		71A58E19DE23455CB842C50C /* CGMSensorStateLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMSensorStateLogTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAlertsStoreTests.swift; sourceTree = "<group>"; };
+		CAF600000000000000000001 /* AlarmSoundCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSoundCatalogTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastedGlucoseEvaluatorTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A007 /* GlucoseAlertConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseAlertConfigurationTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A008 /* GlucoseAlertTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseAlertTests.swift; sourceTree = "<group>"; };
@@ -2692,6 +2822,70 @@
 			children = (
 				388E597125AD9CF10019842D /* json */,
 				CAF100000000000000000000 /* Trio/Resources/Sounds/alarm.caf */,
+				CAF500000000000000000000 /* Trio/Resources/Sounds/acoustic_cr_harsh.caf */,
+				CAF500000000000000000002 /* Trio/Resources/Sounds/acoustic_cr_medium.caf */,
+				CAF500000000000000000004 /* Trio/Resources/Sounds/acoustic_cr_mild.caf */,
+				CAF500000000000000000006 /* Trio/Resources/Sounds/acoustic_dcr_harsh.caf */,
+				CAF500000000000000000008 /* Trio/Resources/Sounds/acoustic_dcr_medium.caf */,
+				CAF50000000000000000000A /* Trio/Resources/Sounds/acoustic_dcr_mild.caf */,
+				CAF50000000000000000000C /* Trio/Resources/Sounds/acoustic_dts_harsh.caf */,
+				CAF50000000000000000000E /* Trio/Resources/Sounds/acoustic_dts_medium.caf */,
+				CAF500000000000000000010 /* Trio/Resources/Sounds/acoustic_dts_mild.caf */,
+				CAF500000000000000000012 /* Trio/Resources/Sounds/acoustic_hg_harsh.caf */,
+				CAF500000000000000000014 /* Trio/Resources/Sounds/acoustic_hg_medium.caf */,
+				CAF500000000000000000016 /* Trio/Resources/Sounds/acoustic_hg_mild.caf */,
+				CAF500000000000000000018 /* Trio/Resources/Sounds/acoustic_lg_harsh.caf */,
+				CAF50000000000000000001A /* Trio/Resources/Sounds/acoustic_lg_medium.caf */,
+				CAF50000000000000000001C /* Trio/Resources/Sounds/acoustic_lg_mild.caf */,
+				CAF50000000000000000001E /* Trio/Resources/Sounds/acoustic_lgs_harsh.caf */,
+				CAF500000000000000000020 /* Trio/Resources/Sounds/acoustic_lgs_medium.caf */,
+				CAF500000000000000000022 /* Trio/Resources/Sounds/acoustic_lgs_mild.caf */,
+				CAF500000000000000000024 /* Trio/Resources/Sounds/acoustic_ulg_harsh.caf */,
+				CAF500000000000000000026 /* Trio/Resources/Sounds/acoustic_ulg_medium.caf */,
+				CAF500000000000000000028 /* Trio/Resources/Sounds/acoustic_ulg_mild.caf */,
+				CAF50000000000000000002A /* Trio/Resources/Sounds/electronic_cr_harsh.caf */,
+				CAF50000000000000000002C /* Trio/Resources/Sounds/electronic_cr_medium.caf */,
+				CAF50000000000000000002E /* Trio/Resources/Sounds/electronic_cr_mild.caf */,
+				CAF500000000000000000030 /* Trio/Resources/Sounds/electronic_dcr_harsh.caf */,
+				CAF500000000000000000032 /* Trio/Resources/Sounds/electronic_dcr_medium.caf */,
+				CAF500000000000000000034 /* Trio/Resources/Sounds/electronic_dcr_mild.caf */,
+				CAF500000000000000000036 /* Trio/Resources/Sounds/electronic_dts_harsh.caf */,
+				CAF500000000000000000038 /* Trio/Resources/Sounds/electronic_dts_medium.caf */,
+				CAF50000000000000000003A /* Trio/Resources/Sounds/electronic_dts_mild.caf */,
+				CAF50000000000000000003C /* Trio/Resources/Sounds/electronic_hg_harsh.caf */,
+				CAF50000000000000000003E /* Trio/Resources/Sounds/electronic_hg_medium.caf */,
+				CAF500000000000000000040 /* Trio/Resources/Sounds/electronic_hg_mild.caf */,
+				CAF500000000000000000042 /* Trio/Resources/Sounds/electronic_lg_harsh.caf */,
+				CAF500000000000000000044 /* Trio/Resources/Sounds/electronic_lg_medium.caf */,
+				CAF500000000000000000046 /* Trio/Resources/Sounds/electronic_lg_mild.caf */,
+				CAF500000000000000000048 /* Trio/Resources/Sounds/electronic_lgs_harsh.caf */,
+				CAF50000000000000000004A /* Trio/Resources/Sounds/electronic_lgs_medium.caf */,
+				CAF50000000000000000004C /* Trio/Resources/Sounds/electronic_lgs_mild.caf */,
+				CAF50000000000000000004E /* Trio/Resources/Sounds/electronic_ulg_harsh.caf */,
+				CAF500000000000000000050 /* Trio/Resources/Sounds/electronic_ulg_medium.caf */,
+				CAF500000000000000000052 /* Trio/Resources/Sounds/electronic_ulg_mild.caf */,
+				CAF500000000000000000054 /* Trio/Resources/Sounds/glass_bell.caf */,
+				CAF500000000000000000056 /* Trio/Resources/Sounds/hard_saw_wave.caf */,
+				CAF500000000000000000058 /* Trio/Resources/Sounds/harp.caf */,
+				CAF50000000000000000005A /* Trio/Resources/Sounds/meow.caf */,
+				CAF50000000000000000005C /* Trio/Resources/Sounds/open_can.caf */,
+				CAF50000000000000000005E /* Trio/Resources/Sounds/open_wrapper.caf */,
+				CAF500000000000000000060 /* Trio/Resources/Sounds/saw_wave.caf */,
+				CAF500000000000000000062 /* Trio/Resources/Sounds/sine_wave.caf */,
+				CAF500000000000000000064 /* Trio/Resources/Sounds/voice_cr_amy.caf */,
+				CAF500000000000000000066 /* Trio/Resources/Sounds/voice_cr_bryce.caf */,
+				CAF500000000000000000068 /* Trio/Resources/Sounds/voice_dcr_amy.caf */,
+				CAF50000000000000000006A /* Trio/Resources/Sounds/voice_dcr_bryce.caf */,
+				CAF50000000000000000006C /* Trio/Resources/Sounds/voice_dts_amy.caf */,
+				CAF50000000000000000006E /* Trio/Resources/Sounds/voice_dts_bryce.caf */,
+				CAF500000000000000000070 /* Trio/Resources/Sounds/voice_hg_amy.caf */,
+				CAF500000000000000000072 /* Trio/Resources/Sounds/voice_hg_bryce.caf */,
+				CAF500000000000000000074 /* Trio/Resources/Sounds/voice_lg_amy.caf */,
+				CAF500000000000000000076 /* Trio/Resources/Sounds/voice_lg_bryce.caf */,
+				CAF500000000000000000078 /* Trio/Resources/Sounds/voice_lgs_amy.caf */,
+				CAF50000000000000000007A /* Trio/Resources/Sounds/voice_lgs_bryce.caf */,
+				CAF50000000000000000007C /* Trio/Resources/Sounds/voice_ulg_amy.caf */,
+				CAF50000000000000000007E /* Trio/Resources/Sounds/voice_ulg_bryce.caf */,
 				CAF100000000000000000001 /* Trio/Resources/Sounds/bloom.caf */,
 				CAF100000000000000000002 /* Trio/Resources/Sounds/bloop.caf */,
 				CAF100000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf */,
@@ -3253,6 +3447,7 @@
 				BD11A000000000000000A007 /* GlucoseAlertConfigurationTests.swift */,
 				BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */,
 				BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */,
+				CAF600000000000000000001 /* AlarmSoundCatalogTests.swift */,
 				3B997DCE2DC00A3A006B6BB2 /* JSONImporterTests.swift */,
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
 				DC01A00D2E9F100000000004 /* DeviceCatalogTests.swift */,
@@ -5082,6 +5277,70 @@
 				19DA48E829CD339B00EEA1E7 /* Assets.xcassets in Resources */,
 				8A91342A2D63D9A1007F8874 /* Localizable.xcstrings in Resources */,
 				CAF200000000000000000000 /* Trio/Resources/Sounds/alarm.caf in Resources */,
+				CAF500000000000000000001 /* Trio/Resources/Sounds/acoustic_cr_harsh.caf in Resources */,
+				CAF500000000000000000003 /* Trio/Resources/Sounds/acoustic_cr_medium.caf in Resources */,
+				CAF500000000000000000005 /* Trio/Resources/Sounds/acoustic_cr_mild.caf in Resources */,
+				CAF500000000000000000007 /* Trio/Resources/Sounds/acoustic_dcr_harsh.caf in Resources */,
+				CAF500000000000000000009 /* Trio/Resources/Sounds/acoustic_dcr_medium.caf in Resources */,
+				CAF50000000000000000000B /* Trio/Resources/Sounds/acoustic_dcr_mild.caf in Resources */,
+				CAF50000000000000000000D /* Trio/Resources/Sounds/acoustic_dts_harsh.caf in Resources */,
+				CAF50000000000000000000F /* Trio/Resources/Sounds/acoustic_dts_medium.caf in Resources */,
+				CAF500000000000000000011 /* Trio/Resources/Sounds/acoustic_dts_mild.caf in Resources */,
+				CAF500000000000000000013 /* Trio/Resources/Sounds/acoustic_hg_harsh.caf in Resources */,
+				CAF500000000000000000015 /* Trio/Resources/Sounds/acoustic_hg_medium.caf in Resources */,
+				CAF500000000000000000017 /* Trio/Resources/Sounds/acoustic_hg_mild.caf in Resources */,
+				CAF500000000000000000019 /* Trio/Resources/Sounds/acoustic_lg_harsh.caf in Resources */,
+				CAF50000000000000000001B /* Trio/Resources/Sounds/acoustic_lg_medium.caf in Resources */,
+				CAF50000000000000000001D /* Trio/Resources/Sounds/acoustic_lg_mild.caf in Resources */,
+				CAF50000000000000000001F /* Trio/Resources/Sounds/acoustic_lgs_harsh.caf in Resources */,
+				CAF500000000000000000021 /* Trio/Resources/Sounds/acoustic_lgs_medium.caf in Resources */,
+				CAF500000000000000000023 /* Trio/Resources/Sounds/acoustic_lgs_mild.caf in Resources */,
+				CAF500000000000000000025 /* Trio/Resources/Sounds/acoustic_ulg_harsh.caf in Resources */,
+				CAF500000000000000000027 /* Trio/Resources/Sounds/acoustic_ulg_medium.caf in Resources */,
+				CAF500000000000000000029 /* Trio/Resources/Sounds/acoustic_ulg_mild.caf in Resources */,
+				CAF50000000000000000002B /* Trio/Resources/Sounds/electronic_cr_harsh.caf in Resources */,
+				CAF50000000000000000002D /* Trio/Resources/Sounds/electronic_cr_medium.caf in Resources */,
+				CAF50000000000000000002F /* Trio/Resources/Sounds/electronic_cr_mild.caf in Resources */,
+				CAF500000000000000000031 /* Trio/Resources/Sounds/electronic_dcr_harsh.caf in Resources */,
+				CAF500000000000000000033 /* Trio/Resources/Sounds/electronic_dcr_medium.caf in Resources */,
+				CAF500000000000000000035 /* Trio/Resources/Sounds/electronic_dcr_mild.caf in Resources */,
+				CAF500000000000000000037 /* Trio/Resources/Sounds/electronic_dts_harsh.caf in Resources */,
+				CAF500000000000000000039 /* Trio/Resources/Sounds/electronic_dts_medium.caf in Resources */,
+				CAF50000000000000000003B /* Trio/Resources/Sounds/electronic_dts_mild.caf in Resources */,
+				CAF50000000000000000003D /* Trio/Resources/Sounds/electronic_hg_harsh.caf in Resources */,
+				CAF50000000000000000003F /* Trio/Resources/Sounds/electronic_hg_medium.caf in Resources */,
+				CAF500000000000000000041 /* Trio/Resources/Sounds/electronic_hg_mild.caf in Resources */,
+				CAF500000000000000000043 /* Trio/Resources/Sounds/electronic_lg_harsh.caf in Resources */,
+				CAF500000000000000000045 /* Trio/Resources/Sounds/electronic_lg_medium.caf in Resources */,
+				CAF500000000000000000047 /* Trio/Resources/Sounds/electronic_lg_mild.caf in Resources */,
+				CAF500000000000000000049 /* Trio/Resources/Sounds/electronic_lgs_harsh.caf in Resources */,
+				CAF50000000000000000004B /* Trio/Resources/Sounds/electronic_lgs_medium.caf in Resources */,
+				CAF50000000000000000004D /* Trio/Resources/Sounds/electronic_lgs_mild.caf in Resources */,
+				CAF50000000000000000004F /* Trio/Resources/Sounds/electronic_ulg_harsh.caf in Resources */,
+				CAF500000000000000000051 /* Trio/Resources/Sounds/electronic_ulg_medium.caf in Resources */,
+				CAF500000000000000000053 /* Trio/Resources/Sounds/electronic_ulg_mild.caf in Resources */,
+				CAF500000000000000000055 /* Trio/Resources/Sounds/glass_bell.caf in Resources */,
+				CAF500000000000000000057 /* Trio/Resources/Sounds/hard_saw_wave.caf in Resources */,
+				CAF500000000000000000059 /* Trio/Resources/Sounds/harp.caf in Resources */,
+				CAF50000000000000000005B /* Trio/Resources/Sounds/meow.caf in Resources */,
+				CAF50000000000000000005D /* Trio/Resources/Sounds/open_can.caf in Resources */,
+				CAF50000000000000000005F /* Trio/Resources/Sounds/open_wrapper.caf in Resources */,
+				CAF500000000000000000061 /* Trio/Resources/Sounds/saw_wave.caf in Resources */,
+				CAF500000000000000000063 /* Trio/Resources/Sounds/sine_wave.caf in Resources */,
+				CAF500000000000000000065 /* Trio/Resources/Sounds/voice_cr_amy.caf in Resources */,
+				CAF500000000000000000067 /* Trio/Resources/Sounds/voice_cr_bryce.caf in Resources */,
+				CAF500000000000000000069 /* Trio/Resources/Sounds/voice_dcr_amy.caf in Resources */,
+				CAF50000000000000000006B /* Trio/Resources/Sounds/voice_dcr_bryce.caf in Resources */,
+				CAF50000000000000000006D /* Trio/Resources/Sounds/voice_dts_amy.caf in Resources */,
+				CAF50000000000000000006F /* Trio/Resources/Sounds/voice_dts_bryce.caf in Resources */,
+				CAF500000000000000000071 /* Trio/Resources/Sounds/voice_hg_amy.caf in Resources */,
+				CAF500000000000000000073 /* Trio/Resources/Sounds/voice_hg_bryce.caf in Resources */,
+				CAF500000000000000000075 /* Trio/Resources/Sounds/voice_lg_amy.caf in Resources */,
+				CAF500000000000000000077 /* Trio/Resources/Sounds/voice_lg_bryce.caf in Resources */,
+				CAF500000000000000000079 /* Trio/Resources/Sounds/voice_lgs_amy.caf in Resources */,
+				CAF50000000000000000007B /* Trio/Resources/Sounds/voice_lgs_bryce.caf in Resources */,
+				CAF50000000000000000007D /* Trio/Resources/Sounds/voice_ulg_amy.caf in Resources */,
+				CAF50000000000000000007F /* Trio/Resources/Sounds/voice_ulg_bryce.caf in Resources */,
 				CAF200000000000000000001 /* Trio/Resources/Sounds/bloom.caf in Resources */,
 				CAF200000000000000000002 /* Trio/Resources/Sounds/bloop.caf in Resources */,
 				CAF200000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf in Resources */,
@@ -6080,6 +6339,7 @@
 				BD11A001000000000000A007 /* GlucoseAlertConfigurationTests.swift in Sources */,
 				BD11A001000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift in Sources */,
 				BD11A001000000000000A003 /* DeviceAlertsStoreTests.swift in Sources */,
+				CAF600000000000000000002 /* AlarmSoundCatalogTests.swift in Sources */,
 				3B8221B22E5882E300585156 /* DetermineBasalEarlyExitTests.swift in Sources */,
 				3BA643EA2ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift in Sources */,
 				BD8FC0602D6619DB00B95AED /* CarbsStorageTests.swift in Sources */,
