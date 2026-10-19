@@ -21,7 +21,7 @@ extension TrioRemoteControl {
             return
         }
 
-        debug(.remoteControl, "Enacting bolus command with amount: \(bolusAmount) units.")
+        debug(.remote, "Enacting remote bolus of \(bolusAmount) U")
 
         guard let apsManager = await TrioApp.resolver.resolve(APSManager.self) else {
             await logError(

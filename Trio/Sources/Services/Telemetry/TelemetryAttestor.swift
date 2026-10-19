@@ -96,7 +96,7 @@ final class TelemetryAttestor: Injectable {
         let keyIDPrefix = String(keyID.prefix(8))
         debug(
             .telemetry,
-            "attestKey input: isSupported=\(service.isSupported) keyID.count=\(keyID.count) keyID.prefix=\(keyIDPrefix) hash.count=\(clientDataHash.count) challenge.count=\(challenge.count) bundle=\(Bundle.main.bundleIdentifier ?? "nil")"
+            "Attesting key \(keyIDPrefix) (\(keyID.count) chars), supported \(service.isSupported), hash \(clientDataHash.count) bytes, challenge \(challenge.count) chars, bundle \(Bundle.main.bundleIdentifier ?? "unknown")"
         )
 
         let attestationCBOR: Data
@@ -122,14 +122,14 @@ final class TelemetryAttestor: Injectable {
                      .invalidKey:
                     keychain.removeObject(forKey: Self.keyIDStorageKey)
                     let reason = dcError.code == .invalidKey ? "invalidKey" : "invalidInput"
-                    debug(.telemetry, "attestKey \(reason): discarded keyID; will regenerate next cycle")
+                    debug(.telemetry, "App Attest key rejected (\(reason)), discarding it")
                 case .serverUnavailable:
-                    debug(.telemetry, "attestKey serverUnavailable: Apple App Attest backend transient — will retry next cycle")
+                    debug(.telemetry, "App Attest server unavailable, retrying next cycle")
                 default:
                     break
                 }
             }
-            debug(.telemetry, "attestKey failed: \(error.localizedDescription)")
+            debug(.telemetry, "App Attest key attestation failed")
             throw AttestError.attestationFailed(error)
         }
 
@@ -167,11 +167,11 @@ final class TelemetryAttestor: Injectable {
         case 200,
              201:
             keychain.setValue(true, forKey: Self.registeredStorageKey)
-            debug(.telemetry, "register ok status=\(http.statusCode)")
+            info(.telemetry, "Registered with telemetry server")
         case 403:
             // app_id rejected. Sticky — flag the install and surface to caller.
             PropertyPersistentFlags.shared.telemetryAttestForbidden = true
-            debug(.telemetry, "register forbidden — app_id=\(appID) rejected; no further attempts")
+            warning(.telemetry, "Registration rejected with HTTP 403, no further attempts")
             throw AttestError.forbidden
         case 400 ..< 500:
             throw AttestError.clientError(http.statusCode)
@@ -202,7 +202,7 @@ final class TelemetryAttestor: Injectable {
         keychain.removeObject(forKey: Self.keyIDStorageKey)
         keychain.removeObject(forKey: Self.registeredStorageKey)
         PropertyPersistentFlags.shared.telemetryAttestForbidden = false
-        debug(.telemetry, "reset App Attest state: keyID, registered flag, and forbidden flag cleared")
+        info(.telemetry, "App Attest state reset")
     }
 
     // MARK: - Per-ping assertion
@@ -260,7 +260,7 @@ final class TelemetryAttestor: Injectable {
             throw AttestError.keyGenerationFailed(error)
         }
         keychain.setValue(newKey, forKey: Self.keyIDStorageKey)
-        debug(.telemetry, "generated new App Attest keyID")
+        debug(.telemetry, "Generated new App Attest key")
         return newKey
     }
 
