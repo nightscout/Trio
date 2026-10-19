@@ -299,6 +299,14 @@ struct CurrentGlucoseView: View {
         return (status.imageName, oneLine, color)
     }
 
+    /// A status the user has to act on — sensor issue, signal loss, failure.
+    /// Not gated by sensor age: it is the reason the readings stopped making
+    /// sense, whether the sensor is on day two or day ten.
+    private var statusDemandsAttention: Bool {
+        guard let status = cgmStatus else { return false }
+        return status.status != .normal
+    }
+
     /// Arc shown for warmup, the last 48 h of a time-based sensor (incl.
     /// grace period), or any non-normal state from a battery-based manager.
     private var shouldShowArc: Bool {
@@ -336,14 +344,17 @@ struct CurrentGlucoseView: View {
         if isStabilizing {
             return ("Stabilizing", .orange, "hourglass")
         }
-        guard shouldShowArc else { return nil }
         if let status = cgmStatus {
+            // Only the normal tier is gated to the arc's 48h window; a warning
+            // or critical status has to show whatever the sensor's age.
+            guard statusDemandsAttention || shouldShowArc else { return nil }
             // LibreLoop's cgmStatusHighlight uses "\n" to split two-line pill
             // labels ("Signal\nLoss", "Sensor\nWarmup"); we render in a
             // single-line tag, so collapse newlines to spaces here.
             let oneLine = status.localizedMessage.replacingOccurrences(of: "\n", with: " ")
             return (oneLine, theme(for: status.status), nil)
         }
+        guard shouldShowArc else { return nil }
         if let expiresAt = cgmSensorExpiresAt {
             let text = SensorRemainingTimeFormatter.format(until: expiresAt)
             let theme: SensorStatusTagTheme
