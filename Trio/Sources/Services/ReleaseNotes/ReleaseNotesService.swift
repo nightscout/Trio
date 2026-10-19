@@ -141,7 +141,7 @@ import Foundation
         do {
             return try ReleaseNotes.decodeBundled(from: data)
         } catch {
-            debug(.default, "Failed to decode bundled release notes: \(error)")
+            warning(.lifecycle, "Failed to decode bundled release notes", error: error)
             return []
         }
     }
@@ -165,7 +165,7 @@ import Foundation
 
             guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
                 let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-                debug(.default, "Release list fetch returned status \(status)")
+                warning(.lifecycle, "Release list fetch failed with HTTP \(status)")
                 return []
             }
 
@@ -179,7 +179,7 @@ import Foundation
                         .version == installedVersion }
                 .sorted { Self.versionComponents($1.version).lexicographicallyPrecedes(Self.versionComponents($0.version)) }
         } catch {
-            debug(.default, "Failed to fetch release list: \(error)")
+            warning(.lifecycle, "Release list fetch failed", error: error)
             return []
         }
     }
