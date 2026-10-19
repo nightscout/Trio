@@ -16,11 +16,9 @@ import UIKit
         backgroundTaskID = startBackgroundTask(withName: "Restart Live Activity")
 
         guard backgroundTaskID != .invalid else {
-            debug(.default, "Failed to start background task.")
+            warning(.liveActivity, "Live Activity restart skipped, background task could not start")
             return
         }
-
-        debug(.default, "Background task started: \(backgroundTaskID)")
 
         await liveActivityManager.restartActivityFromLiveActivityIntent()
 
