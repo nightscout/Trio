@@ -35,14 +35,14 @@ final class LogExport: Injectable {
     private let appLog: () -> any LogSink
     private let managers: (@MainActor() -> (pump: DeviceManager?, cgm: DeviceManager?))?
     private let traceSubsystems: [String: [String]]
-    private let includesAlgorithm: Bool
+    private let coreDataStack: CoreDataStack?
     private let storedValues: SensitiveValues
 
     init(resolver: Resolver) {
         appLog = { TrioLogger.sink }
         managers = nil
         traceSubsystems = OSLogCapture.subsystems
-        includesAlgorithm = true
+        coreDataStack = CoreDataStack.shared
         storedValues = SensitiveValues()
         injectServices(resolver)
     }
@@ -52,12 +52,13 @@ final class LogExport: Injectable {
         deviceLogStore: DeviceLogStore,
         pump: DeviceManager?,
         cgm: DeviceManager?,
-        storedValues: SensitiveValues = SensitiveValues()
+        storedValues: SensitiveValues = SensitiveValues(),
+        coreDataStack: CoreDataStack? = nil
     ) {
         self.appLog = { appLog }
         managers = { (pump, cgm) }
         traceSubsystems = [:]
-        includesAlgorithm = false
+        self.coreDataStack = coreDataStack
         self.storedValues = storedValues
         self.deviceLogStore = deviceLogStore
     }
@@ -67,6 +68,7 @@ final class LogExport: Injectable {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         do {
             let file = try await writeLog(kind, days: days, into: directory.appendingPathComponent("log", isDirectory: true))
+            try Task.checkCancellation()
             let archive = try Self.zip(file, in: directory)
             await backgroundTask.end()
             return archive
@@ -133,8 +135,8 @@ final class LogExport: Injectable {
         let appLog = kind == .all ? self.appLog() : nil
         await appLog?.flush()
         let traceStore = traceLabels.isEmpty ? nil : try? OSLogStore(scope: .currentProcessIdentifier)
-        let redactor = Redactor(exactValues: await sensitiveValues(in: window))
-        let algorithm = kind == .all && includesAlgorithm
+        let redactor = Redactor(exactValues: try await sensitiveValues(in: window))
+        let algorithmStack = kind == .all ? coreDataStack : nil
 
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let url = directory.appendingPathComponent("\(header.title) \(Self.fileStamp(now)).txt")
@@ -151,8 +153,8 @@ final class LogExport: Injectable {
             if let traceStore {
                 lines += OSLogCapture.lines(from: traceStore, sources: traceLabels, in: slice)
             }
-            if algorithm {
-                lines += await Self.algorithmLines(in: slice)
+            if let algorithmStack {
+                lines += await Self.algorithmLines(in: slice, from: algorithmStack)
             }
             return lines
         }
@@ -197,8 +199,8 @@ final class LogExport: Injectable {
         LogLine(date: entry.timestamp, source: source, text: "[\(entry.type.rawValue)] \(entry.message)")
     }
 
-    private static func algorithmLines(in window: DateInterval) async -> [LogLine] {
-        let context = CoreDataStack.shared.newTaskContext()
+    static func algorithmLines(in window: DateInterval, from stack: CoreDataStack) async -> [LogLine] {
+        let context = stack.newTaskContext()
         context.name = "logExportDeterminations"
         do {
             return try await context.perform {
@@ -243,11 +245,12 @@ final class LogExport: Injectable {
         return alerts.filter { window.contains($0.issuedDate) }
     }
 
-    private func sensitiveValues(in window: DateInterval) async -> [Redactor.ExactValue] {
+    private func sensitiveValues(in window: DateInterval) async throws -> [Redactor.ExactValue] {
         var values = await currentSensitiveValues()
         // Devices replaced during the window are only known from the device log
         if let deviceLogStore {
             for slice in LogFileWriter.slices(of: window) {
+                try Task.checkCancellation()
                 for entry in await deviceLogStore.entries(in: slice) {
                     values.add(entry.deviceIdentifier, .device)
                 }

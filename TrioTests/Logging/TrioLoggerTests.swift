@@ -78,4 +78,15 @@ import Testing
         }
         #expect(sink.snapshot().map(\.message) == ["2", "3", "4"])
     }
+
+    @Test("Timestamps strictly increase in call order") func testIncreasingTimestamps() {
+        let records = capture {
+            for index in 0 ..< 5000 {
+                debug(.loop, "tick \(index)", printToConsole: false)
+            }
+        }
+        let stamps = records.filter { $0.message.hasPrefix("tick ") }.map(\.timestamp)
+        #expect(stamps.count == 5000)
+        #expect(zip(stamps, stamps.dropFirst()).allSatisfy { $0 < $1 })
+    }
 }

@@ -184,6 +184,7 @@ final class DeviceLogStore: @unchecked Sendable {
         }
         buffer.removeAll()
         deviceLog.purgeLogEntries(before: Date().addingTimeInterval(-maxAge))
+        FileManager.default.removeUnreadableStores(of: storageURL)
     }
 
     private func moveStoreAside() {
@@ -223,6 +224,21 @@ final class DeviceLogStore: @unchecked Sendable {
 }
 
 extension FileManager {
+    static let unreadableStoreMaxAge: TimeInterval = 7 * 24 * 60 * 60
+
+    // Stores moved aside as "<name>.unreadable-<epoch>"
+    func removeUnreadableStores(of url: URL) {
+        let directory = url.deletingLastPathComponent()
+        let names = (try? contentsOfDirectory(atPath: directory.path)) ?? []
+        for name in names where name.hasPrefix(url.lastPathComponent) {
+            guard let marker = name.range(of: ".unreadable-", options: .backwards),
+                  let stamp = TimeInterval(name[marker.upperBound...]),
+                  Date().timeIntervalSince1970 - stamp > Self.unreadableStoreMaxAge
+            else { continue }
+            try? removeItem(at: directory.appendingPathComponent(name))
+        }
+    }
+
     func isWritableStore(at url: URL) -> Bool {
         guard isWritableFile(atPath: url.deletingLastPathComponent().path) else { return false }
         return ["", "-wal", "-shm"].allSatisfy { suffix in

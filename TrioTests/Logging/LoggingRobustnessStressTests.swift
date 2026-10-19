@@ -429,9 +429,7 @@ private extension Duration {
         )
         print("STRESS: per-producer inversions \(outOfOrder) \(inversions)")
         #expect(duplicates == 0)
-        withKnownIssue("Seen once in five runs; records are stamped with the wall clock", isIntermittent: true) {
-            #expect(outOfOrder == 0)
-        }
+        #expect(outOfOrder == 0)
         #expect(followUpSeen == producers * followUp)
         #expect(burstStored > 0)
     }
@@ -984,9 +982,7 @@ private extension Duration {
         }
         let acceptedOrder = accepted.compactMap { $0.message.hasPrefix("duplicate ") ? Int($0.message.dropFirst(10)) : nil }
         #expect(duplicateOrder.sorted() == Array(0 ..< 200))
-        withKnownIssue("Equal timestamps come back in SQLite's order, not the order they were logged", isIntermittent: true) {
-            #expect(duplicateOrder == acceptedOrder)
-        }
+        #expect(duplicateOrder == acceptedOrder)
         print("STRESS: edge export \(data.count) bytes, \(expectedRecords.count) lines")
     }
 
@@ -1248,14 +1244,17 @@ private extension Duration {
             let task = Task { try await export.makeFile(.all, days: 7) }
             try? await Task.sleep(nanoseconds: delay * 1_000_000)
             task.cancel()
+            let cancelled = clock.now
             switch await task.result {
             case let .success(file):
                 cancelOutcomes.append("\(delay) ms: finished")
                 LogExport.discard(file)
             case let .failure(failure):
-                cancelOutcomes.append("\(delay) ms: \(type(of: failure))")
+                cancelOutcomes.append("\(delay) ms: \(type(of: failure)) after \(clock.now - cancelled)")
+                #expect(failure is CancellationError, "\(delay) ms")
             }
         }
+        #expect(cancelOutcomes.allSatisfy { !$0.hasSuffix("finished") }, "\(cancelOutcomes)")
 
         let emptyStore = DeviceLogStore(
             storageURL: fixture.appendingPathComponent("empty/DeviceLog.sqlite"),

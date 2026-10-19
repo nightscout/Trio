@@ -2,6 +2,7 @@ import CoreData
 import Darwin
 import Foundation
 import LoopKit
+import Testing
 
 @testable import Trio
 
@@ -28,18 +29,46 @@ struct StressRandom: RandomNumberGenerator {
     }
 }
 
+struct StressProfile: Sendable, CustomTestStringConvertible {
+    let name: String
+    let linesPerCycle: Int
+    let words: ClosedRange<Int>
+    let burstsPerDay: Int
+    let burstSize: Int
+    let pumpPairsPerCycle: Int
+    let cgmPerCycle: Int
+
+    var testDescription: String { name }
+
+    // Verbose Dana pump, chatty app log and four 1 000-line bursts a day
+    static let heavy = StressProfile(
+        name: "heavy",
+        linesPerCycle: 60,
+        words: 5 ... 30,
+        burstsPerDay: 4,
+        burstSize: 1000,
+        pumpPairsPerCycle: 34,
+        cgmPerCycle: 2
+    )
+
+    // ~45 app lines of ~45 characters per loop cycle; Omnipod DASH status, temp basal and SMB exchanges
+    static let typical = StressProfile(
+        name: "typical",
+        linesPerCycle: 45,
+        words: 3 ... 10,
+        burstsPerDay: 1,
+        burstSize: 200,
+        pumpPairsPerCycle: 4,
+        cgmPerCycle: 3
+    )
+}
+
 enum LoggingStressFixtures {
     static let days = 90
     static let day: TimeInterval = 24 * 60 * 60
     static let cycle: TimeInterval = 5 * 60
     static let cyclesPerDay = Int(day / cycle)
-    static let linesPerCycle = 60
-    static let burstsPerDay = 4
-    static let burstSize = 1000
-    static let pumpPairsPerCycle = 34
-    static let cgmPerCycle = 2
     static let retiredDays = 30
-    static let forecastLength = 12
 
     static let siteURL = "https://stress-site.example.test/api"
     static let siteHost = "stress-site.example.test"
@@ -92,13 +121,13 @@ enum LoggingStressFixtures {
         end.addingTimeInterval(-Double(days - index) * day)
     }
 
-    static func appRecords(day index: Int, end: Date) -> [LogRecord] {
+    static func appRecords(day index: Int, end: Date, profile: StressProfile = .heavy) -> [LogRecord] {
         var rng = StressRandom(seed: 0xA11 &+ UInt64(index))
         let start = dayStart(index, end: end)
         let launchID = UUID(uuid: (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, UInt8(index % 256)))
-        let burstCycles = Set((0 ..< burstsPerDay).map { _ in Int.random(in: 0 ..< cyclesPerDay, using: &rng) })
+        let burstCycles = Set((0 ..< profile.burstsPerDay).map { _ in Int.random(in: 0 ..< cyclesPerDay, using: &rng) })
         var records: [LogRecord] = []
-        records.reserveCapacity(cyclesPerDay * linesPerCycle + burstsPerDay * burstSize)
+        records.reserveCapacity(cyclesPerDay * profile.linesPerCycle + profile.burstsPerDay * profile.burstSize)
 
         func append(at date: Date, burst: Bool) {
             let level: LogLevel
@@ -112,7 +141,7 @@ enum LoggingStressFixtures {
                 timestamp: date,
                 level: level,
                 category: categories.randomElement(using: &rng) ?? "Loop",
-                message: "#a\(index).\(records.count) " + message(using: &rng, burst: burst),
+                message: "#a\(index).\(records.count) " + message(using: &rng, burst: burst, words: profile.words),
                 file: files.randomElement(using: &rng) ?? "",
                 function: functions.randomElement(using: &rng) ?? "",
                 line: UInt.random(in: 1 ... 2000, using: &rng),
@@ -122,12 +151,12 @@ enum LoggingStressFixtures {
 
         for cycleIndex in 0 ..< cyclesPerDay {
             let cycleStart = start.addingTimeInterval(Double(cycleIndex) * cycle)
-            for line in 0 ..< linesPerCycle {
+            for line in 0 ..< profile.linesPerCycle {
                 append(at: cycleStart.addingTimeInterval(Double(line) * 0.5 + 0.001), burst: false)
             }
             if burstCycles.contains(cycleIndex) {
                 let burstStart = cycleStart.addingTimeInterval(120)
-                for line in 0 ..< burstSize {
+                for line in 0 ..< profile.burstSize {
                     append(at: burstStart.addingTimeInterval(Double(line) * 0.001), burst: true)
                 }
             }
@@ -149,7 +178,7 @@ enum LoggingStressFixtures {
         }
     }
 
-    private static func message(using rng: inout StressRandom, burst: Bool) -> String {
+    private static func message(using rng: inout StressRandom, burst: Bool, words: ClosedRange<Int>) -> String {
         if rng.chance(0.005) {
             return secretMessage(Int.random(in: 0 ..< 9, using: &rng))
         }
@@ -161,7 +190,7 @@ enum LoggingStressFixtures {
                 .map { _ in sentence(words: Int.random(in: 4 ... 16, using: &rng), using: &rng) }
                 .joined(separator: "\n")
         }
-        return sentence(words: Int.random(in: 5 ... 30, using: &rng), using: &rng)
+        return sentence(words: Int.random(in: words, using: &rng), using: &rng)
     }
 
     private static func sentence(words count: Int, using rng: inout StressRandom) -> String {
@@ -178,7 +207,7 @@ enum LoggingStressFixtures {
         return text
     }
 
-    static func deviceEntries(day index: Int, end: Date) -> [StoredDeviceLogEntry] {
+    static func deviceEntries(day index: Int, end: Date, profile: StressProfile = .heavy) -> [StoredDeviceLogEntry] {
         var rng = StressRandom(seed: 0xDE7 &+ UInt64(index))
         let start = dayStart(index, end: end)
         var entries: [StoredDeviceLogEntry] = []
@@ -199,13 +228,19 @@ enum LoggingStressFixtures {
 
         for cycleIndex in 0 ..< cyclesPerDay {
             let cycleStart = start.addingTimeInterval(Double(cycleIndex) * cycle)
-            for pair in 0 ..< pumpPairsPerCycle {
+            for pair in 0 ..< profile.pumpPairsPerCycle {
                 let date = cycleStart.addingTimeInterval(1 + Double(pair) * 0.5)
                 let opCode = Int.random(in: 1 ... 120, using: &rng)
                 let sent = rng.hex(bytes: Int.random(in: 6 ... 32, using: &rng))
                 let received = rng.hex(bytes: Int.random(in: 6 ... 32, using: &rng))
-                pump(.send, "Sending data - Name: CMD_\(opCode), OpCode: \(opCode), Encoded data: \(sent)", at: date)
-                pump(.receive, "Decoding successful! Data: \(received)", at: date.addingTimeInterval(0.05))
+                if profile.pumpPairsPerCycle > 8 {
+                    pump(.send, "Sending data - Name: CMD_\(opCode), OpCode: \(opCode), Encoded data: \(sent)", at: date)
+                    pump(.receive, "Decoding successful! Data: \(received)", at: date.addingTimeInterval(0.05))
+                } else {
+                    // Pod messages are logged as bare hex
+                    pump(.send, sent, at: date)
+                    pump(.receive, received, at: date.addingTimeInterval(0.05))
+                }
             }
             let event: (DeviceLogEntryType, String) = {
                 switch cycleIndex % 4 {
@@ -217,7 +252,7 @@ enum LoggingStressFixtures {
             }()
             pump(event.0, event.1, at: cycleStart.addingTimeInterval(30))
 
-            for reading in 0 ..< cgmPerCycle {
+            for reading in 0 ..< profile.cgmPerCycle {
                 let text = reading == 0
                     ? "Glucose \(Int.random(in: 60 ... 250, using: &rng)) mg/dL from \(cgmDevice) 📈"
                     : "transmitterID: \(transmitterID) battery ok"
@@ -288,37 +323,59 @@ enum LoggingStressFixtures {
         counter = next
     }
 
+    // Shaped like OpenAPSSwiftTests/Parity/goldens/*/determination.json
     static func insertDeterminations(day index: Int, end: Date, into context: NSManagedObjectContext) throws {
         var rng = StressRandom(seed: 0x0DE7 &+ UInt64(index))
         let start = dayStart(index, end: end)
         try context.performAndWait {
             for cycleIndex in 0 ..< cyclesPerDay {
                 let date = start.addingTimeInterval(Double(cycleIndex) * cycle + 3)
+                let glucose = Int.random(in: 60 ... 250, using: &rng)
+                let cob = rng.chance(0.3) ? Int16.random(in: 1 ... 80, using: &rng) : 0
+                let iob = Double(Int.random(in: -50 ... 600, using: &rng)) / 100
+                let rate = Double(Int.random(in: 0 ... 300, using: &rng)) / 100
+                let smb = rng.chance(0.4) ? Double(Int.random(in: 1 ... 10, using: &rng)) / 10 : nil
+                let isf = Int.random(in: 30 ... 90, using: &rng)
+                let eventual = Int.random(in: 60 ... 250, using: &rng)
+                let minPred = Int.random(in: 60 ... 200, using: &rng)
+                let insulinReq = Double(Int.random(in: 0 ... 150, using: &rng)) / 100
+                let deviation = Int.random(in: -40 ... 80, using: &rng)
+                let bgi = Int.random(in: 0 ... 9, using: &rng)
+
                 let determination = OrefDetermination(context: context)
                 determination.id = UUID()
                 determination.deliverAt = date
                 determination.timestamp = date
                 determination.enacted = rng.chance(0.9)
-                determination.glucose = NSDecimalNumber(value: Int.random(in: 60 ... 250, using: &rng))
-                determination.iob = NSDecimalNumber(value: Double(Int.random(in: -50 ... 600, using: &rng)) / 100)
-                determination.cob = Int16.random(in: 0 ... 80, using: &rng)
-                determination.rate = NSDecimalNumber(value: Double(Int.random(in: 0 ... 300, using: &rng)) / 100)
+                determination.glucose = NSDecimalNumber(value: glucose)
+                determination.iob = NSDecimalNumber(value: iob)
+                determination.cob = cob
+                determination.rate = NSDecimalNumber(value: rate)
                 determination.duration = 30
-                determination.eventualBG = NSDecimalNumber(value: Int.random(in: 60 ... 250, using: &rng))
-                determination.reason = "COB: 0, Dev: 4, BGI: -1, ISF: 54, CR: 9, Target: 100, minPredBG 98, IOBpredBG 101"
-                for type in ["iob", "cob", "uam", "zt"] {
+                determination.smbToDeliver = smb.map { NSDecimalNumber(value: $0) }
+                determination.eventualBG = NSDecimalNumber(value: eventual)
+                determination.insulinReq = NSDecimalNumber(value: insulinReq)
+                determination.reason = "Autosens ratio: 1, ISF: \(isf)→\(isf), COB: \(cob), Dev: \(deviation), " +
+                    "BGI: -\(bgi), CR: 12, Target: 95, minPredBG \(minPred), " +
+                    "minGuardBG \(minPred - 10), IOBpredBG \(eventual), UAMpredBG \(eventual - 20); " +
+                    "Eventual BG \(eventual) >= 95, insulinReq \(insulinReq). " +
+                    (smb.map { "Microbolusing \($0)U. " } ?? "") + "temp \(rate)<2.8U/hr."
+
+                var types = ["iob", "uam", "zt"]
+                if cob > 0 { types.append("cob") }
+                for type in types {
                     let forecast = Forecast(context: context)
                     forecast.id = UUID()
                     forecast.date = date
                     forecast.type = type
                     forecast.orefDetermination = determination
-                    var value = Int32.random(in: 80 ... 180, using: &rng)
-                    for position in 0 ..< forecastLength {
+                    var value = Int32(glucose)
+                    for position in 0 ..< (type == "zt" ? Int.random(in: 7 ... 48, using: &rng) : 48) {
                         let point = ForecastValue(context: context)
                         point.index = Int32(position)
                         point.value = value
                         point.forecast = forecast
-                        value += Int32.random(in: -6 ... 6, using: &rng)
+                        value = max(39, value + Int32.random(in: -6 ... 6, using: &rng))
                     }
                 }
             }
