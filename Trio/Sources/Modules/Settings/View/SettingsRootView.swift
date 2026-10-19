@@ -292,7 +292,7 @@ extension Settings {
                         header: Text("Support & Community"),
                         content: {
                             LogShareRow(
-                                title: "Share Logs",
+                                title: "Share Trio Logs",
                                 kinds: state.logKinds,
                                 logExport: state.logExport,
                                 onFailure: showLogError
