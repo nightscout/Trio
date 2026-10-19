@@ -799,7 +799,7 @@ enum DosingEngine {
             durationRequired = min(60, max(0, durationRequired))
         } else {
             // Note: we're using the fully adjusted basal here
-            smbLowTempRequired = (basal * durationRequired / 30).jsRounded(scale: 2)
+            smbLowTempRequired = (basal * (30 - durationRequired) / 30).jsRounded(scale: 2)
             durationRequired = 30
         }
 
