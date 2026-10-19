@@ -90,6 +90,7 @@ extension CarbRatioEditor {
             }
             let profile = CarbRatios(units: .grams, schedule: schedule)
             provider.saveProfile(profile)
+            info(.settings, "Carb ratio schedule saved with \(schedule.count) entries")
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
             DispatchQueue.main.async {
@@ -100,10 +101,9 @@ extension CarbRatioEditor {
 
             Task.detached(priority: .low) {
                 do {
-                    debug(.nightscout, "Attempting to upload CRs to Nightscout")
                     try await self.nightscout.uploadProfiles()
                 } catch {
-                    debug(.default, "Failed to upload CRs to Nightscout: \(error)")
+                    warning(.nightscout, "Uploading profile after carb ratio change failed", error: error)
                 }
             }
 

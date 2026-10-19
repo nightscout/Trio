@@ -49,7 +49,7 @@ extension CGMSettings {
                 setupViewControllerUI.completionDelegate = completionDelegate
                 return setupViewControllerUI
             case let .createdAndOnboarded(cgmManagerUI):
-                debug(.default, "CGM manager  created and onboarded")
+                debug(.cgm, "CGM setup finished")
                 setupDelegate?.cgmManagerOnboarding(didCreateCGMManager: cgmManagerUI)
                 return UIViewController()
             case .none:

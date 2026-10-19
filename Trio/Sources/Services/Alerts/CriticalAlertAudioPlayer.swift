@@ -34,7 +34,7 @@ final class CriticalAlertAudioPlayer {
         let url = Bundle.main.url(forResource: resource, withExtension: ext)
             ?? Bundle.main.url(forResource: "critical", withExtension: "caf")
         guard let url else {
-            error(.service, "Neither \(soundName) nor critical.caf found in main bundle; audio fallback unavailable")
+            error(.alerts, "Critical alert sound \(soundName) and fallback sound missing, audio fallback unavailable")
             return
         }
 
@@ -57,14 +57,14 @@ final class CriticalAlertAudioPlayer {
             p.volume = 1.0
             p.prepareToPlay()
             guard p.play() else {
-                error(.service, "AVAudioPlayer.play() returned false for \(url.lastPathComponent)")
+                error(.alerts, "Critical alert audio did not start for \(url.lastPathComponent)")
                 try? session.setActive(false, options: [.notifyOthersOnDeactivation])
                 return
             }
             player = p
-            info(.service, "Started critical-alert audio playback (duration=\(String(format: "%.2f", p.duration))s)")
+            info(.alerts, "Critical alert audio started, sound length \(String(format: "%.2f", p.duration)) s")
         } catch let playbackError {
-            error(.service, "Failed to start audio playback", error: playbackError)
+            error(.alerts, "Critical alert audio playback failed", error: playbackError)
         }
     }
 
@@ -84,7 +84,7 @@ final class CriticalAlertAudioPlayer {
         vibrationTimer = nil
         volumeBooster.restore()
         try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-        info(.service, "Stopped critical-alert audio playback")
+        debug(.alerts, "Critical alert audio stopped")
     }
 }
 

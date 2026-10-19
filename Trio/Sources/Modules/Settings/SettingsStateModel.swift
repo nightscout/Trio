@@ -93,13 +93,13 @@ extension Settings.StateModel: SettingsObserver {
 
 extension Settings.StateModel: ServiceOnboardingDelegate {
     func serviceOnboarding(didCreateService service: Service) {
-        debug(.nightscout, "Service with identifier \(service.pluginIdentifier) created")
+        info(.settings, "Service \(service.pluginIdentifier) added")
         provider.tidepoolManager.addTidepoolService(service: service)
     }
 
     func serviceOnboarding(didOnboardService service: Service) {
         precondition(service.isOnboarded)
-        debug(.nightscout, "Service with identifier \(service.pluginIdentifier) onboarded")
+        debug(.settings, "Service \(service.pluginIdentifier) onboarded")
     }
 }
 

@@ -15,7 +15,7 @@ extension Home.StateModel {
             try tempTargetController.performFetch()
             updateTempTargetsFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform temp target fetch: \(error)")
+            warning(.ui, "Fetching temp targets for home screen failed", error: error)
         }
     }
 
@@ -38,7 +38,7 @@ extension Home.StateModel {
             try tempTargetRunController.performFetch()
             updateTempTargetRunsFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform temp target run fetch: \(error)")
+            warning(.ui, "Fetching temp target history for home screen failed", error: error)
         }
     }
 
@@ -68,7 +68,7 @@ extension Home.StateModel {
 
             Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
         } catch let error as NSError {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Temp Target with error: \(error)")
+            warning(.treatments, "Cancelling temp target failed", error: error)
         }
     }
 
@@ -86,7 +86,7 @@ extension Home.StateModel {
             guard viewContext.hasChanges else { return }
             try viewContext.save()
         } catch let error as NSError {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Temp Target with error: \(error)")
+            warning(.treatments, "Saving temp target history entry failed", error: error)
         }
     }
 }

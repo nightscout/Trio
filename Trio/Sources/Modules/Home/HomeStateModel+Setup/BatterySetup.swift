@@ -13,7 +13,7 @@ extension Home.StateModel {
             try batteryController.performFetch()
             updateBatteryFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform battery fetch: \(error)")
+            warning(.ui, "Fetching pump battery for home screen failed", error: error)
         }
     }
 
