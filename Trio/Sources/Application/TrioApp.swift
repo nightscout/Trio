@@ -216,14 +216,11 @@ extension Notification.Name {
                     do {
                         try await BuildDetails.shared.handleExpireDateChange()
                     } catch {
-                        debug(.default, "Failed to handle expire date change: \(error)")
+                        warning(.nightscout, "Uploading profile after build change failed", error: error)
                     }
                 }.value
-            } catch {
-                debug(
-                    .coreData,
-                    "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error)"
-                )
+            } catch let initError {
+                error(.storage, "Core Data stack could not be initialized", error: initError)
 
                 await MainActor.run {
                     self.initState.error = true
@@ -242,21 +239,21 @@ extension Notification.Name {
         } catch {
             importErrors
                 .append(String(localized: "Failed to import glucose history."))
-            debug(.coreData, "❌ Failed to import JSON-based Glucose History: \(error)")
+            warning(.storage, "Importing legacy glucose history failed", error: error)
         }
 
         do {
             try await importer.importPumpHistoryIfNeeded()
         } catch {
             importErrors.append(String(localized: "Failed to import pump history."))
-            debug(.coreData, "❌ Failed to import JSON-based Pump History: \(error)")
+            warning(.storage, "Importing legacy pump history failed", error: error)
         }
 
         do {
             try await importer.importCarbHistoryIfNeeded()
         } catch {
             importErrors.append(String(localized: "Failed to import algorithm data."))
-            debug(.coreData, "❌ Failed to import JSON-based Carb History: \(error)")
+            warning(.storage, "Importing legacy carb history failed", error: error)
         }
 
         do {
@@ -266,7 +263,7 @@ extension Notification.Name {
                 .append(
                     String(localized: "Migration of JSON-based OpenAPS Determination Data failed: \(error.localizedDescription)")
                 )
-            debug(.coreData, "❌ Failed to import JSON-based OpenAPS Determination Data: \(error)")
+            warning(.storage, "Importing legacy determinations failed", error: error)
         }
 
         initState.migrationErrors = importErrors
@@ -405,7 +402,7 @@ extension Notification.Name {
             .developmentBranchWarning(developmentBranchAlerter)
         }
         .onChange(of: scenePhase) { _, newScenePhase in
-            debug(.default, "APPLICATION PHASE: \(newScenePhase)")
+            info(.lifecycle, "Scene phase changed to \(newScenePhase)")
 
             /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
             if newScenePhase == .background {
