@@ -124,7 +124,7 @@ struct MainMigrationErrorView_Previews: PreviewProvider {
                     "Failed to import carb history.",
                     "Failed to import algorithm data."
                 ],
-                onConfirm: { print("Proceed") }
+                onConfirm: { debug(.ui, "Migration error preview confirmed") }
             )
         }
     }

@@ -98,7 +98,7 @@ struct LogShareRow: View {
                 showShareSheet = true
             } catch {
                 isPreparing = false
-                warning(.service, "Could not prepare logs for sharing: \(error)")
+                warning(.ui, "Preparing logs for sharing failed", error: error)
                 if let onFailure {
                     onFailure()
                 } else {

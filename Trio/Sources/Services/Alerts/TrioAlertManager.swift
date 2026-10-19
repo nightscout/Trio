@@ -204,10 +204,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     // MARK: - Issue / Retract
 
     func issueAlert(_ alert: Alert) {
-        debug(
-            .service,
-            "TrioAlertManager.issueAlert \(alert.identifier.value) level=\(alert.interruptionLevel)"
-        )
+        info(.alerts, "Alert \(alert.identifier.value) issued, level \(alert.interruptionLevel)")
 
         let now = Date()
         let fireDate: Date
@@ -231,16 +228,13 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
 
             // Per-tier snooze. Critical tier ignores snooze.
             if tier != .critical, DeviceAlertsStore.shared.isTierSnoozed(tier, at: fireDate) {
-                debug(.service, "TrioAlertManager dropped \(alert.identifier.value): tier \(tier) snoozed")
+                debug(.alerts, "Alert \(alert.identifier.value) dropped, tier \(tier) snoozed")
                 return
             }
             // nil = every variant in the tier disabled, user opted out.
             let isNight = GlucoseAlertsStore.shared.configuration.isNight(at: now)
             guard let config = DeviceAlertsStore.shared.config(for: tier, at: now, isNight: isNight) else {
-                debug(
-                    .service,
-                    "TrioAlertManager dropped \(alert.identifier.value): all variants in tier \(tier) disabled"
-                )
+                debug(.alerts, "Alert \(alert.identifier.value) dropped, all variants in tier \(tier) disabled")
                 return
             }
             effective = Self.applyDeviceSeverityConfig(config, entry: entry, to: alert)
@@ -252,11 +246,11 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         // suppressed entirely while muted (no modal, no UN sound, no critical
         // audio fallback).
         if effective.interruptionLevel != .critical, muter.shouldMute(at: fireDate) {
-            debug(.service, "TrioAlertManager muted \(effective.identifier.value) (snooze window active)")
+            debug(.alerts, "Alert \(effective.identifier.value) muted, snooze window active")
             return
         }
         guard throttler.shouldDeliver(effective) else {
-            debug(.service, "TrioAlertManager throttled \(effective.identifier.value)")
+            debug(.alerts, "Alert \(effective.identifier.value) throttled")
             return
         }
         queue.async {
@@ -340,7 +334,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
                 isMuted: muted
             ) {
             case let .replay(alert):
-                debug(.service, "TrioAlertManager replaying \(alert.identifier.value)")
+                debug(.alerts, "Alert \(alert.identifier.value) replayed after launch")
                 queue.async { self.liveAlerts[alert.identifier] = alert }
                 modalScheduler.schedule(alert)
             case .acknowledgeSilently:
@@ -381,7 +375,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         else { return }
         responder.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier) { error in
             if let error = error {
-                debug(.service, "AlertManager ack failed for \(identifier.value): \(error)")
+                warning(.alerts, "Acknowledging alert \(identifier.value) on device failed", error: error)
             }
         }
     }
