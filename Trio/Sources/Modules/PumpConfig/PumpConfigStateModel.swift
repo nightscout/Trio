@@ -11,7 +11,7 @@ extension PumpConfig {
         @Published var pumpState: PumpDisplayState?
         private(set) var initialSettings: PumpInitialSettings = .default
         @Injected() var bluetoothManager: BluetoothStateManager!
-        @Injected() var deviceLogExporter: DeviceLogExporting!
+        @Injected() var logExport: LogExport!
 
         override func subscribe() {
             provider.pumpDisplayState

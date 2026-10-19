@@ -11,9 +11,9 @@ enum RedactionPatterns {
     static let all: [Pattern] = [
         make(#"https?://[^\s"'<>)]+"#, kind: .url),
         make(#"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"#, kind: .email),
-        make(#"Bearer\s+([A-Za-z0-9._-]+)"#, kind: .secret, group: 1),
-        make(#"(?i)\b(?:lot|tid)[:\s]+(\d+)\b"#, kind: .pumpSerial, group: 1),
-        make(#"(?i)\b(?:transmitter(?:ID)?|TID)[:\s"=]+([A-Za-z0-9]{6})\b"#, kind: .cgmSerial, group: 1),
+        make(#"Bearer[ \t]+([A-Za-z0-9._-]+)"#, kind: .secret, group: 1),
+        make(#"(?i)\b(?:lot|tid)[: \t]+(\d+)\b"#, kind: .pumpSerial, group: 1),
+        make(#"(?i)\b(?:transmitter(?:ID)?|TID)[: \t"=]+([A-Za-z0-9]{6})\b"#, kind: .cgmSerial, group: 1),
         make(labelled: ["lotNo", "lotSeq", "pumpSN"], kind: .pumpSerial),
         make(labelled: ["sensorID", "sensorSerial", "transmitterSerial", "bleNameString"], kind: .cgmSerial),
         make(labelled: ["deviceName", "serialNumber"], kind: .serial),
@@ -30,7 +30,7 @@ enum RedactionPatterns {
     // Kit debug descriptions print serials as `label: value` or `label: Optional("value")`
     private static func make(labelled labels: [String], kind: Redactor.Kind) -> Pattern? {
         make(
-            #"(?i)\b(?:"# + labels.joined(separator: "|") + #")"?\s*[:=]\s*(?:Optional\()?"?([^\s"),<][^\s"),]{2,})"#,
+            #"(?i)\b(?:"# + labels.joined(separator: "|") + #")"?[ \t]*[:=][ \t]*(?:Optional\()?"?([^\s"),<][^\s"),]{2,})"#,
             kind: kind,
             group: 1
         )

@@ -1089,9 +1089,6 @@
         }
       }
     },
-    "1 day" : {
-
-    },
     "3 days" : {
 
     },
@@ -13173,9 +13170,6 @@
           }
         }
       }
-    },
-    "%lld days" : {
-
     },
     "%lld g" : {
       "localizations" : {
@@ -42083,6 +42077,9 @@
         }
       }
     },
+    "All Logs" : {
+
+    },
     "All Past Days of Data " : {
       "comment" : "Duration displayed in statPanel",
       "extractionState" : "manual",
@@ -49740,9 +49737,6 @@
           }
         }
       }
-    },
-    "App logs" : {
-
     },
     "App version, build date, branch, and commit SHA; whether this is a TestFlight build; an Apple-supplied per-vendor identifier (IDFV) and a per-install UUID; hardware identifier (e.g. iPhone15,2); platform and iOS version; the paired pump model (when a pump is configured); the paired CGM type and model (when a CGM is configured); whether Nightscout, Tidepool, and Apple Health are configured (yes/no — no URLs, tokens, or credentials); and a few preference flags (units, closed-loop on/off, Live Activity, calendar integration). A rolling cold-launch count is included. The full JSON is visible under App Diagnostics → What's sent." : {
       "localizations" : {
@@ -76363,6 +76357,9 @@
         }
       }
     },
+    "CGM Logs" : {
+
+    },
     "CGM noise level too high: %lld." : {
       "localizations" : {
         "bg" : {
@@ -89812,9 +89809,6 @@
         }
       }
     },
-    "Copy Markdown" : {
-
-    },
     "Copy Secret" : {
       "localizations" : {
         "bg" : {
@@ -91394,6 +91388,9 @@
           }
         }
       }
+    },
+    "Creates one file you can send when asking for help." : {
+
     },
     "Critical" : {
       "comment" : "Name of the critical alarm sound.",
@@ -110221,9 +110218,6 @@
         }
       }
     },
-    "Device logs" : {
-
-    },
     "Devices" : {
       "comment" : "Devices menu item in the Settings main view.",
       "localizations" : {
@@ -110622,12 +110616,6 @@
           }
         }
       }
-    },
-    "Diagnostic Report" : {
-
-    },
-    "Diagnostic report" : {
-
     },
     "Dings" : {
       "comment" : "Name of a sound file.",
@@ -163233,6 +163221,9 @@
         }
       }
     },
+    "How far back?" : {
+
+    },
     "How it Works" : {
       "localizations" : {
         "bg" : {
@@ -164564,9 +164555,6 @@
           }
         }
       }
-    },
-    "Identifiers such as URLs, secrets, and device serials are replaced before sharing." : {
-
     },
     "If \"Display IOB and COB\" is also enabled, \"IOB\" and \"COB\" will be replaced with the following emojis:" : {
       "localizations" : {
@@ -169970,9 +169958,6 @@
         }
       }
     },
-    "Include debug lines" : {
-
-    },
     "Include IOB & COB in the calendar event data." : {
       "localizations" : {
         "bg" : {
@@ -170102,9 +170087,6 @@
           }
         }
       }
-    },
-    "Includes everything this device reported to Trio in the last 3 days. Low-level Bluetooth traces cover the current app session only." : {
-
     },
     "Increase sensitivity when glucose is above target if a manual Temp Target > %@ %@ is set." : {
       "localizations" : {
@@ -178158,6 +178140,9 @@
     },
     "Last 24 Hours" : {
       "comment" : "Home stats panel range option"
+    },
+    "Last 3 Days" : {
+
     },
     "last 3 months" : {
       "comment" : "Stats banner scope"
@@ -243602,6 +243587,9 @@
         }
       }
     },
+    "Pump Logs" : {
+
+    },
     "Pump Model" : {
       "localizations" : {
         "bg" : {
@@ -268552,9 +268540,6 @@
       }
     },
     "Share Pump Logs" : {
-
-    },
-    "Share Report" : {
 
     },
     "Shared Secret" : {
@@ -312191,9 +312176,6 @@
         }
       }
     },
-    "Time window" : {
-
-    },
     "Time-Sensitive" : {
       "localizations" : {
         "bg" : {
@@ -350653,6 +350635,9 @@
           }
         }
       }
+    },
+    "Your Nightscout address, passwords and device serial numbers are removed." : {
+
     },
     "Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors" : {
       "extractionState" : "manual",
