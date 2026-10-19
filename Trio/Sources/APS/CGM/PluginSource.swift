@@ -159,7 +159,7 @@ extension PluginSource: CGMManagerDelegate {
 
             dispatchPrecondition(condition: .onQueue(self.processQueue))
 
-            debug(.deviceManager, " CGM Manager with identifier \(manager.pluginIdentifier) wants deletion")
+            info(.cgm, "CGM \(manager.pluginIdentifier) requested removal")
             Task {
                 await self.glucoseManager?.deleteGlucoseSource()
             }
@@ -175,15 +175,13 @@ extension PluginSource: CGMManagerDelegate {
             switch self.readCGMResult(readingResult: readingResult) {
             case let .success(glucose):
                 self.glucoseManager?.newGlucoseFromCgmManager(newGlucose: glucose)
-            case .failure:
-                debug(.deviceManager, "CGM PLUGIN - unable to read CGM result")
+            case let .failure(error):
+                debug(.cgm, "CGM reading not usable: \(error.localizedDescription)")
             }
 
             self.glucoseManager?.reportCGMSensorObservation(self.currentSensorObservation())
 
             self.publishCGMStatus()
-
-            debug(.deviceManager, "CGM PLUGIN - Direct return done")
         }
     }
 
@@ -196,9 +194,10 @@ extension PluginSource: CGMManagerDelegate {
             // TODO: Events in APS ?
             // currently only display in log the date of the event
             events.forEach { event in
-                debug(.deviceManager, "events from CGM at \(event.date)")
+                debug(.cgm, "CGM event \(event.type) at \(event.date)")
 
                 if event.type == .sensorStart {
+                    info(.cgm, "Sensor started")
                     self.glucoseManager?.removeCalibrations()
                     self.glucoseManager?.startCGMSensorSession(startedAt: event.date)
                 }
@@ -219,10 +218,7 @@ extension PluginSource: CGMManagerDelegate {
             dispatchPrecondition(condition: .onQueue(self.processQueue))
 
             guard let fetchGlucoseManager = self.glucoseManager else {
-                debug(
-                    .deviceManager,
-                    "Could not gracefully unwrap FetchGlucoseManager upon observing LoopKit's cgmManagerDidUpdateState"
-                )
+                debug(.cgm, "CGM state update ignored: no glucose manager")
                 return
             }
             // Adjust app-specific NS Upload setting value when CGM setting is changed
@@ -244,13 +240,14 @@ extension PluginSource: CGMManagerDelegate {
     }
 
     func cgmManager(_: CGMManager, didUpdate status: CGMManagerStatus) {
-        debug(.deviceManager, "CGM Manager did update state to \(status)")
+        debug(.cgm, "CGM status: valid sensor session \(status.hasValidSensorSession)")
         processQueue.async { [weak self] in
             guard let self = self else { return }
 
             dispatchPrecondition(condition: .onQueue(self.processQueue))
 
             if self.cgmHasValidSensorSession != status.hasValidSensorSession {
+                info(.cgm, status.hasValidSensorSession ? "Sensor session started" : "Sensor session ended")
                 self.cgmHasValidSensorSession = status.hasValidSensorSession
             }
         }
@@ -267,13 +264,8 @@ extension PluginSource: CGMManagerDelegate {
     }
 
     private func readCGMResult(readingResult: CGMReadingResult) -> Result<[BloodGlucose], Error> {
-        debug(.deviceManager, "PLUGIN CGM - Process CGM Reading Result launched with \(readingResult)")
-
         if glucoseManager?.glucoseSource == nil {
-            debug(
-                .deviceManager,
-                "No glucose source available."
-            )
+            debug(.cgm, "CGM reading received with no glucose source set")
         }
 
         switch readingResult {
@@ -325,10 +317,7 @@ extension PluginSource: CGMManagerDelegate {
             // (LoopKit), not "unsafe to dose"; drivers withhold sensor-reported faults.
             let bloodGlucose = values.compactMap { newGlucoseSample -> BloodGlucose? in
                 if newGlucoseSample.isDisplayOnly {
-                    debug(
-                        .deviceManager,
-                        "PLUGIN CGM - display-only reading at \(newGlucoseSample.date), storing it"
-                    )
+                    debug(.cgm, "Display-only reading at \(newGlucoseSample.date), storing it")
                 }
 
                 let quantity = newGlucoseSample.quantity
