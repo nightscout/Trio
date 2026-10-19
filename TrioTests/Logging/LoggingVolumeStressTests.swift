@@ -327,7 +327,13 @@ import Testing
     }
 
     private static func makeExport(_ appLog: AppLogStore, _ deviceLog: DeviceLogStore) -> LogExport {
-        LogExport(appLog: appLog, deviceLogStore: deviceLog, pump: StubManager(), cgm: StubCGMManager())
+        LogExport(
+            appLog: appLog,
+            deviceLogStore: deviceLog,
+            pump: StubManager(),
+            cgm: StubCGMManager(),
+            storedValues: Fixtures.storedValues
+        )
     }
 
     @Test("App log store ingests 90 days and purges to the cap, then to 7 days") func appLogIngest() async throws {
@@ -531,20 +537,20 @@ import Testing
             day += 1
         }
 
-        let redactor = Redactor(exactValues: [
-            Redactor.ExactValue(value: Fixtures.siteURL, kind: .url),
-            Redactor.ExactValue(value: Fixtures.siteHost, kind: .host),
-            Redactor.ExactValue(value: Fixtures.pumpDevice, kind: .device),
-            Redactor.ExactValue(value: Fixtures.cgmDevice, kind: .device),
-            Redactor.ExactValue(value: Fixtures.retiredDevice, kind: .device)
-        ])
-        let start = Self.clock.now
+        var values = Fixtures.storedValues
+        for device in [Fixtures.pumpDevice, Fixtures.cgmDevice, Fixtures.retiredDevice] {
+            values.add(device, .device)
+        }
+        let redactor = Redactor(exactValues: values.values)
+        var elapsed = Duration.zero
         var leaked = 0
         for chunk in chunks {
+            let start = Self.clock.now
             let redacted = redactor.redact(chunk)
+            elapsed += Self.clock.now - start
             leaked += Fixtures.planted.filter { redacted.contains($0) }.count
         }
-        let seconds = Fixtures.seconds(Self.clock.now - start)
+        let seconds = Fixtures.seconds(elapsed)
         Fixtures.report("redactor", [
             "input": Fixtures.megabytes(UInt64(total)),
             "chunks": "\(chunks.count)",
@@ -552,50 +558,15 @@ import Testing
             "mbPerSec": String(format: "%.1f", Double(total) / Self.mb / seconds)
         ])
         #expect(leaked == 0)
-
-        // Per-stage cost on a 10 MB sample, with and without non-ASCII text
-        let sample = Array(chunks.prefix(160))
-        let ascii = sample.map { String(String.UnicodeScalarView($0.unicodeScalars.filter(\.isASCII))) }
-        let sampleSize = Double(sample.reduce(0) { $0 + $1.utf8.count }) / Self.mb
-        func rate(_ texts: [String], _ redactor: Redactor) -> String {
-            let start = Self.clock.now
-            texts.forEach { _ = redactor.redact($0) }
-            return String(format: "%.1f", sampleSize / Fixtures.seconds(Self.clock.now - start))
-        }
-        let exactValues = [Redactor.ExactValue(value: Fixtures.pumpDevice, kind: .device)]
-        var stages: [String] = [
-            "exactOnly:\(rate(sample, Redactor(exactValues: exactValues, patterns: [])))",
-            "exactOnlyASCII:\(rate(ascii, Redactor(exactValues: exactValues, patterns: [])))",
-            "allPatternsASCII:\(rate(ascii, Redactor(exactValues: [])))"
-        ]
-        for (index, pattern) in RedactionPatterns.all.enumerated() {
-            stages.append("pattern\(index):\(rate(sample, Redactor(exactValues: [], patterns: [pattern])))")
-        }
-        // Anchoring the email local part at a token start avoids rescanning every word suffix
-        let anchoredEmail =
-            try NSRegularExpression(pattern: #"(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"#)
-        var anchored = RedactionPatterns.all
-        anchored[1] = RedactionPatterns.Pattern(regex: anchoredEmail, kind: .email, group: 0)
-        stages.append("pattern1Anchored:\(rate(sample, Redactor(exactValues: [], patterns: [anchored[1]])))")
-        stages.append("allAnchored:\(rate(sample, Redactor(exactValues: exactValues, patterns: anchored)))")
-        let sameOutput = sample.prefix(20).allSatisfy {
-            Redactor(exactValues: exactValues).redact($0) == Redactor(exactValues: exactValues, patterns: anchored).redact($0)
-        }
-        Fixtures.report(
-            "redactor.stagesMBPerSec",
-            ["stages": stages.joined(separator: ","), "anchoredSameOutput": "\(sameOutput)"]
-        )
-        #expect(sameOutput)
-        withKnownIssue("The unanchored email pattern caps redaction near 1 MB/s") {
-            #expect(Double(total) / Self.mb / seconds >= 4)
-        }
+        #expect(Double(total) / Self.mb / seconds >= 20)
     }
 
     @Test("A 20-byte BLE packet in hex survives redaction") func blePacketNotSecret() {
         let packet = "Sending data - Name: CMD_7, OpCode: 7, Encoded data: a5a50c01c86e2a4b9d0f3e771122334455665a5a"
-        withKnownIssue("Redactor's bare 40-hex secret pattern also matches 20-byte packet dumps") {
-            #expect(Redactor(exactValues: []).redact(packet) == packet)
-        }
+        // A stored key that also occurs inside the packet must not split it
+        var values = Fixtures.storedValues
+        values.add("c86e2a4b9d0f", .secret)
+        #expect(Redactor(exactValues: values.values).redact(packet) == packet)
     }
 
     @Test("Logging stays non-blocking during a 7-day export") func exportWhileLogging() async throws {

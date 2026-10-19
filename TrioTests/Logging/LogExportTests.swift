@@ -49,9 +49,17 @@ import Testing
         let appLog = InMemoryLogSink()
         appLog.accept(record("upload to https://example-site.test/api/v1/entries", level: .info))
         appLog.accept(record("loop failed", level: .error))
+        var stored = SensitiveValues()
+        stored.addNightscout(url: "https://example-site.test", secret: nil)
         return Fixture(
             directory: directory,
-            export: LogExport(appLog: appLog, deviceLogStore: store, pump: StubManager(), cgm: StubCGMManager())
+            export: LogExport(
+                appLog: appLog,
+                deviceLogStore: store,
+                pump: StubManager(),
+                cgm: StubCGMManager(),
+                storedValues: stored
+            )
         )
     }
 
@@ -204,6 +212,6 @@ import Testing
         let all = try await Self.contents(of: .all, in: fixture).text
         #expect(all.contains("serial: <device-1>"))
         #expect(all.contains("Pump [send] connected to <device-1>"))
-        #expect(all.contains("Trio [Service] upload to <url-1>"))
+        #expect(all.contains("Trio [Service] upload to <nightscout-url>/api/v1/entries"))
     }
 }
