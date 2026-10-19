@@ -25,8 +25,7 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
             .receive(on: processQueue)
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                debug(.nightscout, "FetchTreatmentsManager heartbeat")
-                debug(.nightscout, "Start fetching carbs and temptargets")
+                debug(.nightscout, "Fetching carbs and temp targets")
 
                 Task {
                     do {
@@ -54,7 +53,7 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                                 else {
                                     debug(
                                         .nightscout,
-                                        "Skipping temp target with date: \(tempTarget.date ?? Date.distantPast)"
+                                        "Skipping temp target from \(tempTarget.date ?? Date.distantPast): already stored or a cancel"
                                     )
                                     continue
                                 }
@@ -74,7 +73,7 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
                             Foundation.NotificationCenter.default.post(name: .didUpdateTempTargetConfiguration, object: nil)
                         }
                     } catch {
-                        debug(.default, "\(DebuggingIdentifiers.failed) error in \(#file) \(#function): \(error)")
+                        warning(.nightscout, "Storing carbs or temp targets from Nightscout failed", error: error)
                     }
                 }
             }
