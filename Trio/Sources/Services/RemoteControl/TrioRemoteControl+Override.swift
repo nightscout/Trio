@@ -4,7 +4,7 @@ extension TrioRemoteControl {
     @MainActor func handleCancelOverrideCommand(_ payload: CommandPayload) async {
         do {
             let outcome = try await adjustmentManager.cancelOverride(source: .remote, waitForUpload: true)
-            debug(.remoteControl, "Cancelled override \"\(outcome.ended.first?.name ?? "Custom Override")\"")
+            debug(.remote, "Override \"\(outcome.ended.first?.name ?? "Custom Override")\" cancelled")
             await logSuccess(
                 "Remote command processed successfully. \(payload.humanReadableDescription())",
                 payload: payload,
@@ -18,7 +18,7 @@ extension TrioRemoteControl {
                 customNotificationMessage: "Override canceled"
             )
         } catch {
-            debug(.remoteControl, "Failed to cancel override: \(error)")
+            warning(.remote, "Override cancel failed", error: error)
             await logError("Command failed: \(error.localizedDescription)", payload: payload)
         }
     }
@@ -36,7 +36,7 @@ extension TrioRemoteControl {
                 waitForUpload: true
             )
             if let ended = outcome.ended.first {
-                debug(.remoteControl, "Recorded run for replaced override \"\(ended.name ?? "Custom Override")\"")
+                debug(.remote, "Recorded run for replaced override \"\(ended.name ?? "Custom Override")\"")
             }
             await logSuccess(
                 "Remote command processed successfully. \(payload.humanReadableDescription())",

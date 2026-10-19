@@ -86,12 +86,9 @@ enum CrashReportingGate {
 
         do {
             try FileManager.default.removeItem(at: transportStorageURL)
-            debug(.default, "Purged queued GoogleDataTransport events after diagnostics opt-out.")
+            debug(.telemetry, "Purged queued crash report events after opt-out")
         } catch {
-            debug(
-                .default,
-                "\(DebuggingIdentifiers.failed) failed to purge queued GoogleDataTransport events: \(error)"
-            )
+            warning(.telemetry, "Failed to purge queued crash report events", error: error)
         }
     }
 }
