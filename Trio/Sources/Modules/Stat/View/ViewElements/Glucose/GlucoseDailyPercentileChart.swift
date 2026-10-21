@@ -72,24 +72,13 @@ struct GlucoseDailyPercentileChart: View {
     }
 
     // Pool raw readings; averaging daily percentiles would weight sparse days equally.
-    private var aggregatedVisibleStats: GlucoseDailyPercentileStats? {
-        let values = readingsByDay
-            .filter { StatChartUtils.isStatInRange($0.key, in: visibleDateRange) }
+    private func aggregatedVisibleStats(for range: (start: Date, end: Date)) -> GlucoseDailyPercentileStats? {
+        let readings = readingsByDay
+            .filter { StatChartUtils.isStatInRange($0.key, in: range) }
             .flatMap(\.value)
-            .map { Double($0.value) }
-            .sorted()
-        guard !values.isEmpty else { return nil }
+        guard !readings.isEmpty else { return nil }
 
-        return GlucoseDailyPercentileStats(
-            date: visibleDateRange.start,
-            minimum: values.first ?? 0,
-            percentile10: StatChartUtils.percentile(0.10, of: values),
-            percentile25: StatChartUtils.percentile(0.25, of: values),
-            median: StatChartUtils.percentile(0.5, of: values),
-            percentile75: StatChartUtils.percentile(0.75, of: values),
-            percentile90: StatChartUtils.percentile(0.90, of: values),
-            maximum: values.last ?? 0
-        )
+        return Stat.StateModel.dailyPercentileStats(date: range.start, readings: readings)
     }
 
     private var detailViewData: (data: GlucoseDailyPercentileStats, dateText: String)? {
@@ -97,10 +86,11 @@ struct GlucoseDailyPercentileChart: View {
             let data = selectedDateStats ?? GlucoseDailyPercentileStats(date: start)
             return (data, StatChartUtils.formatDate(start))
         }
-        if let aggregatedData = aggregatedVisibleStats {
+        let range = visibleDateRange
+        if let aggregatedData = aggregatedVisibleStats(for: range) {
             return (aggregatedData, StatChartUtils.formatVisibleDateRange(
-                from: visibleDateRange.start,
-                to: visibleDateRange.end,
+                from: range.start,
+                to: range.end,
                 for: selectedInterval
             ))
         }
@@ -127,10 +117,7 @@ struct GlucoseDailyPercentileChart: View {
                 .padding(.top, 4)
             }
         }
-        .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-        }
-        .onChange(of: selectedInterval) {
+        .onChange(of: selectedInterval, initial: true) {
             selectedDate = nil
             selectedPercentile = nil
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
@@ -148,41 +135,45 @@ struct GlucoseDailyPercentileChart: View {
 
         return Chart {
             ForEach(dailyStats) { day in
+                let opacity = selectedDayStart.map { day.date == $0 ? 1 : 0.3 } ?? 1
+
                 spacerBarMark(for: day)
                 percentileBarMark(
                     for: day,
                     startValue: day.minimum.asUnit(units),
                     endValue: day.percentile10.asUnit(units),
-                    rangeName: "0-100%"
+                    rangeName: "0-100%",
+                    opacity: opacity
                 )
                 percentileBarMark(
                     for: day,
                     startValue: day.percentile10.asUnit(units),
                     endValue: day.percentile25.asUnit(units),
-                    rangeName: "10-90%"
+                    rangeName: "10-90%",
+                    opacity: opacity
                 )
                 percentileBarMark(
                     for: day,
                     startValue: day.percentile25.asUnit(units),
                     endValue: day.percentile75.asUnit(units),
-                    rangeName: "25-75%"
+                    rangeName: "25-75%",
+                    opacity: opacity
                 )
                 percentileBarMark(
                     for: day,
                     startValue: day.percentile75.asUnit(units),
                     endValue: day.percentile90.asUnit(units),
-                    rangeName: "10-90%"
+                    rangeName: "10-90%",
+                    opacity: opacity
                 )
                 percentileBarMark(
                     for: day,
                     startValue: day.percentile90.asUnit(units),
                     endValue: day.maximum.asUnit(units),
-                    rangeName: "0-100%"
+                    rangeName: "0-100%",
+                    opacity: opacity
                 )
-            }
-
-            ForEach(dailyStats) { day in
-                medianMark(for: day)
+                medianMark(for: day, opacity: opacity)
             }
 
             ForEach(thresholds, id: \.label) { threshold in
@@ -258,17 +249,18 @@ struct GlucoseDailyPercentileChart: View {
         for day: GlucoseDailyPercentileStats,
         startValue: Double,
         endValue: Double,
-        rangeName: String
+        rangeName: String,
+        opacity: Double
     ) -> some ChartContent {
         BarMark(
             x: .value("Day", day.date, unit: .day),
             y: .value("Percentage", endValue - startValue)
         )
         .foregroundStyle(by: .value("Range", rangeName))
-        .opacity(getOpacity(for: day))
+        .opacity(opacity)
     }
 
-    private func medianMark(for day: GlucoseDailyPercentileStats) -> some ChartContent {
+    private func medianMark(for day: GlucoseDailyPercentileStats, opacity: Double) -> some ChartContent {
         let baseDate = Calendar.current.startOfDay(for: day.date)
         let startOffset = Int(0.15 * 24 * 60)
         let endOffset = Int(0.85 * 24 * 60)
@@ -280,11 +272,7 @@ struct GlucoseDailyPercentileChart: View {
         )
         .lineStyle(StrokeStyle(lineWidth: 2))
         .foregroundStyle(by: .value("Range", "Median"))
-        .opacity(getOpacity(for: day))
-    }
-
-    private func getOpacity(for day: GlucoseDailyPercentileStats) -> Double {
-        selectedDayStart.map { day.date == $0 ? 1 : 0.3 } ?? 1
+        .opacity(opacity)
     }
 
     private func spacerBarMark(for day: GlucoseDailyPercentileStats) -> some ChartContent {

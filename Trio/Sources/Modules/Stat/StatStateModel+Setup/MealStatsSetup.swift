@@ -77,37 +77,18 @@ extension Stat.StateModel {
         }
     }
 
-    func calculateMealAverages(for range: (start: Date, end: Date)) -> (carbs: Double, fat: Double, protein: Double) {
-        let relevantStats = dailyMealStats.filter { stat in
-            StatChartUtils.isStatInRange(
-                stat.date,
-                in: range
-            )
-        }
+    func calculateMealStats(for range: (start: Date, end: Date)) -> (carbs: Double, fat: Double, protein: Double) {
+        let isDay = selectedIntervalForMealStats == .day
+        let stats = isDay ? hourlyMealStats : dailyMealStats
+        let relevantStats = stats.filter { StatChartUtils.isStatInRange($0.date, in: range) }
 
         guard !relevantStats.isEmpty else { return (0, 0, 0) }
 
-        let sums = relevantStats.reduce((0.0, 0.0, 0.0)) { acc, day in
-            (acc.0 + day.carbs, acc.1 + day.fat, acc.2 + day.protein)
+        let sums = relevantStats.reduce((carbs: 0.0, fat: 0.0, protein: 0.0)) { acc, entry in
+            (acc.carbs + entry.carbs, acc.fat + entry.fat, acc.protein + entry.protein)
         }
-
-        let count = Double(relevantStats.count)
-
-        return (sums.0 / count, sums.1 / count, sums.2 / count)
-    }
-
-    func calculateMealTotals(for range: (start: Date, end: Date)) -> (carbs: Double, fat: Double, protein: Double) {
-        let relevantStats = hourlyMealStats.filter { stat in
-            StatChartUtils.isStatInRange(
-                stat.date,
-                in: range
-            )
-        }
-
-        let sums = relevantStats.reduce((0.0, 0.0, 0.0)) { acc, hour in
-            (acc.0 + hour.carbs, acc.1 + hour.fat, acc.2 + hour.protein)
-        }
-
-        return sums
+        // Day view sums hourly buckets into a daily total and longer spans average across days.
+        let divisor = isDay ? 1.0 : Double(relevantStats.count)
+        return (sums.carbs / divisor, sums.fat / divisor, sums.protein / divisor)
     }
 }

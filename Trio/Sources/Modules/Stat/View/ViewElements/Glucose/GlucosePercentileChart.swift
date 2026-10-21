@@ -8,7 +8,7 @@ struct GlucosePercentileChart: View {
     let hourlyStats: [HourlyStats]
     let isToday: Bool
 
-    @State private var selection: Date? = nil
+    @State private var selection: Date?
 
     private var selectedStats: HourlyStats? {
         guard let selection = selection else { return nil }
@@ -48,8 +48,9 @@ struct GlucosePercentileChart: View {
 
             Chart {
                 ForEach(hourlyStats, id: \.hour) { stats in
+                    let hourDate = Calendar.current.dateForChartHour(stats.hour)
                     AreaMark(
-                        x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
+                        x: .value("Hour", hourDate),
                         yStart: .value("10th Percentile", stats.percentile10.asUnit(units)),
                         yEnd: .value("90th Percentile", stats.percentile90.asUnit(units)),
                         series: .value("10-90", "10-90")
@@ -58,7 +59,7 @@ struct GlucosePercentileChart: View {
                     .opacity(stats.median > 0 ? 0.3 : 0)
 
                     AreaMark(
-                        x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
+                        x: .value("Hour", hourDate),
                         yStart: .value("25th Percentile", stats.percentile25.asUnit(units)),
                         yEnd: .value("75th Percentile", stats.percentile75.asUnit(units)),
                         series: .value("25-75", "25-75")
@@ -68,7 +69,7 @@ struct GlucosePercentileChart: View {
 
                     if stats.median > 0 {
                         LineMark(
-                            x: .value("Hour", Calendar.current.dateForChartHour(stats.hour)),
+                            x: .value("Hour", hourDate),
                             y: .value("Median", stats.median.asUnit(units)),
                             series: .value("Median", "Median")
                         )

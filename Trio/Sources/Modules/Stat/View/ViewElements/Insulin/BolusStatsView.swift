@@ -2,18 +2,12 @@ import Charts
 import SwiftUI
 
 struct BolusStatsView: View {
-    @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
+    let selectedInterval: Stat.StateModel.StatsTimeInterval
     let bolusStats: [BolusStats]
     let state: Stat.StateModel
 
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
-
-    private var headlineValues: (manual: Double, smb: Double, external: Double) {
-        selectedInterval == .day
-            ? state.calculateBolusTotals(for: visibleDateRange)
-            : state.calculateBolusAverages(for: visibleDateRange)
-    }
 
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
@@ -26,30 +20,33 @@ struct BolusStatsView: View {
     }
 
     private var statsView: some View {
-        HStack {
+        let range = visibleDateRange
+        let headline = state.calculateBolusStats(for: range)
+
+        return HStack {
             Grid(alignment: .leading) {
                 StatChartUtils.statRow(
                     label: "Manual:",
-                    value: headlineValues.manual,
+                    value: headline.manual,
                     unit: "U",
                     showAverageSymbol: selectedInterval != .day
                 )
                 StatChartUtils.statRow(
                     label: "SMB:",
-                    value: headlineValues.smb,
+                    value: headline.smb,
                     unit: "U",
                     showAverageSymbol: selectedInterval != .day
                 )
                 StatChartUtils.statRow(
                     label: "External:",
-                    value: headlineValues.external,
+                    value: headline.external,
                     unit: "U",
                     showAverageSymbol: selectedInterval != .day
                 )
                 Divider()
                 StatChartUtils.statRow(
                     label: "Total:",
-                    value: headlineValues.manual + headlineValues.smb + headlineValues.external,
+                    value: headline.manual + headline.smb + headline.external,
                     unit: "U",
                     showAverageSymbol: selectedInterval != .day
                 )
@@ -61,7 +58,7 @@ struct BolusStatsView: View {
 
             Text(
                 StatChartUtils
-                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedInterval)
+                    .formatVisibleDateRange(from: range.start, to: range.end, for: selectedInterval)
             )
             .font(.callout)
             .foregroundStyle(.secondary)
@@ -81,10 +78,7 @@ struct BolusStatsView: View {
                 chartsView
             }
         }
-        .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-        }
-        .onChange(of: selectedInterval) {
+        .onChange(of: selectedInterval, initial: true) {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
     }
@@ -92,17 +86,16 @@ struct BolusStatsView: View {
     private var chartsView: some View {
         Chart {
             ForEach(bolusStats) { stat in
+                let opacity = selectedDate.map { date in
+                    StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
+                } ?? 1
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.manualBolus)
                 )
                 .foregroundStyle(by: .value("Type", "Manual"))
                 .position(by: .value("Type", "Boluses"))
-                .opacity(
-                    selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                    } ?? 1
-                )
+                .opacity(opacity)
 
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
@@ -110,22 +103,14 @@ struct BolusStatsView: View {
                 )
                 .foregroundStyle(by: .value("Type", "SMB"))
                 .position(by: .value("Type", "Boluses"))
-                .opacity(
-                    selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                    } ?? 1
-                )
+                .opacity(opacity)
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.external)
                 )
                 .foregroundStyle(by: .value("Type", "External"))
                 .position(by: .value("Type", "Boluses"))
-                .opacity(
-                    selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                    } ?? 1
-                )
+                .opacity(opacity)
             }
 
             if selectedInterval == .day {

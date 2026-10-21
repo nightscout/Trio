@@ -97,48 +97,25 @@ extension Stat.StateModel {
         }
     }
 
-    func calculateLoopAverages(for range: (start: Date, end: Date))
+    func calculateLoopStats(for range: (start: Date, end: Date))
         -> (successful: Double, failed: Double, successRate: Double, coverage: Double)
     {
-        let relevantStats = dailyLoopStats.filter { stat in
-            StatChartUtils.isStatInRange(
-                stat.date,
-                in: range
-            )
-        }
+        let isDay = selectedIntervalForLoopStats == .day
+        let stats = isDay ? hourlyLoopStats : dailyLoopStats
+        let relevantStats = stats.filter { StatChartUtils.isStatInRange($0.date, in: range) }
 
         guard !relevantStats.isEmpty else { return (0, 0, 0.0, 0.0) }
 
-        let sums = relevantStats.reduce((successful: 0, failed: 0)) { acc, day in
-            (acc.successful + day.successful, acc.failed + day.failed)
+        let sums = relevantStats.reduce((successful: 0, failed: 0)) { acc, entry in
+            (acc.successful + entry.successful, acc.failed + entry.failed)
         }
 
-        let count = Double(relevantStats.count)
+        // Day view sums hourly buckets into a daily total and longer spans average across days.
+        let divisor = isDay ? 1.0 : Double(relevantStats.count)
         let successRate = Double(sums.successful) / Double(sums.successful + sums.failed) * 100
         let coverage = Self.loopCoverage(successful: sums.successful, for: range, startDate: earliestLoopDate)
 
-        return (Double(sums.successful) / count, Double(sums.failed) / count, successRate, coverage)
-    }
-
-    func calculateLoopTotals(for range: (start: Date, end: Date))
-        -> (successful: Double, failed: Double, successRate: Double, coverage: Double)
-    {
-        let relevantStats = hourlyLoopStats.filter { stat in
-            StatChartUtils.isStatInRange(
-                stat.date,
-                in: range
-            )
-        }
-
-        guard !relevantStats.isEmpty else { return (0, 0, 0.0, 0.0) }
-
-        let sums = relevantStats.reduce((successful: 0, failed: 0)) { acc, hour in
-            (acc.successful + hour.successful, acc.failed + hour.failed)
-        }
-        let successRate = Double(sums.successful) / Double(sums.successful + sums.failed) * 100
-        let coverage = Self.loopCoverage(successful: sums.successful, for: range, startDate: earliestLoopDate)
-
-        return (Double(sums.successful), Double(sums.failed), successRate, coverage)
+        return (Double(sums.successful) / divisor, Double(sums.failed) / divisor, successRate, coverage)
     }
 
     private static func loopCoverage(

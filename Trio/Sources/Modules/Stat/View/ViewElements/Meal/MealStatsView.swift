@@ -2,18 +2,12 @@ import Charts
 import SwiftUI
 
 struct MealStatsView: View {
-    @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
+    let selectedInterval: Stat.StateModel.StatsTimeInterval
     let mealStats: [MealStats]
     let state: Stat.StateModel
 
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
-
-    private var headlineValues: (carbs: Double, fat: Double, protein: Double) {
-        selectedInterval == .day
-            ? state.calculateMealTotals(for: visibleDateRange)
-            : state.calculateMealAverages(for: visibleDateRange)
-    }
 
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
@@ -26,24 +20,27 @@ struct MealStatsView: View {
     }
 
     private var statsView: some View {
-        HStack {
+        let range = visibleDateRange
+        let headline = state.calculateMealStats(for: range)
+
+        return HStack {
             Grid(alignment: .leading) {
                 StatChartUtils.statRow(
                     label: "Carbs:",
-                    value: headlineValues.carbs,
+                    value: headline.carbs,
                     unit: "g",
                     showAverageSymbol: selectedInterval != .day
                 )
                 if state.useFPUconversion {
                     StatChartUtils.statRow(
                         label: "Fat:",
-                        value: headlineValues.fat,
+                        value: headline.fat,
                         unit: "g",
                         showAverageSymbol: selectedInterval != .day
                     )
                     StatChartUtils.statRow(
                         label: "Protein:",
-                        value: headlineValues.protein,
+                        value: headline.protein,
                         unit: "g",
                         showAverageSymbol: selectedInterval != .day
                     )
@@ -56,7 +53,7 @@ struct MealStatsView: View {
 
             Text(
                 StatChartUtils
-                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedInterval)
+                    .formatVisibleDateRange(from: range.start, to: range.end, for: selectedInterval)
             )
             .font(.callout)
             .foregroundStyle(.secondary)
@@ -76,10 +73,7 @@ struct MealStatsView: View {
                 chartsView
             }
         }
-        .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-        }
-        .onChange(of: selectedInterval) {
+        .onChange(of: selectedInterval, initial: true) {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
     }
@@ -87,17 +81,16 @@ struct MealStatsView: View {
     private var chartsView: some View {
         Chart {
             ForEach(mealStats) { stat in
+                let opacity = selectedDate.map { date in
+                    StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
+                } ?? 1
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.carbs)
                 )
                 .foregroundStyle(by: .value("Type", "Carbs"))
                 .position(by: .value("Type", "Macros"))
-                .opacity(
-                    selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                    } ?? 1
-                )
+                .opacity(opacity)
                 if state.useFPUconversion {
                     BarMark(
                         x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
@@ -105,22 +98,14 @@ struct MealStatsView: View {
                     )
                     .foregroundStyle(by: .value("Type", "Fat"))
                     .position(by: .value("Type", "Macros"))
-                    .opacity(
-                        selectedDate.map { date in
-                            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                        } ?? 1
-                    )
+                    .opacity(opacity)
                     BarMark(
                         x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                         y: .value("Amount", stat.protein)
                     )
                     .foregroundStyle(by: .value("Type", "Protein"))
                     .position(by: .value("Type", "Macros"))
-                    .opacity(
-                        selectedDate.map { date in
-                            StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                        } ?? 1
-                    )
+                    .opacity(opacity)
                 }
             }
 

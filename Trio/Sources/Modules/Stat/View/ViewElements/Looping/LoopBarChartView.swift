@@ -2,18 +2,12 @@ import Charts
 import SwiftUI
 
 struct LoopBarChartView: View {
-    @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
+    let selectedInterval: Stat.StateModel.StatsTimeInterval
     let loopStats: [LoopingStats]
     let state: Stat.StateModel
 
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
-
-    private var headlineValues: (successful: Double, failed: Double, successRate: Double, coverage: Double) {
-        selectedInterval == .day
-            ? state.calculateLoopTotals(for: visibleDateRange)
-            : state.calculateLoopAverages(for: visibleDateRange)
-    }
 
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
@@ -26,28 +20,31 @@ struct LoopBarChartView: View {
     }
 
     private var statsView: some View {
-        HStack {
+        let range = visibleDateRange
+        let headline = state.calculateLoopStats(for: range)
+
+        return HStack {
             Grid(alignment: .leading) {
                 StatChartUtils.statRow(
                     label: "Successful:",
-                    value: headlineValues.successful,
+                    value: headline.successful,
                     showAverageSymbol: selectedInterval != .day,
                     fractionLength: selectedInterval != .day ? 1 : 0
                 )
                 StatChartUtils.statRow(
                     label: "Failed:",
-                    value: headlineValues.failed,
+                    value: headline.failed,
                     showAverageSymbol: selectedInterval != .day,
                     fractionLength: selectedInterval != .day ? 1 : 0
                 )
                 Divider()
                 GridRow {
                     Text("Success rate:")
-                    Text(StatChartUtils.formatPercentage(headlineValues.successRate))
+                    Text(StatChartUtils.formatPercentage(headline.successRate))
                 }
                 GridRow {
                     Text("Coverage:")
-                    Text(StatChartUtils.formatPercentage(headlineValues.coverage))
+                    Text(StatChartUtils.formatPercentage(headline.coverage))
                 }
             }
             .font(.headline)
@@ -57,7 +54,7 @@ struct LoopBarChartView: View {
 
             Text(
                 StatChartUtils
-                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedInterval)
+                    .formatVisibleDateRange(from: range.start, to: range.end, for: selectedInterval)
             )
             .font(.callout)
             .foregroundStyle(.secondary)
@@ -75,10 +72,7 @@ struct LoopBarChartView: View {
             .font(.footnote)
             .foregroundStyle(.secondary)
         }
-        .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-        }
-        .onChange(of: selectedInterval) {
+        .onChange(of: selectedInterval, initial: true) {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
     }
@@ -86,17 +80,17 @@ struct LoopBarChartView: View {
     private var chartsView: some View {
         Chart {
             ForEach(loopStats) { stat in
+                let opacity = selectedDate.map { date in
+                    StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
+                } ?? 1
+
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.successful)
                 )
                 .foregroundStyle(by: .value("Type", "Successful"))
                 .position(by: .value("Type", "Loops"))
-                .opacity(
-                    selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                    } ?? 1
-                )
+                .opacity(opacity)
 
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
@@ -104,11 +98,7 @@ struct LoopBarChartView: View {
                 )
                 .foregroundStyle(by: .value("Type", "Failed"))
                 .position(by: .value("Type", "Loops"))
-                .opacity(
-                    selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                    } ?? 1
-                )
+                .opacity(opacity)
             }
 
             if selectedInterval == .day {

@@ -2,18 +2,12 @@ import Charts
 import SwiftUI
 
 struct TotalDailyDoseChart: View {
-    @Binding var selectedInterval: Stat.StateModel.StatsTimeInterval
+    let selectedInterval: Stat.StateModel.StatsTimeInterval
     let tddStats: [TDDStats]
     let state: Stat.StateModel
 
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
-
-    private var headlineValues: Double {
-        selectedInterval == .day
-            ? state.calculateTDDTotals(for: visibleDateRange)
-            : state.calculateTDDAverages(for: visibleDateRange)
-    }
 
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
@@ -38,20 +32,20 @@ struct TotalDailyDoseChart: View {
                 chartsView
             }
         }
-        .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-        }
-        .onChange(of: selectedInterval) {
+        .onChange(of: selectedInterval, initial: true) {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
     }
 
     private var statsView: some View {
-        HStack {
+        let range = visibleDateRange
+        let headline = state.calculateTDDStats(for: range)
+
+        return HStack {
             Grid(alignment: .leading) {
                 StatChartUtils.statRow(
                     label: selectedInterval == .day ? "Total:" : "Average:",
-                    value: headlineValues,
+                    value: headline,
                     unit: "U",
                     showAverageSymbol: false
                 )
@@ -61,7 +55,7 @@ struct TotalDailyDoseChart: View {
 
             Text(
                 StatChartUtils
-                    .formatVisibleDateRange(from: visibleDateRange.start, to: visibleDateRange.end, for: selectedInterval)
+                    .formatVisibleDateRange(from: range.start, to: range.end, for: selectedInterval)
             )
             .font(.callout)
             .foregroundStyle(.secondary)
@@ -71,16 +65,15 @@ struct TotalDailyDoseChart: View {
     private var chartsView: some View {
         Chart {
             ForEach(tddStats) { stat in
+                let opacity = selectedDate.map { date in
+                    StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
+                } ?? 1
                 BarMark(
                     x: .value("Date", stat.date, unit: selectedInterval == .day ? .hour : .day),
                     y: .value("Amount", stat.amount)
                 )
                 .foregroundStyle(Color.insulin)
-                .opacity(
-                    selectedDate.map { date in
-                        StatChartUtils.isSameTimeUnit(stat.date, date, for: selectedInterval) ? 1 : 0.3
-                    } ?? 1
-                )
+                .opacity(opacity)
             }
 
             if let selectedDate,

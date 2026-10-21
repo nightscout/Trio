@@ -86,37 +86,18 @@ extension Stat.StateModel {
         return (hourlyStats, dailyStats)
     }
 
-    func calculateBolusAverages(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
-        let relevantStats = dailyBolusStats.filter { stat in
-            StatChartUtils.isStatInRange(
-                stat.date,
-                in: range
-            )
-        }
+    func calculateBolusStats(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
+        let isDay = selectedIntervalForInsulinStats == .day
+        let stats = isDay ? hourlyBolusStats : dailyBolusStats
+        let relevantStats = stats.filter { StatChartUtils.isStatInRange($0.date, in: range) }
 
         guard !relevantStats.isEmpty else { return (0, 0, 0) }
 
-        let sums = relevantStats.reduce((0.0, 0.0, 0.0)) { acc, day in
-            (acc.0 + day.manualBolus, acc.1 + day.smb, acc.2 + day.external)
+        let sums = relevantStats.reduce((manual: 0.0, smb: 0.0, external: 0.0)) { acc, entry in
+            (acc.manual + entry.manualBolus, acc.smb + entry.smb, acc.external + entry.external)
         }
-
-        let count = Double(relevantStats.count)
-
-        return (sums.0 / count, sums.1 / count, sums.2 / count)
-    }
-
-    func calculateBolusTotals(for range: (start: Date, end: Date)) -> (manual: Double, smb: Double, external: Double) {
-        let relevantStats = hourlyBolusStats.filter { stat in
-            StatChartUtils.isStatInRange(
-                stat.date,
-                in: range
-            )
-        }
-
-        let sums = relevantStats.reduce((0.0, 0.0, 0.0)) { acc, hour in
-            (acc.0 + hour.manualBolus, acc.1 + hour.smb, acc.2 + hour.external)
-        }
-
-        return sums
+        // Day view sums hourly buckets into a daily total and longer spans average across days.
+        let divisor = isDay ? 1.0 : Double(relevantStats.count)
+        return (sums.manual / divisor, sums.smb / divisor, sums.external / divisor)
     }
 }

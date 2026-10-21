@@ -354,36 +354,19 @@ extension Stat.StateModel {
         }
     }
 
-    func calculateTDDAverages(for range: (start: Date, end: Date)) -> Double {
-        let relevantStats = dailyTDDStats.filter { stat in
-            StatChartUtils.isStatInRange(
-                stat.date,
-                in: range
-            )
-        }
+    func calculateTDDStats(for range: (start: Date, end: Date)) -> Double {
+        let isDay = selectedIntervalForInsulinStats == .day
+        let stats = isDay ? hourlyTDDStats : dailyTDDStats
+        let relevantStats = stats.filter { StatChartUtils.isStatInRange($0.date, in: range) }
 
         guard !relevantStats.isEmpty else { return 0.0 }
 
-        let sums = relevantStats.reduce(0.0) { acc, day in
-            acc + day.amount
-        }
-        let count = Double(relevantStats.count)
-
-        return sums / count
-    }
-
-    func calculateTDDTotals(for range: (start: Date, end: Date)) -> Double {
-        let relevantStats = hourlyTDDStats.filter { stat in
-            StatChartUtils.isStatInRange(
-                stat.date,
-                in: range
-            )
+        let sums = relevantStats.reduce(0.0) { acc, entry in
+            acc + entry.amount
         }
 
-        let sums = relevantStats.reduce(0.0) { acc, hour in
-            acc + hour.amount
-        }
-
-        return sums
+        // Day view sums hourly buckets into a daily total and longer spans average across days.
+        let divisor = isDay ? 1.0 : Double(relevantStats.count)
+        return sums / divisor
     }
 }

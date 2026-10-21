@@ -18,33 +18,23 @@ struct GlucoseDailyDistributionChart: View {
         selectedDate.map { Calendar.current.startOfDay(for: $0) }
     }
 
-    private var visibleGlucose: [GlucoseReading] {
-        readingsByDay
-            .filter { StatChartUtils.isStatInRange($0.key, in: visibleDateRange) }
-            .flatMap(\.value)
-    }
-
-    private var selectedDayGlucose: [GlucoseReading] {
-        guard let selectedDayStart else { return [] }
-        return readingsByDay[selectedDayStart, default: []]
-    }
-
     private var visibleDateRange: (start: Date, end: Date) {
         StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
-    private var activeGlucoseData: [GlucoseReading] {
-        selectedDayStart != nil ? selectedDayGlucose : visibleGlucose
-    }
-
     var body: some View {
+        let range = visibleDateRange
+        let activeGlucose = selectedDayStart.map { readingsByDay[$0, default: []] } ?? readingsByDay
+            .filter { StatChartUtils.isStatInRange($0.key, in: range) }
+            .flatMap(\.value)
+
         VStack(alignment: .leading, spacing: 8) {
             chartView
                 .frame(height: 200)
 
             Text(selectedDate.map { StatChartUtils.formatDate($0) } ?? StatChartUtils.formatVisibleDateRange(
-                from: visibleDateRange.start,
-                to: visibleDateRange.end,
+                from: range.start,
+                to: range.end,
                 for: selectedInterval
             ))
                 .font(.subheadline)
@@ -54,7 +44,7 @@ struct GlucoseDailyDistributionChart: View {
             GlucoseSectorChart(
                 highLimit: highLimit,
                 units: units,
-                glucose: activeGlucoseData,
+                glucose: activeGlucose,
                 timeInRangeType: timeInRangeType,
                 showChart: false
             )
@@ -65,14 +55,11 @@ struct GlucoseDailyDistributionChart: View {
             GlucoseMetricsView(
                 units: units,
                 eA1cDisplayUnit: eA1cDisplayUnit,
-                glucose: activeGlucoseData
+                glucose: activeGlucose
             )
             .equatable()
         }
-        .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-        }
-        .onChange(of: selectedInterval) {
+        .onChange(of: selectedInterval, initial: true) {
             selectedDate = nil
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
@@ -89,8 +76,9 @@ struct GlucoseDailyDistributionChart: View {
 
         return Chart {
             ForEach(dailyStats) { day in
+                let opacity = selectedDayStart.map { day.date == $0 ? 1 : 0.3 } ?? 1
                 ForEach(bandInfos, id: \.band) { entry in
-                    barMark(x: day, y: day.pct(for: entry.band), name: entry.info.label)
+                    barMark(x: day, y: day.pct(for: entry.band), name: entry.info.label, opacity: opacity)
                 }
             }
         }
@@ -129,12 +117,12 @@ struct GlucoseDailyDistributionChart: View {
         .accessibilityLabel(Text("Daily glucose distribution chart"))
     }
 
-    private func barMark(x: GlucoseDailyDistributionStats, y: Double, name: String) -> some ChartContent {
+    private func barMark(x: GlucoseDailyDistributionStats, y: Double, name: String, opacity: Double) -> some ChartContent {
         BarMark(
             x: .value("Date", x.date, unit: .day),
             y: .value("Percentage", y)
         )
         .foregroundStyle(by: .value("Range", name))
-        .opacity(selectedDayStart.map { x.date == $0 ? 1 : 0.3 } ?? 1)
+        .opacity(opacity)
     }
 }
