@@ -80,8 +80,7 @@ extension Stat.StateModel {
     private func fetchHourlyInsulinRecords(on tddTaskContext: NSManagedObjectContext) async throws
         -> (bolus: Any, tempBasal: Any, suspendEvents: Any, resumeEvents: Any)
     {
-        let now = Date()
-        let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
+        let (twentyDaysAgo, now) = StatChartUtils.hourlyWindow()
 
         let datePredicate = NSPredicate(
             format: "pumpEvent.timestamp >= %@ AND pumpEvent.timestamp <= %@",

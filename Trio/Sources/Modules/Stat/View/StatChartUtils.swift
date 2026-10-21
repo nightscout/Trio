@@ -3,8 +3,6 @@ import Foundation
 import SwiftUI
 
 struct StatChartUtils {
-    static let hourlyWindowDays = 20
-
     static func dayCount(for selectedInterval: Stat.StateModel.StatsTimeInterval) -> Int {
         switch selectedInterval {
         case .day: return 1
@@ -290,6 +288,12 @@ struct StatChartUtils {
             let formattedValue = Text(verbatim: format(value, fractionLength: fractionLength))
             if let unit { formattedValue + Text(verbatim: "\u{00A0}") + Text(unit) } else { formattedValue }
         }
+    }
+
+    static func hourlyWindow(now: Date = Date(), calendar: Calendar = .current) -> (twentyDaysAgo: Date, now: Date) {
+        let twentyDaysAgo = calendar.date(byAdding: .day, value: -20, to: calendar.startOfDay(for: now))!
+
+        return (twentyDaysAgo, now)
     }
 
     static func statView(

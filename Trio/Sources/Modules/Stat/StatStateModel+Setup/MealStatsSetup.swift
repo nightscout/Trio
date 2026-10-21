@@ -48,16 +48,12 @@ extension Stat.StateModel {
         return await mealTaskContext.perform {
             guard let fetchedResults = results as? [CarbEntryStored] else { return ([], []) }
 
-            let calendar = Calendar.current
-
-            let now = Date()
-            let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
-
             let validEntries = fetchedResults.compactMap { entry -> (date: Date, entry: CarbEntryStored)? in
                 guard let date = entry.date else { return nil }
                 return (date, entry)
             }
-
+            let calendar = Calendar.current
+            let (twentyDaysAgo, now) = StatChartUtils.hourlyWindow(calendar: calendar)
             let lastTwentyDays = validEntries.filter { $0.date >= twentyDaysAgo && $0.date <= now }
 
             let hourlyGrouped = Dictionary(grouping: lastTwentyDays) {

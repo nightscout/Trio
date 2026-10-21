@@ -67,9 +67,7 @@ extension Stat.StateModel {
             }
 
         let calendar = Calendar.current
-        let now = Date()
-
-        let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
+        let (twentyDaysAgo, now) = StatChartUtils.hourlyWindow(calendar: calendar)
         let lastTwentyDays = validEntries.filter { $0.date >= twentyDaysAgo && $0.date <= now }
 
         let hourlyGrouped = Dictionary(grouping: lastTwentyDays) {

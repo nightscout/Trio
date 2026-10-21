@@ -66,16 +66,13 @@ extension Stat.StateModel {
         return await loopTaskContext.perform {
             guard let fetchedResults = results as? [LoopStatRecord] else { return ([], [], nil) }
 
-            let calendar = Calendar.current
-
-            let now = Date()
-            let twentyDaysAgo = calendar.date(byAdding: .day, value: -StatChartUtils.hourlyWindowDays, to: now)!
-
             let validEntries = fetchedResults.compactMap { entry -> (date: Date, entry: LoopStatRecord)? in
                 guard let date = entry.start else { return nil }
                 return (date, entry)
             }
 
+            let calendar = Calendar.current
+            let (twentyDaysAgo, now) = StatChartUtils.hourlyWindow(calendar: calendar)
             let lastTwentyDays = validEntries.filter { $0.date >= twentyDaysAgo && $0.date <= now }
 
             let hourlyGrouped = Dictionary(grouping: lastTwentyDays) {
