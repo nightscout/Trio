@@ -9,7 +9,7 @@ struct LoopBarChartView: View {
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
 
-    private var headlineValues: (successful: Double, failed: Double, successRate: Double) {
+    private var headlineValues: (successful: Double, failed: Double, successRate: Double, coverage: Double) {
         selectedInterval == .day
             ? state.calculateLoopTotals(for: visibleDateRange)
             : state.calculateLoopAverages(for: visibleDateRange)
@@ -41,15 +41,13 @@ struct LoopBarChartView: View {
                     fractionLength: selectedInterval != .day ? 1 : 0
                 )
                 Divider()
-                StatChartUtils.statRow(
-                    label: "Total:",
-                    value: headlineValues.successful + headlineValues.failed,
-                    showAverageSymbol: selectedInterval != .day,
-                    fractionLength: selectedInterval != .day ? 1 : 0
-                )
                 GridRow {
                     Text("Success rate:")
                     Text(StatChartUtils.formatPercentage(headlineValues.successRate))
+                }
+                GridRow {
+                    Text("Coverage:")
+                    Text(StatChartUtils.formatPercentage(headlineValues.coverage))
                 }
             }
             .font(.headline)
@@ -70,6 +68,12 @@ struct LoopBarChartView: View {
         VStack(alignment: .leading, spacing: 8) {
             statsView.padding(.bottom)
             chartsView
+            Divider()
+            Text(
+                "Success rate is the share of attempted loops that succeeded. Coverage is successful loops out of expected 5-minute cycles."
+            )
+            .font(.footnote)
+            .foregroundStyle(.secondary)
         }
         .onAppear {
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)

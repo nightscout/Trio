@@ -15,6 +15,7 @@ extension Stat {
 
         var hourlyLoopStats: [LoopingStats] = []
         var dailyLoopStats: [LoopingStats] = []
+        var earliestLoopDate: Date?
 
         var hourlyMealStats: [MealStats] = []
         var dailyMealStats: [MealStats] = []

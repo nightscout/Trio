@@ -90719,6 +90719,9 @@
         }
       }
     },
+    "Coverage:" : {
+
+    },
     "CR" : {
       "comment" : "Option for Carb Ratio",
       "localizations" : {
@@ -285438,6 +285441,9 @@
           }
         }
       }
+    },
+    "Success rate is the share of attempted loops that succeeded. Coverage is successful loops out of expected 5-minute cycles." : {
+
     },
     "Success rate:" : {
 

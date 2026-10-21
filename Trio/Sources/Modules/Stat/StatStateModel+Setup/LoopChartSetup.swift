@@ -15,11 +15,12 @@ extension Stat.StateModel {
     func setupLoopStats() {
         Task {
             do {
-                let (hourly, daily) = try await fetchLoopStats()
+                let (hourly, daily, earliestLoopDate) = try await fetchLoopStats()
 
                 await MainActor.run {
                     self.hourlyLoopStats = hourly
                     self.dailyLoopStats = daily
+                    self.earliestLoopDate = earliestLoopDate
                 }
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch loop stats: \(error)")
@@ -50,7 +51,7 @@ extension Stat.StateModel {
         )
     }
 
-    private func fetchLoopStats() async throws -> (hourly: [LoopingStats], daily: [LoopingStats]) {
+    private func fetchLoopStats() async throws -> (hourly: [LoopingStats], daily: [LoopingStats], earliestLoopDate: Date?) {
         let loopTaskContext = CoreDataStack.shared.newTaskContext()
         loopTaskContext.name = "StatStateModel.fetchLoopStats"
 
@@ -63,7 +64,7 @@ extension Stat.StateModel {
         )
 
         return await loopTaskContext.perform {
-            guard let fetchedResults = results as? [LoopStatRecord] else { return ([], []) }
+            guard let fetchedResults = results as? [LoopStatRecord] else { return ([], [], nil) }
 
             let calendar = Calendar.current
 
@@ -90,11 +91,15 @@ extension Stat.StateModel {
                 Self.makeLoopStats(date: $0.key, entries: $0.value)
             }
 
-            return (hourlyStats, dailyStats)
+            let earliestLoopDate = validEntries.first?.date
+
+            return (hourlyStats, dailyStats, earliestLoopDate)
         }
     }
 
-    func calculateLoopAverages(for range: (start: Date, end: Date)) -> (successful: Double, failed: Double, successRate: Double) {
+    func calculateLoopAverages(for range: (start: Date, end: Date))
+        -> (successful: Double, failed: Double, successRate: Double, coverage: Double)
+    {
         let relevantStats = dailyLoopStats.filter { stat in
             StatChartUtils.isStatInRange(
                 stat.date,
@@ -102,7 +107,7 @@ extension Stat.StateModel {
             )
         }
 
-        guard !relevantStats.isEmpty else { return (0, 0, 0.0) }
+        guard !relevantStats.isEmpty else { return (0, 0, 0.0, 0.0) }
 
         let sums = relevantStats.reduce((successful: 0, failed: 0)) { acc, day in
             (acc.successful + day.successful, acc.failed + day.failed)
@@ -110,11 +115,14 @@ extension Stat.StateModel {
 
         let count = Double(relevantStats.count)
         let successRate = Double(sums.successful) / Double(sums.successful + sums.failed) * 100
+        let coverage = Self.loopCoverage(successful: sums.successful, for: range, startDate: earliestLoopDate)
 
-        return (Double(sums.successful) / count, Double(sums.failed) / count, successRate)
+        return (Double(sums.successful) / count, Double(sums.failed) / count, successRate, coverage)
     }
 
-    func calculateLoopTotals(for range: (start: Date, end: Date)) -> (successful: Double, failed: Double, successRate: Double) {
+    func calculateLoopTotals(for range: (start: Date, end: Date))
+        -> (successful: Double, failed: Double, successRate: Double, coverage: Double)
+    {
         let relevantStats = hourlyLoopStats.filter { stat in
             StatChartUtils.isStatInRange(
                 stat.date,
@@ -122,13 +130,32 @@ extension Stat.StateModel {
             )
         }
 
-        guard !relevantStats.isEmpty else { return (0, 0, 0.0) }
+        guard !relevantStats.isEmpty else { return (0, 0, 0.0, 0.0) }
 
         let sums = relevantStats.reduce((successful: 0, failed: 0)) { acc, hour in
             (acc.successful + hour.successful, acc.failed + hour.failed)
         }
         let successRate = Double(sums.successful) / Double(sums.successful + sums.failed) * 100
+        let coverage = Self.loopCoverage(successful: sums.successful, for: range, startDate: earliestLoopDate)
 
-        return (Double(sums.successful), Double(sums.failed), successRate)
+        return (Double(sums.successful), Double(sums.failed), successRate, coverage)
+    }
+
+    private static func loopCoverage(
+        successful: Int,
+        for range: (start: Date, end: Date),
+        startDate: Date?
+    ) -> Double {
+        let expectedLoopInterval: TimeInterval = 5 * 60
+        let now = Date()
+        // Clamp to the first loop and now so fresh installs and unfinished days are not penalized.
+        let start = max(range.start, startDate ?? range.start)
+        let end = min(range.end, now)
+
+        guard end > start else { return 0 }
+
+        let expectedLoops = end.timeIntervalSince(start) / expectedLoopInterval
+        // Forced loops can exceed the 5 minute schedule.
+        return min(Double(successful) / expectedLoops * 100, 100)
     }
 }
