@@ -440,4 +440,101 @@ import Testing
             "All entries should share the same fpuID"
         )
     }
+
+    @Test("Non-UUID entry id is replaced by a fresh UUID") func testStoreReplacesNonUUIDID() async throws {
+        let mealEntry = CarbsEntry(
+            id: "66f1c4c8a1b2c3d4e5f60718",
+            createdAt: Date(),
+            actualDate: Date(),
+            carbs: 15,
+            fat: nil,
+            protein: nil,
+            note: nil,
+            enteredBy: "Test",
+            isFPU: false,
+            fpuID: nil
+        )
+
+        try await storage.storeCarbs([mealEntry], areFetchedFromRemote: true)
+
+        let storedEntries = try await coreDataStack.fetchEntitiesAsync(
+            ofType: CarbEntryStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "TRUEPREDICATE"),
+            key: "date",
+            ascending: true
+        ) as? [CarbEntryStored]
+
+        #expect(storedEntries?.count == 1)
+        #expect(storedEntries?.first?.id != nil, "Entry has a UUID id")
+        #expect(storedEntries?.first?.fpuID == nil, "Carb-only entry has no fpuID")
+    }
+
+    @Test("fetchMealRoot resolves the root by its id") func testFetchMealRootByID() async throws {
+        let rootID = UUID()
+        let meal = CarbsEntry(
+            id: rootID.uuidString, createdAt: Date(), actualDate: Date(), carbs: 25, fat: 0, protein: 0,
+            note: nil, enteredBy: "Test", isFPU: false, fpuID: nil
+        )
+        try await storage.storeCarbs([meal], areFetchedFromRemote: false)
+
+        let result = try await storage.fetchMealRoot(handle: rootID)
+
+        #expect(result?.snapshot.id == rootID)
+        #expect(result?.snapshot.carbs == 25)
+        #expect(result?.snapshot.fpuID == nil)
+    }
+
+    @Test("fetchMealRoot resolves the root from the fpuID handle") func testFetchMealRootByFPUID() async throws {
+        let rootID = UUID()
+        let fpuID = UUID()
+        let meal = CarbsEntry(
+            id: rootID.uuidString, createdAt: Date(), actualDate: Date(), carbs: 30, fat: 50, protein: 100,
+            note: "root", enteredBy: "Test", isFPU: false, fpuID: fpuID.uuidString
+        )
+        try await storage.storeCarbs([meal], areFetchedFromRemote: false)
+
+        let result = try await storage.fetchMealRoot(handle: fpuID)
+
+        #expect(result?.snapshot.id == rootID, "Handle resolves to the root, not a carb equivalent")
+        #expect(result?.snapshot.fpuID == fpuID)
+        #expect(result?.snapshot.fat == 50)
+    }
+
+    @Test("fetchMealRoot resolves a fat/protein-only meal from its fpuID") func testFetchMealRootZeroCarb() async throws {
+        let fpuID = UUID()
+        let meal = CarbsEntry(
+            id: UUID().uuidString, createdAt: Date(), actualDate: Date(), carbs: 0, fat: 40, protein: 60,
+            note: nil, enteredBy: "Test", isFPU: false, fpuID: fpuID.uuidString
+        )
+        try await storage.storeCarbs([meal], areFetchedFromRemote: false)
+
+        let result = try await storage.fetchMealRoot(handle: fpuID)
+
+        #expect(result != nil)
+        #expect(result?.snapshot.carbs == 0)
+        #expect(result?.snapshot.protein == 60)
+    }
+
+    @Test("fetchMealRoot returns nil for an unknown handle") func testFetchMealRootUnknown() async throws {
+        #expect(try await storage.fetchMealRoot(handle: UUID()) == nil)
+    }
+
+    @Test("Nightscout treatments carry the fpuID of root and carb equivalents") func testNightscoutTreatmentsCarryFPUID() async throws {
+        let fpuID = UUID().uuidString
+        let meal = CarbsEntry(
+            id: UUID().uuidString, createdAt: Date(), actualDate: Date(), carbs: 30, fat: 50, protein: 100,
+            note: nil, enteredBy: "Test", isFPU: false, fpuID: fpuID
+        )
+        try await storage.storeCarbs([meal], areFetchedFromRemote: false)
+
+        let roots = try await storage.getCarbsNotYetUploadedToNightscout()
+        let children = try await storage.getFPUsNotYetUploadedToNightscout()
+
+        #expect(roots.count == 1)
+        #expect(roots.first?.id == meal.id)
+        #expect(roots.first?.fpuID == fpuID)
+        #expect(!children.isEmpty)
+        #expect(children.allSatisfy { $0.id == fpuID && $0.fpuID == fpuID })
+    }
 }

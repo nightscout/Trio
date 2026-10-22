@@ -843,6 +843,18 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: userInterfaceSubcategory,
+                    name: String(localized: "Home Statistics Panel"),
+                    value: trioSettings.homeStatsPanelFace.displayName
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
+                    name: String(localized: "Home Statistics Range"),
+                    value: trioSettings.homeStatsPanelRange.displayName
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: userInterfaceSubcategory,
                     name: String(localized: "Require Adjustments Confirmation"),
                     value: trioSettings
                         .requireAdjustmentsConfirmation ? String(localized: "Enabled") : String(localized: "Disabled")
@@ -899,6 +911,14 @@ extension SettingsExport {
                     name: String(localized: "Lock Screen Widget Style"),
                     value: trioSettings.lockScreenView.rawValue
                 )
+                if trioSettings.lockScreenView == .simple {
+                    addSetting(
+                        category: notificationsCategory,
+                        subcategory: liveActivitySubcategory,
+                        name: String(localized: "Font Size"),
+                        value: trioSettings.liveActivitySimpleFontSize.displayName
+                    )
+                }
                 addSetting(
                     category: notificationsCategory,
                     subcategory: liveActivitySubcategory,
