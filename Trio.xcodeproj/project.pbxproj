@@ -151,6 +151,7 @@
 		4E3B6212E43A3E90DD735B30 /* AppLog.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 163DFE6AE312CC4BBDE18D71 /* AppLog.xcdatamodeld */; };
 		536B4DB89FCFE9188F4DFE5D /* SensitiveValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CCB6F0602E069F5B4F83EDC /* SensitiveValues.swift */; };
 		5C55695D8C9185BDB57B3E7B /* LogRetentionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C3084B00ADBA601CDBA8AB7 /* LogRetentionPolicy.swift */; };
+		659C83549641F3FCC56F30AB /* ReportProblemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7373EC0CC3C059178CB967B4 /* ReportProblemView.swift */; };
 		7BA97B74F25D6A1F5D853EFB /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F602845F4994CA0A57286EE6 /* ShareSheet.swift */; };
 		91AE5F35FC765DFE4C1A2589 /* AppLogStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DB223ADEDD0EB920F7BC209 /* AppLogStoreTests.swift */; };
 		91FC2FB975FB723C55744FB1 /* LogSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB5F206A024F911C4E145D5 /* LogSink.swift */; };
@@ -1619,6 +1620,7 @@
 		6B1A8D2D2B156EEF00E76752 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		6BCF84DC2B16843A003AD46E /* LiveActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityAttributes.swift; sourceTree = "<group>"; };
 		704720C410E0C4F7D10B184B /* RedactorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedactorTests.swift; sourceTree = "<group>"; };
+		7373EC0CC3C059178CB967B4 /* ReportProblemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportProblemView.swift; sourceTree = "<group>"; };
 		7DB8B37A782E6D75420DB2FC /* LogExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogExport.swift; sourceTree = "<group>"; };
 		7E2CF3BABA4BF1C48CC96FD7 /* LiveActivityGlucoseStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityGlucoseStyle.swift; sourceTree = "<group>"; };
 		7FBFFB8EF42D847AFFDA6C05 /* LogFileHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileHeader.swift; sourceTree = "<group>"; };
@@ -4595,6 +4597,7 @@
 				DD1745182C543B5700211FAC /* NotificationsView.swift */,
 				DD17451C2C543C5F00211FAC /* ServicesView.swift */,
 				DD1745362C55B74200211FAC /* AlgorithmSettings.swift */,
+				7373EC0CC3C059178CB967B4 /* ReportProblemView.swift */,
 			);
 			path = Subviews;
 			sourceTree = "<group>";
@@ -6416,6 +6419,7 @@
 				96310848E7A3468607C340E9 /* LogExport.swift in Sources */,
 				F6854A961CB1CF1105757936 /* LogShareRow.swift in Sources */,
 				536B4DB89FCFE9188F4DFE5D /* SensitiveValues.swift in Sources */,
+				659C83549641F3FCC56F30AB /* ReportProblemView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -5,14 +5,13 @@ struct LogShareRow: View {
     var footnote: LocalizedStringKey?
     let kinds: [LogExport.Kind]
     let logExport: LogExport?
-    var onFailure: (() -> Void)?
 
     @State private var showKinds = false
     @State private var showDays = false
     @State private var pendingKind: LogExport.Kind?
     @State private var isPreparing = false
     @State private var file: URL?
-    @State private var showShareSheet = false
+    @State private var sharedFile: SharedFile?
     @State private var showError = false
 
     var body: some View {
@@ -44,20 +43,19 @@ struct LogShareRow: View {
                     .padding(.top, 2)
             }
         }
+        .accessibilityElement(children: .combine)
         .glassActionSheet(
             "Share Logs",
             message: Text("Your Nightscout address, passwords and device serial numbers are removed."),
             isPresented: $showKinds,
             actions: kinds.map { kind in
                 GlassSheetAction(kind.label) { pendingKind = kind }
+            },
+            // A cover presented while another is still dismissing never appears and blocks touches
+            onDismiss: {
+                if pendingKind != nil { showDays = true }
             }
         )
-        .onChange(of: showKinds) { _, shown in
-            // The sheet runs the chosen action before it clears its binding
-            if !shown, pendingKind != nil {
-                showDays = true
-            }
-        }
         .glassActionSheet(
             "How far back?",
             isPresented: $showDays,
@@ -68,8 +66,11 @@ struct LogShareRow: View {
             ],
             onCancel: { pendingKind = nil }
         )
-        .sheet(isPresented: $showShareSheet, onDismiss: discardFile) {
-            ShareSheet(activityItems: file.map { [$0] } ?? [])
+        // item: hands the file to the sheet; isPresented: could build it before file was set and share nothing
+        .sheet(item: $sharedFile, onDismiss: discardFile) { shared in
+            // The share sheet takes seconds to build on device; keep the spinner until it shows
+            ShareSheet(activityItems: [shared.url])
+                .onAppear { isPreparing = false }
         }
         .alert("Could not prepare logs", isPresented: $showError) {
             Button("OK", role: .cancel) {}
@@ -93,28 +94,30 @@ struct LogShareRow: View {
         isPreparing = true
         Task { @MainActor in
             do {
-                file = try await logExport.makeFile(kind, days: days)
-                isPreparing = false
-                showShareSheet = true
+                let url = try await logExport.makeFile(kind, days: days)
+                file = url
+                sharedFile = SharedFile(url: url)
             } catch {
                 isPreparing = false
                 warning(.ui, "Preparing logs for sharing failed", error: error)
-                if let onFailure {
-                    onFailure()
-                } else {
-                    showError = true
-                }
+                showError = true
             }
         }
     }
 
     private func discardFile() {
+        isPreparing = false
         guard let file else { return }
         self.file = nil
         Task.detached(priority: .utility) {
             LogExport.discard(file)
         }
     }
+}
+
+private struct SharedFile: Identifiable {
+    let url: URL
+    var id: URL { url }
 }
 
 private extension LogExport.Kind {
