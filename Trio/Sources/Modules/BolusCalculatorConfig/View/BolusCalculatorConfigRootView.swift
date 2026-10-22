@@ -259,6 +259,7 @@ extension BolusCalculatorConfig {
                     } footer: {
                         Text("Quick buttons for the reminder lead time. Add up to 3 presets, swipe to delete.")
                     }
+                    .listRowBackground(Color.chart)
                 }
             }
             .listSectionSpacing(sectionSpacing)
