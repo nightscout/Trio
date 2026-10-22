@@ -799,7 +799,10 @@ enum DosingEngine {
             durationRequired = min(60, max(0, durationRequired))
         } else {
             // Note: we're using the fully adjusted basal here
-            smbLowTempRequired = (basal * durationRequired / 30).jsRounded(scale: 2)
+            // Intentional deviation from oref JS (basal * durationReq / 30) as that formula is,
+            // inverted, so a longer required suspension gets a higher rate instead of a lower one.
+            // See https://github.com/nightscout/Trio/issues/1359
+            smbLowTempRequired = (basal * (30 - durationRequired) / 30).jsRounded(scale: 2)
             durationRequired = 30
         }
 
