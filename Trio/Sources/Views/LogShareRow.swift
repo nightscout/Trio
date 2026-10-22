@@ -5,7 +5,6 @@ struct LogShareRow: View {
     var footnote: LocalizedStringKey?
     let kinds: [LogExport.Kind]
     let logExport: LogExport?
-    var onFailure: (() -> Void)?
 
     @State private var showKinds = false
     @State private var showDays = false
@@ -44,6 +43,7 @@ struct LogShareRow: View {
                     .padding(.top, 2)
             }
         }
+        .accessibilityElement(children: .combine)
         .glassActionSheet(
             "Share Logs",
             message: Text("Your Nightscout address, passwords and device serial numbers are removed."),
@@ -99,11 +99,7 @@ struct LogShareRow: View {
             } catch {
                 isPreparing = false
                 warning(.ui, "Preparing logs for sharing failed", error: error)
-                if let onFailure {
-                    onFailure()
-                } else {
-                    showError = true
-                }
+                showError = true
             }
         }
     }
