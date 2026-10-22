@@ -41,6 +41,10 @@ class TestAssembly: Assembly {
             BaseOverrideStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
+        container.register(CarbEntryMutationService.self) { r in
+            BaseCarbEntryMutationService(resolver: r, contextProvider: { self.testContext })
+        }.inObjectScope(.container)
+
         // Override AdjustmentManager registration for tests
         container.register(AdjustmentManager.self) { r in
             BaseAdjustmentManager(resolver: r, contextProvider: { self.testContext }, recompute: {})

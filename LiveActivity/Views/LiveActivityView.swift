@@ -14,21 +14,7 @@ struct LiveActivityView: View {
     }
 
     private var glucoseColor: Color {
-        let state = context.state
-        let isMgdL = state.unit == "mg/dL"
-
-        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
-        let hardCodedLow = isMgdL ? Decimal(55) : 55.asMmolL
-        let hardCodedHigh = isMgdL ? Decimal(220) : 220.asMmolL
-
-        return Color.getDynamicGlucoseColor(
-            glucoseValue: Decimal(string: state.bg) ?? 100,
-            highGlucoseColorValue: !hasStaticColorScheme ? hardCodedHigh :
-                (isMgdL ? state.highGlucose : state.highGlucose.asMmolL),
-            lowGlucoseColorValue: !hasStaticColorScheme ? hardCodedLow : (isMgdL ? state.lowGlucose : state.lowGlucose.asMmolL),
-            targetGlucose: isMgdL ? state.target : state.target.asMmolL,
-            glucoseColorScheme: state.glucoseColorScheme
-        )
+        context.state.glucoseColor
     }
 
     var body: some View {
@@ -89,11 +75,13 @@ struct LiveActivityView: View {
                         }
                     }
 
+                let widgetItems = context.state.detailedViewState.widgetItems.filter { $0 != .wideContinuation }
+
                 HStack {
-                    if context.state.detailedViewState.widgetItems.contains(where: { $0 != .empty }) {
+                    if widgetItems.contains(where: { $0 != .empty }) {
                         ForEach(
-                            Array(context.state.detailedViewState.widgetItems.enumerated()),
-                            id: \.element
+                            Array(widgetItems.enumerated()),
+                            id: \.offset
                         ) { index, widgetItem in
                             switch widgetItem {
                             case .currentGlucose:
@@ -118,6 +106,50 @@ struct LiveActivityView: View {
                                     context: context,
                                     glucoseColor: glucoseColor
                                 )
+                            case .currentGlucoseLargeUncolored:
+                                LiveActivityBGLabelLargeView(
+                                    context: context,
+                                    glucoseColor: .primary
+                                )
+                            case .currentGlucoseColored:
+                                VStack {
+                                    LiveActivityBGLabelView(
+                                        context: context,
+                                        additionalState: context.state.detailedViewState,
+                                        glucoseColor: glucoseColor
+                                    )
+
+                                    HStack {
+                                        LiveActivityGlucoseDeltaLabelView(
+                                            context: context,
+                                            glucoseColor: glucoseColor
+                                        )
+                                        if !context.isStale, let direction = context.state.direction {
+                                            Text(direction).font(.headline).foregroundStyle(glucoseColor)
+                                        }
+                                    }
+                                }
+                            case .currentGlucoseWide,
+                                 .currentGlucoseWideUncolored:
+                                let wideColor: Color = widgetItem == .currentGlucoseWideUncolored ? .primary : glucoseColor
+                                let wideFont: Font = isWatchOS ? .title : .largeTitle
+                                let secondaryFont: Font = isWatchOS ? .title3 : .title2
+                                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                                    LiveActivityBGLabelLargeView(
+                                        context: context,
+                                        glucoseColor: wideColor,
+                                        glucoseFont: wideFont,
+                                        arrowFont: secondaryFont
+                                    )
+                                    LiveActivityGlucoseDeltaLabelView(
+                                        context: context,
+                                        glucoseColor: .primary
+                                    )
+                                    .fontWeight(.bold)
+                                    .font(secondaryFont)
+                                }
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
                             case .iob:
                                 LiveActivityIOBLabelView(context: context, additionalState: context.state.detailedViewState)
                             case .cob:
@@ -131,12 +163,14 @@ struct LiveActivityView: View {
                                 )
                             case .empty:
                                 Text("").frame(width: 50, height: 50)
+                            case .wideContinuation:
+                                EmptyView()
                             }
 
                             /// Check if the next item is also non-empty to determine if a divider should be shown
-                            if index < context.state.detailedViewState.widgetItems.count - 1 {
-                                let currentItem = context.state.detailedViewState.widgetItems[index]
-                                let nextItem = context.state.detailedViewState.widgetItems[index + 1]
+                            if index < widgetItems.count - 1 {
+                                let currentItem = widgetItems[index]
+                                let nextItem = widgetItems[index + 1]
 
                                 if currentItem != .empty, nextItem != .empty {
                                     Divider()
@@ -151,12 +185,17 @@ struct LiveActivityView: View {
             }
             .addLiveActivityModifiers(isWatchOS: false)
         } else {
+            let simpleViewStyle = context.state.simpleViewStyle
+
             Group {
                 if context.state.isInitialState {
                     Text("Live Activity Expired. Open Trio to Refresh").minimumScaleFactor(0.01)
                 } else {
                     HStack(spacing: 3) {
-                        LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: glucoseColor).font(.title)
+                        LiveActivityBGAndTrendView(context: context, size: .expanded, glucoseColor: glucoseColor)
+                            .font(simpleViewStyle.glucoseFont)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
                         Spacer()
                         VStack(alignment: .trailing, spacing: 5) {
                             LiveActivityGlucoseDeltaLabelView(
@@ -170,7 +209,7 @@ struct LiveActivityView: View {
                     }
                 }
             }
-            .addLiveActivityModifiers(isWatchOS: false)
+            .addLiveActivityModifiers(isWatchOS: false, verticalPadding: simpleViewStyle.fontSize.verticalPadding)
         }
     }
 }

@@ -26,6 +26,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var cgm: CGMType = .none
     var cgmPluginIdentifier: String = ""
     var uploadGlucose: Bool = true
+    var uploadCGMSensorStates: Bool = false
     var useCalendar: Bool = false
     var displayCalendarIOBandCOB: Bool = false
     var displayCalendarEmojis: Bool = false
@@ -67,10 +68,12 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var useLiveActivity: Bool = false
     var lockScreenView: LockScreenView = .simple
     var smartStackView: LockScreenView = .simple
+    var liveActivitySimpleFontSize: LiveActivityFontSize = .large
     var displayGlucoseForecasts: Bool = false
     var bolusShortcut: BolusShortcutLimit = .notAllowed
     var timeInRangeType: TimeInRangeType = .timeInTightRange
     var homeStatsPanelFace: HomeStatsPanelFace = .timeInRange
+    var homeStatsPanelRange: HomeStatsPanelRange = .today
     var requireAdjustmentsConfirmation: Bool = false
 
     /// Selected Garmin watchface (Trio or SwissAlpine)
@@ -171,6 +174,10 @@ extension TrioSettings: Decodable {
 
         if let uploadGlucose = try? container.decode(Bool.self, forKey: .uploadGlucose) {
             settings.uploadGlucose = uploadGlucose
+        }
+
+        if let uploadCGMSensorStates = try? container.decode(Bool.self, forKey: .uploadCGMSensorStates) {
+            settings.uploadCGMSensorStates = uploadCGMSensorStates
         }
 
         if let useCalendar = try? container.decode(Bool.self, forKey: .useCalendar) {
@@ -340,6 +347,12 @@ extension TrioSettings: Decodable {
             settings.smartStackView = smartStackView
         }
 
+        if let liveActivitySimpleFontSize = try? container
+            .decode(LiveActivityFontSize.self, forKey: .liveActivitySimpleFontSize)
+        {
+            settings.liveActivitySimpleFontSize = liveActivitySimpleFontSize
+        }
+
         if let displayGlucoseForecasts = try? container.decode(Bool.self, forKey: .displayGlucoseForecasts) {
             settings.displayGlucoseForecasts = displayGlucoseForecasts
         }
@@ -354,6 +367,10 @@ extension TrioSettings: Decodable {
 
         if let homeStatsPanelFace = try? container.decode(HomeStatsPanelFace.self, forKey: .homeStatsPanelFace) {
             settings.homeStatsPanelFace = homeStatsPanelFace
+        }
+
+        if let homeStatsPanelRange = try? container.decode(HomeStatsPanelRange.self, forKey: .homeStatsPanelRange) {
+            settings.homeStatsPanelRange = homeStatsPanelRange
         }
 
         if let requireAdjustmentsConfirmation = try? container.decode(Bool.self, forKey: .requireAdjustmentsConfirmation) {
