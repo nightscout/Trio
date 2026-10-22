@@ -4,7 +4,6 @@ import SwiftUI
 struct GlucoseSectorChart: View, Equatable {
     private typealias RangeData = [(range: GlucoseRange, count: Int, color: Color)]
 
-    let highLimit: Decimal
     let units: GlucoseUnits
     let glucose: [GlucoseReading]
     let timeInRangeType: TimeInRangeType
@@ -14,7 +13,7 @@ struct GlucoseSectorChart: View, Equatable {
     @State private var selectedRange: GlucoseRange?
 
     static func == (lhs: GlucoseSectorChart, rhs: GlucoseSectorChart) -> Bool {
-        lhs.highLimit == rhs.highLimit && lhs.units == rhs.units && lhs.glucose == rhs.glucose &&
+        lhs.units == rhs.units && lhs.glucose == rhs.glucose &&
             lhs.timeInRangeType == rhs.timeInRangeType && lhs.showChart == rhs.showChart
     }
 
@@ -24,8 +23,16 @@ struct GlucoseSectorChart: View, Equatable {
         case low
     }
 
-    private func infoFor(_ band: GlucoseBand) -> (label: String, color: Color) {
-        StatChartUtils.glucoseBandDisplayInfo(for: band, units: units, timeInRangeType: timeInRangeType, highLimit: highLimit)
+    private func label(for band: GlucoseBand) -> String {
+        band.rangeLabel(units: units, timeInRangeType: timeInRangeType)
+    }
+
+    private func bandStatView(_ band: GlucoseBand, grouped: [GlucoseBand: [GlucoseReading]]) -> some View {
+        StatChartUtils.statView(
+            title: label(for: band),
+            value: StatChartUtils.formatPercentage(shareOf(grouped[band]?.count ?? 0)),
+            color: band.color
+        )
     }
 
     private func shareOf(_ count: Int) -> Decimal {
@@ -39,29 +46,10 @@ struct GlucoseSectorChart: View, Equatable {
                 .padding()
         } else {
             let grouped = Dictionary(grouping: glucose) { reading in
-                GlucoseBand.classify(
-                    reading.value,
-                    bottom: timeInRangeType.bottomThreshold,
-                    top: timeInRangeType.topThreshold,
-                    highLimit: Int(highLimit)
-                )
+                GlucoseBand.classify(reading.value, timeInRangeType: timeInRangeType)
             }
 
             let chartData = makeRangeData(from: grouped)
-
-            let veryLowInfo = infoFor(.veryLow)
-            let lowInfo = infoFor(.low)
-            let tightInfo = infoFor(.tight)
-            let upperMidInfo = infoFor(.upperMid)
-            let highInfo = infoFor(.high)
-            let veryHighInfo = infoFor(.veryHigh)
-
-            let high = grouped[.high]?.count ?? 0
-            let tight = grouped[.tight]?.count ?? 0
-            let upperMid = grouped[.upperMid]?.count ?? 0
-            let low = grouped[.low]?.count ?? 0
-            let veryLow = grouped[.veryLow]?.count ?? 0
-            let veryHigh = grouped[.veryHigh]?.count ?? 0
 
             let summary: (average: Double, median: Double, standardDeviation: Double)? = showChart ? nil : StatChartUtils
                 .summaryStats(for: glucose.map(\.value))
@@ -69,41 +57,13 @@ struct GlucoseSectorChart: View, Equatable {
             HStack(alignment: .center) {
                 Grid(verticalSpacing: 10) {
                     GridRow {
-                        StatChartUtils.statView(
-                            title: veryLowInfo.label,
-                            value: StatChartUtils.formatPercentage(shareOf(veryLow)),
-                            color: veryLowInfo.color
-                        )
-                        StatChartUtils.statView(
-                            title: lowInfo.label,
-                            value: StatChartUtils.formatPercentage(shareOf(low)),
-                            color: lowInfo.color
-                        )
-                        StatChartUtils.statView(
-                            title: tightInfo.label,
-                            value: StatChartUtils.formatPercentage(shareOf(tight)),
-                            color: tightInfo.color
-                        )
+                        ForEach([GlucoseBand.veryLow, .low, .tight], id: \.self) { bandStatView($0, grouped: grouped) }
                         if let summary {
                             StatChartUtils.statView(title: "Average", value: summary.average.formattedAsGlucose(for: units))
                         }
                     }
                     GridRow {
-                        StatChartUtils.statView(
-                            title: upperMidInfo.label,
-                            value: StatChartUtils.formatPercentage(shareOf(upperMid)),
-                            color: upperMidInfo.color
-                        )
-                        StatChartUtils.statView(
-                            title: highInfo.label,
-                            value: StatChartUtils.formatPercentage(shareOf(high)),
-                            color: highInfo.color
-                        )
-                        StatChartUtils.statView(
-                            title: veryHighInfo.label,
-                            value: StatChartUtils.formatPercentage(shareOf(veryHigh)),
-                            color: veryHighInfo.color
-                        )
+                        ForEach([GlucoseBand.upperMid, .high, .veryHigh], id: \.self) { bandStatView($0, grouped: grouped) }
                         if let summary {
                             StatChartUtils.statView(title: "Median", value: summary.median.formattedAsGlucose(for: units))
                         }
@@ -179,11 +139,11 @@ struct GlucoseSectorChart: View, Equatable {
                 color: .dynamicPurple,
                 percentages: [
                     (
-                        String(localized: "Very High (\(infoFor(.veryHigh).label))"),
+                        String(localized: "Very High (\(label(for: .veryHigh)))"),
                         StatChartUtils.formatPercentage(shareOf(veryHigh))
                     ),
                     (
-                        String(localized: "High (\(infoFor(.high).label))"),
+                        String(localized: "High (\(label(for: .high)))"),
                         StatChartUtils.formatPercentage(shareOf(high))
                     )
                 ],
@@ -207,14 +167,12 @@ struct GlucoseSectorChart: View, Equatable {
                 percentages: [
                     (
                         String(
-                            localized: "Normal (\(infoFor(.upperMid).label))"
+                            localized: "Normal (\(label(for: .upperMid)))"
                         ),
                         StatChartUtils.formatPercentage(shareOf(upperMid))
                     ),
                     (
-                        String(
-                            localized: "\(timeInRangeType == .timeInTightRange ? "TITR" : "TING") (\(infoFor(.tight).label))"
-                        ),
+                        "\(timeInRangeType.shortName) (\(label(for: .tight)))",
                         StatChartUtils.formatPercentage(shareOf(tight))
                     )
                 ],
@@ -238,12 +196,12 @@ struct GlucoseSectorChart: View, Equatable {
                 percentages: [
                     (
                         String(
-                            localized: "Low (\(infoFor(.low).label))"
+                            localized: "Low (\(label(for: .low)))"
                         ),
                         StatChartUtils.formatPercentage(shareOf(low))
                     ),
                     (
-                        String(localized: "Very Low (\(infoFor(.veryLow).label))"),
+                        String(localized: "Very Low (\(label(for: .veryLow)))"),
                         StatChartUtils.formatPercentage(shareOf(veryLow))
                     )
                 ],

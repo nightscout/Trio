@@ -11,9 +11,7 @@ struct GlucoseRangeStats: Identifiable {
 extension Stat.StateModel {
     static func makeGlucoseRangeStats(
         from readings: [GlucoseReading],
-        bottom: Int,
-        top: Int,
-        highLimit: Int
+        timeInRangeType: TimeInRangeType
     ) -> [GlucoseRangeStats] {
         let calendar = Calendar.current
         let byHour = Dictionary(grouping: readings) { calendar.component(.hour, from: $0.date) }
@@ -22,7 +20,7 @@ extension Stat.StateModel {
             let hourly = (0 ... 23).map { hour -> (hour: Int, share: Double) in
                 let hourReadings = byHour[hour, default: []]
                 let inBand = hourReadings.count {
-                    GlucoseBand.classify($0.value, bottom: bottom, top: top, highLimit: highLimit) == band
+                    GlucoseBand.classify($0.value, timeInRangeType: timeInRangeType) == band
                 }
                 return (hour, Self.share(inBand, of: hourReadings.count))
             }

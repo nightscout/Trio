@@ -2,7 +2,6 @@ import Charts
 import SwiftUI
 
 struct GlucosePercentileChart: View {
-    let highLimit: Decimal
     let timeInRangeType: TimeInRangeType
     let units: GlucoseUnits
     let hourlyStats: [HourlyStats]
@@ -31,11 +30,11 @@ struct GlucosePercentileChart: View {
         let validStats = hourlyStats.filter { $0.median > 0 }
         guard !validStats.isEmpty else { return topLimit }
         let maxPercentile90 = validStats.map(\.percentile90).max() ?? topLimit
-        return max(maxPercentile90.asUnit(units), Double(highLimit.asUnit(units)))
+        return max(maxPercentile90.asUnit(units), Double(GlucoseBand.inRangeThreshold).asUnit(units))
     }
 
     var body: some View {
-        let thresholds = StatChartUtils.glucoseThresholds(timeInRangeType: timeInRangeType, highLimit: highLimit, units: units)
+        let thresholds = StatChartUtils.glucoseThresholds(timeInRangeType: timeInRangeType, units: units)
 
         let seriesScale: [(label: String, color: Color)] = [
             ("10-90%", .blue.opacity(0.3)),

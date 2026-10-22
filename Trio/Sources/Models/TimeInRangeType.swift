@@ -5,6 +5,15 @@ enum TimeInRangeType: String, JSON, CaseIterable, Identifiable, Codable, Hashabl
     case timeInTightRange
     case timeInNormoglycemia
 
+    var shortName: String {
+        switch self {
+        case .timeInTightRange:
+            return "TITR"
+        case .timeInNormoglycemia:
+            return "TING"
+        }
+    }
+
     var displayName: String {
         switch self {
         case .timeInTightRange:

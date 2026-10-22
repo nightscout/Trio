@@ -156,7 +156,6 @@ extension Stat {
 
                         if state.selectedGlucoseChartType == .percentileByDay {
                             GlucoseDailyPercentileChart(
-                                highLimit: state.highLimit,
                                 units: state.units,
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
@@ -165,7 +164,6 @@ extension Stat {
                             )
                         } else {
                             GlucoseDailyDistributionChart(
-                                highLimit: state.highLimit,
                                 units: state.units,
                                 timeInRangeType: state.timeInRangeType,
                                 selectedInterval: interval,
@@ -188,7 +186,6 @@ extension Stat {
 
                     case .percentileByTime:
                         GlucosePercentileChart(
-                            highLimit: state.highLimit,
                             timeInRangeType: state.timeInRangeType,
                             units: state.units,
                             hourlyStats: state.hourlyStats,
@@ -197,7 +194,6 @@ extension Stat {
 
                     case .distributionByTime:
                         GlucoseDistributionChart(
-                            highLimit: state.highLimit,
                             units: state.units,
                             glucoseRangeStats: state.glucoseRangeStats,
                             timeInRangeType: state.timeInRangeType
@@ -211,7 +207,6 @@ extension Stat {
             StatCard {
                 VStack(spacing: Constants.spacing) {
                     GlucoseSectorChart(
-                        highLimit: state.highLimit,
                         units: state.units,
                         glucose: state.glucoseFromPersistence,
                         timeInRangeType: state.timeInRangeType,

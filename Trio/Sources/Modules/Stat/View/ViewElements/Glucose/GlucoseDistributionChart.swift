@@ -2,30 +2,29 @@ import Charts
 import SwiftUI
 
 struct GlucoseDistributionChart: View {
-    let highLimit: Decimal
     let units: GlucoseUnits
     let glucoseRangeStats: [GlucoseRangeStats]
     let timeInRangeType: TimeInRangeType
 
     var body: some View {
-        let infoFor: (GlucoseBand) -> (label: String, color: Color) = {
-            StatChartUtils.glucoseBandDisplayInfo(for: $0, units: units, timeInRangeType: timeInRangeType, highLimit: highLimit)
+        let bandInfos = GlucoseBand.allCases.map {
+            (label: $0.rangeLabel(units: units, timeInRangeType: timeInRangeType), color: $0.color.opacity(0.8))
         }
-        let bandInfos = GlucoseBand.allCases.map { infoFor($0) }
 
         VStack(alignment: .leading, spacing: 8) {
             Chart(glucoseRangeStats) { range in
+                let label = range.band.rangeLabel(units: units, timeInRangeType: timeInRangeType)
                 ForEach(range.values, id: \.hour) { value in
                     AreaMark(
                         x: .value("Hour", Calendar.current.dateForChartHour(value.hour)),
                         y: .value("Share", value.share)
                     )
-                    .foregroundStyle(by: .value("Range", infoFor(range.band).label))
+                    .foregroundStyle(by: .value("Range", label))
                 }
             }
             .chartForegroundStyleScale(
                 domain: bandInfos.map(\.label),
-                range: bandInfos.map { $0.color.opacity(0.8) }
+                range: bandInfos.map(\.color)
             )
             .chartYScale(domain: 0 ... 100)
             .chartYAxis {

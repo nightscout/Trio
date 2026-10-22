@@ -130,8 +130,8 @@ struct GRIChartView: View {
             )
             .font(.footnote)
             .foregroundStyle(.secondary)
-            bandRow("Hypoglycemia component", value: result.hypoComponent, color: GRIColors.hypo)
-            bandRow("Hyperglycemia component", value: result.hyperComponent, color: GRIColors.hyper)
+            bandRow(String(localized: "Hypoglycemia component"), value: result.hypoComponent, color: GRIColors.hypo)
+            bandRow(String(localized: "Hyperglycemia component"), value: result.hyperComponent, color: GRIColors.hyper)
             Divider()
             DisclosureGroup("Score calculation") {
                 scoreBreakdown
@@ -147,18 +147,10 @@ struct GRIChartView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
-            bandRow("Below \(threshold(54))", value: result.veryLowPercentage, color: GRIColors.veryLow)
-            bandRow(
-                "\(threshold(54, showUnits: false)) to below \(threshold(70))",
-                value: result.lowPercentage,
-                color: GRIColors.low
-            )
-            bandRow(
-                "Above \(threshold(180, showUnits: false)) through \(threshold(250))",
-                value: result.highPercentage,
-                color: GRIColors.high
-            )
-            bandRow("Above \(threshold(250))", value: result.veryHighPercentage, color: GRIColors.veryHigh)
+            bandRow(.veryLow, value: result.veryLowPercentage, color: GRIColors.veryLow)
+            bandRow(.low, value: result.lowPercentage, color: GRIColors.low)
+            bandRow(.high, value: result.highPercentage, color: GRIColors.high)
+            bandRow(.veryHigh, value: result.veryHighPercentage, color: GRIColors.veryHigh)
             Divider()
             calculation(
                 "Hypoglycemia component",
@@ -200,14 +192,11 @@ struct GRIChartView: View {
         }
     }
 
-    private func threshold(_ mgdL: Int, showUnits: Bool = true) -> String {
-        if showUnits {
-            return mgdL.formatted(withUnits: units)
-        }
-        return mgdL.formatted(for: units)
+    private func bandRow(_ band: GlucoseBand, value: Double, color: Color) -> some View {
+        bandRow("\(band.rangeLabel(units: units)) \(units.rawValue)", value: value, color: color)
     }
 
-    private func bandRow(_ label: LocalizedStringKey, value: Double, color: Color) -> some View {
+    private func bandRow(_ label: String, value: Double, color: Color) -> some View {
         LabeledContent(label) {
             Text(StatChartUtils.formatPercentage(value))
                 .font(.body.weight(.semibold))

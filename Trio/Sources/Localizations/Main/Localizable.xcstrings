@@ -8646,16 +8646,6 @@
         }
       }
     },
-    "%@ (%@)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ (%2$@)"
-          }
-        }
-      }
-    },
     "%@ (mode is using %@)" : {
       "localizations" : {
         "bg" : {
@@ -10785,16 +10775,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%@ protein"
-          }
-        }
-      }
-    },
-    "%@ to below %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ to below %2$@"
           }
         }
       }
@@ -29755,19 +29735,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "高於"
-          }
-        }
-      }
-    },
-    "Above %@" : {
-
-    },
-    "Above %@ through %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Above %1$@ through %2$@"
           }
         }
       }
@@ -61850,9 +61817,6 @@
           }
         }
       }
-    },
-    "Below %@" : {
-
     },
     "Below is the exact JSON object Trio would send right now. No glucose, insulin, carbs, credentials, or settings values are included." : {
       "localizations" : {

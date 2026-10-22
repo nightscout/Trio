@@ -38,7 +38,6 @@ enum GlucosePercentileType: String, CaseIterable, Identifiable {
 }
 
 struct GlucoseDailyPercentileChart: View {
-    let highLimit: Decimal
     let units: GlucoseUnits
     let timeInRangeType: TimeInRangeType
     let selectedInterval: Stat.StateModel.StatsTimeInterval
@@ -125,7 +124,7 @@ struct GlucoseDailyPercentileChart: View {
     }
 
     private var boxplotChart: some View {
-        let thresholds = StatChartUtils.glucoseThresholds(timeInRangeType: timeInRangeType, highLimit: highLimit, units: units)
+        let thresholds = StatChartUtils.glucoseThresholds(timeInRangeType: timeInRangeType, units: units)
         let seriesScale: [(label: String, color: Color)] = [
             ("0-100%", .blue.opacity(0.15)),
             ("10-90%", .blue.opacity(0.3)),
@@ -294,6 +293,6 @@ struct GlucoseDailyPercentileChart: View {
 
         let maxValue = visibleDailyStats.lazy.map { $0.maximum.asUnit(units) }.max() ?? topLimit
 
-        return bottomLimit ... max(Double(highLimit.asUnit(units)), maxValue + padding)
+        return bottomLimit ... max(Double(GlucoseBand.inRangeThreshold).asUnit(units), maxValue + padding)
     }
 }

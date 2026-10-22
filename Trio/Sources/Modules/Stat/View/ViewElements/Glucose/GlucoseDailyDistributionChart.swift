@@ -2,7 +2,6 @@ import Charts
 import SwiftUI
 
 struct GlucoseDailyDistributionChart: View {
-    let highLimit: Decimal
     let units: GlucoseUnits
     let timeInRangeType: TimeInRangeType
     let selectedInterval: Stat.StateModel.StatsTimeInterval
@@ -42,7 +41,6 @@ struct GlucoseDailyDistributionChart: View {
                 .padding(.top, 8)
 
             GlucoseSectorChart(
-                highLimit: highLimit,
                 units: units,
                 glucose: activeGlucose,
                 timeInRangeType: timeInRangeType,
@@ -66,25 +64,21 @@ struct GlucoseDailyDistributionChart: View {
     }
 
     private var chartView: some View {
-        let bandInfos = GlucoseBand.allCases.map { band in
-            (
-                band: band,
-                info: StatChartUtils
-                    .glucoseBandDisplayInfo(for: band, units: units, timeInRangeType: timeInRangeType, highLimit: highLimit)
-            )
+        let bandInfos = GlucoseBand.allCases.map {
+            (band: $0, label: $0.rangeLabel(units: units, timeInRangeType: timeInRangeType), color: $0.color.opacity(0.8))
         }
 
         return Chart {
             ForEach(dailyStats) { day in
                 let opacity = selectedDayStart.map { day.date == $0 ? 1 : 0.3 } ?? 1
                 ForEach(bandInfos, id: \.band) { entry in
-                    barMark(x: day, y: day.pct(for: entry.band), name: entry.info.label, opacity: opacity)
+                    barMark(x: day, y: day.pct(for: entry.band), name: entry.label, opacity: opacity)
                 }
             }
         }
         .chartForegroundStyleScale(
-            domain: bandInfos.map(\.info.label),
-            range: bandInfos.map { $0.info.color.opacity(0.8) }
+            domain: bandInfos.map(\.label),
+            range: bandInfos.map(\.color)
         )
         .chartXSelection(value: $selectedDate)
         .chartYScale(domain: 0 ... 100)

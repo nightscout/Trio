@@ -3,7 +3,6 @@ import Observation
 
 extension Stat {
     @Observable final class StateModel: BaseStateModel<Provider> {
-        var highLimit: Decimal = 180
         var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
         var units: GlucoseUnits = .mgdL
         var timeInRangeType: TimeInRangeType = .timeInTightRange
@@ -47,7 +46,6 @@ extension Stat {
         var selectedMealChartType: MealChartType = .totalMeals
 
         override func subscribe() {
-            highLimit = settingsManager.settings.high
             units = settingsManager.settings.units
             eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             useFPUconversion = settingsManager.settings.useFPUconversion

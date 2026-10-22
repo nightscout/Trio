@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 /// https://doi.org/10.1177/19322968221085273
 enum GRICalculator {
@@ -35,12 +36,13 @@ enum GRICalculator {
         var veryHigh = 0
         for value in glucoseValues where value > 0 {
             count += 1
-            switch value {
-            case ..<54: veryLow += 1
-            case ..<70: low += 1
-            case 251...: veryHigh += 1
-            case 181...: high += 1
-            default: break
+            switch GlucoseBand.classify(value) {
+            case .veryLow: veryLow += 1
+            case .low: low += 1
+            case .tight,
+                 .upperMid: break
+            case .high: high += 1
+            case .veryHigh: veryHigh += 1
             }
         }
         guard count > 0 else { return nil }
@@ -62,14 +64,54 @@ enum GlucoseBand: CaseIterable, Sendable {
     case high
     case veryHigh
 
-    static func classify(_ value: Int, bottom: Int, top: Int, highLimit: Int) -> GlucoseBand {
-        if value < 54 { return .veryLow }
-        if value < bottom { return .low }
-        if value <= top { return .tight }
-        if value <= highLimit { return .upperMid }
-        if value <= 250 { return .high }
+    static let veryLowThreshold = 54
+    static let inRangeThreshold = 180
+    static let highThreshold = 250
+
+    static func classify(_ value: Int, timeInRangeType: TimeInRangeType = .timeInTightRange) -> GlucoseBand {
+        if value < veryLowThreshold { return .veryLow }
+        if value < timeInRangeType.bottomThreshold { return .low }
+        if value <= timeInRangeType.topThreshold { return .tight }
+        if value <= inRangeThreshold { return .upperMid }
+        if value <= highThreshold { return .high }
 
         return .veryHigh
+    }
+
+    var color: Color {
+        switch self {
+        case .veryLow: .dynamicRed
+        case .low: .dynamicOrange
+        case .tight: .dynamicGreen
+        case .upperMid: .dynamicTeal
+        case .high: .dynamicBlue
+        case .veryHigh: .dynamicPurple
+        }
+    }
+
+    func rangeLabel(units: GlucoseUnits, timeInRangeType: TimeInRangeType = .timeInTightRange) -> String {
+        let bottom = timeInRangeType.bottomThreshold
+        let top = timeInRangeType.topThreshold
+        switch self {
+        case .veryLow:
+            return "<\(Self.formatBound(Self.veryLowThreshold, units: units))"
+        case .low:
+            return "\(Self.formatBound(Self.veryLowThreshold, units: units))-\(Self.formatBound(bottom, stepOffset: -1, units: units))"
+        case .tight:
+            return "\(Self.formatBound(bottom, units: units))-\(Self.formatBound(top, units: units))"
+        case .upperMid:
+            return "\(Self.formatBound(top, stepOffset: 1, units: units))-\(Self.formatBound(Self.inRangeThreshold, units: units))"
+        case .high:
+            return "\(Self.formatBound(Self.inRangeThreshold, stepOffset: 1, units: units))-\(Self.formatBound(Self.highThreshold, units: units))"
+        case .veryHigh:
+            return ">\(Self.formatBound(Self.highThreshold, units: units))"
+        }
+    }
+
+    private static func formatBound(_ mgdL: Int, stepOffset: Int = 0, units: GlucoseUnits) -> String {
+        let step: Decimal = units == .mgdL ? 1 : 0.1
+        let value = Decimal(mgdL).asUnit(units) + Decimal(stepOffset) * step
+        return value.formatted(.number.precision(.fractionLength(units == .mgdL ? 0 : 1)))
     }
 }
 
@@ -125,37 +167,26 @@ extension GlucoseDailyDistributionStats {
     static func compute(
         date: Date,
         readings: [GlucoseReading],
-        highLimit: Decimal,
         timeInRangeType: TimeInRangeType
     ) -> GlucoseDailyDistributionStats {
         let totalReadings = Double(readings.count)
 
         let grouped = Dictionary(grouping: readings) { reading in
-            GlucoseBand.classify(
-                reading.value,
-                bottom: timeInRangeType.bottomThreshold,
-                top: timeInRangeType.topThreshold,
-                highLimit: Int(highLimit)
-            )
+            GlucoseBand.classify(reading.value, timeInRangeType: timeInRangeType)
         }
 
-        let veryHighReadings = grouped[.veryHigh]?.count ?? 0
-        let highReadings = grouped[.high]?.count ?? 0
-        let inSmallRangeReadings = grouped[.tight]?.count ?? 0
-        let upperMidReadings = grouped[.upperMid]?.count ?? 0
-        let lowReadings = grouped[.low]?.count ?? 0
-        let veryLowReadings = grouped[.veryLow]?.count ?? 0
-
-        let shareOf: (Int) -> Double = { totalReadings > 0 ? Double($0) / totalReadings * 100 : 0 }
+        let shareOf: (GlucoseBand) -> Double = { band in
+            totalReadings > 0 ? Double(grouped[band]?.count ?? 0) / totalReadings * 100 : 0
+        }
 
         return GlucoseDailyDistributionStats(
             date: date,
-            veryLowPct: shareOf(veryLowReadings),
-            lowPct: shareOf(lowReadings),
-            inSmallRangePct: shareOf(inSmallRangeReadings),
-            upperMidPct: shareOf(upperMidReadings),
-            highPct: shareOf(highReadings),
-            veryHighPct: shareOf(veryHighReadings)
+            veryLowPct: shareOf(.veryLow),
+            lowPct: shareOf(.low),
+            inSmallRangePct: shareOf(.tight),
+            upperMidPct: shareOf(.upperMid),
+            highPct: shareOf(.high),
+            veryHighPct: shareOf(.veryHigh)
         )
     }
 }
@@ -201,9 +232,7 @@ extension Stat.StateModel {
             let hourly = Self.makeHourlyStats(from: readings)
             let ranges = Self.makeGlucoseRangeStats(
                 from: readings,
-                bottom: timeInRangeType.bottomThreshold,
-                top: timeInRangeType.topThreshold,
-                highLimit: Int(highLimit)
+                timeInRangeType: timeInRangeType
             )
             let gri = GRICalculator.calculate(glucoseValues: readings.map(\.value))
 
@@ -228,7 +257,7 @@ extension Stat.StateModel {
             }
             let distribution = groupSorted.map { group in
                 GlucoseDailyDistributionStats.compute(
-                    date: group.key, readings: group.value, highLimit: highLimit, timeInRangeType: timeInRangeType
+                    date: group.key, readings: group.value, timeInRangeType: timeInRangeType
                 )
             }
             await MainActor.run {

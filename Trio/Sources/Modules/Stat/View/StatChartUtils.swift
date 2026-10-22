@@ -174,7 +174,6 @@ struct StatChartUtils {
 
     static func glucoseThresholds(
         timeInRangeType: TimeInRangeType,
-        highLimit: Decimal,
         units: GlucoseUnits
     ) -> [(label: String, color: Color, value: Double)] {
         [
@@ -189,36 +188,11 @@ struct StatChartUtils {
                 Double(timeInRangeType.topThreshold).asUnit(units)
             ),
             (
-                highLimit.formatted(withUnits: units),
+                GlucoseBand.inRangeThreshold.formatted(withUnits: units),
                 .staticHigh,
-                Double(highLimit.asUnit(units))
+                Double(GlucoseBand.inRangeThreshold).asUnit(units)
             )
         ]
-    }
-
-    static func glucoseBandDisplayInfo(
-        for band: GlucoseBand,
-        units: GlucoseUnits,
-        timeInRangeType: TimeInRangeType,
-        highLimit: Decimal
-    ) -> (label: String, color: Color) {
-        switch band {
-        case .veryLow: ("<\(Decimal(54).formatted(for: units))", .dynamicRed)
-        case .low: (
-                "\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))",
-                .dynamicOrange
-            )
-        case .tight: (
-                "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))",
-                .dynamicGreen
-            )
-        case .upperMid: (
-                "\(Decimal(timeInRangeType.topThreshold).formatted(for: units))-\(highLimit.formatted(for: units))",
-                .dynamicTeal
-            )
-        case .high: ("\(highLimit.formatted(for: units))-\(Decimal(250).formatted(for: units))", .dynamicBlue)
-        case .veryHigh: (">\(Decimal(250).formatted(for: units))", .dynamicPurple)
-        }
     }
 
     static func formatVisibleDateRange(
