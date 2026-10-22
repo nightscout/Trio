@@ -5,7 +5,6 @@ struct LogShareRow: View {
     var footnote: LocalizedStringKey?
     let kinds: [LogExport.Kind]
     let logExport: LogExport?
-    var onFailure: (() -> Void)?
 
     @State private var showKinds = false
     @State private var showDays = false
@@ -44,20 +43,19 @@ struct LogShareRow: View {
                     .padding(.top, 2)
             }
         }
+        .accessibilityElement(children: .combine)
         .glassActionSheet(
             "Share Logs",
             message: Text("Your Nightscout address, passwords and device serial numbers are removed."),
             isPresented: $showKinds,
             actions: kinds.map { kind in
                 GlassSheetAction(kind.label) { pendingKind = kind }
+            },
+            // A cover presented while another is still dismissing never appears and blocks touches
+            onDismiss: {
+                if pendingKind != nil { showDays = true }
             }
         )
-        .onChange(of: showKinds) { _, shown in
-            // The sheet runs the chosen action before it clears its binding
-            if !shown, pendingKind != nil {
-                showDays = true
-            }
-        }
         .glassActionSheet(
             "How far back?",
             isPresented: $showDays,
@@ -69,7 +67,9 @@ struct LogShareRow: View {
             onCancel: { pendingKind = nil }
         )
         .sheet(isPresented: $showShareSheet, onDismiss: discardFile) {
+            // The share sheet takes seconds to build on device; keep the spinner until it shows
             ShareSheet(activityItems: file.map { [$0] } ?? [])
+                .onAppear { isPreparing = false }
         }
         .alert("Could not prepare logs", isPresented: $showError) {
             Button("OK", role: .cancel) {}
@@ -94,21 +94,17 @@ struct LogShareRow: View {
         Task { @MainActor in
             do {
                 file = try await logExport.makeFile(kind, days: days)
-                isPreparing = false
                 showShareSheet = true
             } catch {
                 isPreparing = false
                 warning(.ui, "Preparing logs for sharing failed", error: error)
-                if let onFailure {
-                    onFailure()
-                } else {
-                    showError = true
-                }
+                showError = true
             }
         }
     }
 
     private func discardFile() {
+        isPreparing = false
         guard let file else { return }
         self.file = nil
         Task.detached(priority: .utility) {
