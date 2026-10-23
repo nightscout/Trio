@@ -9,6 +9,19 @@ struct ReportProblemView: View {
     var body: some View {
         List {
             Section {
+                if let submitter = state.reportSubmitter {
+                    NavigationLink(destination: SendReportView(
+                        submitter: submitter,
+                        logExport: state.logExport,
+                        context: state.reportContext()
+                    )) {
+                        ReportOptionLabel(
+                            title: "Send to the Trio Team",
+                            footnote: "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it."
+                        )
+                    }
+                }
+
                 LogShareRow(
                     title: "Share Trio Logs",
                     footnote: "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed.",
