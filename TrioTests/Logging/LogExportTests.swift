@@ -1,6 +1,7 @@
 import CoreData
 import Foundation
 import LoopKit
+import os
 import Testing
 
 @testable import Trio
@@ -150,6 +151,46 @@ import Testing
             #expect(line.source == "Trio")
             #expect(line.text == text)
         }
+    }
+
+    @Test("Watch records are labelled Watch with their own category") func watchLines() {
+        let date = Date()
+        let warning = WatchLogEntry(seq: 1, date: date, level: .warning, category: .connectivity, message: "Log transfer failed")
+        let info = WatchLogEntry(seq: 2, date: date, level: .info, category: .treatments, message: "Override cancel requested")
+
+        let warningLine = LogExport.line(for: WatchLogIngest.record(warning))
+        let infoLine = LogExport.line(for: WatchLogIngest.record(info))
+
+        #expect(warningLine.source == "Watch")
+        #expect(warningLine.text == "WARNING: [Connectivity] Log transfer failed")
+        #expect(infoLine.source == "Watch")
+        #expect(infoLine.text == "[Treatments] Override cancel requested")
+        #expect(warningLine.date == date)
+    }
+
+    @Test("Only the full log asks the watch for its newest entries") func requestsWatchLogs() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = DeviceLogStore(
+            storageURL: directory.appendingPathComponent("logs/DeviceLog.sqlite"),
+            isProtectedDataAvailable: { true }
+        )
+        let appLog = InMemoryLogSink()
+        let requests = OSAllocatedUnfairLock(initialState: 0)
+        let export = LogExport(appLog: appLog, deviceLogStore: store, pump: StubManager(), cgm: nil, requestWatchLogs: {
+            requests.withLock { $0 += 1 }
+            let date = Date().addingTimeInterval(-60)
+            let entry = WatchLogEntry(seq: 1, date: date, level: .info, category: .connectivity, message: "Session activated")
+            appLog.accept(WatchLogIngest.record(entry))
+        })
+        let fixture = Fixture(directory: directory, export: export)
+
+        let all = try await Self.logLines(Self.contents(of: .all, in: fixture).text)
+        #expect(requests.withLock { $0 } == 1)
+        #expect(all.contains { $0.hasSuffix(" Watch [Connectivity] Session activated") })
+
+        _ = try await Self.contents(of: .pump, in: fixture)
+        #expect(requests.withLock { $0 } == 1)
     }
 
     @Test("Shared file is a zip named after the log") func sharesZip() async throws {
