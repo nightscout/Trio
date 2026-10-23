@@ -6,7 +6,7 @@ struct LogRetentionPolicy: Equatable {
     var maxRows: Int
 
     static let `default` = LogRetentionPolicy(
-        maxAge: 7 * 24 * 60 * 60,
+        maxAge: 8 * 24 * 60 * 60,
         persistsDebug: true,
         maxRows: 250_000
     )

@@ -1089,25 +1089,10 @@
         }
       }
     },
-    "3 days" : {
-
-    },
-    "Also keep detailed debug messages in the app log." : {
-
-    },
     "Ask on Discord" : {
 
     },
     "Ask on Facebook" : {
-
-    },
-    "How long Trio keeps its app log on this device." : {
-
-    },
-    "Log Retention" : {
-
-    },
-    "Logging" : {
 
     },
     "Open a GitHub Issue" : {
@@ -1120,9 +1105,6 @@
 
     },
     "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed." : {
-
-    },
-    "Verbose Logging" : {
 
     },
     "Choose the preferred lower threshold for Time in Range statistics." : {
@@ -23487,9 +23469,6 @@
           }
         }
       }
-    },
-    "1 day" : {
-
     },
     "1 U and over" : {
       "comment" : "Name to display for the \"1 U and over\" bolus display threshold option.",

@@ -151,11 +151,6 @@ final class AppLogStore: LogSink, @unchecked Sendable {
         }
     }
 
-    func observeSettings(of settingsManager: SettingsManager, broadcaster: Broadcaster) {
-        apply(LogRetentionPolicy(settings: settingsManager.settings))
-        broadcaster.register(SettingsObserver.self, observer: self)
-    }
-
     private func flushPending() {
         guard let context else { return }
         let batch = pending.withLock { state -> [LogRecord] in
@@ -440,21 +435,5 @@ final class AppLogStore: LogSink, @unchecked Sendable {
             return nil
         }
         return container
-    }
-}
-
-extension AppLogStore: SettingsObserver {
-    func settingsDidChange(_ settings: TrioSettings) {
-        apply(LogRetentionPolicy(settings: settings))
-    }
-}
-
-extension LogRetentionPolicy {
-    init(settings: TrioSettings) {
-        self.init(
-            maxAge: TimeInterval(max(1, settings.logRetentionDays)) * 24 * 60 * 60,
-            persistsDebug: settings.logVerboseEnabled,
-            maxRows: LogRetentionPolicy.default.maxRows
-        )
     }
 }
