@@ -1089,13 +1089,73 @@
         }
       }
     },
+    "%lld of %lld characters" : {
+
+    },
+    "Add Screenshots" : {
+
+    },
+    "Also Sent" : {
+
+    },
     "Ask on Discord" : {
 
     },
     "Ask on Facebook" : {
 
     },
+    "Attach My Logs" : {
+
+    },
+    "Build" : {
+
+    },
+    "Change Screenshots" : {
+
+    },
+    "Contact" : {
+
+    },
+    "Copy ID" : {
+
+    },
+    "Couldn't Send Report" : {
+
+    },
+    "Describe what happened and what you expected" : {
+
+    },
+    "Discord Name" : {
+
+    },
+    "Email" : {
+
+    },
+    "Fill in any of these so the team can follow up with you." : {
+
+    },
+    "Get help from other Trio users." : {
+
+    },
+    "GitHub Username" : {
+
+    },
+    "Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed." : {
+
+    },
+    "iOS Version" : {
+
+    },
+    "iPhone Model" : {
+
+    },
+    "One of the screenshots couldn't be read. Try choosing it again or leave it out." : {
+
+    },
     "Open a GitHub Issue" : {
+
+    },
+    "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it." : {
 
     },
     "Public. Only for bugs you can describe without personal or health data." : {
@@ -1104,7 +1164,64 @@
     "Report a Problem" : {
 
     },
+    "Report Sent" : {
+
+    },
+    "Reports go only to the Trio team. Your IP address is used only to limit how often reports can be sent and is never stored." : {
+
+    },
     "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed." : {
+
+    },
+    "Screenshot %lld" : {
+
+    },
+    "Screenshots" : {
+
+    },
+    "Send to the Trio Team" : {
+
+    },
+    "Sending" : {
+
+    },
+    "Stay Anonymous" : {
+
+    },
+    "Submit" : {
+
+    },
+    "Thank you. Your report ID is %@. Mention it if you ask about this on Discord or Facebook." : {
+
+    },
+    "The report is too large. Try fewer or smaller screenshots." : {
+
+    },
+    "The report won't include your name or contact details." : {
+
+    },
+    "The Trio team's server couldn't take the report right now (error %lld)." : {
+
+    },
+    "The Trio team's server sent an answer the app doesn't understand." : {
+
+    },
+    "Title (optional)" : {
+
+    },
+    "Too many reports were sent from this network recently. Please try again later." : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Up to %lld screenshots or photos." : {
+
+    },
+    "Your Logs" : {
+
+    },
+    "Your logs couldn't be prepared. Try again, or turn off Attach My Logs." : {
 
     },
     "Choose the preferred lower threshold for Time in Range statistics." : {

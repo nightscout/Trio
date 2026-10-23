@@ -25,6 +25,7 @@ extension Settings {
         private(set) var versionNumber = ""
         private(set) var branch = ""
         private(set) var copyrightNotice = ""
+        let reportSubmitter = ReportEndpoint.submitter()
 
         override func subscribe() {
             units = settingsManager.settings.units
@@ -54,6 +55,14 @@ extension Settings {
                 kinds.append(.cgm)
             }
             return kinds
+        }
+
+        func reportContext() -> ProblemReport.Context {
+            var cgm: String?
+            if let source = fetchCgmManager?.cgmGlucoseSourceType, source != .none {
+                cgm = source == .plugin ? fetchCgmManager?.cgmManager?.localizedTitle : source.displayName
+            }
+            return .current(pump: provider?.deviceManager?.pumpManager?.localizedTitle, cgm: cgm)
         }
 
         func hideSettingsModal() {
