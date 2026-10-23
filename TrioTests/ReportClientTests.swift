@@ -307,6 +307,35 @@ private final class FakeAttestService: AppAttestService {
         #expect(service.generatedKeys == 2)
     }
 
+    @Test("A rejected assertion is retried with a fresh challenge and the same key") func assertionRetry() async throws {
+        var creates = 0
+        serve { request in
+            guard request.path == "/v1/reports" else { return nil }
+            creates += 1
+            return creates == 1 ? (401, Self.json(["error": "Bad assertion.", "code": "invalid_assertion"])) : nil
+        }
+        let id = try await submitter.submit(Self.report()) { _ in }
+
+        #expect(id == "TR-TEST-0001")
+        #expect(service.generatedKeys == 1)
+        #expect(requests.filter { $0.path == "/v1/attest/register" }.count == 1)
+        let signed = requests.filter { $0.path == "/v1/reports" }
+        #expect(signed.map { $0.headers["X-Trio-Key-Id"] } == ["synthetic-key-1", "synthetic-key-1"])
+        #expect(signed[0].headers["X-Trio-Challenge"] != signed[1].headers["X-Trio-Challenge"])
+    }
+
+    @Test("Repeated assertion failures fall back to a new key once") func assertionFallback() async throws {
+        serve { request in
+            request.path == "/v1/reports" ? (401, Self.json(["error": "Bad assertion.", "code": "invalid_assertion"])) : nil
+        }
+        await #expect(throws: ReportSubmitError.server(status: 401)) {
+            try await self.submitter.submit(Self.report()) { _ in }
+        }
+        let signed = requests.filter { $0.path == "/v1/reports" }
+        #expect(signed.map { $0.headers["X-Trio-Key-Id"] } == ["synthetic-key-1", "synthetic-key-1", "synthetic-key-2"])
+        #expect(service.generatedKeys == 2)
+    }
+
     @Test("Server errors map to plain messages by code and status") func errorMapping() throws {
         func error(_ status: Int, _ code: String? = nil) -> ReportSubmitError {
             .from(status: status, data: code.map { Self.json(["error": "Synthetic.", "code": $0]) })

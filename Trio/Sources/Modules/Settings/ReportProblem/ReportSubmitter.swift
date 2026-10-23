@@ -134,8 +134,7 @@ enum ReportSubmitError: Error, Equatable {
     }
 
     static func from(status: Int, data: Data? = nil) -> ReportSubmitError {
-        struct Reply: Decodable { let code: String }
-        let code = data.flatMap { try? JSONDecoder().decode(Reply.self, from: $0) }?.code
+        let code = data.flatMap(HTTPReportSubmitter.errorCode)
         switch (code, status) {
         case (_, 429),
              ("rate_limited", _): return .rateLimited
@@ -262,8 +261,10 @@ struct HTTPReportSubmitter: ReportSubmitting {
         }
     }
 
-    // Re-attests once when the server no longer knows the key
+    // A rejected assertion is retried once with a fresh challenge; only an unknown key gets a new one,
+    // because reports belong to the key that created them
     func signed(_ method: String, path: String, body: Data) async throws -> (Data, HTTPURLResponse) {
+        var retriedAssertion = false
         var reattested = false
         while true {
             try await attest.registerIfNeeded()
@@ -282,17 +283,30 @@ struct HTTPReportSubmitter: ReportSubmitting {
 
             let (data, response) = try await session.data(for: request)
             guard let http = response as? HTTPURLResponse else { throw ReportSubmitError.invalidResponse }
-            if http.statusCode == 401, !reattested {
-                warning(.ui, "Support server rejected the App Attest key, registering a new one")
-                attest.invalidateRegistration()
-                reattested = true
-                continue
+            if http.statusCode == 401 {
+                let unknownKey = Self.errorCode(in: data) == "invalid_key"
+                if !unknownKey, !retriedAssertion {
+                    warning(.ui, "Support server rejected the App Attest assertion, retrying with a new challenge")
+                    retriedAssertion = true
+                    continue
+                }
+                if !reattested {
+                    warning(.ui, "Support server rejected the App Attest key, registering a new one")
+                    attest.invalidateRegistration()
+                    reattested = true
+                    continue
+                }
             }
             guard (200 ..< 300).contains(http.statusCode) else {
                 throw ReportSubmitError.from(status: http.statusCode, data: data)
             }
             return (data, http)
         }
+    }
+
+    static func errorCode(in data: Data) -> String? {
+        struct Reply: Decodable { let code: String }
+        return (try? JSONDecoder().decode(Reply.self, from: data))?.code
     }
 
     private func upload(
