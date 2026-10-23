@@ -913,6 +913,7 @@
 		DD30BA1A2E08AB9F00DA677C /* CarbImpactParams.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD30BA192E08AB9F00DA677C /* CarbImpactParams.swift */; };
 		DD32CF982CC82463003686D6 /* TrioRemoteControl+Bolus.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF972CC82460003686D6 /* TrioRemoteControl+Bolus.swift */; };
 		DD32CF9A2CC8247B003686D6 /* TrioRemoteControl+Meal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32CF992CC8246F003686D6 /* TrioRemoteControl+Meal.swift */; };
+		E8C6B60FFBA9D89DE3BCCA99 /* WatchLogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */; };
 		EAE1104EF2313F9A0041C746 /* LoggingVolumeStressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A4F4087B27F7D5819A37272 /* LoggingVolumeStressTests.swift */; };
 		F07C663CC423264E609D706C /* LoggingRobustnessStressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258BD00B3EAADF1A62EFC884 /* LoggingRobustnessStressTests.swift */; };
 		F0D6F2237EB1FB4862D0D4D7 /* AppLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39062D177D83C69CAFC9B2AC /* AppLogStore.swift */; };
@@ -1115,6 +1116,7 @@
 		CA0924000000000000000002 /* GRICalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0924000000000000000001 /* GRICalculator.swift */; };
 		CA0924000000000000000004 /* GRIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0924000000000000000003 /* GRIView.swift */; };
 		CA0924000000000000000006 /* GRICalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0924000000000000000005 /* GRICalculatorTests.swift */; };
+		FF42480CF46A31D00C817D8C /* WatchLogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2299,6 +2301,7 @@
 		E592A3742CEEC038009A472C /* ContactImageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageProvider.swift; sourceTree = "<group>"; };
 		E592A3752CEEC038009A472C /* ContactImageStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactImageStateModel.swift; sourceTree = "<group>"; };
 		E9C171A8FC35B730F1FFF25F /* InMemoryLogSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryLogSink.swift; sourceTree = "<group>"; };
+		F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogEntry.swift; sourceTree = "<group>"; };
 		F602845F4994CA0A57286EE6 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		F7EB8FEFF04CF8327EE83D84 /* LogShareRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogShareRow.swift; sourceTree = "<group>"; };
 		F816825D28DB441200054060 /* HeartBeatManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HeartBeatManager.swift; sourceTree = "<group>"; };
@@ -3477,6 +3480,7 @@
 				B57248ACB19D6554EBCAA15E /* DeviceLog */,
 				9EFA1E4C7EB7203F0D39B585 /* Export */,
 				5BA8CACAF5028913393A78CB /* Store */,
+				AB59F766D97F5B125B0BEFDD /* Watch */,
 			);
 			path = Logger;
 			sourceTree = "<group>";
@@ -3947,6 +3951,14 @@
 				258BD00B3EAADF1A62EFC884 /* LoggingRobustnessStressTests.swift */,
 			);
 			path = Logging;
+			sourceTree = "<group>";
+		};
+		AB59F766D97F5B125B0BEFDD /* Watch */ = {
+			isa = PBXGroup;
+			children = (
+				F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */,
+			);
+			path = Watch;
 			sourceTree = "<group>";
 		};
 		B015AFE22E500000000D7351 /* BolusSafety */ = {
@@ -6420,6 +6432,7 @@
 				F6854A961CB1CF1105757936 /* LogShareRow.swift in Sources */,
 				536B4DB89FCFE9188F4DFE5D /* SensitiveValues.swift in Sources */,
 				659C83549641F3FCC56F30AB /* ReportProblemView.swift in Sources */,
+				E8C6B60FFBA9D89DE3BCCA99 /* WatchLogEntry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6593,6 +6606,7 @@
 				BD04ECCE2D29952A008C5FEB /* BolusProgressOverlay.swift in Sources */,
 				DD09D5C92D29F3D0000D82C9 /* AcknowledgementPendingView.swift in Sources */,
 				DDFF204A2DB29EF500AB8A96 /* WatchLogger.swift in Sources */,
+				FF42480CF46A31D00C817D8C /* WatchLogEntry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
