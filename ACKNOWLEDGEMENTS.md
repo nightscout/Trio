@@ -4,8 +4,25 @@ Third-party material bundled with Trio, and the terms it is used under.
 
 ## Alarm and alert sounds
 
-The themed alarm sets (Acoustic, Electronic) and the one-off tones were
-created for Trio by a sound designer and are distributed as part of Trio.
+The themed alarm sets (`acoustic_*.caf`, `electronic_*.caf`) and the one-off
+tones (`glass_bell.caf`, `harp.caf`, `meow.caf`, `saw_wave.caf`,
+`hard_saw_wave.caf`, `sine_wave.caf`, `open_can.caf`, `open_wrapper.caf`) were
+created for Trio by **an anonymous diabetes dad and Trio user**.
+
+- Licence: **Creative Commons Zero 1.0 Universal (CC0 1.0)** —
+  <https://creativecommons.org/publicdomain/zero/1.0/>
+- The author states that they are the author of these files, that they hold
+  the right to license them, and that they contain no third-party material
+  they cannot license.
+- CC0 requires no attribution. The credit above is given at the author's
+  request; they have asked to remain anonymous.
+- Changes made by Trio: the one-off tones were looped by whole repeats to at
+  least five seconds, so that every alarm sounds for a comparable time. The
+  themed sets were left exactly as delivered — their length and level are
+  part of the design, and carry the urgency along with the timbre.
+
+The spoken alert sounds are generated from third-party voice models and are
+*not* covered by that dedication — see below.
 
 ## Voice alerts
 
