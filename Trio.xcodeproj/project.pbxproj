@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03DE042795C2AFA00C2CCE9E /* WatchLogRingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */; };
 		6DB56C9F3F74834C536E9199 /* WatchLogIngest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921084A4E9558519903842AE /* WatchLogIngest.swift */; };
 		8B735B34F861E3AE08F5C9BE /* WatchLogRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C18518C0B49FB16C05F355 /* WatchLogRing.swift */; };
 		92DE66B4776804F0DD8A2925 /* WatchLogRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C18518C0B49FB16C05F355 /* WatchLogRing.swift */; };
@@ -1210,6 +1211,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRingTests.swift; sourceTree = "<group>"; };
 		921084A4E9558519903842AE /* WatchLogIngest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogIngest.swift; sourceTree = "<group>"; };
 		75C18518C0B49FB16C05F355 /* WatchLogRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRing.swift; sourceTree = "<group>"; };
 		F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogEntry.swift; sourceTree = "<group>"; };
@@ -3149,6 +3151,7 @@
 		A5D6B6D83F32CE8BBDDB4E5B /* Logging */ = {
 			isa = PBXGroup;
 			children = (
+				FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */,
 				161D44BBD9BB82CE0AF6B4EC /* DeviceLogStoreTests.swift */,
 				C7BC1040D2F0BD84E0718784 /* TrioLoggerTests.swift */,
 				1DB223ADEDD0EB920F7BC209 /* AppLogStoreTests.swift */,
@@ -6397,6 +6400,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03DE042795C2AFA00C2CCE9E /* WatchLogRingTests.swift in Sources */,
 				38B4E1780D264CEBEB5DBCB3 /* LogExportTests.swift in Sources */,
 				3F30764ED6567CB6B1DF68C1 /* LoggingStressFixtures.swift in Sources */,
 				EAE1104EF2313F9A0041C746 /* LoggingVolumeStressTests.swift in Sources */,
