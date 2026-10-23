@@ -149,52 +149,61 @@ extension Treatments {
             )
         }
 
-        private var reminderValueString: String {
-            let minutes = Int(state.mealTimeReminderMinutes)
-            guard minutes > 0 else { return String(localized: "Off", comment: "Meal-time reminder disabled") }
-            return "\(minutes) " + String(localized: "min", comment: "Units for meal-time reminder lead time")
+        /// Checking the box arms the reminder at the first preset; unchecking it is the "off"
+        /// state (minutes = 0), which all the downstream scheduling logic keys off.
+        private var remindMeToEatBinding: Binding<Bool> {
+            Binding(
+                get: { state.mealTimeReminderMinutes > 0 },
+                set: { isOn in
+                    if isOn, state.mealTimeReminderMinutes <= 0 {
+                        state.mealTimeReminderMinutes = state.mealTimeReminderPresets.first ?? 15
+                    } else if !isOn {
+                        state.mealTimeReminderMinutes = 0
+                    }
+                }
+            )
         }
 
-        /// "Remind Me to Eat" row: always expanded, with preset buttons (Off + the two values
-        /// configured in settings) on the left and a minutes wheel for fine control on the right.
-        /// The picker starts at Off every time the calculator opens.
+        /// "Remind Me to Eat" row: a checkbox that reveals preset buttons (the values configured
+        /// in settings) on the left and a minutes wheel for fine control on the right.
+        /// The checkbox starts unchecked every time the calculator opens.
         @ViewBuilder private func mealTimeReminderRow() -> some View {
             HStack {
                 Text("Remind Me to Eat")
                 Spacer()
-                Text(reminderValueString)
-                    .foregroundColor(.secondary)
-            }
-
-            HStack(alignment: .center, spacing: 12) {
-                VStack(spacing: 8) {
-                    reminderPresetPill(minutes: 0, label: String(localized: "Off", comment: "Meal-time reminder disabled"))
-                    ForEach(state.mealTimeReminderPresets, id: \.self) { preset in
-                        reminderPresetPill(
-                            minutes: Int(preset),
-                            label: "\(Int(preset)) " + String(localized: "min", comment: "Units for meal-time reminder lead time")
-                        )
-                    }
-                }
-
-                Picker(
-                    selection: reminderMinutesBinding,
-                    label: Text("Remind Me to Eat")
-                ) {
-                    Text(String(localized: "Off", comment: "Meal-time reminder disabled")).tag(0)
-                    ForEach(1 ... 60, id: \.self) { minute in
-                        Text("\(minute) " + String(localized: "min", comment: "Units for meal-time reminder lead time"))
-                            .tag(minute)
-                    }
-                }
-                .pickerStyle(.wheel)
-                .frame(maxWidth: .infinity)
-                .clipped()
+                Toggle("", isOn: remindMeToEatBinding).toggleStyle(CheckboxToggleStyle())
             }
             .onChange(of: state.mealTimeReminderMinutes) {
                 // Ask for the alarm permission only when the user actually arms a reminder.
                 if state.mealTimeReminderMinutes > 0 {
                     Task { await state.mealTimeReminderService.requestAuthorization() }
+                }
+            }
+
+            if state.mealTimeReminderMinutes > 0 {
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(spacing: 8) {
+                        ForEach(state.mealTimeReminderPresets, id: \.self) { preset in
+                            reminderPresetPill(
+                                minutes: Int(preset),
+                                label: "\(Int(preset)) " +
+                                    String(localized: "min", comment: "Units for meal-time reminder lead time")
+                            )
+                        }
+                    }
+
+                    Picker(
+                        selection: reminderMinutesBinding,
+                        label: Text("Remind Me to Eat")
+                    ) {
+                        ForEach(1 ... 60, id: \.self) { minute in
+                            Text("\(minute) " + String(localized: "min", comment: "Units for meal-time reminder lead time"))
+                                .tag(minute)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
                 }
             }
         }
