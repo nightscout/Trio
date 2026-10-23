@@ -266,7 +266,7 @@ private struct TonePickerRow: View {
             player = p
             playing = filename
         } catch {
-            debug(.service, "Audio preview failed for \(filename): \(error)")
+            warning(.alerts, "Alarm sound preview failed for \(filename)", error: error)
         }
     }
 

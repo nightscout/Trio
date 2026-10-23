@@ -248,7 +248,7 @@ final class BaseAlertHistoryStorage: AlertHistoryStorage, Injectable {
         do {
             return try JSONCoding.decoder.decode([AlertEntry].self, from: data)
         } catch {
-            debug(.storage, "Failed to decode alerts from UserDefaults: \(error)")
+            warning(.storage, "Decoding stored alerts failed", error: error)
             // Clear corrupt payload so app can recover
             defaults.removeObject(forKey: Keys.alertsData)
             return []
@@ -263,7 +263,7 @@ final class BaseAlertHistoryStorage: AlertHistoryStorage, Injectable {
             let data = try JSONCoding.encoder.encode(alerts)
             defaults.set(data, forKey: Keys.alertsData)
         } catch {
-            debug(.storage, "Failed to encode alerts to UserDefaults: \(error)")
+            warning(.storage, "Encoding alerts for storage failed", error: error)
         }
     }
 

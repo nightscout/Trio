@@ -15,19 +15,24 @@ import Foundation
     enum Logger {
         /// Mirrors `Logger.Category` in the app target.
         enum Category: String {
-            case `default`
-            case service
-            case businessLogic
-            case openAPS
-            case deviceManager
-            case apsManager
+            case loop
+            case algorithm
+            case pump
+            case cgm
+            case bolus
+            case treatments
             case nightscout
-            case remoteControl
-            case bolusState
-            case watchManager
-            case coreData
+            case tidepool
+            case remote
+            case healthKit
+            case alerts
+            case watch
+            case liveActivity
             case storage
+            case settings
             case telemetry
+            case ui
+            case lifecycle
         }
     }
 
@@ -56,6 +61,30 @@ import Foundation
     }
 
     func warning(
+        _ category: Logger.Category,
+        _ message: String,
+        description _: String? = nil,
+        error _: Swift.Error? = nil,
+        file _: String = #file,
+        function _: String = #function,
+        line _: UInt = #line
+    ) {
+        algorithmLogSink?(category, message)
+    }
+
+    func error(
+        _ category: Logger.Category,
+        _ message: String,
+        description _: String? = nil,
+        error _: Swift.Error? = nil,
+        file _: String = #file,
+        function _: String = #function,
+        line _: UInt = #line
+    ) {
+        algorithmLogSink?(category, message)
+    }
+
+    func fault(
         _ category: Logger.Category,
         _ message: String,
         description _: String? = nil,

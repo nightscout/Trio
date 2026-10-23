@@ -36,10 +36,7 @@ import UIKit
                 }
             }
         } catch {
-            debug(
-                .default,
-                "\(DebuggingIdentifiers.failed) Error fetching/processing overrides: \(error)"
-            )
+            debug(.treatments, "Fetching override presets failed")
             throw error
         }
     }
@@ -63,10 +60,7 @@ import UIKit
                 let result = try context.fetch(fetchRequest)
 
                 if result.isEmpty {
-                    debug(
-                        .default,
-                        "\(DebuggingIdentifiers.failed) No OverrideStored found for ids: \(uuid)"
-                    )
+                    debug(.treatments, "No override presets found for \(uuid.count) IDs")
                     throw overridePresetsError.noTempOverrideFound
                 }
 
@@ -74,10 +68,7 @@ import UIKit
                     OverridePreset(id: overrideStored.id ?? UUID().uuidString, name: overrideStored.name ?? "")
                 }
             } catch {
-                debug(
-                    .default,
-                    "\(DebuggingIdentifiers.failed) Failed to fetch Override: \(error)"
-                )
+                debug(.treatments, "Fetching override presets by ID failed")
                 throw error
             }
         }
@@ -91,16 +82,16 @@ import UIKit
      - Returns: A boolean indicating whether the override was successfully enacted.
      */
     @MainActor func enactOverride(_ preset: OverridePreset) async -> Bool {
-        debug(.default, "Enacting override: \(preset.name)")
+        debug(.treatments, "Starting override \(preset.name) from shortcut")
         var backgroundTaskID = startBackgroundTask(withName: "Override Enact")
         defer { endBackgroundTaskSafely(&backgroundTaskID, taskName: "Override Enact") }
 
         do {
             try await adjustmentManager.activateOverride(.presetID(preset.id), source: .shortcut, waitForUpload: true)
-            debug(.default, "Finished. Override enacted via Shortcut.")
+            debug(.treatments, "Override started from shortcut")
             return true
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to enact override: \(error)")
+            warning(.treatments, "Starting override from shortcut failed", error: error)
             return false
         }
     }
@@ -109,16 +100,16 @@ import UIKit
      Cancels the active override. Nothing running is the state the intent asks for.
      */
     @MainActor func cancelOverride() async {
-        debug(.default, "Cancelling active override")
+        debug(.treatments, "Stopping override from shortcut")
         var backgroundTaskID = startBackgroundTask(withName: "Override Cancel")
         defer { endBackgroundTaskSafely(&backgroundTaskID, taskName: "Override Cancel") }
 
         do {
             try await adjustmentManager.cancelOverride(source: .shortcut, waitForUpload: true)
         } catch AdjustmentError.nothingActive {
-            debug(.default, "No active override to cancel")
+            debug(.treatments, "No active override to stop")
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to cancel override: \(error)")
+            warning(.treatments, "Stopping override from shortcut failed", error: error)
         }
     }
 }
