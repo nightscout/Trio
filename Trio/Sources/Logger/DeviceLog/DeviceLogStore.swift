@@ -32,6 +32,7 @@ final class DeviceLogStore: @unchecked Sendable {
     private var deviceLog: PersistentDeviceLog?
     private var buffer: [PendingEntry] = []
     private var isCheckingProtectedData = false
+    private var retryAfterCheck = false
     private var didMoveStoreAside = false
 
     init(
@@ -135,7 +136,12 @@ final class DeviceLogStore: @unchecked Sendable {
     }
 
     private func openIfNeeded() {
-        guard deviceLog == nil, !isCheckingProtectedData else { return }
+        guard deviceLog == nil else { return }
+        // An unlock during the check must not be lost
+        guard !isCheckingProtectedData else {
+            retryAfterCheck = true
+            return
+        }
         try? FileManager.default.createDirectory(
             at: storageURL.deletingLastPathComponent(),
             withIntermediateDirectories: true
@@ -151,6 +157,10 @@ final class DeviceLogStore: @unchecked Sendable {
             self.queue.async {
                 self.isCheckingProtectedData = false
                 self.recover(protectedDataAvailable: available)
+                if self.retryAfterCheck {
+                    self.retryAfterCheck = false
+                    self.openIfNeeded()
+                }
             }
         }
     }
