@@ -64,23 +64,6 @@ extension AppDiagnostics {
                     NavigationLink("Privacy details") { TelemetryPrivacyView() }
                 }.listRowBackground(Color.chart)
 
-                Section(
-                    header: Text("Logging"),
-                    footer: Text("How long Trio keeps its app log on this device.")
-                ) {
-                    Picker("Log Retention", selection: $state.logRetentionDays) {
-                        Text("1 day").tag(1)
-                        Text("3 days").tag(3)
-                        Text("7 days").tag(7)
-                    }
-                }.listRowBackground(Color.chart)
-
-                Section(
-                    footer: Text("Also keep detailed debug messages in the app log.")
-                ) {
-                    Toggle("Verbose Logging", isOn: $state.logVerboseEnabled)
-                }.listRowBackground(Color.chart)
-
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Why does Trio collect this data?").bold()

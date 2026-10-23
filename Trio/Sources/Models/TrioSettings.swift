@@ -89,9 +89,6 @@ struct TrioSettings: JSON, Equatable, Encodable {
     /// Controls whether watchface data transmission is enabled
     var isWatchfaceDataEnabled: Bool = false
 
-    var logRetentionDays: Int = 7
-    var logVerboseEnabled: Bool = true
-
     /// Computed property that groups all Garmin settings into a single struct
     var garminSettings: GarminWatchSettings {
         get {
@@ -403,14 +400,6 @@ extension TrioSettings: Decodable {
 
         if let isWatchfaceDataEnabled = try? container.decode(Bool.self, forKey: .isWatchfaceDataEnabled) {
             settings.isWatchfaceDataEnabled = isWatchfaceDataEnabled
-        }
-
-        if let logRetentionDays = try? container.decode(Int.self, forKey: .logRetentionDays) {
-            settings.logRetentionDays = logRetentionDays
-        }
-
-        if let logVerboseEnabled = try? container.decode(Bool.self, forKey: .logVerboseEnabled) {
-            settings.logVerboseEnabled = logVerboseEnabled
         }
 
         self = settings

@@ -7,20 +7,8 @@ extension AppDiagnostics {
 
         var diagnosticsSharingOption: DiagnosticsSharingOption = .full
 
-        // MARK: - Logging
-
-        var logRetentionDays = 7 {
-            didSet { settingsManager.settings.logRetentionDays = logRetentionDays }
-        }
-
-        var logVerboseEnabled = true {
-            didSet { settingsManager.settings.logVerboseEnabled = logVerboseEnabled }
-        }
-
         override func subscribe() {
             loadDiagnostics()
-            logRetentionDays = settingsManager.settings.logRetentionDays
-            logVerboseEnabled = settingsManager.settings.logVerboseEnabled
         }
 
         /// Derives the 3-state option from the two underlying flags. Both
