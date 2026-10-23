@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		32DC31248CF9E5D252CB85DF /* AppAttestClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB83AD877D530A73EA814672 /* AppAttestClient.swift */; };
 		03DE042795C2AFA00C2CCE9E /* WatchLogRingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */; };
 		6DB56C9F3F74834C536E9199 /* WatchLogIngest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921084A4E9558519903842AE /* WatchLogIngest.swift */; };
 		8B735B34F861E3AE08F5C9BE /* WatchLogRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C18518C0B49FB16C05F355 /* WatchLogRing.swift */; };
@@ -1217,6 +1218,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BB83AD877D530A73EA814672 /* AppAttestClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAttestClient.swift; sourceTree = "<group>"; };
 		FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRingTests.swift; sourceTree = "<group>"; };
 		921084A4E9558519903842AE /* WatchLogIngest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogIngest.swift; sourceTree = "<group>"; };
 		75C18518C0B49FB16C05F355 /* WatchLogRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRing.swift; sourceTree = "<group>"; };
@@ -2392,6 +2394,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		196DA87A7331DB0D3420E81B /* AppAttest */ = {
+			isa = PBXGroup;
+			children = (
+				BB83AD877D530A73EA814672 /* AppAttestClient.swift */,
+			);
+			path = AppAttest;
+			sourceTree = "<group>";
+		};
 		AB59F766D97F5B125B0BEFDD /* Watch */ = {
 			isa = PBXGroup;
 			children = (
@@ -2838,6 +2848,7 @@
 				38AEE75025F021F10013F05B /* SettingsManager */,
 				3811DE9825C9D88300A708ED /* Storage */,
 				DD7E1E30000000000000000A /* Telemetry */,
+				196DA87A7331DB0D3420E81B /* AppAttest */,
 				3811DEA525C9D88300A708ED /* UnlockManager */,
 				38E87406274F9AA500975559 /* UserNotifications */,
 				38E8754D275556E100975559 /* WatchManager */,
@@ -5801,6 +5812,7 @@
 				DD7E1E300000000000000002 /* TelemetryClient.swift in Sources */,
 				DD7E1E300000000000000016 /* CrashReportingGate.swift in Sources */,
 				DD7E1E300000000000000014 /* TelemetryAttestor.swift in Sources */,
+				32DC31248CF9E5D252CB85DF /* AppAttestClient.swift in Sources */,
 				DD7E1E300000000000000004 /* TelemetryPreviewView.swift in Sources */,
 				DD7E1E300000000000000006 /* TelemetryPrivacyView.swift in Sources */,
 				DD7E1E30000000000000000E /* TelemetryDataFlow.swift in Sources */,
