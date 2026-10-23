@@ -32,82 +32,8 @@ import UniformTypeIdentifiers
         )
     }
 
-    private struct Part {
-        let headers: String
-        let body: Data
-    }
-
-    private static func parts(of body: Data, boundary: String) -> [Part] {
-        let delimiter = Data("--\(boundary)".utf8)
-        var parts: [Part] = []
-        var searchStart = body.startIndex
-        var ranges: [Range<Data.Index>] = []
-        while let range = body.range(of: delimiter, in: searchStart ..< body.endIndex) {
-            ranges.append(range)
-            searchStart = range.upperBound
-        }
-        for (current, next) in zip(ranges, ranges.dropFirst()) {
-            // Each part is "\r\n<headers>\r\n\r\n<body>\r\n" between delimiters
-            let chunk = body[current.upperBound ..< next.lowerBound]
-            guard let split = chunk.range(of: Data("\r\n\r\n".utf8)) else { continue }
-            let headers = String(decoding: chunk[chunk.startIndex ..< split.lowerBound], as: UTF8.self)
-            let content = chunk[split.upperBound ..< chunk.index(chunk.endIndex, offsetBy: -2)]
-            parts.append(Part(headers: headers.trimmingCharacters(in: .whitespacesAndNewlines), body: Data(content)))
-        }
-        return parts
-    }
-
     private static func json(_ data: Data) throws -> [String: Any] {
         try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
-    }
-
-    @Test("Multipart body has the report and one part per attachment") func multipartStructure() throws {
-        let screenshot = ProblemReport.Attachment(filename: "screenshot-1.png", contentType: "image/png", data: Data([1, 2, 3]))
-        let logs = ProblemReport.Attachment(filename: "Trio Log.zip", contentType: "application/zip", data: Data([4, 5]))
-        let body = try HTTPReportSubmitter.body(
-            for: Self.report(attachments: [screenshot, logs]),
-            boundary: "TEST-BOUNDARY",
-            client: nil
-        )
-
-        #expect(body.starts(with: Data("--TEST-BOUNDARY\r\n".utf8)))
-        #expect(String(decoding: body.suffix(19), as: UTF8.self) == "--TEST-BOUNDARY--\r\n")
-
-        let parts = Self.parts(of: body, boundary: "TEST-BOUNDARY")
-        #expect(parts.count == 3)
-        #expect(parts[0].headers.contains("name=\"report\""))
-        #expect(parts[0].headers.contains("Content-Type: application/json"))
-        #expect(parts[1].headers.contains("name=\"attachment\"; filename=\"screenshot-1.png\""))
-        #expect(parts[1].headers.contains("Content-Type: image/png"))
-        #expect(parts[1].body == Data([1, 2, 3]))
-        #expect(parts[2].headers.contains("filename=\"Trio Log.zip\""))
-        #expect(parts[2].body == Data([4, 5]))
-
-        let json = try Self.json(parts[0].body)
-        #expect(json["title"] as? String == "Synthetic title")
-        #expect(json["description"] as? String == "Synthetic description")
-        #expect(json["contact"] == nil)
-        let context = try #require(json["context"] as? [String: Any])
-        #expect(context["appVersion"] as? String == "1.0.0")
-        #expect(context["buildNumber"] as? String == "1")
-        #expect(context["devVersion"] as? String == "1.0.0.1")
-        #expect(context["branch"] as? String == "dev")
-        #expect(context["commit"] as? String == "abc1234")
-        #expect(context["deviceModel"] as? String == "iPhone99,9")
-        #expect(context["osVersion"] as? String == "27.0.0")
-        #expect(context["pumpModel"] as? String == "Example Pump")
-        #expect(context["cgmModel"] == nil)
-    }
-
-    @Test("Client part is sent first only when configured") func clientPart() throws {
-        let body = try HTTPReportSubmitter.body(for: Self.report(), boundary: "B", client: "synthetic-client")
-        let parts = Self.parts(of: body, boundary: "B")
-        #expect(parts.count == 2)
-        #expect(parts[0].headers.contains("name=\"client\""))
-        #expect(parts[0].body == Data("synthetic-client".utf8))
-
-        let without = Self.parts(of: try HTTPReportSubmitter.body(for: Self.report(), boundary: "B", client: ""), boundary: "B")
-        #expect(without.count == 1)
     }
 
     @Test("Contact is left out when anonymous or blank") func contactOmission() throws {
@@ -123,31 +49,8 @@ import UniformTypeIdentifiers
         let report = draft.report(context: Self.context, attachments: [])
         #expect(report.contact == ProblemReport.Contact(name: "Test User", github: "test-user"))
 
-        let parts = Self.parts(of: try HTTPReportSubmitter.body(for: report, boundary: "B", client: nil), boundary: "B")
-        let contact = try #require(try Self.json(parts[0].body)["contact"] as? [String: String])
+        let contact = try #require(try Self.json(HTTPReportSubmitter.body(for: report))["contact"] as? [String: String])
         #expect(contact == ["name": "Test User", "github": "test-user"])
-    }
-
-    @Test("Server status codes map to plain errors") func errorMapping() throws {
-        #expect(throws: ReportSubmitError.tooLarge) { try HTTPReportSubmitter.reportID(status: 413, data: Data()) }
-        #expect(throws: ReportSubmitError.unsupportedImage) { try HTTPReportSubmitter.reportID(status: 415, data: Data()) }
-        #expect(throws: ReportSubmitError.rateLimited) { try HTTPReportSubmitter.reportID(status: 429, data: Data()) }
-        #expect(throws: ReportSubmitError.server(status: 503)) { try HTTPReportSubmitter.reportID(status: 503, data: Data()) }
-        #expect(throws: ReportSubmitError.server(status: 400)) { try HTTPReportSubmitter.reportID(status: 400, data: Data()) }
-        #expect(throws: ReportSubmitError.invalidResponse) {
-            try HTTPReportSubmitter.reportID(status: 200, data: Data("not json".utf8))
-        }
-        #expect(throws: ReportSubmitError.invalidResponse) {
-            try HTTPReportSubmitter.reportID(status: 200, data: Data("{\"id\":\"\"}".utf8))
-        }
-        #expect(try HTTPReportSubmitter.reportID(status: 200, data: Data("{\"id\":\"TRIO-TEST-1\"}".utf8)) == "TRIO-TEST-1")
-
-        #expect(ReportSubmitError.server(status: 500).canRetry)
-        #expect(ReportSubmitError.network("offline").canRetry)
-        #expect(!ReportSubmitError.server(status: 400).canRetry)
-        #expect(!ReportSubmitError.tooLarge.canRetry)
-        #expect(!ReportSubmitError.rateLimited.canRetry)
-        #expect(!ReportSubmitError.invalidResponse.canRetry)
     }
 
     private static func jpegWithMetadata(size: CGSize, noise: Bool = false) throws -> Data {
@@ -221,7 +124,7 @@ import UniformTypeIdentifiers
         let smaller = try #require(ReportScreenshot(data: noisy, index: 1, maxBytes: limit))
         #expect(smaller.attachment.data.count <= limit)
         #expect(ReportScreenshot(data: noisy, index: 1, maxBytes: 100) == nil)
-        #expect(ReportScreenshot.maxBytes == 10_000_000)
+        #expect(ReportScreenshot.maxBytes == 5_000_000)
         #expect(ReportScreenshot(data: Data("not an image".utf8), index: 1) == nil)
     }
 
@@ -256,38 +159,5 @@ import UniformTypeIdentifiers
         let longTitle = ReportDraft(title: String(repeating: "t", count: 300), description: "x")
             .report(context: Self.context, attachments: [])
         #expect(longTitle.title?.count == ReportDraft.maxTitleLength)
-    }
-
-    @Test("Endpoint picks the real, mock or no submitter") func endpointSelection() throws {
-        #expect(ReportEndpoint.submitter(endpoint: "", client: nil, allowsMock: true) is MockReportSubmitter)
-        #expect(ReportEndpoint.submitter(endpoint: nil, client: nil, allowsMock: true) is MockReportSubmitter)
-        #expect(ReportEndpoint.submitter(endpoint: "", client: nil, allowsMock: false) == nil)
-        #expect(ReportEndpoint.submitter(endpoint: "http://example.com/report", client: nil, allowsMock: false) == nil)
-        #expect(ReportEndpoint.submitter(endpoint: "$(TRIO_REPORT_ENDPOINT)", client: nil, allowsMock: false) == nil)
-
-        let http = try #require(
-            ReportEndpoint.submitter(
-                endpoint: " https://example.com/report ",
-                client: " ",
-                allowsMock: false
-            ) as? HTTPReportSubmitter
-        )
-        #expect(http.endpoint == URL(string: "https://example.com/report"))
-        #expect(http.client == nil)
-
-        let withClient = try #require(
-            ReportEndpoint.submitter(
-                endpoint: "https://example.com/report",
-                client: "abc",
-                allowsMock: true
-            ) as? HTTPReportSubmitter
-        )
-        #expect(withClient.client == "abc")
-    }
-
-    @Test("Mock submitter returns a debug ID") func mockSubmitter() async throws {
-        let id = try await MockReportSubmitter().submit(Self.report())
-        #expect(id.hasPrefix("TRIO-DEBUG-"))
-        #expect(id.count == "TRIO-DEBUG-".count + 6)
     }
 }

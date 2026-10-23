@@ -2,7 +2,7 @@ import PhotosUI
 import SwiftUI
 
 struct SendReportView: View {
-    static let maxScreenshots = 8
+    static let maxScreenshots = ReportLimits.maxImages
 
     let submitter: ReportSubmitting
     let logExport: LogExport?
@@ -18,12 +18,22 @@ struct SendReportView: View {
     @State private var screenshotTask: Task<Void, Never>?
     @State private var isLoadingScreenshots = false
     @State private var isSending = false
+    @State private var sendProgress = 0.0
     @State private var sentID: String?
     @State private var sendError: ReportSubmitError?
     @State private var showError = false
 
     var body: some View {
         Form {
+            if isSending {
+                Section {
+                    ProgressView(value: sendProgress) {
+                        Text("Sending Report")
+                    }
+                }
+                .listRowBackground(Color.chart)
+            }
+
             Section(
                 content: {
                     TextField("Title (optional)", text: $draft.title)
@@ -227,6 +237,7 @@ struct SendReportView: View {
     private func send() {
         guard draft.canSubmit, !isSending else { return }
         isSending = true
+        sendProgress = 0
         let draft = draft
         let screenshots = screenshots.map(\.attachment)
         Task { @MainActor in
@@ -235,8 +246,9 @@ struct SendReportView: View {
                 if draft.attachLogs {
                     attachments.append(try await logsAttachment())
                 }
-                sentID = try await submitter.submit(draft.report(context: context, attachments: attachments))
-                ReportDraft.clear()
+                sentID = try await submitter.send(draft.report(context: context, attachments: attachments)) { progress in
+                    Task { @MainActor in sendProgress = progress }
+                }
             } catch {
                 warning(.ui, "Sending a problem report failed", error: error)
                 sendError = error as? ReportSubmitError ?? .network(error.localizedDescription)
@@ -254,7 +266,7 @@ struct SendReportView: View {
                 defer { LogExport.discard(file) }
                 return try Data(contentsOf: file)
             }.value
-            return ProblemReport.Attachment(filename: file.lastPathComponent, contentType: "application/zip", data: data)
+            return ProblemReport.Attachment(filename: "logs.zip", contentType: "application/zip", data: data)
         } catch {
             warning(.ui, "Preparing logs for a problem report failed", error: error)
             throw ReportSubmitError.logsUnavailable
