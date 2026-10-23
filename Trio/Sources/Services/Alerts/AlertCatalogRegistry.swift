@@ -14,7 +14,8 @@ import LoopKit
 /// construction and don't need a catalog entry.
 enum AlertCatalogRegistry {
     static let entries: [Alert.CatalogEntry] =
-        omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + trioAlgorithmEntries
+        omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + syaiEntries
+            + trioAlgorithmEntries
 
     static func lookup(_ identifier: Alert.Identifier) -> Alert.CatalogEntry? {
         if let exact = entries.first(where: { $0.identifier == identifier }) {
@@ -243,6 +244,17 @@ private extension AlertCatalogRegistry {
             "Connectivity",
             .cgmReconnectNeeded
         )
+    ]
+}
+
+// MARK: - Syai (Ultra)
+
+private extension AlertCatalogRegistry {
+    static let syaiEntries: [Alert.CatalogEntry] = [
+        addEntry("SyaiCGMManager", "syai.signalLost", .timeSensitive, "Signal Loss", "Connectivity", .cgmReconnectNeeded),
+        addEntry("SyaiCGMManager", "syai.expired", .timeSensitive, "Sensor Expired", "Sensor", .cgmExpired),
+        addEntry("SyaiCGMManager", "syai.failed", .timeSensitive, "Sensor Malfunction", "Sensor", .cgmReplacementNeeded),
+        addEntry("SyaiCGMManager", "syai.unactivated", .timeSensitive, "Sensor Not Activated", "Sensor", .cgmReplacementNeeded)
     ]
 }
 
