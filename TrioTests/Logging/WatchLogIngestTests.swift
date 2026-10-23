@@ -89,7 +89,7 @@ import Testing
         #expect(abs((decoded?.date.timeIntervalSince(precise.date)) ?? 1) < 0.0005)
     }
 
-    @Test("Ingested entries keep their level, category and date") func mapsRecords() throws {
+    @Test("Ingested entries keep their level, category and date") func mapsRecords() async throws {
         let fixture = try Fixture()
         let levels: [(WatchLogEntry.Level, LogLevel)] = [
             (.debug, .debug), (.info, .info), (.warning, .warning), (.error, .error), (.fault, .fault)
@@ -104,7 +104,7 @@ import Testing
             )
         }
 
-        let ack = try fixture.ingest.ingest(fixture.stage(entries))
+        let ack = try await fixture.ingest.ingest(fixture.stage(entries))
 
         let records = fixture.sink.snapshot()
         #expect(ack == 5)
@@ -115,10 +115,10 @@ import Testing
         #expect(records.allSatisfy { $0.file == "Watch" })
     }
 
-    @Test("Repeated and overlapping batches are ingested once per install") func dedupes() throws {
+    @Test("Repeated and overlapping batches are ingested once per install") func dedupes() async throws {
         let fixture = try Fixture()
 
-        let acks = try [
+        let acks = try await [
             fixture.ingest.ingest(fixture.stage(Self.entries(1 ... 3))),
             fixture.ingest.ingest(fixture.stage(Self.entries(1 ... 3))),
             fixture.ingest.ingest(fixture.stage(Self.entries(2 ... 5))),
@@ -131,12 +131,30 @@ import Testing
 
         let sink = fixture.sink
         let relaunched = WatchLogIngest(defaults: fixture.defaults, sink: { sink })
-        let ack = try relaunched.ingest(fixture.stage(Self.entries(4 ... 6)))
+        let ack = try await relaunched.ingest(fixture.stage(Self.entries(4 ... 6)))
         #expect(ack == 6)
         #expect(fixture.sink.snapshot().map(\.message).suffix(1) == ["entry 6"])
     }
 
-    @Test("Staging copies the file and removes it after ingest") func stagesCopy() throws {
+    @Test("A cut-off file is acknowledged only up to its last complete entry") func acksParsedEntries() async throws {
+        let fixture = try Fixture()
+        let url = fixture.directory.appendingPathComponent("cut.jsonl")
+        var data = WatchLogEntry.jsonLines(Self.entries(1 ... 3))
+        data.append(Data(#"{"seq":4,"lev"#.utf8))
+        try data.write(to: url)
+        let metadata = Fixture.metadata(Self.entries(1 ... 4), installID: "install-a")
+        let batch = try #require(
+            WatchLogIngest
+                .stage(url, metadata: metadata, into: fixture.directory.appendingPathComponent("staged"))
+        )
+
+        let ack = await fixture.ingest.ingest(batch)
+
+        #expect(ack == 3)
+        #expect(fixture.sink.snapshot().map(\.message) == ["entry 1", "entry 2", "entry 3"])
+    }
+
+    @Test("Staging copies the file and removes it after ingest") func stagesCopy() async throws {
         let fixture = try Fixture()
         let (url, metadata) = try fixture.received(Self.entries(1 ... 2))
 
@@ -146,7 +164,7 @@ import Testing
         #expect(batch.installID == "install-a")
         #expect(batch.firstSeq == 1 && batch.lastSeq == 2)
 
-        fixture.ingest.ingest(batch)
+        await fixture.ingest.ingest(batch)
         #expect(fixture.sink.snapshot().count == 2)
         #expect(!FileManager.default.fileExists(atPath: batch.file.path))
     }

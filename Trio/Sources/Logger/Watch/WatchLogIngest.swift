@@ -53,20 +53,22 @@ final class WatchLogIngest: @unchecked Sendable {
         return Batch(file: staged, installID: installID, firstSeq: firstSeq, lastSeq: lastSeq)
     }
 
-    // Returns the seq to acknowledge to the watch
-    @discardableResult func ingest(_ batch: Batch) -> UInt64 {
-        let ack = queue.sync {
-            defer { try? FileManager.default.removeItem(at: batch.file) }
-            var lastSeqs = defaults.dictionary(forKey: Self.lastSeqKey) as? [String: NSNumber] ?? [:]
-            let previous = lastSeqs[batch.installID]?.uint64Value ?? 0
-            let data = (try? Data(contentsOf: batch.file)) ?? Data()
-            let fresh = WatchLogEntry.entries(fromJSONLines: data)
-                .filter { $0.seq > previous }
-                .sorted { $0.seq < $1.seq }
-            let sink = self.sink()
-            fresh.map(Self.record).forEach(sink.accept)
+    // Returns the seq to acknowledge to the watch, once the records are stored
+    @discardableResult func ingest(_ batch: Batch) async -> UInt64 {
+        defer { try? FileManager.default.removeItem(at: batch.file) }
+        let previous = queue.sync { lastSeq(for: batch.installID) }
+        let data = (try? Data(contentsOf: batch.file)) ?? Data()
+        let fresh = WatchLogEntry.entries(fromJSONLines: data)
+            .filter { $0.seq > previous }
+            .sorted { $0.seq < $1.seq }
+        let sink = self.sink()
+        fresh.map(Self.record).forEach(sink.accept)
+        await sink.flush()
 
-            let ack = max(previous, batch.lastSeq, fresh.last?.seq ?? 0)
+        // Only what was parsed and stored; a cut-off file gets the rest resent
+        let ack = queue.sync {
+            let ack = max(lastSeq(for: batch.installID), fresh.last?.seq ?? 0)
+            var lastSeqs = defaults.dictionary(forKey: Self.lastSeqKey) as? [String: NSNumber] ?? [:]
             lastSeqs[batch.installID] = NSNumber(value: ack)
             defaults.set(lastSeqs, forKey: Self.lastSeqKey)
             return ack
@@ -75,14 +77,19 @@ final class WatchLogIngest: @unchecked Sendable {
         return ack
     }
 
+    private func lastSeq(for installID: String) -> UInt64 {
+        let lastSeqs = defaults.dictionary(forKey: Self.lastSeqKey) as? [String: NSNumber] ?? [:]
+        return lastSeqs[installID]?.uint64Value ?? 0
+    }
+
     func receive(_ file: URL, metadata: [String: Any]?) {
         guard metadata?[WatchLogTransfer.marker] != nil else { return }
         guard let batch = Self.stage(file, metadata: metadata) else {
             warning(.watch, "Rejected a watch log file with invalid metadata or over the size limit")
             return
         }
-        DispatchQueue.global(qos: .utility).async {
-            let ack = self.ingest(batch)
+        Task.detached(priority: .utility) {
+            let ack = await self.ingest(batch)
             Self.send([WatchLogTransfer.ack: NSNumber(value: ack), WatchLogTransfer.installID: batch.installID])
         }
     }
