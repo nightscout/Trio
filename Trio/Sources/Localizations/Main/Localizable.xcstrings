@@ -1185,6 +1185,9 @@
     "Sending" : {
 
     },
+    "Sending Report" : {
+
+    },
     "Stay Anonymous" : {
 
     },
@@ -1206,10 +1209,13 @@
     "The Trio team's server sent an answer the app doesn't understand." : {
 
     },
+    "This build of Trio can't send reports. Please share your logs on Discord or Facebook instead." : {
+
+    },
     "Title (optional)" : {
 
     },
-    "Too many reports were sent from this network recently. Please try again later." : {
+    "Trio couldn't confirm with Apple that this copy of the app is genuine. Please try again later." : {
 
     },
     "Try Again" : {
@@ -1218,7 +1224,13 @@
     "Up to %lld screenshots or photos." : {
 
     },
+    "You've sent several reports today. Please try again tomorrow." : {
+
+    },
     "Your Logs" : {
+
+    },
+    "Your logs are too large to send. Turn off Attach My Logs and share them on Discord or Facebook instead." : {
 
     },
     "Your logs couldn't be prepared. Try again, or turn off Attach My Logs." : {

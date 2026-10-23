@@ -1,7 +1,7 @@
 import UIKit
 
 struct ReportScreenshot: Identifiable {
-    static let maxBytes = 10_000_000
+    static let maxBytes = ReportLimits.maxImageBytes
 
     let id = UUID()
     let image: UIImage
