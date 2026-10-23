@@ -253,7 +253,7 @@ final class BaseAPSManager: APSManager, Injectable {
                      .inProgress:
                     self?.createBolusReporter()
                 case .noBolus:
-                    self?.clearBolusReporter()
+                    self?.bolusDeliveryDidStop()
                 }
             }
             .store(in: &lifetime)
@@ -1442,6 +1442,26 @@ final class BaseAPSManager: APSManager, Injectable {
             self.bolusReporter?.removeObserver(self)
             self.bolusReporter = nil
             self.bolusProgress.send(nil)
+        }
+    }
+
+    /// The pump status flipping to `noBolus` is the authoritative "delivery stopped" signal:
+    /// some managers (Medtrum, Dana) report it before their progress reporter reaches 100%,
+    /// in which case the reporter's completing update never fires. Notify observers with the
+    /// reporter's last delivered-units estimate before clearing it. No-ops when delivery
+    /// already ended through `doseProgressReporterDidUpdate` or `cancelBolus`, both of which
+    /// clear the reporter first.
+    private func bolusDeliveryDidStop() {
+        processQueue.async {
+            guard let reporter = self.bolusReporter else { return }
+            let deliveredUnits = reporter.progress.deliveredUnits
+            self.clearBolusReporter()
+            debug(.apsManager, "Bolus stopped via pump status with \(deliveredUnits) U reported delivered")
+            DispatchQueue.main.async {
+                self.broadcaster.notify(BolusDeliveryObserver.self, on: .main) {
+                    $0.bolusDeliveryDidFinish(deliveredUnits: deliveredUnits)
+                }
+            }
         }
     }
 }

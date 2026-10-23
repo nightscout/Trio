@@ -73,11 +73,16 @@ protocol MealTimeReminderService: AnyObject {
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 let manager = AlarmManager.shared
-                guard manager.authorizationState == .notDetermined else { return }
-                _ = try? await manager.requestAuthorization()
+                if manager.authorizationState == .notDetermined {
+                    _ = try? await manager.requestAuthorization()
+                }
             }
         #endif
-        // The notification fallback uses the permission the app already requests at onboarding.
+        // The backstop notification needs its own permission; nothing else in the app
+        // reliably requests it.
+        if await notificationCenter.notificationSettings().authorizationStatus == .notDetermined {
+            try? await notificationCenter.requestAuthorization(options: [.alert, .sound])
+        }
     }
 
     @discardableResult func scheduleEatReminder(
@@ -123,6 +128,7 @@ protocol MealTimeReminderService: AnyObject {
 
         let awaiting = AwaitingBolusCompletion(id: UUID(), leadTime: leadTime, carbs: carbs)
         await MainActor.run { awaitingCompletion = awaiting }
+        debug(.bolusState, "Meal-time reminder awaiting bolus completion: \(Int(leadTime / 60)) min lead time")
 
         // Backstop: if the bolus-completion signal never arrives, the user still gets reminded —
         // at worst `backstopDeliveryAllowance` later than the old schedule-at-enact behavior.
@@ -139,6 +145,7 @@ protocol MealTimeReminderService: AnyObject {
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 guard let self, self.awaitingCompletion == awaiting else { return }
+                debug(.bolusState, "Meal-time reminder dropped: bolus completion never arrived")
                 self.awaitingCompletion = nil
             }
         }
@@ -304,7 +311,11 @@ protocol MealTimeReminderService: AnyObject {
     // MARK: - Backstop notification (app-killed case)
 
     private func scheduleNotification(leadTime: TimeInterval, carbs: Decimal, bolusAmount: Decimal) async -> Bool {
-        let status = await notificationCenter.notificationSettings().authorizationStatus
+        var status = await notificationCenter.notificationSettings().authorizationStatus
+        if status == .notDetermined {
+            _ = try? await notificationCenter.requestAuthorization(options: [.alert, .sound])
+            status = await notificationCenter.notificationSettings().authorizationStatus
+        }
         guard status == .authorized || status == .provisional else {
             debug(.bolusState, "Meal-time reminder not scheduled: notification authorization is \(status.rawValue)")
             return false
@@ -358,6 +369,7 @@ extension BaseMealTimeReminderService: BolusDeliveryObserver {
     func bolusDeliveryDidFinish(deliveredUnits: Double) {
         Task { @MainActor in
             guard let awaiting = awaitingCompletion else { return }
+            debug(.bolusState, "Bolus delivery finished with \(deliveredUnits) U; scheduling meal-time reminder")
             awaitingCompletion = nil
             awaitingExpiryTask?.cancel()
             awaitingExpiryTask = nil
