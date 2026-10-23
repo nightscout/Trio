@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8B735B34F861E3AE08F5C9BE /* WatchLogRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C18518C0B49FB16C05F355 /* WatchLogRing.swift */; };
+		92DE66B4776804F0DD8A2925 /* WatchLogRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C18518C0B49FB16C05F355 /* WatchLogRing.swift */; };
 		FF42480CF46A31D00C817D8C /* WatchLogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */; };
 		E8C6B60FFBA9D89DE3BCCA99 /* WatchLogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */; };
 		659C83549641F3FCC56F30AB /* ReportProblemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7373EC0CC3C059178CB967B4 /* ReportProblemView.swift */; };
@@ -1207,6 +1209,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		75C18518C0B49FB16C05F355 /* WatchLogRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRing.swift; sourceTree = "<group>"; };
 		F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogEntry.swift; sourceTree = "<group>"; };
 		7373EC0CC3C059178CB967B4 /* ReportProblemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportProblemView.swift; sourceTree = "<group>"; };
 		CAF80D3953C10DCDF5D80C27 /* LogExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogExportTests.swift; sourceTree = "<group>"; };
@@ -2376,6 +2379,7 @@
 		AB59F766D97F5B125B0BEFDD /* Watch */ = {
 			isa = PBXGroup;
 			children = (
+				75C18518C0B49FB16C05F355 /* WatchLogRing.swift */,
 				F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */,
 			);
 			path = Watch;
@@ -5621,6 +5625,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				92DE66B4776804F0DD8A2925 /* WatchLogRing.swift in Sources */,
 				E8C6B60FFBA9D89DE3BCCA99 /* WatchLogEntry.swift in Sources */,
 				B0D5791570373A23CD562E97 /* LogFileHeader.swift in Sources */,
 				BF0FA8AAE98B4080B961F69F /* LogFileWriter.swift in Sources */,
@@ -6529,6 +6534,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8B735B34F861E3AE08F5C9BE /* WatchLogRing.swift in Sources */,
 				FF42480CF46A31D00C817D8C /* WatchLogEntry.swift in Sources */,
 				BDA25F222D26D62800035F34 /* BolusInputView.swift in Sources */,
 				BDFF7A882D25F97D0016C40C /* TrioMainWatchView.swift in Sources */,
