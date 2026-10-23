@@ -14,9 +14,7 @@ import UserNotifications
         }
         .onChange(of: scenePhase) { _, newScenePhase in
             if newScenePhase == .background {
-                Task {
-                    await WatchLogger.shared.flushPersistedLogs()
-                }
+                WatchLogger.shared.didEnterBackground()
             }
         }
     }
