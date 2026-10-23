@@ -97,10 +97,6 @@
 	<true/>
 	<key>TeamID</key>
 	<string>$(DEVELOPMENT_TEAM)</string>
-	<key>TrioReportClient</key>
-	<string>$(TRIO_REPORT_CLIENT)</string>
-	<key>TrioReportEndpoint</key>
-	<string>$(TRIO_REPORT_ENDPOINT)</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
