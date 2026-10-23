@@ -84,7 +84,7 @@ struct SendReportView: View {
                 header: { Text("Also Sent") },
                 footer: {
                     Text(
-                        "Reports go only to the Trio team. Your IP address is used only to limit how often reports can be sent and is never stored."
+                        "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time."
                     )
                 }
             )
