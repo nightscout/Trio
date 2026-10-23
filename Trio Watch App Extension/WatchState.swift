@@ -189,6 +189,8 @@ import WatchConnectivity
 
     /// Handles incoming messages from the paired iPhone when Phone is in the foreground
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
+        if WatchLogger.shared.handlePhoneMessage(message) { return }
+
         Task {
             await WatchLogger.shared.log("⌚️ Watch received data: \(message)")
         }
@@ -225,7 +227,12 @@ import WatchConnectivity
     }
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        if WatchLogger.shared.handlePhoneMessage(userInfo) { return }
         handleIncomingWatchStatePayload(userInfo)
+    }
+
+    func session(_: WCSession, didFinish fileTransfer: WCSessionFileTransfer, error: (any Error)?) {
+        WatchLogger.shared.transferFinished(fileTransfer, error: error)
     }
 
     /// Shared path for watch-state payloads from either delegate method.
