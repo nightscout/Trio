@@ -6,6 +6,11 @@ struct ReportProblemView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(AppState.self) private var appState
 
+    @State private var sentReports: [SentReport] = []
+    @State private var reportToDelete: SentReport?
+    @State private var deletingID: String?
+    @State private var deleteError: ReportSubmitError?
+
     var body: some View {
         List {
             Section {
@@ -31,6 +36,33 @@ struct ReportProblemView: View {
             }
             .listRowBackground(Color.chart)
 
+            if let submitter = state.reportSubmitter, !sentReports.isEmpty {
+                Section(
+                    content: {
+                        ForEach(sentReports) { report in
+                            SentReportRow(
+                                report: report,
+                                isDeleting: deletingID == report.id,
+                                onDelete: { reportToDelete = report }
+                            )
+                        }
+                    },
+                    header: { Text("Sent Reports") },
+                    footer: { Text("Deleting a report removes it and its files from the Trio team's server.") }
+                )
+                .listRowBackground(Color.chart)
+                .confirmationDialog(
+                    "Delete Report?",
+                    isPresented: Binding(get: { reportToDelete != nil }, set: { if !$0 { reportToDelete = nil } }),
+                    titleVisibility: .visible,
+                    presenting: reportToDelete
+                ) { report in
+                    Button("Delete Report", role: .destructive) { delete(report, with: submitter) }
+                } message: { report in
+                    Text("Report \(report.id) and its files will be deleted from the Trio team's server.")
+                }
+            }
+
             Section {
                 ReportLinkRow(
                     title: "Open a GitHub Issue",
@@ -44,6 +76,68 @@ struct ReportProblemView: View {
         .background(appState.trioBackgroundColor(for: colorScheme))
         .navigationTitle("Report a Problem")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { sentReports = SentReports.load() }
+        .alert(
+            "Couldn't Delete Report",
+            isPresented: Binding(get: { deleteError != nil }, set: { if !$0 { deleteError = nil } }),
+            presenting: deleteError
+        ) { _ in
+            Button("OK", role: .cancel) {}
+        } message: { error in
+            Text(error.message)
+        }
+    }
+
+    private func delete(_ report: SentReport, with submitter: ReportSubmitting) {
+        deletingID = report.id
+        Task { @MainActor in
+            do {
+                try await submitter.withdraw(id: report.id)
+            } catch {
+                warning(.ui, "Deleting a problem report failed", error: error)
+                deleteError = ReportSubmitError.from(error)
+            }
+            sentReports = SentReports.load()
+            deletingID = nil
+        }
+    }
+}
+
+private struct SentReportRow: View {
+    let report: SentReport
+    let isDeleting: Bool
+    let onDelete: () -> Void
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: report.id)
+                    .font(.body.monospaced())
+                    .textSelection(.enabled)
+                Text(report.date, format: .dateTime.day().month().year().hour().minute())
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+            if isDeleting {
+                ProgressView()
+                    .accessibilityLabel(Text("Deleting"))
+            } else {
+                Menu {
+                    Button {
+                        UIPasteboard.general.string = report.id
+                    } label: {
+                        Label("Copy ID", systemImage: "doc.on.doc")
+                    }
+                    Button(role: .destructive, action: onDelete) {
+                        Label("Delete Report", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .accessibilityLabel(Text("Report Actions"))
+                }
+            }
+        }
     }
 }
 

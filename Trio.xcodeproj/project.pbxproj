@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C25C56F3172AC94B9048CCED /* SentReports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561AF4F0F47F7984FE5BD4F6 /* SentReports.swift */; };
 		32DC31248CF9E5D252CB85DF /* AppAttestClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB83AD877D530A73EA814672 /* AppAttestClient.swift */; };
 		03DE042795C2AFA00C2CCE9E /* WatchLogRingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */; };
 		6DB56C9F3F74834C536E9199 /* WatchLogIngest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921084A4E9558519903842AE /* WatchLogIngest.swift */; };
@@ -1218,6 +1219,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		561AF4F0F47F7984FE5BD4F6 /* SentReports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentReports.swift; sourceTree = "<group>"; };
 		BB83AD877D530A73EA814672 /* AppAttestClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAttestClient.swift; sourceTree = "<group>"; };
 		FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRingTests.swift; sourceTree = "<group>"; };
 		921084A4E9558519903842AE /* WatchLogIngest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogIngest.swift; sourceTree = "<group>"; };
@@ -2796,6 +2798,7 @@
 				86102A94E45ED0F04390C951 /* ReportDraft.swift */,
 				36C58322FF6CEE8F65D151DD /* ReportScreenshot.swift */,
 				C7CD10D0FB58F483687CC48D /* ReportSubmitter.swift */,
+				561AF4F0F47F7984FE5BD4F6 /* SentReports.swift */,
 			);
 			path = ReportProblem;
 			sourceTree = "<group>";
@@ -6432,6 +6435,7 @@
 				34FE8396746DEA09AC163FBD /* ReportDraft.swift in Sources */,
 				787FCC8D30BD597B672CB5C2 /* ReportScreenshot.swift in Sources */,
 				C7BE855141F78A0DAC564121 /* ReportSubmitter.swift in Sources */,
+				C25C56F3172AC94B9048CCED /* SentReports.swift in Sources */,
 				659C83549641F3FCC56F30AB /* ReportProblemView.swift in Sources */,
 				AC05A906087DD32A509439F2 /* SendReportView.swift in Sources */,
 				4E3B6212E43A3E90DD735B30 /* AppLog.xcdatamodeld in Sources */,
