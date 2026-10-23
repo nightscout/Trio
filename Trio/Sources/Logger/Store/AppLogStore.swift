@@ -458,37 +458,3 @@ extension LogRetentionPolicy {
         )
     }
 }
-
-extension AppLogStore {
-    private static let watchTimestampFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-        return formatter
-    }()
-
-    static func watchRecords(from payload: String, receivedAt date: Date = Date()) -> [LogRecord] {
-        payload.split(whereSeparator: \.isNewline).compactMap { line in
-            var message = line.trimmingCharacters(in: .whitespaces)
-            guard !message.isEmpty else { return nil }
-            var timestamp = date
-            if message.hasPrefix("["), let close = message.firstIndex(of: "]"),
-               let parsed = watchTimestampFormatter
-               .date(from: String(message[message.index(after: message.startIndex) ..< close]))
-            {
-                timestamp = parsed
-                message = message[message.index(after: close)...].trimmingCharacters(in: .whitespaces)
-            }
-            return LogRecord(
-                timestamp: timestamp,
-                level: .debug,
-                category: "Watch",
-                message: message,
-                file: "WatchLogger",
-                function: "",
-                line: 0,
-                launchID: LaunchID.current
-            )
-        }
-    }
-}

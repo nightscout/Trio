@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6DB56C9F3F74834C536E9199 /* WatchLogIngest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921084A4E9558519903842AE /* WatchLogIngest.swift */; };
 		8B735B34F861E3AE08F5C9BE /* WatchLogRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C18518C0B49FB16C05F355 /* WatchLogRing.swift */; };
 		92DE66B4776804F0DD8A2925 /* WatchLogRing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C18518C0B49FB16C05F355 /* WatchLogRing.swift */; };
 		FF42480CF46A31D00C817D8C /* WatchLogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */; };
@@ -1209,6 +1210,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		921084A4E9558519903842AE /* WatchLogIngest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogIngest.swift; sourceTree = "<group>"; };
 		75C18518C0B49FB16C05F355 /* WatchLogRing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRing.swift; sourceTree = "<group>"; };
 		F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogEntry.swift; sourceTree = "<group>"; };
 		7373EC0CC3C059178CB967B4 /* ReportProblemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportProblemView.swift; sourceTree = "<group>"; };
@@ -2379,6 +2381,7 @@
 		AB59F766D97F5B125B0BEFDD /* Watch */ = {
 			isa = PBXGroup;
 			children = (
+				921084A4E9558519903842AE /* WatchLogIngest.swift */,
 				75C18518C0B49FB16C05F355 /* WatchLogRing.swift */,
 				F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */,
 			);
@@ -5625,6 +5628,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6DB56C9F3F74834C536E9199 /* WatchLogIngest.swift in Sources */,
 				92DE66B4776804F0DD8A2925 /* WatchLogRing.swift in Sources */,
 				E8C6B60FFBA9D89DE3BCCA99 /* WatchLogEntry.swift in Sources */,
 				B0D5791570373A23CD562E97 /* LogFileHeader.swift in Sources */,

@@ -636,7 +636,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         // Handle logs first - doesn't need self, so it can run even during teardown
         if let logs = message["watchLogs"] as? String {
-            AppLogStore.watchRecords(from: logs).forEach(TrioLogger.sink.accept)
+            WatchLogIngest.legacyRecords(from: logs).forEach(TrioLogger.sink.accept)
+            if message.count == 1 { return }
         }
 
         Task { @MainActor [weak self] in
@@ -776,7 +777,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         if let logs = userInfo["watchLogs"] as? String {
-            AppLogStore.watchRecords(from: logs).forEach(TrioLogger.sink.accept)
+            WatchLogIngest.legacyRecords(from: logs).forEach(TrioLogger.sink.accept)
         }
 
         if let snoozeMinutes = userInfo[WatchMessageKeys.snoozeDuration] as? Int {
@@ -786,6 +787,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 await self.notificationsManager.applySnooze(for: TimeInterval(snoozeMinutes * 60))
             }
         }
+    }
+
+    func session(_: WCSession, didReceive file: WCSessionFile) {
+        WatchLogIngest.shared.receive(file.fileURL, metadata: file.metadata)
     }
 
     #if os(iOS)
