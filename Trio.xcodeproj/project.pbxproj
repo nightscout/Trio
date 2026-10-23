@@ -171,6 +171,7 @@
 		B0D5791570373A23CD562E97 /* LogFileHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FBFFB8EF42D847AFFDA6C05 /* LogFileHeader.swift */; };
 		BD14CA4C88D904242178280A /* TrioLoggerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7BC1040D2F0BD84E0718784 /* TrioLoggerTests.swift */; };
 		BF0FA8AAE98B4080B961F69F /* LogFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366F24AC292DBC7BC55CF196 /* LogFileWriter.swift */; };
+		C25C56F3172AC94B9048CCED /* SentReports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561AF4F0F47F7984FE5BD4F6 /* SentReports.swift */; };
 		C7BE855141F78A0DAC564121 /* ReportSubmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7CD10D0FB58F483687CC48D /* ReportSubmitter.swift */; };
 		DE6F63D93662C12AD18A3802 /* LogRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0205BEC3117B5D00022C30 /* LogRecord.swift */; };
 		E0F5C5534791F6BB9A237891 /* TrioLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69EF64E9534E4822199EA279 /* TrioLogger.swift */; };
@@ -1578,6 +1579,7 @@
 		505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorStateModel.swift; sourceTree = "<group>"; };
 		510C461CD60549BDF7E57BE9 /* LoggingStressFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingStressFixtures.swift; sourceTree = "<group>"; };
 		5516A8F6B694AF44C243B882 /* WatchLogIngestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogIngestTests.swift; sourceTree = "<group>"; };
+		561AF4F0F47F7984FE5BD4F6 /* SentReports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentReports.swift; sourceTree = "<group>"; };
 		581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebuggingIdentifiers.swift; sourceTree = "<group>"; };
 		581516A82BCEEDF800BF67D7 /* NSPredicates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSPredicates.swift; sourceTree = "<group>"; };
 		581AC4382BE22ED10038760C /* JSONConverter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONConverter.swift; sourceTree = "<group>"; };
@@ -3927,6 +3929,7 @@
 				86102A94E45ED0F04390C951 /* ReportDraft.swift */,
 				36C58322FF6CEE8F65D151DD /* ReportScreenshot.swift */,
 				C7CD10D0FB58F483687CC48D /* ReportSubmitter.swift */,
+				561AF4F0F47F7984FE5BD4F6 /* SentReports.swift */,
 			);
 			path = ReportProblem;
 			sourceTree = "<group>";
@@ -6487,6 +6490,7 @@
 				C7BE855141F78A0DAC564121 /* ReportSubmitter.swift in Sources */,
 				AC05A906087DD32A509439F2 /* SendReportView.swift in Sources */,
 				32DC31248CF9E5D252CB85DF /* AppAttestClient.swift in Sources */,
+				C25C56F3172AC94B9048CCED /* SentReports.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

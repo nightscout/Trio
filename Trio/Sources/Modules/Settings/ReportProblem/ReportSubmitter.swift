@@ -207,8 +207,14 @@ extension ReportSubmitting {
         progress: @escaping (Double) -> Void = { _ in }
     ) async throws -> String {
         let id = try await submit(report, progress: progress)
+        SentReports.add(id, in: storage)
         ReportDraft.clear(in: storage)
         return id
+    }
+
+    func withdraw(id: String, storage: KeyValueStorage = UserDefaults.standard) async throws {
+        try await delete(id: id)
+        SentReports.remove(id, in: storage)
     }
 }
 
@@ -248,6 +254,7 @@ struct HTTPReportSubmitter: ReportSubmitting {
     func delete(id: String) async throws {
         do {
             _ = try await signed("DELETE", path: "v1/reports/\(id)", body: Data())
+            info(.ui, "Problem report deleted")
         } catch ReportSubmitError.server(status: 404) {
             debug(.ui, "Problem report was already gone on the server")
         } catch {

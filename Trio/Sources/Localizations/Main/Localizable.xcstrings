@@ -1119,7 +1119,22 @@
     "Copy ID" : {
 
     },
+    "Couldn't Delete Report" : {
+
+    },
     "Couldn't Send Report" : {
+
+    },
+    "Delete Report" : {
+
+    },
+    "Delete Report?" : {
+
+    },
+    "Deleting" : {
+
+    },
+    "Deleting a report removes it and its files from the Trio team's server." : {
 
     },
     "Describe what happened and what you expected" : {
@@ -1161,7 +1176,13 @@
     "Public. Only for bugs you can describe without personal or health data." : {
 
     },
+    "Report %@ and its files will be deleted from the Trio team's server." : {
+
+    },
     "Report a Problem" : {
+
+    },
+    "Report Actions" : {
 
     },
     "Report Sent" : {
@@ -1186,6 +1207,9 @@
 
     },
     "Sending Report" : {
+
+    },
+    "Sent Reports" : {
 
     },
     "Stay Anonymous" : {
