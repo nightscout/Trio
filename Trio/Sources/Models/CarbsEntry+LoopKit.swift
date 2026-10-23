@@ -14,7 +14,7 @@ extension CarbsEntry {
             foodType: nil,
             grams: Double(carbs),
             startDate: createdAt,
-            uuid: UUID(uuidString: id!),
+            uuid: id.flatMap(UUID.init(uuidString:)),
             provenanceIdentifier: enteredBy ?? "Trio",
             syncIdentifier: id,
             syncVersion: nil,

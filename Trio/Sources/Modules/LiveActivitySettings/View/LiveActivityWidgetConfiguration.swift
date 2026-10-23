@@ -211,7 +211,7 @@ struct LiveActivityWidgetConfiguration: BaseView {
     // MARK: - Palette
 
     private static let paletteRest: [LiveActivityItem] = [
-        .currentGlucoseLarge, .currentGlucoseLargeUncolored, .iob, .cob, .updatedLabel, .totalDailyDose,
+        .currentGlucoseLarge, .currentGlucoseLargeUncolored, .iob, .cob, .updatedLabel, .totalDailyDose
     ]
 
     private static var paletteRestRows: [[LiveActivityItem]] {
