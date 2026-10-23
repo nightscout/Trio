@@ -37,6 +37,7 @@ final class LogExport: Injectable {
     private let traceSubsystems: [String: [String]]
     private let coreDataStack: CoreDataStack?
     private let storedValues: SensitiveValues
+    private let requestWatchLogs: (() async -> Void)?
 
     init(resolver: Resolver) {
         appLog = { TrioLogger.sink }
@@ -44,6 +45,7 @@ final class LogExport: Injectable {
         traceSubsystems = OSLogCapture.subsystems
         coreDataStack = CoreDataStack.shared
         storedValues = SensitiveValues()
+        requestWatchLogs = { await WatchLogIngest.shared.requestLatest() }
         injectServices(resolver)
     }
 
@@ -53,13 +55,15 @@ final class LogExport: Injectable {
         pump: DeviceManager?,
         cgm: DeviceManager?,
         storedValues: SensitiveValues = SensitiveValues(),
-        coreDataStack: CoreDataStack? = nil
+        coreDataStack: CoreDataStack? = nil,
+        requestWatchLogs: (() async -> Void)? = nil
     ) {
         self.appLog = { appLog }
         managers = { (pump, cgm) }
         traceSubsystems = [:]
         self.coreDataStack = coreDataStack
         self.storedValues = storedValues
+        self.requestWatchLogs = requestWatchLogs
         self.deviceLogStore = deviceLogStore
     }
 
@@ -133,6 +137,9 @@ final class LogExport: Injectable {
         }
         let filter: String? = kind == .all ? nil : deviceLabels.keys.first
         let appLog = kind == .all ? self.appLog() : nil
+        if appLog != nil {
+            await requestWatchLogs?()
+        }
         await appLog?.flush()
         let traceStore = traceLabels.isEmpty ? nil : try? OSLogStore(scope: .currentProcessIdentifier)
         let redactor = Redactor(exactValues: try await sensitiveValues(in: window))
@@ -191,6 +198,10 @@ final class LogExport: Injectable {
         case .debug,
              .info,
              .notice: level = ""
+        }
+        if record.category.hasPrefix(WatchLogIngest.categoryPrefix) {
+            let category = record.category.dropFirst(WatchLogIngest.categoryPrefix.count)
+            return LogLine(date: record.timestamp, source: "Watch", text: "\(level)[\(category)] \(record.message)")
         }
         return LogLine(date: record.timestamp, source: "Trio", text: "\(level)[\(record.category)] \(record.message)")
     }
