@@ -195,6 +195,23 @@ import UIKit
         #expect(await store.records(in: Self.everything, minimumLevel: .debug) == records)
     }
 
+    @Test("An unlock during the protected-data check still opens the store") func unlockDuringCheck() async throws {
+        let loader = Loader(succeeds: false)
+        let center = Foundation.NotificationCenter()
+        let (store, directory) = try Self.makeStore(loader: loader, center: center, isProtectedDataAvailable: {
+            Thread.sleep(forTimeInterval: 0.3)
+            return false
+        })
+        defer { try? FileManager.default.removeItem(at: directory) }
+        _ = store
+
+        try await Task.sleep(nanoseconds: 100_000_000)
+        loader.setSucceeds(true)
+        center.post(name: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil)
+
+        #expect(await Self.waitUntil { loader.didLoad })
+    }
+
     @Test("Equal timestamps come back in the order they were stored") func equalTimestampsKeepOrder() async throws {
         let (store, directory) = try Self.makeStore()
         defer { try? FileManager.default.removeItem(at: directory) }

@@ -39,6 +39,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
     private var policy: LogRetentionPolicy
     private var lastPurge: Date?
     private var isCheckingProtectedData = false
+    private var retryAfterCheck = false
     private var didMoveStoreAside = false
     private var didReopenAfterFailure = false
 
@@ -320,7 +321,12 @@ final class AppLogStore: LogSink, @unchecked Sendable {
     }
 
     private func openIfNeeded() {
-        guard container == nil, !isCheckingProtectedData else { return }
+        guard container == nil else { return }
+        // An unlock during the check must not be lost
+        guard !isCheckingProtectedData else {
+            retryAfterCheck = true
+            return
+        }
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         if let container = loadContainer(storageURL) {
             open(container)
@@ -333,6 +339,10 @@ final class AppLogStore: LogSink, @unchecked Sendable {
             self.queue.async {
                 self.isCheckingProtectedData = false
                 self.recover(protectedDataAvailable: available)
+                if self.retryAfterCheck {
+                    self.retryAfterCheck = false
+                    self.openIfNeeded()
+                }
             }
         }
     }
