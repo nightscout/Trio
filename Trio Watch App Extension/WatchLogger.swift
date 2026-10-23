@@ -17,6 +17,7 @@ final class WatchLogger: Sendable {
 
     private let pending = OSAllocatedUnfairLock(initialState: PendingDrafts())
     private let shipper = WatchLogShipper()
+    private let throttle = OSAllocatedUnfairLock(initialState: [String: (state: String, date: Date)]())
     private let osLoggers: [WatchLogEntry.Category: os.Logger] = {
         let subsystem = Bundle.main.bundleIdentifier ?? "Trio Watch"
         return Dictionary(uniqueKeysWithValues: WatchLogEntry.Category.allCases.map {
@@ -50,11 +51,17 @@ final class WatchLogger: Sendable {
         log(.error, category, Self.message(message, error: error))
     }
 
-    func log(_ message: String, force _: Bool = false) async {
-        debug(.data, message)
+    // At most one line per key and interval while the state stays the same
+    func shouldLog(_ key: String, state: String = "", every interval: TimeInterval = 30) -> Bool {
+        let now = Date()
+        return throttle.withLock { last in
+            if let previous = last[key], previous.state == state, now.timeIntervalSince(previous.date) < interval {
+                return false
+            }
+            last[key] = (state, now)
+            return true
+        }
     }
-
-    func persistLogsLocally() async {}
 
     func didEnterBackground() {
         Task { [shipper, pending] in
