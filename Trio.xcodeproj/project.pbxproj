@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B52DBBF355407A732FDCE1DE /* ReportClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12ECFA954DA8F662969E3223 /* ReportClientTests.swift */; };
 		C25C56F3172AC94B9048CCED /* SentReports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561AF4F0F47F7984FE5BD4F6 /* SentReports.swift */; };
 		32DC31248CF9E5D252CB85DF /* AppAttestClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB83AD877D530A73EA814672 /* AppAttestClient.swift */; };
 		03DE042795C2AFA00C2CCE9E /* WatchLogRingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */; };
@@ -1219,6 +1220,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		12ECFA954DA8F662969E3223 /* ReportClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportClientTests.swift; sourceTree = "<group>"; };
 		561AF4F0F47F7984FE5BD4F6 /* SentReports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentReports.swift; sourceTree = "<group>"; };
 		BB83AD877D530A73EA814672 /* AppAttestClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAttestClient.swift; sourceTree = "<group>"; };
 		FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRingTests.swift; sourceTree = "<group>"; };
@@ -3627,6 +3629,7 @@
 				B3919BBB515547118D684CC2 /* MaxIOBSuggestionTests.swift */,
 				B3919BBB515547118D684CB2 /* DosingModeMigrationTests.swift */,
 				70C3B7105DC451594DF96299 /* ReportProblemTests.swift */,
+				12ECFA954DA8F662969E3223 /* ReportClientTests.swift */,
 				BD8FC0532D66186000B95AED /* TestError.swift */,
 				C39FF1EC12CF4B1EBB13BE26 /* NightscoutUploadSerializerTests.swift */,
 				6EFF860E684B4C9488D438DD /* NightscoutImportRoundTripTests.swift */,
@@ -6553,6 +6556,7 @@
 				41740E936552456AAC0EDCC3 /* MaxIOBSuggestionTests.swift in Sources */,
 				41740E936552456AAC0EDBC3 /* DosingModeMigrationTests.swift in Sources */,
 				99506C3B9CC23E2F925009D3 /* ReportProblemTests.swift in Sources */,
+				B52DBBF355407A732FDCE1DE /* ReportClientTests.swift in Sources */,
 				B015AFE52E500000000D7351 /* BolusSafetyValidatorTests.swift in Sources */,
 				BD8FC0712D661B0000B95AED /* TidepoolTherapySettingsTests.swift in Sources */,
 				CA03000000000000000010C2 /* AlertCatalogRegistryOmniFaultTests.swift in Sources */,
