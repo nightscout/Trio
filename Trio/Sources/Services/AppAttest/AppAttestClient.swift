@@ -29,6 +29,8 @@ struct AppAttestClient {
     var challengeBody: Data?
     var queryItems: [URLQueryItem] = []
     var prepare: (inout URLRequest) -> Void = { _ in }
+    var timeout: TimeInterval = 15
+    var timeoutRetries = 0
     var service: AppAttestService = DCAppAttestService.shared
     var session: URLSession = .shared
     var appID: () -> String? = AppAttestClient.currentAppID
@@ -88,7 +90,7 @@ struct AppAttestClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let (_, response) = try await session.data(for: request)
+        let (_, response) = try await session.data(for: request, timeoutRetries: timeoutRetries, category: category)
         guard let http = response as? HTTPURLResponse else { throw AttestError.transportError }
 
         switch http.statusCode {
@@ -166,7 +168,7 @@ struct AppAttestClient {
             request.httpBody = challengeBody
         }
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.data(for: request, timeoutRetries: timeoutRetries, category: category)
         guard let http = response as? HTTPURLResponse else { throw AttestError.transportError }
         guard (200 ..< 300).contains(http.statusCode) else {
             if (500 ..< 600).contains(http.statusCode) {
@@ -189,7 +191,7 @@ struct AppAttestClient {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         prepare(&request)
-        request.timeoutInterval = 15
+        request.timeoutInterval = timeout
         return request
     }
 
@@ -319,6 +321,21 @@ struct AppAttestClient {
             case .invalidRequestURL: return "unable to construct request URL"
             case let .clientError(code): return "client error \(code)"
             case let .serverError(code): return "server error \(code)"
+            }
+        }
+    }
+}
+
+extension URLSession {
+    // A server that scales to zero can time out on its first request
+    func data(for request: URLRequest, timeoutRetries: Int, category: Logger.Category) async throws -> (Data, URLResponse) {
+        var retries = timeoutRetries
+        while true {
+            do {
+                return try await data(for: request)
+            } catch let error as URLError where error.code == .timedOut && retries > 0 {
+                retries -= 1
+                warning(category, "Request to \(request.url?.path ?? "server") timed out, retrying", error: error)
             }
         }
     }

@@ -273,13 +273,14 @@ struct HTTPReportSubmitter: ReportSubmitting {
     func signed(_ method: String, path: String, body: Data) async throws -> (Data, HTTPURLResponse) {
         var retriedAssertion = false
         var reattested = false
+        var retriedTimeout = false
         while true {
             try await attest.registerIfNeeded()
             let assertion = try await attest.assertion(for: body)
 
             var request = URLRequest(url: attest.baseURL.appendingPathComponent(path))
             request.httpMethod = method
-            request.timeoutInterval = 30
+            request.timeoutInterval = attest.timeout
             if !body.isEmpty {
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 request.httpBody = body
@@ -288,7 +289,15 @@ struct HTTPReportSubmitter: ReportSubmitting {
             request.setValue(assertion.assertion, forHTTPHeaderField: "X-Trio-Assertion")
             request.setValue(assertion.challenge, forHTTPHeaderField: "X-Trio-Challenge")
 
-            let (data, response) = try await session.data(for: request)
+            let data: Data
+            let response: URLResponse
+            do {
+                (data, response) = try await session.data(for: request)
+            } catch let error as URLError where error.code == .timedOut && !retriedTimeout {
+                warning(.ui, "Support server timed out, retrying with a new challenge", error: error)
+                retriedTimeout = true
+                continue
+            }
             guard let http = response as? HTTPURLResponse else { throw ReportSubmitError.invalidResponse }
             if http.statusCode == 401 {
                 let unknownKey = Self.errorCode(in: data) == "invalid_key"
@@ -441,6 +450,8 @@ extension AppAttestClient {
             keychain: keychain,
             category: .ui,
             challengeBody: Data("{}".utf8),
+            timeout: 60,
+            timeoutRetries: 1,
             service: service
         )
     }
