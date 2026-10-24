@@ -241458,6 +241458,9 @@
         }
       }
     },
+    "Programmed on pump" : {
+      "comment" : "Accessibility label for bolus programmed on the pump itself"
+    },
     "Protein / Fat" : {
       "comment" : "Treatment type",
       "localizations" : {
