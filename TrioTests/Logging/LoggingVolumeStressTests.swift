@@ -221,7 +221,13 @@ import Testing
 
         let ageStart = Self.clock.now
         store.apply(.default)
-        await store.flush()
+        // The purge runs a day at a time; wait for the last day
+        let cutoff = Date().addingTimeInterval(-LogRetentionPolicy.default.maxAge - 60)
+        for _ in 0 ..< 600 {
+            await store.flush()
+            if (appRows(url).oldest ?? .distantFuture) >= cutoff { break }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
         let ageDuration = Self.clock.now - ageStart
         let afterAge = appRows(url)
         Fixtures.report("appLog.agePurge.\(profile.name)", [
@@ -231,7 +237,7 @@ import Testing
             "sqlite+wal": Fixtures.megabytes(Fixtures.storeSize(url))
         ])
         #expect(afterAge.count <= LogRetentionPolicy.default.maxRows)
-        #expect((afterAge.oldest ?? .distantPast) >= Date().addingTimeInterval(-LogRetentionPolicy.default.maxAge - 60))
+        #expect((afterAge.oldest ?? .distantPast) >= cutoff)
         #expect(afterAge.newest == newest)
         return store
     }
@@ -372,7 +378,7 @@ import Testing
     }
 
     @Test(
-        "App log store ingests 90 days and purges to the cap, then to 7 days",
+        "App log store ingests 90 days and purges to the cap, then to the retention age",
         arguments: [StressProfile.heavy, .typical]
     ) func appLogIngest(profile: StressProfile) async throws {
         await Stores.of(profile).reset()
@@ -380,7 +386,7 @@ import Testing
     }
 
     @Test(
-        "Device log store ingests 90 days and purges to 7 days on open",
+        "Device log store ingests 90 days and purges to the retention age on open",
         arguments: [StressProfile.heavy, .typical]
     ) func deviceLogIngest(profile: StressProfile) async throws {
         _ = try await Stores.of(profile).preparedDeviceLog()

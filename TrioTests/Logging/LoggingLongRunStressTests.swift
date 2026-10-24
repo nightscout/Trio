@@ -1190,7 +1190,7 @@ import Testing
     }
 
     @Test(
-        "Opening log stores with 7 fresh and 83 stale days purges to 7 days",
+        "Opening log stores with 7 fresh and 83 stale days purges to the retention age",
         arguments: [StressProfile.typical, .heavy]
     ) func launchPurge(profile: StressProfile) async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
@@ -1254,6 +1254,12 @@ import Testing
             notificationCenter: Foundation.NotificationCenter(),
             isProtectedDataAvailable: { true }
         )
+        let appEarlyRequest = Task {
+            let requested = Self.clock.now
+            await appLog.flush()
+            _ = await appLog.records(in: DateInterval(start: end.addingTimeInterval(-3600), end: Date()), minimumLevel: .debug)
+            return Self.clock.now - requested
+        }
         let appLatencies = acceptLatencies { index in
             appLog.accept(LogRecord(
                 timestamp: Date(),
@@ -1266,6 +1272,8 @@ import Testing
                 launchID: LaunchID.current
             ))
         }
+        let appEarlyWait = await appEarlyRequest.value
+        let appPurged = await Self.waitForPurge(appURL, entity: "AppLogEntry", cutoff: cutoff, load: AppLogStore.loadContainer)
         await appLog.flush()
         let appDuration = Self.clock.now - appStart
         let appPeak = appSampler.stop()
@@ -1275,6 +1283,7 @@ import Testing
             "rowsBefore": "\(appRows)",
             "rowsAfter": "\(appRemaining)",
             "seconds": String(format: "%.2f", Fixtures.seconds(appDuration)),
+            "earlyRequestWait": String(format: "%.2f", Fixtures.seconds(appEarlyWait)),
             "peakFootprint": Fixtures.megabytes(appPeak.footprint),
             "footprintGrowth": Fixtures.megabytes(appPeak.footprint - min(appPeak.footprint, appSampler.baselineFootprint)),
             "acceptP99": Self.microseconds(Self.percentile(appLatencies, 0.99)),
@@ -1282,6 +1291,7 @@ import Testing
             "sqlite+walBefore": Fixtures.megabytes(appSizeBefore),
             "sqlite+walAfter": Fixtures.megabytes(Fixtures.storeSize(appURL))
         ])
+        #expect(appPurged)
         #expect((appOldest ?? .distantPast) >= cutoff.addingTimeInterval(-60))
         #expect(appRemaining >= min(freshAppRows, LogRetentionPolicy.default.maxRows) - 2000)
         #expect(appRemaining <= LogRetentionPolicy.default.maxRows + 500)

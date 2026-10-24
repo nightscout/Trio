@@ -109,6 +109,32 @@ import UIKit
         #expect(stored.map(\.message) == ["message 1"])
     }
 
+    @Test("Purges several days of old records a day at a time while logging continues") func purgesByDay() async throws {
+        let (store, directory) = try Self.makeStore()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let now = Date()
+        var policy = LogRetentionPolicy.default
+        policy.maxAge = 2 * 24 * 60 * 60
+        let cutoff = now.addingTimeInterval(-policy.maxAge)
+        let dates = stride(from: 10 * 24.0, to: 0, by: -1).map { now.addingTimeInterval(-$0 * 60 * 60 - 120) }
+            + [cutoff.addingTimeInterval(-300), cutoff.addingTimeInterval(300)]
+        let seeded = dates.sorted().enumerated().map { Self.record($0.offset, at: $0.element) }
+        seeded.forEach(store.accept)
+        await store.flush()
+
+        store.apply(policy)
+        let during = (0 ..< 50).map { Self.record(1000 + $0, at: Date()) }
+        during.forEach(store.accept)
+        let early = await store.records(in: Self.everything, minimumLevel: .debug)
+        #expect(early.contains { $0.timestamp < cutoff })
+
+        #expect(await Self.waitUntil {
+            await store.records(in: Self.everything, minimumLevel: .debug).allSatisfy { $0.timestamp >= cutoff }
+        })
+        let stored = await store.records(in: Self.everything, minimumLevel: .debug)
+        #expect(stored == seeded.filter { $0.timestamp >= cutoff } + during)
+    }
+
     @Test("Keeps only the newest rows over the cap") func rowCapPurge() async throws {
         let (store, directory) = try Self.makeStore()
         defer { try? FileManager.default.removeItem(at: directory) }
