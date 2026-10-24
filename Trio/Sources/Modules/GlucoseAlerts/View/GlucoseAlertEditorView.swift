@@ -128,7 +128,7 @@ struct GlucoseAlertEditorView: View {
                 localized: "Recommended to always override silence and Focus mode."
             ),
             title: String(localized: "Glucose"),
-            range: 54 ... 80,
+            range: GlucoseAlertType.urgentLow.thresholdRange,
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
@@ -142,7 +142,7 @@ struct GlucoseAlertEditorView: View {
                 localized: "Fires when glucose is at or below this value."
             ),
             title: String(localized: "Glucose"),
-            range: 54 ... 100,
+            range: GlucoseAlertType.low.thresholdRange,
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
@@ -156,7 +156,7 @@ struct GlucoseAlertEditorView: View {
                 localized: "Fires when the forecast at +20 minutes (blended across all available prediction curves) is at or below this value."
             ),
             title: String(localized: "Glucose"),
-            range: 54 ... 100,
+            range: GlucoseAlertType.forecastedLow.thresholdRange,
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
@@ -170,7 +170,7 @@ struct GlucoseAlertEditorView: View {
                 localized: "Fires when glucose is at or above this value."
             ),
             title: String(localized: "Glucose"),
-            range: 100 ... 400,
+            range: GlucoseAlertType.high.thresholdRange,
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
@@ -178,13 +178,15 @@ struct GlucoseAlertEditorView: View {
     }
 
     private var carbsRequiredBody: some View {
-        AlarmGramsSection(
+        let gramsRange = GlucoseAlertType.carbsRequired.thresholdRange
+        return AlarmGramsSection(
             header: String(localized: "Carbs Required Threshold"),
             footer: String(
                 localized: "Fires when the algorithm suggests to eat at least this many grams of carbs to avoid a low."
             ),
             title: String(localized: "Carbs"),
-            range: 5 ... 50,
+            range: NSDecimalNumber(decimal: gramsRange.lowerBound).intValue
+                ... NSDecimalNumber(decimal: gramsRange.upperBound).intValue,
             step: 1,
             valueGrams: $working.thresholdMgDL
         )
