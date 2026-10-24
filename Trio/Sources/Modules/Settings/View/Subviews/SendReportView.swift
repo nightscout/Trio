@@ -212,7 +212,7 @@ struct SendReportView: View {
     }
 
     private var appVersion: String {
-        let version = context.devVersion.isEmpty ? context.appVersion : context.devVersion
+        let version = context.devVersion == ProblemReport.Context.unknown ? context.appVersion : context.devVersion
         return "\(version) (\(context.buildNumber))"
     }
 

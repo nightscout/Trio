@@ -36,25 +36,32 @@ struct ProblemReport {
             let bundle = Bundle.main
             let os = ProcessInfo.processInfo.operatingSystemVersion
             return Context(
-                appVersion: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "",
-                buildNumber: bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "",
-                devVersion: bundle.appDevVersion ?? "",
-                branch: BuildDetails.shared.trioBranch,
-                commit: BuildDetails.shared.trioCommitSHA,
-                deviceModel: deviceModel,
+                appVersion: known(bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String),
+                buildNumber: known(bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String),
+                devVersion: known(bundle.appDevVersion),
+                branch: known(BuildDetails.shared.trioBranch),
+                commit: known(BuildDetails.shared.trioCommitSHA),
+                deviceModel: known(deviceModel),
                 osVersion: "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)",
                 pumpModel: pump,
                 cgmModel: cgm
             )
         }
 
+        static let unknown = "unknown"
+
+        // The server rejects empty context fields
+        static func known(_ value: String?) -> String {
+            guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return unknown }
+            return value
+        }
+
         private static var deviceModel: String {
             var info = utsname()
             uname(&info)
-            let machine = withUnsafeBytes(of: &info.machine) { bytes in
+            return withUnsafeBytes(of: &info.machine) { bytes in
                 String(decoding: bytes.prefix { $0 != 0 }, as: UTF8.self)
             }
-            return machine.isEmpty ? "unknown" : machine
         }
     }
 
