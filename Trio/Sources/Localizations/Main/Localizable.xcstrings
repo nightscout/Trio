@@ -65136,6 +65136,9 @@
         }
       }
     },
+    "Bolus blocked: the safety checks could not be completed." : {
+      "comment" : "Error message sent to watch when the bolus safety checks fail to run"
+    },
     "Bolus Calculator" : {
       "localizations" : {
         "bg" : {
@@ -313573,6 +313576,9 @@
           }
         }
       }
+    },
+    "To bolus anyway, dial crown." : {
+
     },
     "To calculate the maximum SMB allowed based on this setting, use the following formula:" : {
       "localizations" : {
