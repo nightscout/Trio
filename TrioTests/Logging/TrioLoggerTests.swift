@@ -5,11 +5,8 @@ import Testing
 
 @Suite("Trio Logger Tests", .serialized) struct TrioLoggerTests {
     private func capture(_ body: () -> Void) -> [LogRecord] {
-        let previous = TrioLogger.sink
         let sink = InMemoryLogSink(capacity: 20000)
-        TrioLogger.install(sink)
-        defer { TrioLogger.install(previous) }
-        body()
+        TrioLogger.capturing(into: sink, body)
         return sink.snapshot().filter { $0.file == "TrioLoggerTests.swift" }
     }
 
@@ -38,6 +35,22 @@ import Testing
             reached = true
         }
         #expect(reached)
+    }
+
+    @Test("Descriptions and errors follow the message as plain text") func testErrorFormatting() {
+        let failure = NSError(domain: "Test", code: 7)
+        let records = capture {
+            warning(.nightscout, "plain")
+            warning(.nightscout, "described", description: "detail")
+            error(.storage, "failed", error: failure)
+            fault(.lifecycle, "both", description: "detail", error: failure)
+        }
+        #expect(records.map(\.message) == [
+            "plain",
+            "described: detail",
+            "failed: \(failure)",
+            "both: detail: \(failure)"
+        ])
     }
 
     @Test("Debug without console output still reaches the sink") func testPrintToConsoleFalse() {

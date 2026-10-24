@@ -5,6 +5,7 @@ enum TrioLogger {
     private struct State: Sendable {
         var sink: any LogSink
         var installed: Bool
+        var capture: (any LogSink)?
         var lastTimestamp = Date.distantPast
     }
 
@@ -26,6 +27,13 @@ enum TrioLogger {
         }
     }
 
+    // Tests read records here; the test host app's own install can't replace it mid-test
+    static func capturing(into sink: any LogSink, _ body: () -> Void) {
+        state.withLock { $0.capture = sink }
+        defer { state.withLock { $0.capture = nil } }
+        body()
+    }
+
     static func log(
         _ level: LogLevel,
         _ category: Logger.Category,
@@ -39,7 +47,7 @@ enum TrioLogger {
         let (timestamp, sink) = state.withLock { state in
             let timestamp = max(Date(), state.lastTimestamp.addingTimeInterval(0.000_001))
             state.lastTimestamp = timestamp
-            return (timestamp, state.sink)
+            return (timestamp, state.capture ?? state.sink)
         }
         let record = LogRecord(
             timestamp: timestamp,
