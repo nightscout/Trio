@@ -178,4 +178,19 @@ import UniformTypeIdentifiers
         ]
         #expect(fields.allSatisfy { !$0.isEmpty })
     }
+
+    @Test("Lengths are counted in code points like the server") func codePointLengths() {
+        let thumb = "👍🏽"
+        #expect(thumb.count == 1 && thumb.unicodeScalars.count == 2)
+        let limit = ReportDraft.maxDescriptionLength / 2
+        #expect(ReportDraft(description: String(repeating: thumb, count: limit)).canSubmit)
+        #expect(!ReportDraft(description: String(repeating: thumb, count: limit + 1)).canSubmit)
+
+        var draft = ReportDraft(title: String(repeating: thumb, count: 150), description: "x", isAnonymous: false)
+        draft.contact = ProblemReport.Contact(name: String(repeating: "é", count: 250), email: "user@example.test")
+        let report = draft.report(context: Self.context, attachments: [])
+        #expect(report.title?.unicodeScalars.count == ReportDraft.maxTitleLength)
+        #expect(report.contact?.name.unicodeScalars.count == ReportDraft.maxContactLength)
+        #expect(report.contact?.email == "user@example.test")
+    }
 }

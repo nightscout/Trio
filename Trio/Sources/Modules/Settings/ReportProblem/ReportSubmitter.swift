@@ -11,12 +11,10 @@ struct ProblemReport {
 
         // Nil when every field is blank
         var trimmed: Contact? {
-            let contact = Contact(
-                name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-                email: email.trimmingCharacters(in: .whitespacesAndNewlines),
-                discord: discord.trimmingCharacters(in: .whitespacesAndNewlines),
-                github: github.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
+            func clean(_ value: String) -> String {
+                value.trimmingCharacters(in: .whitespacesAndNewlines).prefix(scalars: ReportDraft.maxContactLength)
+            }
+            let contact = Contact(name: clean(name), email: clean(email), discord: clean(discord), github: clean(github))
             return contact == Contact() ? nil : contact
         }
     }
