@@ -539,10 +539,7 @@ struct EditOverrideForm: View {
                             do {
                                 try await state.nightscoutManager.uploadProfiles()
                             } catch {
-                                debug(
-                                    .default,
-                                    "\(DebuggingIdentifiers.failed) failed to upload profiles to Nightscout: \(error)"
-                                )
+                                warning(.nightscout, "Uploading profile after override edit failed", error: error)
                             }
                         } catch {
                             warning(.treatments, "Saving edited override failed", error: error)
