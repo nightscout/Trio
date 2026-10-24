@@ -13,6 +13,8 @@ protocol CarbsStorage {
     func storeCarbs(_ carbs: [CarbsEntry], areFetchedFromRemote: Bool) async throws
     /// Builds a single, real, locally-entered carb entry ready to pass to `storeCarbs`.
     func makeCarbEntry(carbs: Decimal, date: Date) -> CarbsEntry
+    /// Swaps a stored meal in one Core Data transaction.
+    func replaceCarbs(_ treatmentObjectID: NSManagedObjectID, with entry: CarbsEntry) async throws
     func deleteCarbsEntryStored(_ treatmentObjectID: NSManagedObjectID) async
     func syncDate() -> Date
     func getCarbsForAlgorithm(additionalCarbs: Decimal?, carbsDate: Date?) async throws -> [CarbsEntry]
@@ -294,22 +296,7 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         let context = makeContext()
         context.name = "saveCarbsToCoreData"
         await context.perform {
-            let newItem = CarbEntryStored(context: context)
-            newItem.date = entry.actualDate ?? entry.createdAt
-            newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
-            newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
-            newItem.protein = Double(truncating: NSDecimalNumber(decimal: entry.protein ?? 0))
-            newItem.note = entry.note
-            // Nightscout `_id` values are not UUIDs and are replaced.
-            newItem.id = entry.id.flatMap(UUID.init(uuidString:)) ?? UUID()
-            newItem.isFPU = false
-            newItem.isUploadedToNS = areFetchedFromRemote ? true : false
-            newItem.isUploadedToHealth = false
-            newItem.isUploadedToTidepool = false
-
-            if entry.fat != nil, entry.protein != nil, let fpuId = entry.fpuID {
-                newItem.fpuID = UUID(uuidString: fpuId)
-            }
+            self.insertCarbEntry(entry, into: context, areFetchedFromRemote: areFetchedFromRemote)
 
             do {
                 guard context.hasChanges else { return }
@@ -318,6 +305,90 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
                 print(error.localizedDescription)
             }
         }
+    }
+
+    /// Inserts a meal root row into `context` without saving, so callers decide when to commit.
+    private func insertCarbEntry(_ entry: CarbsEntry, into context: NSManagedObjectContext, areFetchedFromRemote: Bool) {
+        let newItem = CarbEntryStored(context: context)
+        newItem.date = entry.actualDate ?? entry.createdAt
+        newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
+        newItem.fat = Double(truncating: NSDecimalNumber(decimal: entry.fat ?? 0))
+        newItem.protein = Double(truncating: NSDecimalNumber(decimal: entry.protein ?? 0))
+        newItem.note = entry.note
+        // Nightscout `_id` values are not UUIDs and are replaced.
+        newItem.id = entry.id.flatMap(UUID.init(uuidString:)) ?? UUID()
+        newItem.isFPU = false
+        newItem.isUploadedToNS = areFetchedFromRemote ? true : false
+        newItem.isUploadedToHealth = false
+        newItem.isUploadedToTidepool = false
+
+        if entry.fat != nil, entry.protein != nil, let fpuId = entry.fpuID {
+            newItem.fpuID = UUID(uuidString: fpuId)
+        }
+    }
+
+    /// Inserts a locally created carb equivalent row into `context` without saving.
+    private func insertCarbEquivalent(_ entry: CarbsEntry, into context: NSManagedObjectContext) {
+        let newItem = CarbEntryStored(context: context)
+        newItem.date = entry.actualDate
+        newItem.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
+        newItem.id = entry.id.flatMap(UUID.init(uuidString:))
+        newItem.fpuID = entry.fpuID.flatMap(UUID.init(uuidString:))
+        newItem.isFPU = true
+        newItem.isUploadedToNS = false
+        // do NOT set Health and Tidepool flags to ensure they will NOT be uploaded
+    }
+
+    /// Replaces a stored meal, together with any carb equivalents sharing its `fpuID`.
+    ///
+    /// The deletes and the inserts go through the same context and are committed by a single `save()`.
+    /// A failure therefore leaves the old meal in place rather than deleting it without a replacement.
+    func replaceCarbs(_ treatmentObjectID: NSManagedObjectID, with entry: CarbsEntry) async throws {
+        var carbEquivalents: [CarbsEntry] = []
+        if let fat = entry.fat, let protein = entry.protein, fat > 0 || protein > 0 {
+            (carbEquivalents, _) = processFPU(
+                entries: [entry],
+                fat: fat,
+                protein: protein,
+                createdAt: entry.createdAt,
+                actualDate: entry.actualDate
+            )
+        }
+
+        let context = makeContext()
+        context.name = "replaceCarbs"
+        context.transactionAuthor = "replaceCarbs"
+
+        // A fetch reads the store, so rows removed by a batch delete are not served from the row cache.
+        let rootRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+        rootRequest.predicate = NSPredicate(format: "SELF == %@", treatmentObjectID)
+        rootRequest.fetchLimit = 1
+
+        try await context.perform {
+            guard let storedEntry = try context.fetch(rootRequest).first else {
+                throw CoreDataError.fetchError(function: #function, file: #file)
+            }
+
+            // Deleted through the context instead of an NSBatchDeleteRequest, which would commit on its own.
+            if let fpuID = storedEntry.fpuID {
+                let familyRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+                familyRequest.predicate = NSPredicate(format: "fpuID == %@", fpuID as CVarArg)
+                for entryToDelete in try context.fetch(familyRequest) {
+                    context.delete(entryToDelete)
+                }
+            } else {
+                context.delete(storedEntry)
+            }
+
+            self.insertCarbEntry(entry, into: context, areFetchedFromRemote: false)
+            for carbEquivalent in carbEquivalents {
+                self.insertCarbEquivalent(carbEquivalent, into: context)
+            }
+
+            try context.save()
+        }
+
+        updateSubject.send(())
     }
 
     private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {

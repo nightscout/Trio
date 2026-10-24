@@ -32,13 +32,13 @@ struct GlucoseSectorChart: View {
                 let total = Decimal(glucose.count)
                 // Count readings greater than high limit (180 mg/dL)
                 let high = glucose.filter { $0.glucose > Int(highLimit) }.count
-                // Count readings between low limit (TITR: 70 mg/dL, TING 63 mg/dL) and 140 mg/dL (tight control)
+                // TITR: selected lower threshold to 140 mg/dL.
                 let tight = glucose
                     .filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= timeInRangeType.topThreshold }.count
-                // Count readings between 140 and high limit (normal range)
+                // TIR: selected lower threshold to 180 mg/dL.
                 let normal = glucose.filter { $0.glucose >= timeInRangeType.bottomThreshold && $0.glucose <= Int(highLimit) }
                     .count
-                // Count readings less than low limit (low) (70 mg/dL if not showing chart, otherwise 70 for TITR and 63 for TING)
+                // Daily details retain a fixed below-70 measure.
                 let low = glucose.filter { $0.glucose < (showChart ? Int(timeInRangeType.bottomThreshold) : 70) }.count
                 // Count readings less than moderately low limit (63 mg/dL)
                 let moderatelyLow = glucose.filter { $0.glucose < 63 }.count
@@ -310,13 +310,13 @@ struct GlucoseSectorChart: View {
                 items: [
                     (
                         String(
-                            localized: "Normal (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(highLimit.formatted(for: units)))"
+                            localized: "TIR (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(highLimit.formatted(for: units)))"
                         ),
                         formatPercentage(Decimal(glucoseValues.count) / total * 100)
                     ),
                     (
                         String(
-                            localized: "\(timeInRangeType == .timeInTightRange ? "TITR" : "TING") (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units)))"
+                            localized: "TITR (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units)))"
                         ),
                         formatPercentage(Decimal(tight) / total * 100)
                     ),
