@@ -317,16 +317,32 @@ import WatchConnectivity
         applyGlucoseTrace(trace, from: payload)
     }
 
-    /// The phone's readings in the units it shows, colored by its range, target and color scheme.
+    /// The phone's readings in the units it shows, colored as the phone colors them: its `getDynamicGlucoseColor`
+    /// with the glucose range, target and color scheme it sends.
     private func applyGlucoseTrace(_ trace: [String: Any], from payload: [String: Any]) {
         guard let readings = WatchGlucoseTrace.decode(trace) else { return }
         let isMmol = payload[WatchMessageKeys.units] as? String == "mmol/L"
-        let coloring = WatchGlucoseColoring(payload)
+        let scheme = (payload[WatchMessageKeys.glucoseColorScheme] as? String)
+            .flatMap(GlucoseColorScheme.init(rawValue:)) ?? .staticColor
+        let low = Decimal(payload[WatchMessageKeys.glucoseRangeLow] as? Double ?? 70)
+        let high = Decimal(payload[WatchMessageKeys.glucoseRangeHigh] as? Double ?? 180)
+        let target = Decimal(payload[WatchMessageKeys.glucoseRangeTarget] as? Double ?? 100)
+        // as on the phone: the dynamic scheme ramps between fixed ends around the target
+        let isDynamic = scheme == .dynamicColor
+        let lowColorValue: Decimal = isDynamic ? 55 : low
+        let highColorValue: Decimal = isDynamic ? 220 : high
+
         glucoseValues = readings.map { reading in
             (
                 date: reading.date,
                 glucose: isMmol ? Self.mmolL(reading.glucose) : Double(reading.glucose),
-                color: coloring.color(Decimal(reading.glucose))
+                color: getDynamicGlucoseColor(
+                    glucoseValue: Decimal(reading.glucose),
+                    highGlucoseColorValue: highColorValue,
+                    lowGlucoseColorValue: lowColorValue,
+                    targetGlucose: target,
+                    glucoseColorScheme: scheme
+                )
             )
         }
     }

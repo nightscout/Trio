@@ -52,39 +52,40 @@ import Testing
         #expect(try bytes(Self.day(every: 60)) < 8000)
     }
 
-    @Test("Colored as the phone colors them") func coloring() {
-        func resolved(_ color: Color) -> Color.Resolved { color.resolve(in: EnvironmentValues()) }
-        var coloring = WatchGlucoseColoring()
-        coloring.low = 70
-        coloring.high = 180
-        coloring.target = 100
-
-        let red = resolved(Color(hue: 0.0 / 360.0, saturation: 0.6, brightness: 0.9))
-        let green = resolved(Color(hue: 120.0 / 360.0, saturation: 0.6, brightness: 0.9))
-        let violet = resolved(Color(hue: 270.0 / 360.0, saturation: 0.6, brightness: 0.9))
-        #expect(resolved(coloring.color(70)) == red)
-        #expect(resolved(coloring.color(120)) == green)
-        #expect(resolved(coloring.color(180)) == violet)
-
-        // the dynamic scheme ramps from 55 through the target to 220
-        coloring.isDynamic = true
-        #expect(resolved(coloring.color(55)) == red)
-        #expect(resolved(coloring.color(100)) == green)
-        #expect(resolved(coloring.color(220)) == violet)
-        #expect(resolved(coloring.color(70)) != red)
+    /// The colors a state from the phone gives its readings on the watch.
+    static func colors(_ glucose: [Int], scheme: GlucoseColorScheme) -> [Color.Resolved] {
+        let state = WatchState()
+        let now = Date()
+        let readings = glucose.enumerated().map { index, value in
+            WatchGlucoseTrace.Reading(date: now.addingTimeInterval(Double(index - glucose.count) * 300), glucose: value)
+        }
+        let payload: [String: Any] = [
+            WatchMessageKeys.date: now.timeIntervalSince1970,
+            WatchMessageKeys.glucoseTrace: WatchGlucoseTrace.encode(readings),
+            WatchMessageKeys.glucoseRangeLow: 70.0,
+            WatchMessageKeys.glucoseRangeHigh: 180.0,
+            WatchMessageKeys.glucoseRangeTarget: 100.0,
+            WatchMessageKeys.glucoseColorScheme: scheme.rawValue
+        ]
+        state.acceptWatchStatePayload([WatchMessageKeys.watchState: payload])
+        return state.glucoseValues.map { $0.color.resolve(in: EnvironmentValues()) }
     }
 
-    @Test("The range and scheme come from the phone's state") func coloringFromPayload() {
-        let coloring = WatchGlucoseColoring([
-            WatchMessageKeys.glucoseRangeLow: 80.0,
-            WatchMessageKeys.glucoseRangeHigh: 160.0,
-            WatchMessageKeys.glucoseRangeTarget: 110.0,
-            WatchMessageKeys.glucoseColorScheme: "dynamicColor"
+    static func resolved(_ color: Color) -> Color.Resolved { color.resolve(in: EnvironmentValues()) }
+
+    @Test("Colored as the phone colors them, by the range it sends") func staticColors() {
+        #expect(Self.colors([60, 120, 200], scheme: .staticColor) == [
+            Self.resolved(.staticLow), Self.resolved(.staticInRange), Self.resolved(.staticHigh)
         ])
-        #expect(coloring.low == 80)
-        #expect(coloring.high == 160)
-        #expect(coloring.target == 110)
-        #expect(coloring.isDynamic)
+    }
+
+    @Test("The dynamic scheme ramps from 55 through the target to 220, as on the phone") func dynamicColors() {
+        #expect(Self.colors([55, 100, 220, 70], scheme: .dynamicColor) == [
+            Self.resolved(.dynamicRed),
+            Self.resolved(.dynamicGreen),
+            Self.resolved(.dynamicPurple),
+            Self.resolved(calculateHueBasedGlucoseColor(glucoseValue: 70, highGlucose: 220, lowGlucose: 55, targetGlucose: 100))
+        ])
     }
 
     @Test("A state from the phone shows its readings in its units") func appliedInUnits() throws {
