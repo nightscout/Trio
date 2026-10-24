@@ -441,9 +441,10 @@ extension AppAttestClient {
 
 enum ReportEndpoint {
     static let production = "https://support.triodocs.org"
-    static let staging = "https://support-staging.triodocs.org"
-    // DEBUG only; set with the launch argument "-TrioReportStaging YES"
-    static let stagingKey = "TrioReportStaging"
+    static let dev = "https://support-dev.triodocs.org"
+    // DEBUG only: "-TrioReportDev YES" uses the dev server, "-TrioReportBaseURL <url>" any other server
+    static let devKey = "TrioReportDev"
+    static let baseURLKey = "TrioReportBaseURL"
 
     #if DEBUG
         static let isDebug = true
@@ -456,11 +457,12 @@ enum ReportEndpoint {
         service: AppAttestService = DCAppAttestService.shared,
         defaults: UserDefaults = .standard
     ) -> ReportSubmitting? {
-        let useStaging = isDebug && defaults.bool(forKey: stagingKey)
-        return submitter(attestSupported: service.isSupported, allowsMock: isDebug, useStaging: useStaging) { url in
+        let baseURL = isDebug ? defaults.string(forKey: baseURLKey) : nil
+        let useDev = isDebug && (defaults.bool(forKey: devKey) || baseURL != nil)
+        return submitter(attestSupported: service.isSupported, allowsMock: isDebug, useDev: useDev, baseURL: baseURL) { url in
             HTTPReportSubmitter(attest: .reports(
                 baseURL: url,
-                namespace: useStaging ? "ReportAttest.staging" : "ReportAttest",
+                namespace: useDev ? "ReportAttest.dev" : "ReportAttest",
                 keychain: keychain,
                 service: service
             ))
@@ -470,10 +472,11 @@ enum ReportEndpoint {
     static func submitter(
         attestSupported: Bool,
         allowsMock: Bool,
-        useStaging: Bool,
+        useDev: Bool,
+        baseURL: String? = nil,
         make: (URL) -> ReportSubmitting
     ) -> ReportSubmitting? {
-        guard attestSupported, let url = URL(string: useStaging ? staging : production) else {
+        guard attestSupported, let url = URL(string: baseURL ?? (useDev ? dev : production)) else {
             return allowsMock ? MockReportSubmitter() : nil
         }
         return make(url)
