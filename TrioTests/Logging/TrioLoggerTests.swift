@@ -40,6 +40,22 @@ import Testing
         #expect(reached)
     }
 
+    @Test("Descriptions and errors follow the message as plain text") func testErrorFormatting() {
+        let failure = NSError(domain: "Test", code: 7)
+        let records = capture {
+            warning(.nightscout, "plain")
+            warning(.nightscout, "described", description: "detail")
+            error(.storage, "failed", error: failure)
+            fault(.lifecycle, "both", description: "detail", error: failure)
+        }
+        #expect(records.map(\.message) == [
+            "plain",
+            "described: detail",
+            "failed: \(failure)",
+            "both: detail: \(failure)"
+        ])
+    }
+
     @Test("Debug without console output still reaches the sink") func testPrintToConsoleFalse() {
         let records = capture {
             debug(.ui, "quiet", printToConsole: false)

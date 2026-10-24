@@ -30,7 +30,7 @@ func warning(
     function: String = #function,
     line: UInt = #line
 ) {
-    let message = String(describing: maybeError.loggerError(message: message, withDescription: description))
+    let message = composed(message, description: description, error: maybeError)
     TrioLogger.log(.warning, category, message, file: file, function: function, line: line)
 }
 
@@ -43,7 +43,7 @@ func error(
     function: String = #function,
     line: UInt = #line
 ) {
-    let message = String(describing: maybeError.loggerError(message: message, withDescription: description))
+    let message = composed(message, description: description, error: maybeError)
     TrioLogger.log(.error, category, message, file: file, function: function, line: line)
 }
 
@@ -56,7 +56,7 @@ func fault(
     function: String = #function,
     line: UInt = #line
 ) {
-    let message = String(describing: maybeError.loggerError(message: message, withDescription: description))
+    let message = composed(message, description: description, error: maybeError)
     TrioLogger.log(.fault, category, message, file: file, function: function, line: line)
 }
 
@@ -85,26 +85,8 @@ enum Logger {
             rawValue.capitalizingFirstLetter()
         }
     }
-
-    fileprivate enum Error: Swift.Error {
-        case error(String)
-        case errorWithInnerError(String, Swift.Error)
-        case errorWithDescription(String, String)
-        case errorWithDescriptionAndInnerError(String, String, Swift.Error)
-    }
 }
 
-private extension Optional where Wrapped == Swift.Error {
-    func loggerError(message: String, withDescription description: String?) -> Logger.Error {
-        switch (description, self) {
-        case (nil, nil):
-            return .error(message)
-        case let (descr?, nil):
-            return .errorWithDescription(message, descr)
-        case let (nil, error?):
-            return .errorWithInnerError(message, error)
-        case let (descr?, error?):
-            return .errorWithDescriptionAndInnerError(message, descr, error)
-        }
-    }
+private func composed(_ message: String, description: String?, error: Swift.Error?) -> String {
+    [message, description, error.map { String(describing: $0) }].compactMap { $0 }.joined(separator: ": ")
 }
