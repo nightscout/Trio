@@ -8,6 +8,7 @@ import LibreLoop
 import LibreTransmitter
 import LoopKit
 import LoopKitUI
+import SyaiKit
 
 final class PluginSource: GlucoseSource {
     private let processQueue = DispatchQueue(label: "CGMPluginSource.processQueue")
@@ -306,6 +307,10 @@ extension PluginSource: CGMManagerDelegate {
                 sensorActivatedAt = cgmTransmitterManager.state.activatedAt
                 sensorStartDate = cgmTransmitterManager.state.activatedAt
                 sensorTransmitterID = cgmTransmitterManager.state.bleNameString
+            } else if let cgmTransmitterManager = cgmManager as? SyaiCGMManager {
+                sensorActivatedAt = cgmTransmitterManager.state.activatedAt
+                sensorStartDate = cgmTransmitterManager.state.activatedAt
+                sensorTransmitterID = cgmTransmitterManager.state.mac
             }
 
             // isDisplayOnly means "shifted for visual consistency after calibration"
