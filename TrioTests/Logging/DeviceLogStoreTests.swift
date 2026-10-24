@@ -128,6 +128,44 @@ import UIKit
         #expect(FileManager.default.fileExists(atPath: file.path))
     }
 
+    @Test("Expired entries across several days are purged while logging continues") func purgesByDay() async throws {
+        let (directory, file) = try Self.makeStorageURL()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let maxAge: TimeInterval = 3 * 24 * 60 * 60
+        let now = Date()
+        let cutoff = now.addingTimeInterval(-maxAge)
+        let dates = stride(from: 10 * 24.0, to: 0, by: -2).map { now.addingTimeInterval(-$0 * 60 * 60 - 120) }
+            + [cutoff.addingTimeInterval(-300), cutoff.addingTimeInterval(300)]
+        let seeded = dates.map {
+            StoredDeviceLogEntry(
+                type: .receive,
+                managerIdentifier: "com.example.pump",
+                deviceIdentifier: "device-1",
+                message: "seeded",
+                timestamp: $0
+            )
+        }
+        #expect(PersistentDeviceLog(storageFile: file).addStoredDeviceLogEntries(entries: seeded) == nil)
+
+        let store = DeviceLogStore(
+            storageURL: file,
+            maxAge: maxAge,
+            notificationCenter: Foundation.NotificationCenter(),
+            isProtectedDataAvailable: { true }
+        )
+        for index in 0 ..< 50 {
+            store.log(managerIdentifier: "com.example.cgm", deviceIdentifier: nil, type: .send, message: "during \(index)")
+        }
+
+        let entries = await store.entries(in: DateInterval(start: .distantPast, end: now.addingTimeInterval(60)))
+        let kept = entries.filter { $0.message == "seeded" }.map(\.timestamp)
+        #expect(kept.allSatisfy { $0 >= cutoff })
+        #expect(kept.count == dates.filter { $0 >= cutoff }.count)
+        #expect(kept.contains(cutoff.addingTimeInterval(300)))
+        #expect(entries.filter { $0.managerIdentifier == "com.example.cgm" }.map(\.message) == (0 ..< 50).map { "during \($0)" })
+    }
+
     @Test("Moved-aside stores older than 7 days are deleted on open") func removesOldUnreadableStores() async throws {
         let (directory, file) = try Self.makeStorageURL()
         defer { try? FileManager.default.removeItem(at: directory) }

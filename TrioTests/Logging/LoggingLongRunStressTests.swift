@@ -704,6 +704,21 @@ import Testing
         }
     }
 
+    // Purges may run in steps between other requests, so watch the store itself
+    private static func waitForPurge(
+        _ url: URL,
+        entity: String,
+        cutoff: Date,
+        load: (URL) -> NSPersistentContainer?
+    ) async -> Bool {
+        let deadline = clock.now + .seconds(300)
+        while clock.now < deadline {
+            if let date = oldest(url, entity: entity, load: load), date >= cutoff.addingTimeInterval(-60) { return true }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        return false
+    }
+
     private static func determinations(since date: Date, in stack: CoreDataStack) -> Int {
         let context = stack.newTaskContext()
         return context.performAndWait {
@@ -1275,6 +1290,11 @@ import Testing
         let deviceSampler = MemorySampler()
         let deviceStart = Self.clock.now
         let deviceLog = DeviceLogStore(storageURL: deviceURL, isProtectedDataAvailable: { true })
+        let deviceEarlyRequest = Task {
+            let requested = Self.clock.now
+            _ = await deviceLog.entries(in: DateInterval(start: end.addingTimeInterval(-3600), end: Date()))
+            return Self.clock.now - requested
+        }
         let deviceLatencies = acceptLatencies { index in
             deviceLog.log(
                 managerIdentifier: Fixtures.pumpManager,
@@ -1283,6 +1303,13 @@ import Testing
                 message: "#launch-dev.\(index) logged during purge"
             )
         }
+        let deviceEarlyWait = await deviceEarlyRequest.value
+        let devicePurged = await Self.waitForPurge(
+            deviceURL,
+            entity: "Entry",
+            cutoff: cutoff,
+            load: Fixtures.loadDeviceLogContainer
+        )
         _ = await deviceLog.entries(in: DateInterval(start: end, duration: 1))
         let deviceDuration = Self.clock.now - deviceStart
         let devicePeak = deviceSampler.stop()
@@ -1298,6 +1325,7 @@ import Testing
             "rowsBefore": "\(deviceRows)",
             "rowsAfter": "\(deviceRemaining)",
             "seconds": String(format: "%.2f", Fixtures.seconds(deviceDuration)),
+            "earlyRequestWait": String(format: "%.2f", Fixtures.seconds(deviceEarlyWait)),
             "peakFootprint": Fixtures.megabytes(devicePeak.footprint),
             "footprintGrowth": Fixtures
                 .megabytes(devicePeak.footprint - min(devicePeak.footprint, deviceSampler.baselineFootprint)),
@@ -1306,6 +1334,7 @@ import Testing
             "sqlite+walBefore": Fixtures.megabytes(deviceSizeBefore),
             "sqlite+walAfter": Fixtures.megabytes(Fixtures.storeSize(deviceURL))
         ])
+        #expect(devicePurged)
         #expect((deviceOldest ?? .distantPast) >= cutoff.addingTimeInterval(-60))
         #expect(retired == 0)
         #expect(Self.percentile(deviceLatencies, 0.99) < 0.001)

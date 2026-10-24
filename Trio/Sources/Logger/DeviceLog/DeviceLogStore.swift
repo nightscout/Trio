@@ -5,6 +5,7 @@ import UIKit
 
 final class DeviceLogStore: @unchecked Sendable {
     static let bufferLimit = 5000
+    static let purgeStep: TimeInterval = 24 * 60 * 60
 
     private struct PendingEntry {
         let managerIdentifier: String
@@ -34,6 +35,8 @@ final class DeviceLogStore: @unchecked Sendable {
     private var isCheckingProtectedData = false
     private var retryAfterCheck = false
     private var didMoveStoreAside = false
+    private var isPurging = false
+    private var afterPurge: [() -> Void] = []
 
     init(
         storageURL: URL = DeviceLogStore.defaultStorageURL,
@@ -108,30 +111,43 @@ final class DeviceLogStore: @unchecked Sendable {
     func entries(in window: DateInterval, managerIdentifier: String? = nil) async -> [StoredDeviceLogEntry] {
         await withCheckedContinuation { continuation in
             queue.async {
-                guard let deviceLog = self.deviceLog else {
-                    continuation.resume(returning: self.buffer.compactMap { entry in
-                        guard window.contains(entry.date),
-                              managerIdentifier == nil || entry.managerIdentifier == managerIdentifier
-                        else { return nil }
-                        return StoredDeviceLogEntry(
-                            type: entry.type,
-                            managerIdentifier: entry.managerIdentifier,
-                            deviceIdentifier: entry.deviceIdentifier,
-                            message: entry.message,
-                            timestamp: entry.date
-                        )
-                    })
+                // Reading makes LoopKit delete every expired entry one by one, so let the purge finish first
+                guard !self.isPurging else {
+                    self.afterPurge.append { self.fetchEntries(in: window, managerIdentifier: managerIdentifier, continuation) }
                     return
                 }
-                deviceLog.getLogEntries(startDate: window.start, endDate: window.end) { result in
-                    let entries = (try? result.get()) ?? []
-                    guard let managerIdentifier else {
-                        continuation.resume(returning: entries)
-                        return
-                    }
-                    continuation.resume(returning: entries.filter { $0.managerIdentifier == managerIdentifier })
-                }
+                self.fetchEntries(in: window, managerIdentifier: managerIdentifier, continuation)
             }
+        }
+    }
+
+    private func fetchEntries(
+        in window: DateInterval,
+        managerIdentifier: String?,
+        _ continuation: CheckedContinuation<[StoredDeviceLogEntry], Never>
+    ) {
+        guard let deviceLog else {
+            continuation.resume(returning: buffer.compactMap { entry in
+                guard window.contains(entry.date),
+                      managerIdentifier == nil || entry.managerIdentifier == managerIdentifier
+                else { return nil }
+                return StoredDeviceLogEntry(
+                    type: entry.type,
+                    managerIdentifier: entry.managerIdentifier,
+                    deviceIdentifier: entry.deviceIdentifier,
+                    message: entry.message,
+                    timestamp: entry.date
+                )
+            })
+            return
+        }
+        deviceLog.getLogEntries(startDate: window.start, endDate: window.end) { result in
+            let entries = (try? result.get()) ?? []
+            guard let managerIdentifier else {
+                continuation.resume(returning: entries)
+                return
+            }
+            continuation.resume(returning: entries.filter { $0.managerIdentifier == managerIdentifier })
         }
     }
 
@@ -193,8 +209,26 @@ final class DeviceLogStore: @unchecked Sendable {
             )
         }
         buffer.removeAll()
-        deviceLog.purgeLogEntries(before: Date().addingTimeInterval(-maxAge))
         FileManager.default.removeUnreadableStores(of: storageURL)
+        let cutoff = Date().addingTimeInterval(-maxAge)
+        if let oldest = Self.oldestEntryDate(in: storageURL), oldest < cutoff {
+            isPurging = true
+            purge(from: oldest, before: cutoff)
+        }
+    }
+
+    // A day per step bounds the memory of each delete and lets queued logging run in between
+    private func purge(from start: Date, before cutoff: Date) {
+        let end = min(start.addingTimeInterval(Self.purgeStep), cutoff)
+        deviceLog?.purgeLogEntries(before: end)
+        guard end >= cutoff else {
+            queue.async { self.purge(from: end, before: cutoff) }
+            return
+        }
+        isPurging = false
+        let waiting = afterPurge
+        afterPurge.removeAll()
+        waiting.forEach { $0() }
     }
 
     private func moveStoreAside() {
@@ -213,22 +247,40 @@ final class DeviceLogStore: @unchecked Sendable {
 
     static func preflight(_ url: URL) -> Bool {
         guard FileManager.default.isWritableStore(at: url) else { return false }
-        return autoreleasepool {
+        return withContainer(at: url) { !$0.persistentStoreCoordinator.persistentStores.contains(where: \.isReadOnly) } ?? false
+    }
+
+    private static func oldestEntryDate(in url: URL) -> Date? {
+        withContainer(at: url) { container -> Date? in
+            let context = container.newBackgroundContext()
+            return context.performAndWait {
+                let request = NSFetchRequest<NSDictionary>(entityName: "Entry")
+                request.resultType = .dictionaryResultType
+                request.propertiesToFetch = ["timestamp"]
+                request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
+                request.fetchLimit = 1
+                return (try? context.fetch(request))?.first?["timestamp"] as? Date
+            }
+        } ?? nil
+    }
+
+    private static func withContainer<T>(at url: URL, _ body: (NSPersistentContainer) -> T) -> T? {
+        autoreleasepool {
             guard let modelURL = Bundle(for: PersistentDeviceLog.self).url(forResource: "DeviceLog", withExtension: "momd"),
                   let model = NSManagedObjectModel(contentsOf: modelURL)
-            else { return false }
+            else { return nil }
             let container = NSPersistentContainer(name: "DeviceLog", managedObjectModel: model)
             let description = NSPersistentStoreDescription(url: url)
             description.shouldAddStoreAsynchronously = false
             container.persistentStoreDescriptions = [description]
             var loadError: Error?
             container.loadPersistentStores { _, error in loadError = error }
+            let result = loadError == nil ? body(container) : nil
             let coordinator = container.persistentStoreCoordinator
-            let isReadOnly = coordinator.persistentStores.contains(where: \.isReadOnly)
             for store in coordinator.persistentStores {
                 try? coordinator.remove(store)
             }
-            return loadError == nil && !isReadOnly
+            return result
         }
     }
 }
