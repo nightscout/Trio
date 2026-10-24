@@ -270,8 +270,7 @@ extension WatchState {
                 await WatchLogger.shared.log("⌚️ Requesting WatchState update from iPhone")
             }
 
-            var message: [String: Any] = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
-            message.merge(glucoseSyncRequestFields()) { _, new in new }
+            let message: [String: Any] = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
 
             session.sendMessage(message, replyHandler: { reply in
                 DispatchQueue.main.async {

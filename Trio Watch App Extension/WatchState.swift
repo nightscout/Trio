@@ -85,29 +85,6 @@ import WatchConnectivity
 
     private static let syncingAnimationTimeout: TimeInterval = 10
 
-    // MARK: - Glucose history sync
-
-    enum GlucoseResync: Int, Comparable {
-        /// Sends the watch's bucket checksums: the phone answers with the buckets that differ.
-        case repair
-        case full
-
-        static func < (lhs: GlucoseResync, rhs: GlucoseResync) -> Bool {
-            lhs.rawValue < rhs.rawValue
-        }
-    }
-
-    /// Only accessed on the main queue, like everything below.
-    private var glucoseHistory = WatchGlucoseHistory()
-    private var hasPendingGlucoseHistoryUpdate = false
-    private var pendingGlucoseResync: GlucoseResync?
-    private var isGlucoseResyncInFlight = false
-    private var glucoseResyncAttempts = 0
-    private static let maxGlucoseResyncAttempts = 3
-    /// Set once a full history fails its own checksum. A delta that doesn't verify is no such sign:
-    /// readings deleted or backfilled on the phone cause that too.
-    private var isGlucoseDeltaSyncDisabled = false
-
     // MARK: - Debouncing and batch processing helpers
 
     /// Temporary storage for new data arriving via WatchConnectivity.
@@ -127,7 +104,6 @@ import WatchConnectivity
 
     override init() {
         super.init()
-        restoreGlucoseHistory()
         setupSession()
     }
 
@@ -315,178 +291,52 @@ import WatchConnectivity
         // schedules merge + UI work.
         guard date >= Date().addingTimeInterval(-Self.maxAcceptableMessageAgeInMinutes) else {
             Task { await WatchLogger.shared.log("⌚️ Skipping stale watch state (\(date))") }
-            adoptGlucoseHistory(fromStale: payload)
+            adoptGlucoseTrace(fromStale: payload)
             return false
         }
 
         // The same state can arrive both as a message and as the application context.
         if let lastAccepted = lastAcceptedStateDate, date <= lastAccepted {
             Task { await WatchLogger.shared.log("⌚️ Skipping duplicate watch state (\(date))") }
-            if date == lastAccepted {
-                // A request's full reply shares its stamp with the context, which only carries recent readings.
-                applyGlucoseHistory(from: payload)
-                if hasPendingGlucoseHistoryUpdate {
-                    publishGlucoseHistory()
-                }
-            }
             return false
         }
 
         lastAcceptedStateDate = date
-        applyGlucoseHistory(from: payload)
-
-        var uiPayload = payload
-        uiPayload.removeValue(forKey: WatchMessageKeys.glucoseValues)
-        scheduleUIUpdate(with: uiPayload)
+        scheduleUIUpdate(with: payload)
         return true
     }
 
     /// A stale payload's IOB, COB and trend are outdated, but its glucose readings are not.
-    private func adoptGlucoseHistory(fromStale payload: [String: Any]) {
-        guard let newest = WatchGlucoseSync.newestTimestamp(in: payload),
-              newest > glucoseHistory.newestTimestamp ?? -.infinity
+    private func adoptGlucoseTrace(fromStale payload: [String: Any]) {
+        guard let trace = payload[WatchMessageKeys.glucoseTrace] as? [String: Any],
+              let newest = WatchGlucoseTrace.decode(trace)?.last?.date,
+              newest > glucoseValues.last?.date ?? .distantPast
         else { return }
 
         Task { await WatchLogger.shared.log("⌚️ Taking over glucose readings from stale watch state") }
-        applyGlucoseHistory(from: payload)
-        if hasPendingGlucoseHistoryUpdate {
-            publishGlucoseHistory()
-        }
+        applyGlucoseTrace(trace, from: payload)
     }
 
-    private func applyGlucoseHistory(from payload: [String: Any]) {
-        let isRepair = payload[WatchMessageKeys.glucoseBuckets] != nil
-        let isDelta = isRepair || payload[WatchMessageKeys.glucoseSyncBase] != nil
-
-        if isDelta, isGlucoseDeltaSyncDisabled {
-            requestGlucoseResync(.full, reason: "delta received while delta sync is disabled")
-            return
-        }
-
-        switch glucoseHistory.merge(payload) {
-        case .unchanged:
-            return
-
-        case .updated:
-            hasPendingGlucoseHistoryUpdate = true
-            pendingGlucoseResync = nil
-            glucoseResyncAttempts = 0
-            saveGlucoseHistory()
-
-        case .updatedUnverified:
-            hasPendingGlucoseHistoryUpdate = true
-            pendingGlucoseResync = nil
-            glucoseResyncAttempts = 0
-            disableGlucoseDeltaSync(reason: "full glucose history does not match its own checksum")
-            saveGlucoseHistory()
-
-        case .mismatch:
-            // Keep showing and saving the merged readings: the repair only sends the buckets that differ.
-            hasPendingGlucoseHistoryUpdate = true
-            saveGlucoseHistory()
-            if isRepair {
-                requestGlucoseResync(.full, reason: "repaired glucose history does not match the phone's")
-            } else {
-                requestGlucoseResync(.repair, reason: "merged glucose history does not match the phone's")
-            }
-
-        case let .needsFullHistory(reason):
-            requestGlucoseResync(.full, reason: reason)
-        }
-    }
-
-    // MARK: - Glucose history persistence
-
-    private static let glucoseHistoryFileURL: URL? = FileManager.default
-        .urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
-        .appendingPathComponent("GlucoseHistory.plist")
-    private static let glucoseHistoryFileQueue = DispatchQueue(label: "WatchState.glucoseHistoryFile", qos: .utility)
-
-    private func saveGlucoseHistory() {
-        guard let url = Self.glucoseHistoryFileURL, let data = glucoseHistory.encoded() else { return }
-        Self.glucoseHistoryFileQueue.async {
-            do {
-                try FileManager.default.createDirectory(
-                    at: url.deletingLastPathComponent(),
-                    withIntermediateDirectories: true
-                )
-                try data.write(to: url, options: .atomic)
-            } catch {
-                Task { await WatchLogger.shared.log("⌚️ Saving glucose history failed: \(error)") }
-            }
-        }
-    }
-
-    private func restoreGlucoseHistory() {
-        guard let url = Self.glucoseHistoryFileURL,
-              let data = try? Data(contentsOf: url),
-              let restored = WatchGlucoseHistory(data: data)
-        else { return }
-
-        glucoseHistory = restored
-        publishGlucoseHistory()
-        Task { await WatchLogger.shared.log("⌚️ Restored \(restored.readings.count) saved glucose readings") }
-    }
-
-    private func publishGlucoseHistory() {
-        glucoseValues = glucoseHistory.readings.map { reading in
+    /// The phone's readings in the units it shows, colored by its range, target and color scheme.
+    private func applyGlucoseTrace(_ trace: [String: Any], from payload: [String: Any]) {
+        guard let readings = WatchGlucoseTrace.decode(trace) else { return }
+        let isMmol = payload[WatchMessageKeys.units] as? String == "mmol/L"
+        let coloring = WatchGlucoseColoring(payload)
+        glucoseValues = readings.map { reading in
             (
-                date: Date(timeIntervalSince1970: reading.timestamp),
-                glucose: reading.glucose,
-                color: reading.color.toColor() // Convert colorString to Color
+                date: reading.date,
+                glucose: isMmol ? Self.mmolL(reading.glucose) : Double(reading.glucose),
+                color: coloring.color(Decimal(reading.glucose))
             )
         }
-        hasPendingGlucoseHistoryUpdate = false
     }
 
-    private func disableGlucoseDeltaSync(reason: String) {
-        guard !isGlucoseDeltaSyncDisabled else { return }
-        isGlucoseDeltaSyncDisabled = true
-        Task { await WatchLogger.shared.log("⌚️ Glucose delta sync disabled: \(reason)", force: true) }
-    }
-
-    private func requestGlucoseResync(_ resync: GlucoseResync, reason: String) {
-        Task { await WatchLogger.shared.log("⌚️ Glucose history resync (\(resync)): \(reason)") }
-        pendingGlucoseResync = max(pendingGlucoseResync ?? resync, resync)
-        sendPendingGlucoseResync()
-    }
-
-    /// One request at a time. A request that couldn't be delivered waits for the next regular update
-    /// request, which carries the pending resync too.
-    private func sendPendingGlucoseResync() {
-        guard pendingGlucoseResync != nil, !isGlucoseResyncInFlight else { return }
-        guard glucoseResyncAttempts < Self.maxGlucoseResyncAttempts else {
-            Task { await WatchLogger.shared.log("⌚️ Glucose history resync attempts exhausted; waiting for the next update") }
-            return
-        }
-
-        glucoseResyncAttempts += 1
-        isGlucoseResyncInFlight = true
-        let sent = requestWatchStateUpdate { answered in
-            self.isGlucoseResyncInFlight = false
-            if answered {
-                self.sendPendingGlucoseResync()
-            }
-        }
-        if !sent {
-            isGlucoseResyncInFlight = false
-        }
-    }
-
-    func glucoseSyncRequestFields() -> [String: Any] {
-        var fields: [String: Any] = [WatchMessageKeys.supportsGlucoseDelta: !isGlucoseDeltaSyncDisabled]
-        guard !isGlucoseDeltaSyncDisabled, pendingGlucoseResync != .full,
-              let since = glucoseHistory.newestTimestamp,
-              let signature = glucoseHistory.signature
-        else { return fields }
-
-        fields[WatchMessageKeys.glucoseSince] = since
-        fields[WatchMessageKeys.glucoseSignature] = signature
-        if pendingGlucoseResync == .repair, let buckets = glucoseHistory.bucketChecksumList {
-            fields[WatchMessageKeys.glucoseBucketStart] = buckets.start
-            fields[WatchMessageKeys.glucoseBucketChecksums] = buckets.checksums
-        }
-        return fields
+    /// As the phone's `asMmolL`: rounded to one decimal, half up.
+    private static func mmolL(_ mgdl: Int) -> Double {
+        var value = Decimal(mgdl) * Decimal(sign: .plus, exponent: -4, significand: 555)
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &value, 1, .plain)
+        return NSDecimalNumber(decimal: rounded).doubleValue
     }
 
     func session(_: WCSession, didFinish _: WCSessionUserInfoTransfer, error: (any Error)?) {
@@ -531,12 +381,6 @@ import WatchConnectivity
     ///
     /// it will request a new watch state update from the iPhone app and, if the request could be sent, show a syncing animation.
     private func forceConditionalWatchStateUpdate() {
-        // A running resync request brings the current state too.
-        guard !isGlucoseResyncInFlight else {
-            Task { await WatchLogger.shared.log("⌚️ Glucose resync in flight — not requesting another WatchState") }
-            return
-        }
-
         guard let lastUpdateTimestamp = lastWatchStateUpdate else {
             Task {
                 await WatchLogger.shared.log("Forcing initial WatchState update")
@@ -745,8 +589,8 @@ import WatchConnectivity
             self.lastLoopTime = lastLoopTime
         }
 
-        if hasPendingGlucoseHistoryUpdate {
-            publishGlucoseHistory()
+        if let trace = message[WatchMessageKeys.glucoseTrace] as? [String: Any] {
+            applyGlucoseTrace(trace, from: message)
         }
 
         if let minYAxisValue = message[WatchMessageKeys.minYAxisValue] {
