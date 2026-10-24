@@ -10,6 +10,7 @@ final class AppLogStore: LogSink, @unchecked Sendable {
     static let batchSize = 200
     static let flushDelay: TimeInterval = 2
     static let purgeInterval: TimeInterval = 24 * 60 * 60
+    static let purgeStep: TimeInterval = 24 * 60 * 60
     static let legacyFileMaxAge: TimeInterval = 7 * 24 * 60 * 60
 
     private static let entityName = "AppLogEntry"
@@ -288,11 +289,32 @@ final class AppLogStore: LogSink, @unchecked Sendable {
     private func purge() {
         guard let context else { return }
         lastPurge = Date()
-        let maxAge = policy.maxAge
+        let cutoff = Date().addingTimeInterval(-policy.maxAge)
+        let oldest = context.performAndWait {
+            let request = NSFetchRequest<NSDictionary>(entityName: Self.entityName)
+            request.resultType = .dictionaryResultType
+            request.propertiesToFetch = ["timestamp"]
+            request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
+            request.fetchLimit = 1
+            return (try? context.fetch(request))?.first?["timestamp"] as? Date
+        }
+        purge(from: min(oldest ?? cutoff, cutoff), before: cutoff)
+    }
+
+    // A day per step keeps flushes and exports from waiting behind a large backlog
+    private func purge(from start: Date, before cutoff: Date) {
+        guard let context else {
+            lastPurge = nil
+            return
+        }
+        let end = min(start.addingTimeInterval(Self.purgeStep), cutoff)
+        context.performAndWait { deleteEntries(before: end, in: context) }
+        guard end >= cutoff else {
+            queue.async { self.purge(from: end, before: cutoff) }
+            return
+        }
         let maxRows = policy.maxRows
         context.performAndWait {
-            deleteEntries(before: Date().addingTimeInterval(-maxAge), in: context)
-
             let newest = NSFetchRequest<NSDictionary>(entityName: Self.entityName)
             newest.resultType = .dictionaryResultType
             newest.propertiesToFetch = ["timestamp"]
@@ -308,8 +330,10 @@ final class AppLogStore: LogSink, @unchecked Sendable {
     private func deleteEntries(before date: Date, in context: NSManagedObjectContext) {
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: Self.entityName)
         request.predicate = NSPredicate(format: "timestamp < %@", date as NSDate)
+        let delete = NSBatchDeleteRequest(fetchRequest: request)
+        delete.resultType = .resultTypeCount
         do {
-            try context.execute(NSBatchDeleteRequest(fetchRequest: request))
+            try context.execute(delete)
         } catch {
             Logger.Category.storage.osLogger.error("App log purge failed: \(String(describing: error), privacy: .public)")
         }
