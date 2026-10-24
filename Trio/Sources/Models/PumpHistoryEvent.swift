@@ -1,27 +1,27 @@
 import Foundation
 
-struct PumpHistoryEvent: JSON, Equatable, Identifiable {
-    let id: String
-    let type: EventType
-    let timestamp: Date
-    let amount: Decimal?
-    let duration: Int?
-    let durationMin: Int?
-    let rate: Decimal?
-    let temp: TempType?
-    let carbInput: Int?
-    let fatInput: Int?
-    let proteinInput: Int?
-    let note: String?
-    let isSMB: Bool?
-    let isExternal: Bool?
-    let isExternalInsulin: Bool?
-    let isScheduledBasal: Bool?
-    let deliveredUnits: Decimal?
-    let programmedAmount: Decimal?
-    let insulinType: String?
+public struct PumpHistoryEvent: JSON, Equatable, Identifiable {
+    public let id: String
+    public let type: EventType
+    public let timestamp: Date
+    public let amount: Decimal?
+    public let duration: Int?
+    public let durationMin: Int?
+    public let rate: Decimal?
+    public let temp: TempType?
+    public let carbInput: Int?
+    public let fatInput: Int?
+    public let proteinInput: Int?
+    public let note: String?
+    public let isSMB: Bool?
+    public let isExternal: Bool?
+    public let isExternalInsulin: Bool?
+    public let isScheduledBasal: Bool?
+    public let deliveredUnits: Decimal?
+    public let programmedAmount: Decimal?
+    public let insulinType: String?
 
-    init(
+    public init(
         id: String,
         type: EventType,
         timestamp: Date,
@@ -64,7 +64,7 @@ struct PumpHistoryEvent: JSON, Equatable, Identifiable {
     }
 }
 
-enum EventType: String, JSON {
+public enum EventType: String, JSON {
     case bolus = "Bolus"
     case smb = "SMB"
     case isExternal = "External Insulin"
@@ -89,7 +89,7 @@ enum EventType: String, JSON {
     case note = "Note"
 }
 
-enum TempType: String, JSON {
+public enum TempType: String, JSON {
     case absolute
     case percent
 }

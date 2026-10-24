@@ -4,10 +4,16 @@ protocol InsulinSensitivitiesObserver {
     func insulinSensitivitiesDidChange(_ sensitivities: InsulinSensitivities)
 }
 
-struct InsulinSensitivities: JSON {
-    var units: GlucoseUnits
-    var userPreferredUnits: GlucoseUnits
-    var sensitivities: [InsulinSensitivityEntry]
+public struct InsulinSensitivities: JSON {
+    public var units: GlucoseUnits
+    public var userPreferredUnits: GlucoseUnits
+    public var sensitivities: [InsulinSensitivityEntry]
+
+    public init(units: GlucoseUnits, userPreferredUnits: GlucoseUnits, sensitivities: [InsulinSensitivityEntry]) {
+        self.units = units
+        self.userPreferredUnits = userPreferredUnits
+        self.sensitivities = sensitivities
+    }
 }
 
 extension InsulinSensitivities {
@@ -18,10 +24,16 @@ extension InsulinSensitivities {
     }
 }
 
-struct InsulinSensitivityEntry: JSON {
-    let sensitivity: Decimal
-    let offset: Int
-    let start: String
+public struct InsulinSensitivityEntry: JSON {
+    public let sensitivity: Decimal
+    public let offset: Int
+    public let start: String
+
+    public init(sensitivity: Decimal, offset: Int, start: String) {
+        self.sensitivity = sensitivity
+        self.offset = offset
+        self.start = start
+    }
 }
 
 extension InsulinSensitivityEntry {
@@ -31,7 +43,7 @@ extension InsulinSensitivityEntry {
         case start
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let sensitivity = try container.decode(Double.self, forKey: .sensitivity).decimal ?? .zero
         let start = try container.decode(String.self, forKey: .start)

@@ -1,6 +1,6 @@
 import Foundation
 
-enum AutosensError: LocalizedError, Equatable {
+public enum AutosensError: LocalizedError, Equatable {
     case missingIsfProfile
     case missingCarbRatioInProfile
     case missingCurrentBasalInProfile
@@ -8,7 +8,7 @@ enum AutosensError: LocalizedError, Equatable {
     case missingMaxDailyBasalInProfile
     case isfLookupError
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .missingIsfProfile:
             return "No ISF set on the profile"

@@ -1,78 +1,80 @@
 import Foundation
 
-struct Profile: JSON {
+public struct Profile: JSON {
     // Kotlin-defined properties from AndroidAPS OapsProfile.kt
     // with defaults pulled from profile.js
-    var dia: Decimal?
-    var min5mCarbImpact: Decimal = 8
-    var maxIob: Decimal = 0 // if max_iob is not provided, will default to zero
-    var maxDailyBasal: Decimal?
-    var maxBasal: Decimal?
-    var minBg: Decimal?
-    var maxBg: Decimal?
-    @JavascriptOptional var targetBg: Decimal?
-    var smbDeliveryRatio: Decimal = 0.5
-    var carbRatio: Decimal?
-    var sens: Decimal?
-    var maxDailySafetyMultiplier: Decimal = 3
-    var currentBasalSafetyMultiplier: Decimal = 4
-    var highTemptargetRaisesSensitivity: Bool = false // raise sensitivity for temptargets >= 101
-    var lowTemptargetLowersSensitivity: Bool = false // lower sensitivity for temptargets <= 99
-    var sensitivityRaisesTarget: Bool = false // raise BG target when autosens detects sensitivity
-    var resistanceLowersTarget: Bool = false // lower BG target when autosens detects resistance
-    var halfBasalExerciseTarget: Decimal = 160 // when temptarget is 160 mg/dL *and* exercise_mode=true, run 50% basal
-    var maxCOB: Decimal = 120 // maximum carbs a typical body can absorb over 4 hours
-    var skipNeutralTemps: Bool = false
-    var remainingCarbsCap: Decimal = 90
-    var enableUAM: Bool = false
-    var a52RiskEnable: Bool = false
-    var smbInterval: Decimal = 3
+    public var dia: Decimal?
+    public var min5mCarbImpact: Decimal = 8
+    public var maxIob: Decimal = 0 // if max_iob is not provided, will default to zero
+    public var maxDailyBasal: Decimal?
+    public var maxBasal: Decimal?
+    public var minBg: Decimal?
+    public var maxBg: Decimal?
+    @JavascriptOptional public var targetBg: Decimal?
+    public var smbDeliveryRatio: Decimal = 0.5
+    public var carbRatio: Decimal?
+    public var sens: Decimal?
+    public var maxDailySafetyMultiplier: Decimal = 3
+    public var currentBasalSafetyMultiplier: Decimal = 4
+    public var highTemptargetRaisesSensitivity: Bool = false // raise sensitivity for temptargets >= 101
+    public var lowTemptargetLowersSensitivity: Bool = false // lower sensitivity for temptargets <= 99
+    public var sensitivityRaisesTarget: Bool = false // raise BG target when autosens detects sensitivity
+    public var resistanceLowersTarget: Bool = false // lower BG target when autosens detects resistance
+    public var halfBasalExerciseTarget: Decimal = 160 // when temptarget is 160 mg/dL *and* exercise_mode=true, run 50% basal
+    public var maxCOB: Decimal = 120 // maximum carbs a typical body can absorb over 4 hours
+    public var skipNeutralTemps: Bool = false
+    public var remainingCarbsCap: Decimal = 90
+    public var enableUAM: Bool = false
+    public var a52RiskEnable: Bool = false
+    public var smbInterval: Decimal = 3
     /// Basal Testing: suspend on a genuine low only. Kept out of `CodingKeys` so profile.json,
     /// which the parity goldens compare, is unchanged.
-    var suspendOnly: Bool = false
-    var enableSMBWithCOB: Bool = false
-    var enableSMBWithTemptarget: Bool = false
-    var allowSMBWithHighTemptarget: Bool = false
-    var enableSMBAlways: Bool = false
-    var enableSMBAfterCarbs: Bool = false
-    var maxSMBBasalMinutes: Decimal = 30
-    var maxUAMSMBBasalMinutes: Decimal = 30
-    var bolusIncrement: Decimal = 0.1
-    var carbsReqThreshold: Decimal = 1
-    var currentBasal: Decimal?
-    var temptargetSet: Bool?
-    var autosensMax: Decimal = 1.2
-    var autosensMin: Decimal = 0.7
-    var outUnits: GlucoseUnits?
+    public var suspendOnly: Bool = false
+    public var enableSMBWithCOB: Bool = false
+    public var enableSMBWithTemptarget: Bool = false
+    public var allowSMBWithHighTemptarget: Bool = false
+    public var enableSMBAlways: Bool = false
+    public var enableSMBAfterCarbs: Bool = false
+    public var maxSMBBasalMinutes: Decimal = 30
+    public var maxUAMSMBBasalMinutes: Decimal = 30
+    public var bolusIncrement: Decimal = 0.1
+    public var carbsReqThreshold: Decimal = 1
+    public var currentBasal: Decimal?
+    public var temptargetSet: Bool?
+    public var autosensMax: Decimal = 1.2
+    public var autosensMin: Decimal = 0.7
+    public var outUnits: GlucoseUnits?
 
     // Additional properties
-    var maxMealAbsorptionTime: Decimal = 6.0
-    var rewindResetsAutosens: Bool = true
-    var remainingCarbsFraction: Decimal = 1.0
-    var unsuspendIfNoTemp: Bool = false
-    var autotuneIsfAdjustmentFraction: Decimal = 1.0
-    var enableSMBHighBg: Bool = false
-    var enableSMBHighBgTarget: Decimal = 110
-    var maxDeltaBgThreshold: Decimal = 0.2
-    var curve: InsulinCurve = .rapidActing
-    var useCustomPeakTime: Bool = false
-    var insulinPeakTime: Decimal = 75
-    var noisyCGMTargetMultiplier: Decimal = 1.3
-    var suspendZerosIob: Bool = true
-    var calcGlucoseNoise: Bool = false
-    var adjustmentFactor: Decimal = 0.8
-    var adjustmentFactorSigmoid: Decimal = 0.5
-    var useNewFormula: Bool = false
-    var sigmoid: Bool = false
-    var weightPercentage: Decimal = 0.65
-    var tddAdjBasal: Bool = false
-    var thresholdSetting: Decimal = 60
-    var basalprofile: [BasalProfileEntry]?
-    var isfProfile: ComputedInsulinSensitivities?
-    var bgTargets: ComputedBGTargets?
-    var carbRatios: CarbRatios?
+    public var maxMealAbsorptionTime: Decimal = 6.0
+    public var rewindResetsAutosens: Bool = true
+    public var remainingCarbsFraction: Decimal = 1.0
+    public var unsuspendIfNoTemp: Bool = false
+    public var autotuneIsfAdjustmentFraction: Decimal = 1.0
+    public var enableSMBHighBg: Bool = false
+    public var enableSMBHighBgTarget: Decimal = 110
+    public var maxDeltaBgThreshold: Decimal = 0.2
+    public var curve: InsulinCurve = .rapidActing
+    public var useCustomPeakTime: Bool = false
+    public var insulinPeakTime: Decimal = 75
+    public var noisyCGMTargetMultiplier: Decimal = 1.3
+    public var suspendZerosIob: Bool = true
+    public var calcGlucoseNoise: Bool = false
+    public var adjustmentFactor: Decimal = 0.8
+    public var adjustmentFactorSigmoid: Decimal = 0.5
+    public var useNewFormula: Bool = false
+    public var sigmoid: Bool = false
+    public var weightPercentage: Decimal = 0.65
+    public var tddAdjBasal: Bool = false
+    public var thresholdSetting: Decimal = 60
+    public var basalprofile: [BasalProfileEntry]?
+    public var isfProfile: ComputedInsulinSensitivities?
+    public var bgTargets: ComputedBGTargets?
+    public var carbRatios: CarbRatios?
     // rates the paired pump can deliver; injected per determination, never persisted; empty means no paired pump
-    var supportedBasalRates: [Decimal] = []
+    public var supportedBasalRates: [Decimal] = []
+
+    public init() {}
 
     private enum CodingKeys: String, CodingKey {
         case dia

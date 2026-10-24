@@ -1,7 +1,8 @@
 import Foundation
 
-extension Decimal {
-    /// Converts a `Double` to a `Decimal` using JSON style conversion
+public extension Decimal {
+    /// Converts a `Double` to a `Decimal` the way JSON would: through `description`, so 0.07
+    /// becomes exactly 0.07 rather than its binary expansion.
     init(algorithmValue value: Double) {
         self = Decimal(string: value.description) ?? Decimal(value)
     }

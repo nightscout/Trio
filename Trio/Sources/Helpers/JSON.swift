@@ -80,15 +80,15 @@ extension Dictionary where Key == String {
     }
 }
 
-enum JSONCoding {
-    static var encoder: JSONEncoder {
+public enum JSONCoding {
+    public static var encoder: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
         encoder.dateEncodingStrategy = .customISO8601
         return encoder
     }
 
-    static var decoder: JSONDecoder {
+    public static var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .customISO8601
         return decoder

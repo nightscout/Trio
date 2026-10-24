@@ -1,8 +1,9 @@
 import Foundation
 
-extension Array where Element == PumpHistoryEvent {
-    /// Removes duplicate PumpSuspend events from the array
-    /// - Returns: A new array with duplicate suspend events removed
+public extension Array where Element == PumpHistoryEvent {
+    /// Removes duplicate suspend and resume events, keeping the first of each timestamp.
+    /// Trio applies this to the pump history before `IobGenerator.generate`.
+    /// - Returns: A new array with duplicate suspend/resume events removed
     func removingDuplicateSuspendResumeEvents() -> [PumpHistoryEvent] {
         var seenSuspendResume = Set<Date>()
 
