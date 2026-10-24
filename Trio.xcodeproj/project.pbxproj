@@ -18,6 +18,7 @@
 		3F30764ED6567CB6B1DF68C1 /* LoggingStressFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 510C461CD60549BDF7E57BE9 /* LoggingStressFixtures.swift */; };
 		EAE1104EF2313F9A0041C746 /* LoggingVolumeStressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A4F4087B27F7D5819A37272 /* LoggingVolumeStressTests.swift */; };
 		F07C663CC423264E609D706C /* LoggingRobustnessStressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 258BD00B3EAADF1A62EFC884 /* LoggingRobustnessStressTests.swift */; };
+		4C0A9E5D31B7F26E8D1A0C42 /* LoggingLongRunStressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E3B19D06A4C85F2E91D3B57 /* LoggingLongRunStressTests.swift */; };
 		B0D5791570373A23CD562E97 /* LogFileHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FBFFB8EF42D847AFFDA6C05 /* LogFileHeader.swift */; };
 		BF0FA8AAE98B4080B961F69F /* LogFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 366F24AC292DBC7BC55CF196 /* LogFileWriter.swift */; };
 		96310848E7A3468607C340E9 /* LogExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB8B37A782E6D75420DB2FC /* LogExport.swift */; };
@@ -1220,6 +1221,7 @@
 		510C461CD60549BDF7E57BE9 /* LoggingStressFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingStressFixtures.swift; sourceTree = "<group>"; };
 		5A4F4087B27F7D5819A37272 /* LoggingVolumeStressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingVolumeStressTests.swift; sourceTree = "<group>"; };
 		258BD00B3EAADF1A62EFC884 /* LoggingRobustnessStressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingRobustnessStressTests.swift; sourceTree = "<group>"; };
+		7E3B19D06A4C85F2E91D3B57 /* LoggingLongRunStressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingLongRunStressTests.swift; sourceTree = "<group>"; };
 		7FBFFB8EF42D847AFFDA6C05 /* LogFileHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileHeader.swift; sourceTree = "<group>"; };
 		366F24AC292DBC7BC55CF196 /* LogFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogFileWriter.swift; sourceTree = "<group>"; };
 		7DB8B37A782E6D75420DB2FC /* LogExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogExport.swift; sourceTree = "<group>"; };
@@ -3161,6 +3163,7 @@
 				510C461CD60549BDF7E57BE9 /* LoggingStressFixtures.swift */,
 				5A4F4087B27F7D5819A37272 /* LoggingVolumeStressTests.swift */,
 				258BD00B3EAADF1A62EFC884 /* LoggingRobustnessStressTests.swift */,
+				7E3B19D06A4C85F2E91D3B57 /* LoggingLongRunStressTests.swift */,
 			);
 			path = Logging;
 			sourceTree = "<group>";
@@ -6405,6 +6408,7 @@
 				3F30764ED6567CB6B1DF68C1 /* LoggingStressFixtures.swift in Sources */,
 				EAE1104EF2313F9A0041C746 /* LoggingVolumeStressTests.swift in Sources */,
 				F07C663CC423264E609D706C /* LoggingRobustnessStressTests.swift in Sources */,
+				4C0A9E5D31B7F26E8D1A0C42 /* LoggingLongRunStressTests.swift in Sources */,
 				3B5CD2C92D4AECD500CE213C /* ProfileCarbsTests.swift in Sources */,
 				3BEDC9932EEB27B600AC6492 /* IobConsecutiveEventsTests.swift in Sources */,
 				3B1DB90F2E63C14C00BD814B /* DetermineBasalLowEventualGlucoseTests.swift in Sources */,
