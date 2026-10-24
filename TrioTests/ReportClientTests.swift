@@ -395,7 +395,12 @@ private final class FakeAttestService: AppAttestService {
         #expect(error(413, "too_large") == .tooLarge)
         #expect(error(400, "too_large") == .tooLarge)
         #expect(error(415, "unsupported_type") == .unsupportedImage)
-        #expect(error(400, "invalid_request") == .server(status: 400))
+        #expect(error(400, "invalid_request") == .rejected("Synthetic."))
+        #expect(ReportSubmitError.rejected("Synthetic.").message == "Synthetic.")
+        #expect(ReportSubmitError.from(status: 400, data: Self.json(["code": "invalid_request"])) == .server(status: 400))
+        #expect(
+            ReportSubmitError.from(status: 400, data: Self.incomplete) == .uploadsIncomplete(["logs.zip"])
+        )
         #expect(error(503) == .server(status: 503))
         #expect(ReportSubmitError.from(status: 429, data: Data("not json".utf8)) == .rateLimited)
 
@@ -413,9 +418,49 @@ private final class FakeAttestService: AppAttestService {
         #expect(ReportSubmitError.server(status: 500).canRetry)
         #expect(ReportSubmitError.attestationFailed.canRetry)
         #expect(!ReportSubmitError.server(status: 400).canRetry)
+        #expect(!ReportSubmitError.rejected("Synthetic.").canRetry)
+        #expect(ReportSubmitError.uploadsIncomplete([]).canRetry)
         #expect(!ReportSubmitError.rateLimited.canRetry)
         #expect(!ReportSubmitError.appNotAllowed.canRetry)
         #expect(!ReportSubmitError.logsTooLarge.canRetry)
+    }
+
+    private static let incomplete = json([
+        "error": "Some files are missing.",
+        "code": "uploads_incomplete",
+        "files": [["name": "logs.zip", "problem": "missing"]]
+    ])
+
+    @Test("Files the server couldn't verify are uploaded once more") func uploadsIncomplete() async throws {
+        var completes = 0
+        serve { request in
+            guard request.path.hasSuffix("/complete") else { return nil }
+            completes += 1
+            return completes == 1 ? (400, Self.incomplete) : nil
+        }
+        let id = try await submitter.submit(Self.report()) { _ in }
+
+        #expect(id == "TR-TEST-0001")
+        #expect(Array(steps().suffix(6)) == [
+            "PUT /reports/TR-TEST-0001/logs.zip",
+            "POST /v1/attest/challenge",
+            "POST /v1/reports/TR-TEST-0001/complete",
+            "PUT /reports/TR-TEST-0001/logs.zip",
+            "POST /v1/attest/challenge",
+            "POST /v1/reports/TR-TEST-0001/complete"
+        ])
+        #expect(requests.filter { $0.path.hasSuffix("screenshot-1.png") }.count == 1)
+    }
+
+    @Test("Incomplete uploads are retried only once") func uploadsIncompleteTwice() async throws {
+        serve { request in
+            request.path.hasSuffix("/complete") ? (400, Self.incomplete) : nil
+        }
+        await #expect(throws: ReportSubmitError.uploadsIncomplete(["logs.zip"])) {
+            try await self.submitter.submit(Self.report()) { _ in }
+        }
+        #expect(requests.filter { $0.path.hasSuffix("/complete") }.count == 2)
+        #expect(requests.filter { $0.path.hasSuffix("logs.zip") }.count == 2)
     }
 
     @Test("A rate-limited report is not uploaded") func rateLimitedCreate() async throws {

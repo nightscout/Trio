@@ -88,6 +88,8 @@ enum ReportSubmitError: Error, Equatable {
     case appNotAllowed
     case attestationFailed
     case server(status: Int)
+    case rejected(String)
+    case uploadsIncomplete([String])
     case invalidResponse
     case logsUnavailable
     case network(String)
@@ -97,11 +99,13 @@ enum ReportSubmitError: Error, Equatable {
         case let .server(status): return status >= 500
         case .attestationFailed,
              .logsUnavailable,
-             .network: return true
+             .network,
+             .uploadsIncomplete: return true
         case .appNotAllowed,
              .invalidResponse,
              .logsTooLarge,
              .rateLimited,
+             .rejected,
              .tooLarge,
              .unsupportedImage: return false
         }
@@ -129,6 +133,10 @@ enum ReportSubmitError: Error, Equatable {
             )
         case let .server(status):
             return String(localized: "The Trio team's server couldn't take the report right now (error \(status)).")
+        case let .rejected(message):
+            return message
+        case .uploadsIncomplete:
+            return String(localized: "Some files didn't reach the Trio team's server. Please try again.")
         case .invalidResponse:
             return String(localized: "The Trio team's server sent an answer the app doesn't understand.")
         case .logsUnavailable:
@@ -139,8 +147,8 @@ enum ReportSubmitError: Error, Equatable {
     }
 
     static func from(status: Int, data: Data? = nil) -> ReportSubmitError {
-        let code = data.flatMap(HTTPReportSubmitter.errorCode)
-        switch (code, status) {
+        let reply = data.flatMap(HTTPReportSubmitter.errorReply)
+        switch (reply?.code, status) {
         case (_, 429),
              ("rate_limited", _): return .rateLimited
         case (_, 403),
@@ -149,6 +157,10 @@ enum ReportSubmitError: Error, Equatable {
              ("too_large", _): return .tooLarge
         case (_, 415),
              ("unsupported_type", _): return .unsupportedImage
+        case ("uploads_incomplete", _): return .uploadsIncomplete(reply?.files?.map(\.name) ?? [])
+        case (_, 400):
+            guard let message = reply?.error, !message.isEmpty else { return .server(status: status) }
+            return .rejected(message)
         default: return .server(status: status)
         }
     }
@@ -247,7 +259,7 @@ struct HTTPReportSubmitter: ReportSubmitting {
                 throw ReportSubmitError.invalidResponse
             }
             try await upload(report.attachments, to: created.uploads, progress: progress)
-            _ = try await signed("POST", path: "v1/reports/\(created.id)/complete", body: Data("{}".utf8))
+            try await complete(created, attachments: report.attachments)
             info(.ui, "Problem report sent with \(report.attachments.count) attachments")
             return created.id
         } catch {
@@ -298,7 +310,7 @@ struct HTTPReportSubmitter: ReportSubmitting {
             }
             guard let http = response as? HTTPURLResponse else { throw ReportSubmitError.invalidResponse }
             if http.statusCode == 401 {
-                let unknownKey = Self.errorCode(in: data) == "invalid_key"
+                let unknownKey = Self.errorReply(in: data)?.code == "invalid_key"
                 if !unknownKey, !retriedAssertion {
                     warning(.ui, "Support server rejected the App Attest assertion, retrying with a new challenge")
                     retriedAssertion = true
@@ -318,9 +330,29 @@ struct HTTPReportSubmitter: ReportSubmitting {
         }
     }
 
-    static func errorCode(in data: Data) -> String? {
-        struct Reply: Decodable { let code: String }
-        return (try? JSONDecoder().decode(Reply.self, from: data))?.code
+    struct ErrorReply: Decodable {
+        struct File: Decodable { let name: String }
+        let error: String?
+        let code: String?
+        let files: [File]?
+    }
+
+    static func errorReply(in data: Data) -> ErrorReply? {
+        try? JSONDecoder().decode(ErrorReply.self, from: data)
+    }
+
+    // Files the server couldn't verify are uploaded once more
+    private func complete(_ created: Created, attachments: [ProblemReport.Attachment]) async throws {
+        let path = "v1/reports/\(created.id)/complete"
+        do {
+            _ = try await signed("POST", path: path, body: Data("{}".utf8))
+        } catch let error as ReportSubmitError {
+            guard case let .uploadsIncomplete(names) = error else { throw error }
+            warning(.ui, "Support server is missing \(names.count) report attachments, uploading them again", error: error)
+            let missing = attachments.filter { names.isEmpty || names.contains($0.filename) }
+            try await upload(missing, to: created.uploads) { _ in }
+            _ = try await signed("POST", path: path, body: Data("{}".utf8))
+        }
     }
 
     private func upload(
