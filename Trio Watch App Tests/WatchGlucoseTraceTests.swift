@@ -29,6 +29,24 @@ import Testing
         #expect(decoded.map(\.glucose) == [110, 120])
     }
 
+    @Test("The phone's colors travel with the readings, or not at all") func colorsRoundTrip() throws {
+        let colored = Self.day(every: 300).enumerated().map { index, reading in
+            WatchGlucoseTrace.Reading(date: reading.date, glucose: reading.glucose, color: index * 0x010203 & 0xFFFFFF)
+        }
+        #expect(WatchGlucoseTrace.decode(WatchGlucoseTrace.encode(colored)) == colored)
+        // one reading without a color: none go, the watch colors by the range
+        var partly = colored
+        partly[3] = WatchGlucoseTrace.Reading(date: colored[3].date, glucose: colored[3].glucose)
+        #expect(WatchGlucoseTrace.encode(partly)[WatchGlucoseTrace.colorsKey] == nil)
+        // a dynamic day of a 5-minute CGM stays small
+        let bytes = try PropertyListSerialization.data(
+            fromPropertyList: WatchGlucoseTrace.encode(colored),
+            format: .binary,
+            options: 0
+        ).count
+        #expect(bytes < 4000)
+    }
+
     @Test("No readings, and what isn't a trace") func emptyAndInvalid() {
         #expect(WatchGlucoseTrace.decode(WatchGlucoseTrace.encode([])) == [])
         #expect(WatchGlucoseTrace.decode([:]) == nil)
@@ -52,12 +70,16 @@ import Testing
         #expect(try bytes(Self.day(every: 60)) < 8000)
     }
 
-    /// The colors a state from the phone gives its readings on the watch.
-    static func colors(_ glucose: [Int], scheme: GlucoseColorScheme) -> [Color.Resolved] {
+    /// The colors a state from the phone gives its readings on the watch; `sent`, the phone's colors.
+    static func colors(_ glucose: [Int], scheme: GlucoseColorScheme, sent: [Int]? = nil) -> [Color.Resolved] {
         let state = WatchState()
         let now = Date()
         let readings = glucose.enumerated().map { index, value in
-            WatchGlucoseTrace.Reading(date: now.addingTimeInterval(Double(index - glucose.count) * 300), glucose: value)
+            WatchGlucoseTrace.Reading(
+                date: now.addingTimeInterval(Double(index - glucose.count) * 300),
+                glucose: value,
+                color: sent?[index]
+            )
         }
         let payload: [String: Any] = [
             WatchMessageKeys.date: now.timeIntervalSince1970,
@@ -79,13 +101,11 @@ import Testing
         ])
     }
 
-    @Test("The dynamic scheme ramps from 55 through the target to 220, as on the phone") func dynamicColors() {
-        #expect(Self.colors([55, 100, 220, 70], scheme: .dynamicColor) == [
-            Self.resolved(.dynamicRed),
-            Self.resolved(.dynamicGreen),
-            Self.resolved(.dynamicPurple),
-            Self.resolved(calculateHueBasedGlucoseColor(glucoseValue: 70, highGlucose: 220, lowGlucose: 55, targetGlucose: 100))
-        ])
+    @Test("The dynamic scheme shows the colors the phone computed") func dynamicColors() {
+        let sent = [0xFF0000, 0x00FF00, 0x8000FF]
+        #expect(Self.colors([55, 100, 220], scheme: .dynamicColor, sent: sent) == sent.map {
+            Self.resolved(WatchState.color(rgb: $0))
+        })
     }
 
     @Test("A state from the phone shows its readings in its units") func appliedInUnits() throws {
