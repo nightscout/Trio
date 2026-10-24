@@ -247,9 +247,8 @@ extension WatchState {
         }
     }
 
-    /// - Parameter completion: Called on the main queue with `true` if the phone answered.
     /// - Returns: `true` if the request was sent.
-    @discardableResult func requestWatchStateUpdate(completion: ((_ answered: Bool) -> Void)? = nil) -> Bool {
+    @discardableResult func requestWatchStateUpdate() -> Bool {
         guard let session = session else {
             Task {
                 await WatchLogger.shared.log("⌚️ No session available for state update")
@@ -270,7 +269,7 @@ extension WatchState {
                 await WatchLogger.shared.log("⌚️ Requesting WatchState update from iPhone")
             }
 
-            let message: [String: Any] = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
+            let message = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
 
             session.sendMessage(message, replyHandler: { reply in
                 DispatchQueue.main.async {
@@ -278,7 +277,6 @@ extension WatchState {
                     if reply.isEmpty || !self.acceptWatchStatePayload(reply) {
                         self.showSyncingAnimation = false
                     }
-                    completion?(true)
                 }
             }, errorHandler: { error in
                 Task {
@@ -288,7 +286,6 @@ extension WatchState {
                 }
                 DispatchQueue.main.async {
                     self.showSyncingAnimation = false
-                    completion?(false)
                 }
             })
             return true
