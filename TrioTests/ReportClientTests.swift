@@ -507,14 +507,47 @@ private final class FakeAttestService: AppAttestService {
             made.append(url)
             return MockReportSubmitter()
         }
-        let mock = ReportEndpoint.submitter(attestSupported: false, allowsMock: true, useStaging: false, make: make)
+        let mock = ReportEndpoint.submitter(attestSupported: false, allowsMock: true, useDev: false, make: make)
         #expect(mock is MockReportSubmitter)
-        #expect(ReportEndpoint.submitter(attestSupported: false, allowsMock: false, useStaging: false, make: make) == nil)
+        #expect(ReportEndpoint.submitter(attestSupported: false, allowsMock: false, useDev: false, make: make) == nil)
         #expect(made.isEmpty)
 
-        _ = ReportEndpoint.submitter(attestSupported: true, allowsMock: false, useStaging: false, make: make)
-        _ = ReportEndpoint.submitter(attestSupported: true, allowsMock: true, useStaging: true, make: make)
-        #expect(made.map(\.absoluteString) == ["https://support.triodocs.org", "https://support-staging.triodocs.org"])
+        _ = ReportEndpoint.submitter(attestSupported: true, allowsMock: false, useDev: false, make: make)
+        _ = ReportEndpoint.submitter(attestSupported: true, allowsMock: true, useDev: true, make: make)
+        _ = ReportEndpoint.submitter(
+            attestSupported: true,
+            allowsMock: true,
+            useDev: true,
+            baseURL: "https://support.example.test",
+            make: make
+        )
+        #expect(made.map(\.absoluteString) == [
+            "https://support.triodocs.org",
+            "https://support-dev.triodocs.org",
+            "https://support.example.test"
+        ])
+    }
+
+    private func endpointSubmitter() throws -> HTTPReportSubmitter {
+        let submitter = ReportEndpoint.submitter(keychain: keychain, service: service, defaults: storage)
+        return try #require(submitter as? HTTPReportSubmitter)
+    }
+
+    @Test("Debug launch arguments pick the dev server and its own key") func debugEndpoint() throws {
+        let plain = try endpointSubmitter()
+        #expect(plain.attest.baseURL.absoluteString == ReportEndpoint.production)
+        #expect(plain.attest.namespace == "ReportAttest")
+
+        storage.set(true, forKey: ReportEndpoint.devKey)
+        let dev = try endpointSubmitter()
+        #expect(dev.attest.baseURL.absoluteString == ReportEndpoint.dev)
+        #expect(dev.attest.namespace == "ReportAttest.dev")
+
+        storage.removeObject(forKey: ReportEndpoint.devKey)
+        storage.set("https://support.example.test", forKey: ReportEndpoint.baseURLKey)
+        let custom = try endpointSubmitter()
+        #expect(custom.attest.baseURL == Self.base)
+        #expect(custom.attest.namespace == "ReportAttest.dev")
     }
 
     @Test("Mock submitter returns a debug ID") func mockSubmitter() async throws {
