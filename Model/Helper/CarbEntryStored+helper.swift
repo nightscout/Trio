@@ -21,7 +21,7 @@ extension NSPredicate {
     }
 
     static var carbsForStats: NSPredicate {
-        let date = Date.threeMonthsAgo
+        let date = Date.ninetyDaysAgo
         return NSPredicate(format: "date >= %@ AND isFPU == %@", date as NSDate, false as NSNumber)
     }
 

@@ -5,7 +5,6 @@ struct GlucoseDailyPercentileDetailView: View {
     let units: GlucoseUnits
     let dateRangeText: String
 
-    // Binding to the parent's selectedPercentile
     @Binding var selectedPercentile: GlucosePercentileType?
 
     var body: some View {
@@ -14,17 +13,11 @@ struct GlucoseDailyPercentileDetailView: View {
                 .font(.subheadline.weight(.medium))
                 .padding(.bottom, 4)
 
-            // Only show percentile details if we have valid data
             if dayData.median > 0 {
-                // Improved percentile display
                 HStack(spacing: 0) {
-                    percentileItem(label: "Min", value: round(dayData.minimum), type: .minimum)
-                    percentileItem(label: "10%", value: round(dayData.percentile10), type: .percentile10)
-                    percentileItem(label: "25%", value: round(dayData.percentile25), type: .percentile25)
-                    percentileItem(label: "Median", value: round(dayData.median), type: .median)
-                    percentileItem(label: "75%", value: round(dayData.percentile75), type: .percentile75)
-                    percentileItem(label: "90%", value: round(dayData.percentile90), type: .percentile90)
-                    percentileItem(label: "Max", value: round(dayData.maximum), type: .maximum)
+                    ForEach(GlucosePercentileType.allCases) { type in
+                        percentileItem(type: type, value: type.getValue(from: dayData))
+                    }
                 }
                 .padding(.vertical, 8)
             } else {
@@ -35,17 +28,14 @@ struct GlucoseDailyPercentileDetailView: View {
         }
     }
 
-    /// Creates a single percentile item for the detail view
     private func percentileItem(
-        label: String,
-        value: Double,
-        type: GlucosePercentileType
+        type: GlucosePercentileType,
+        value: Double
     ) -> some View {
-        // Explicitly-typed locals: without them the repeated `type == selectedPercentile`
-        // ternaries (Color vs .primary/.secondary/.clear) across this modifier chain make the
-        // Swift type-checker time out on some build configurations.
+        let label = type.shortLabel
+        // Explicit locals: without them the repeated ternaries time out the compiler on some configs.
         let isSelected = type == selectedPercentile
-        let valueString = Decimal(value).formatted(for: units)
+        let valueString = Decimal(value).formattedAsGlucose(for: units)
         let valueColor: Color = isSelected ? .purple : .primary
         let labelColor: Color = isSelected ? .purple : .secondary
         let fillColor: Color = isSelected ? Color.purple.opacity(0.1) : .clear
@@ -72,19 +62,14 @@ struct GlucoseDailyPercentileDetailView: View {
         )
         .contentShape(Rectangle())
         .onTapGesture {
-            withAnimation {
-                // Toggle selection on tap
-                selectedPercentile = isSelected ? nil : type
-            }
+            selectedPercentile = isSelected ? nil : type
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(label))
         .accessibilityValue(Text(valueString))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
         .accessibilityAction {
-            withAnimation {
-                selectedPercentile = isSelected ? nil : type
-            }
+            selectedPercentile = isSelected ? nil : type
         }
     }
 }

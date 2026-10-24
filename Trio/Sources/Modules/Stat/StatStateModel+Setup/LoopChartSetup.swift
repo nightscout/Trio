@@ -1,73 +1,26 @@
 import CoreData
 import Foundation
 
-/// Represents statistical data about loop execution success/failure for a specific time period
-struct LoopStatsByPeriod: Identifiable {
-    /// The date representing this time period
-    let period: Date
-    /// Number of successful loop executions in this period
-    let successful: Int
-    /// Number of failed loop executions in this period
-    let failed: Int
-    /// Median duration of loop executions in this period
-    let medianDuration: Double
-    /// Number of glucose measurements in this period
-    let glucoseCount: Int
-    /// Total number of loop executions in this period
-    var total: Int { successful + failed }
-    /// Percentage of successful loops (0-100)
-    var successPercentage: Double { total > 0 ? Double(successful) / Double(total) * 100 : 0 }
-    /// Percentage of failed loops (0-100)
-    var failurePercentage: Double { total > 0 ? Double(failed) / Double(total) * 100 : 0 }
-    /// Unique identifier for this period, using the period date
-    var id: Date { period }
-}
+struct LoopingStats: Identifiable {
+    var id: Date { date }
 
-struct LoopStatsProcessedData: Identifiable {
-    var id = UUID()
-    let category: LoopStatsDataType
-    let count: Int
-    let percentage: Double
+    let date: Date
+    let successful: Int
+    let failed: Int
     let medianDuration: Double
     let medianInterval: Double
-    let totalDays: Int
-}
-
-enum LoopStatsDataType: String {
-    case successfulLoop
-    case glucoseCount
-
-    var displayName: String {
-        switch self {
-        case .successfulLoop: return String(localized: "Successful Loops")
-        case .glucoseCount: return String(localized: "Glucose Count")
-        }
-    }
 }
 
 extension Stat.StateModel {
-    /// Initiates the process of fetching and processing loop statistics
-    /// This function coordinates three main tasks:
-    /// 1. Fetching loop stat record IDs for the selected duration
-    /// 2. Calculating grouped statistics for the Loop stats chart
-    /// 3. Updating loop stat records on the main thread (!) for the Loop duration chart
-    func setupLoopStatRecords() {
+    func setupLoopStats() {
         Task {
             do {
-                let (recordIDs, failedRecordIDs) = try await self.fetchLoopStatRecords(for: selectedIntervalForLoopStats)
-
-                // Update loop records for duration chart
-                await self.updateLoopStatRecords(allLoopIds: recordIDs)
-
-                // Calculate statistics and update on main thread
-                let stats = try await self.getLoopStats(
-                    allLoopIds: recordIDs,
-                    failedLoopIds: failedRecordIDs,
-                    interval: selectedIntervalForLoopStats
-                )
+                let (hourly, daily, earliestLoopDate) = try await fetchLoopStats()
 
                 await MainActor.run {
-                    self.loopStats = stats
+                    self.hourlyLoopStats = hourly
+                    self.dailyLoopStats = daily
+                    self.earliestLoopDate = earliestLoopDate
                 }
             } catch {
                 debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch loop stats: \(error)")
@@ -75,193 +28,108 @@ extension Stat.StateModel {
         }
     }
 
-    /// Fetches loop statistics records for the specified duration
-    /// - Parameter interval: The time period to fetch records for
-    /// - Returns: A tuple containing arrays of NSManagedObjectIDs for (all loops, failed loops)
-    func fetchLoopStatRecords(for interval: StatsTimeIntervalWithToday) async throws
-        -> ([NSManagedObjectID], [NSManagedObjectID])
-    {
-        let loopTaskContext = CoreDataStack.shared.newTaskContext()
-        loopTaskContext.name = "StatStateModel.fetchLoopStatRecords"
-
-        // Calculate the date range based on selected duration
-        let now = Date()
-        let startDate: Date
-        switch interval {
-        case .day:
-            startDate = now.addingTimeInterval(-24.hours.timeInterval)
-        case .today:
-            startDate = Calendar.current.startOfDay(for: now)
-        case .week:
-            startDate = now.addingTimeInterval(-7.days.timeInterval)
-        case .month:
-            startDate = now.addingTimeInterval(-30.days.timeInterval)
-        case .total:
-            startDate = now.addingTimeInterval(-90.days.timeInterval)
+    private static func makeLoopStats(date: Date, entries: [(date: Date, entry: LoopStatRecord)]) -> LoopingStats {
+        let sums = entries.reduce((successful: 0, failed: 0)) { acc, item in
+            guard item.entry.loopStatus?.contains("Success") == true else { return (acc.successful, acc.failed + 1) }
+            return (acc.successful + 1, acc.failed)
         }
+        let sortedDurations = entries
+            .map(\.entry.duration)
+            .sorted()
+        // Zero or negative intervals are excluded so they cannot drag the median.
+        let sortedIntervals = entries
+            .filter { $0.entry.interval > 0 }
+            .map(\.entry.interval)
+            .sorted()
 
-        // Perform both fetches asynchronously
-        async let allLoopsResult = CoreDataStack.shared.fetchEntitiesAsync(
+        return LoopingStats(
+            date: date,
+            successful: sums.successful,
+            failed: sums.failed,
+            medianDuration: StatChartUtils.percentile(0.5, of: sortedDurations),
+            medianInterval: StatChartUtils.percentile(0.5, of: sortedIntervals)
+        )
+    }
+
+    private func fetchLoopStats() async throws -> (hourly: [LoopingStats], daily: [LoopingStats], earliestLoopDate: Date?) {
+        let loopTaskContext = CoreDataStack.shared.newTaskContext()
+        loopTaskContext.name = "StatStateModel.fetchLoopStats"
+
+        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: LoopStatRecord.self,
             onContext: loopTaskContext,
-            predicate: NSPredicate(format: "start > %@", startDate as NSDate),
+            predicate: NSPredicate(format: "start >= %@", Date.ninetyDaysAgo as NSDate),
             key: "start",
-            ascending: false
-        )
-
-        async let failedLoopsResult = CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: LoopStatRecord.self,
-            onContext: loopTaskContext,
-            predicate: NSPredicate(
-                format: "start > %@ AND loopStatus != %@",
-                startDate as NSDate,
-                "Success"
-            ),
-            key: "start",
-            ascending: false
-        )
-
-        // Wait for both results and convert to object IDs
-        let (allLoops, failedLoops) = try await (allLoopsResult, failedLoopsResult)
-
-        return (
-            (allLoops as? [LoopStatRecord] ?? []).map(\.objectID),
-            (failedLoops as? [LoopStatRecord] ?? []).map(\.objectID)
-        )
-    }
-
-    /// Updates the loopStatRecords array on the main thread with records from the provided IDs
-    /// - Parameters:
-    ///   - allLoopIds: Array of NSManagedObjectIDs for all loop records
-    @MainActor func updateLoopStatRecords(allLoopIds: [NSManagedObjectID]) {
-        loopStatRecords = allLoopIds.compactMap { id -> LoopStatRecord? in
-            do {
-                return try viewContext.existingObject(with: id) as? LoopStatRecord
-            } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) Error fetching loop stat: \(error)")
-                return nil
-            }
-        }
-    }
-
-    /// Calculates loop and glucose statistics based on the provided record IDs
-    /// - Parameters:
-    ///   - allLoopIds: Array of NSManagedObjectIDs for all loop records
-    ///   - failedLoopIds: Array of NSManagedObjectIDs for failed loop records
-    ///   - interval: The time period for statistics calculation
-    /// - Returns: Array of tuples containing category, count and percentage for each statistic
-    func getLoopStats(
-        allLoopIds: [NSManagedObjectID],
-        failedLoopIds: [NSManagedObjectID],
-        interval: StatsTimeIntervalWithToday
-    ) async throws
-        -> [LoopStatsProcessedData]
-    {
-        let loopTaskContext = CoreDataStack.shared.newTaskContext()
-        loopTaskContext.name = "StatStateModel.getLoopStats"
-
-        // Calculate the date range for glucose readings
-        let now = Date()
-        let startDate: Date
-        switch interval {
-        case .day:
-            startDate = now.addingTimeInterval(-24.hours.timeInterval)
-        case .today:
-            startDate = Calendar.current.startOfDay(for: now)
-        case .week:
-            startDate = now.addingTimeInterval(-7.days.timeInterval)
-        case .month:
-            startDate = now.addingTimeInterval(-30.days.timeInterval)
-        case .total:
-            startDate = now.addingTimeInterval(-90.days.timeInterval)
-        }
-
-        // Get glucose statistics (uses its own local context)
-        let totalGlucose = try await calculateGlucoseStats(from: startDate, to: now)
-
-        // Get NSManagedObject
-        let allLoops = try await CoreDataStack.shared
-            .getNSManagedObject(with: allLoopIds, context: loopTaskContext) as? [LoopStatRecord] ?? []
-        let failedLoops = try await CoreDataStack.shared
-            .getNSManagedObject(with: failedLoopIds, context: loopTaskContext) as? [LoopStatRecord] ?? []
-
-        return await loopTaskContext.perform {
-            let totalLoopsCount = allLoops.count
-            let failedLoopsCount = failedLoops.count
-            let successfulLoops = totalLoopsCount - failedLoopsCount
-            let maxLoopsPerDay = 288.0 // Maximum possible loops per day (every 5 minutes)
-
-            let numberOfDays = max(1, Calendar.current.dateComponents([.day], from: startDate, to: now).day ?? 1)
-            let averageLoopsPerDay = Double(successfulLoops) / Double(numberOfDays)
-            let averageGlucosePerDay = Double(totalGlucose) / Double(numberOfDays)
-
-            // Calculate median duration (time from start to end of each loop)
-            let sortedDurations: [TimeInterval] = allLoops.compactMap { loop in
-                guard let start = loop.start, let end = loop.end else { return nil }
-                return end.timeIntervalSince(start)
-            }.sorted()
-            let medianDuration = sortedDurations.isEmpty ? 0.0 : sortedDurations[sortedDurations.count / 2]
-
-            // Calculate median interval (time between end of n-th loop and start of n+1th loop)
-            let sortedIntervals: [TimeInterval] = zip(allLoops.dropLast(), allLoops.dropFirst()).compactMap { previous, next in
-                guard let previousEnd = previous.end, let nextStart = next.start else { return nil }
-                return previousEnd.timeIntervalSince(nextStart)
-            }.sorted()
-            let medianInterval = sortedIntervals.isEmpty ? 0.0 : sortedIntervals[sortedIntervals.count / 2]
-
-            let loopPercentage = (averageLoopsPerDay / maxLoopsPerDay) * 100
-            let glucosePercentage = (averageGlucosePerDay / maxLoopsPerDay) * 100
-
-            return [
-                LoopStatsProcessedData(
-                    category: LoopStatsDataType.successfulLoop,
-                    count: Int(round(averageLoopsPerDay)),
-                    percentage: loopPercentage,
-                    medianDuration: medianDuration,
-                    medianInterval: medianInterval,
-                    totalDays: numberOfDays
-                ),
-                LoopStatsProcessedData(
-                    category: LoopStatsDataType.glucoseCount,
-                    count: Int(round(averageGlucosePerDay)),
-                    percentage: glucosePercentage,
-                    medianDuration: medianDuration,
-                    medianInterval: medianInterval,
-                    totalDays: numberOfDays
-                )
-            ]
-        }
-    }
-
-    /// Fetches and calculates glucose statistics for the given time period
-    /// - Parameters:
-    ///   - startDate: The start date of the period to analyze
-    ///   - now: The current date (end of period)
-    /// - Returns: Number of glucose readings in the period
-    private func calculateGlucoseStats(
-        from startDate: Date,
-        to _: Date
-    ) async throws -> Int {
-        let loopTaskContext = CoreDataStack.shared.newTaskContext()
-        loopTaskContext.name = "StatStateModel.calculateGlucoseStats"
-
-        // Create predicate for glucose readings
-        let glucosePredicate = NSPredicate(format: "date >= %@", startDate as NSDate)
-
-        // Fetch glucose readings asynchronously
-        let glucoseResult = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: GlucoseStored.self,
-            onContext: loopTaskContext,
-            predicate: glucosePredicate,
-            key: "date",
-            ascending: false
+            ascending: true
         )
 
         return await loopTaskContext.perform {
-            guard let readings = glucoseResult as? [GlucoseStored] else {
-                return 0
+            guard let fetchedResults = results as? [LoopStatRecord] else { return ([], [], nil) }
+
+            let validEntries = fetchedResults.compactMap { entry -> (date: Date, entry: LoopStatRecord)? in
+                guard let date = entry.start else { return nil }
+                return (date, entry)
             }
-            return readings.count
+
+            let calendar = Calendar.current
+            let (twentyDaysAgo, now) = StatChartUtils.hourlyWindow(calendar: calendar)
+            let lastTwentyDays = validEntries.filter { $0.date >= twentyDaysAgo && $0.date <= now }
+
+            let hourlyGrouped = Dictionary(grouping: lastTwentyDays) {
+                calendar.date(from: calendar.dateComponents([.year, .month, .day, .hour], from: $0.date))!
+            }
+            let dailyGrouped = Dictionary(grouping: validEntries) { calendar.startOfDay(for: $0.date) }
+
+            let hourlyStats = hourlyGrouped.sorted { $0.key < $1.key }.map {
+                Self.makeLoopStats(date: $0.key, entries: $0.value)
+            }
+
+            let dailyStats = dailyGrouped.sorted { $0.key < $1.key }.map {
+                Self.makeLoopStats(date: $0.key, entries: $0.value)
+            }
+
+            let earliestLoopDate = validEntries.first?.date
+
+            return (hourlyStats, dailyStats, earliestLoopDate)
         }
+    }
+
+    func calculateLoopStats(for range: (start: Date, end: Date))
+        -> (successful: Double, failed: Double, successRate: Double, coverage: Double)
+    {
+        let isDay = selectedIntervalForLoopStats == .day
+        let stats = isDay ? hourlyLoopStats : dailyLoopStats
+        let relevantStats = stats.filter { StatChartUtils.isStatInRange($0.date, in: range) }
+
+        guard !relevantStats.isEmpty else { return (0, 0, 0.0, 0.0) }
+
+        let sums = relevantStats.reduce((successful: 0, failed: 0)) { acc, entry in
+            (acc.successful + entry.successful, acc.failed + entry.failed)
+        }
+
+        // Day view sums hourly buckets into a daily total and longer spans average across days.
+        let divisor = isDay ? 1.0 : Double(relevantStats.count)
+        let successRate = Double(sums.successful) / Double(sums.successful + sums.failed) * 100
+        let coverage = Self.loopCoverage(successful: sums.successful, for: range, startDate: earliestLoopDate)
+
+        return (Double(sums.successful) / divisor, Double(sums.failed) / divisor, successRate, coverage)
+    }
+
+    private static func loopCoverage(
+        successful: Int,
+        for range: (start: Date, end: Date),
+        startDate: Date?
+    ) -> Double {
+        let expectedLoopInterval: TimeInterval = 5 * 60
+        let now = Date()
+        // Clamp to the first loop and now so fresh installs and unfinished days are not penalized.
+        let start = max(range.start, startDate ?? range.start)
+        let end = min(range.end, now)
+
+        guard end > start else { return 0 }
+
+        let expectedLoops = end.timeIntervalSince(start) / expectedLoopInterval
+        // Forced loops can exceed the 5 minute schedule.
+        return min(Double(successful) / expectedLoops * 100, 100)
     }
 }

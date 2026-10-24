@@ -141,9 +141,6 @@ struct HomeStatsPanelStats: Sendable {
         let distribution = GlucoseDailyDistributionStats.compute(
             date: startDate,
             readings: readings,
-            // fixed consensus TIR bound (StatStateModel.highLimit), not the user's
-            // chart threshold, so the banner always matches the Stats screen
-            highLimit: 180,
             timeInRangeType: timeInRangeType
         )
         veryLowPct = distribution.veryLowPct
