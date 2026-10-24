@@ -314,37 +314,13 @@ import WatchConnectivity
         else { return }
 
         Task { await WatchLogger.shared.log("⌚️ Taking over glucose readings from stale watch state") }
-        applyGlucoseTrace(trace, from: payload)
+        applyGlucoseTrace(trace)
     }
 
-    /// The phone's readings in the units it shows, colored as the phone colors them: under the dynamic scheme with the
-    /// colors it sends, under the static one by the range it sends, with its own `getDynamicGlucoseColor`.
-    private func applyGlucoseTrace(_ trace: [String: Any], from payload: [String: Any]) {
+    /// The phone's readings as it shows them: its values in the display units and its colors.
+    private func applyGlucoseTrace(_ trace: [String: Any]) {
         guard let readings = WatchGlucoseTrace.decode(trace) else { return }
-        let isMmol = payload[WatchMessageKeys.units] as? String == "mmol/L"
-        let scheme = (payload[WatchMessageKeys.glucoseColorScheme] as? String)
-            .flatMap(GlucoseColorScheme.init(rawValue:)) ?? .staticColor
-        let low = Decimal(payload[WatchMessageKeys.glucoseRangeLow] as? Double ?? 70)
-        let high = Decimal(payload[WatchMessageKeys.glucoseRangeHigh] as? Double ?? 180)
-        let target = Decimal(payload[WatchMessageKeys.glucoseRangeTarget] as? Double ?? 100)
-        // as on the phone: the dynamic scheme ramps between fixed ends around the target
-        let isDynamic = scheme == .dynamicColor
-        let lowColorValue: Decimal = isDynamic ? 55 : low
-        let highColorValue: Decimal = isDynamic ? 220 : high
-
-        glucoseValues = readings.map { reading in
-            (
-                date: reading.date,
-                glucose: isMmol ? Self.mmolL(reading.glucose) : Double(reading.glucose),
-                color: reading.color.map(Self.color(rgb:)) ?? getDynamicGlucoseColor(
-                    glucoseValue: Decimal(reading.glucose),
-                    highGlucoseColorValue: highColorValue,
-                    lowGlucoseColorValue: lowColorValue,
-                    targetGlucose: target,
-                    glucoseColorScheme: scheme
-                )
-            )
-        }
+        glucoseValues = readings.map { (date: $0.date, glucose: $0.glucose, color: Self.color(rgb: $0.color)) }
     }
 
     /// A color as the trace sends it, 0xRRGGBB.
@@ -354,14 +330,6 @@ import WatchConnectivity
             green: Double((rgb >> 8) & 0xFF) / 255,
             blue: Double(rgb & 0xFF) / 255
         )
-    }
-
-    /// As the phone's `asMmolL`: rounded to one decimal, half up.
-    private static func mmolL(_ mgdl: Int) -> Double {
-        var value = Decimal(mgdl) * Decimal(sign: .plus, exponent: -4, significand: 555)
-        var rounded = Decimal()
-        NSDecimalRound(&rounded, &value, 1, .plain)
-        return NSDecimalNumber(decimal: rounded).doubleValue
     }
 
     func session(_: WCSession, didFinish _: WCSessionUserInfoTransfer, error: (any Error)?) {
@@ -615,7 +583,7 @@ import WatchConnectivity
         }
 
         if let trace = message[WatchMessageKeys.glucoseTrace] as? [String: Any] {
-            applyGlucoseTrace(trace, from: message)
+            applyGlucoseTrace(trace)
         }
 
         if let minYAxisValue = message[WatchMessageKeys.minYAxisValue] {

@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import UIKit
 
-public enum GlucoseColorScheme: String, CaseIterable, Identifiable, Codable, Hashable {
+public enum GlucoseColorScheme: String, JSON, CaseIterable, Identifiable, Codable, Hashable {
     public var id: String { rawValue }
     case dynamicColor
     case staticColor
@@ -16,11 +16,6 @@ public enum GlucoseColorScheme: String, CaseIterable, Identifiable, Codable, Has
         }
     }
 }
-
-// The watch app colors its readings with this file and DynamicGlucoseColor.swift, without Trio's JSON helpers.
-#if os(iOS)
-    extension GlucoseColorScheme: JSON {}
-#endif
 
 extension Color {
     func toHexString() -> String {

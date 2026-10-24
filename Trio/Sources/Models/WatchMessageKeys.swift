@@ -64,11 +64,6 @@ enum WatchMessageKeys {
     static let forecastConeMax = "forecastConeMax"
     static let forecastLines = "forecastLines"
 
-    /// The last 24 hours of glucose, compact (`WatchGlucoseTrace`); the watch colors them by the range and scheme.
+    /// The last 24 hours of glucose as the phone shows them, compact (`WatchGlucoseTrace`).
     static let glucoseTrace = "glucoseTrace"
-    /// mg/dL of the glucose range and the current target, and the color scheme, to color the readings by.
-    static let glucoseRangeLow = "glucoseRangeLow"
-    static let glucoseRangeHigh = "glucoseRangeHigh"
-    static let glucoseRangeTarget = "glucoseRangeTarget"
-    static let glucoseColorScheme = "glucoseColorScheme"
 }

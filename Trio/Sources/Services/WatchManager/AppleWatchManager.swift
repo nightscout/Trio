@@ -250,10 +250,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 }
 
                 // the watch colors the readings itself, as `getDynamicGlucoseColor` does here
-                watchState.glucoseRangeLow = self.lowGlucose
-                watchState.glucoseRangeHigh = self.highGlucose
-                watchState.glucoseRangeTarget = currentGlucoseTarget
-                watchState.glucoseColorScheme = self.glucoseColorScheme.rawValue
 
                 guard let latestGlucose = glucoseObjects.first else {
                     return watchState
@@ -294,19 +290,24 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     watchState.currentGlucoseColorString = "#ffffff" // white when in range; colored when out of range
                 }
 
-                // In mg/dL, the watch converts the units. The dynamic scheme's colors are computed here, as for the
-                // phone's own chart; the static scheme's the watch takes from the range it is sent.
-                watchState.glucoseValues = glucoseObjects.map { glucose in
-                    WatchGlucoseObject(
+                // Map glucose values
+                watchState.glucoseValues = glucoseObjects.compactMap { glucose in
+                    let glucoseValue = self.units == .mgdL
+                        ? Double(glucose.glucose)
+                        : Double(truncating: Decimal(glucose.glucose).asMmolL as NSNumber)
+
+                    let glucoseColor = Trio.getDynamicGlucoseColor(
+                        glucoseValue: Decimal(glucose.glucose),
+                        highGlucoseColorValue: highGlucoseColorValue,
+                        lowGlucoseColorValue: lowGlucoseColorValue,
+                        targetGlucose: targetGlucose,
+                        glucoseColorScheme: self.glucoseColorScheme
+                    )
+
+                    return WatchGlucoseObject(
                         date: glucose.date ?? Date(),
-                        glucose: Int(glucose.glucose),
-                        color: isDynamicColorScheme ? Self.rgb(Trio.getDynamicGlucoseColor(
-                            glucoseValue: Decimal(glucose.glucose),
-                            highGlucoseColorValue: highGlucoseColorValue,
-                            lowGlucoseColorValue: lowGlucoseColorValue,
-                            targetGlucose: targetGlucose,
-                            glucoseColorScheme: self.glucoseColorScheme
-                        )) : nil
+                        glucose: glucoseValue,
+                        color: glucoseColor.toHexString()
                     )
                 }
                 .sorted { $0.date < $1.date }
@@ -562,12 +563,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         // the whole window every time: compact, it is small enough that nothing needs syncing
         dictionary[WatchMessageKeys.glucoseTrace] = WatchGlucoseTrace.encode(
-            state.glucoseValues.map { WatchGlucoseTrace.Reading(date: $0.date, glucose: $0.glucose, color: $0.color) }
+            state.glucoseValues.map {
+                WatchGlucoseTrace.Reading(date: $0.date, glucose: $0.glucose, color: WatchGlucoseTrace.rgb(hex: $0.color))
+            },
+            scale: state.units == .mgdL ? 1 : 10
         )
-        dictionary[WatchMessageKeys.glucoseRangeLow] = NSDecimalNumber(decimal: state.glucoseRangeLow).doubleValue
-        dictionary[WatchMessageKeys.glucoseRangeHigh] = NSDecimalNumber(decimal: state.glucoseRangeHigh).doubleValue
-        dictionary[WatchMessageKeys.glucoseRangeTarget] = NSDecimalNumber(decimal: state.glucoseRangeTarget).doubleValue
-        dictionary[WatchMessageKeys.glucoseColorScheme] = state.glucoseColorScheme
 
         var forecastData: [String: Any] = [
             WatchMessageKeys.forecastConeMin: state.forecastConeMin,
@@ -677,11 +677,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         var content = context
         content.removeValue(forKey: WatchMessageKeys.date)
         return content as NSDictionary
-    }
-
-    /// A color as the trace sends it, 0xRRGGBB.
-    private static func rgb(_ color: Color) -> Int? {
-        Int(color.toHexString().dropFirst(), radix: 16)
     }
 
     @MainActor private func logTransfer(_ route: String, _ payload: [String: Any]) {
