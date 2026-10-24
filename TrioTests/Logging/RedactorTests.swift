@@ -87,6 +87,12 @@ import Testing
                 "serial=<cgm-serial-1> bleAddress=<device-1> name=<device-2>"
             ),
             (
+                "SyaiCGMManager",
+                ["sensors": ["activeMAC": "AABBCCDDEE02", "pendingBind": ["mac": "AABBCCDDEE03"]]],
+                "activeMAC: AABBCCDDEE02 pendingBind: AABBCCDDEE03",
+                "activeMAC: <device-1> pendingBind: <device-2>"
+            ),
+            (
                 "EversenseKit",
                 ["bleNameString": "SYN-EVR-01", "accessToken": "synthetic-access-token"],
                 "Connecting to: SYN-EVR-01 with synthetic-access-token",

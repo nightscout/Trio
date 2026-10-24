@@ -25,6 +25,7 @@ enum OSLogCapture {
         "G7CGMManager": ["org.loopkit.G7SensorKit", "org.loopkit.G7SensorKitUI", "org.loopkit.G7SensorPlugin"],
         "LibreTransmitterManagerV3": ["com.loopkit.LibreTransmitter", "com.loopkit.libre"],
         "LibreLoopCGMManager": ["org.loopkit.LibreLoop"],
+        "SyaiCGMManager": ["org.loopkit.SyaiKit"],
         "DexShareClient": ["com.loopkit.ShareClient"]
     ]
 

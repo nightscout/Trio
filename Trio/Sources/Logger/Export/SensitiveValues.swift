@@ -4,6 +4,7 @@ import Foundation
 import G7SensorKit
 import LibreTransmitter
 import LoopKit
+import SyaiKit
 import TidepoolServiceKit
 
 struct SensitiveValues {
@@ -52,6 +53,10 @@ struct SensitiveValues {
             (["peripheralIdentifier"], .device),
             (["sharedKey"], .secret),
             (["shareUsername"], .account)
+        ],
+        "SyaiCGMManager": [
+            (["sensors", "activeMAC"], .device),
+            (["sensors", "pendingBind", "mac"], .device)
         ],
         "LibreLoopCGMManager": [
             (["sensorSerial"], .cgmSerial),
@@ -163,6 +168,14 @@ struct SensitiveValues {
             add(credentials.dropFirst().first ?? nil, .secret)
         case let manager as G7CGMManager:
             add(manager.state.transmitterVersion?.serialNumberString, .cgmSerial)
+        case is SyaiCGMManager:
+            // The account lives in the kit's own keychain item, not in rawState
+            guard let account = SyaiKeychain.loadAccount() else { return }
+            add(account.email, .email)
+            add(account.userId, .account)
+            for secret in [account.password, account.refreshToken, account.accessToken, account.glucoseSecretKey] {
+                add(secret, .secret)
+            }
         case let manager as LibreTransmitterManagerV3:
             add(UserDefaults.standard.currentSensor, .cgmSerial)
             add(UserDefaults.standard.preSelectedDevice, .device)
