@@ -682,6 +682,21 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: treatmentsSubcategory,
+                    name: String(localized: "Enable Meal-Time Reminder Option"),
+                    value: trioSettings.mealTimeReminderEnabled ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                if trioSettings.mealTimeReminderEnabled {
+                    addSetting(
+                        category: featuresCategory,
+                        subcategory: treatmentsSubcategory,
+                        name: String(localized: "Meal-Time Reminder Presets"),
+                        value: trioSettings.mealTimeReminderPresets.map(\.description).joined(separator: ", "),
+                        unit: String(localized: "min", comment: "Units for meal-time reminder lead time")
+                    )
+                }
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Very Low Glucose Warning"),
                     value: trioSettings.confirmBolus ? String(localized: "Enabled") : String(localized: "Disabled")
                 )

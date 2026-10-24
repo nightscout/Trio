@@ -28,11 +28,22 @@ extension Home {
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
         @ObservationIgnored @Injected() var iobService: IOBService!
+        @ObservationIgnored @Injected() var mealTimeReminderService: MealTimeReminderService!
         @ObservationIgnored @Injected() var fileStorage: FileStorage!
         @ObservationIgnored @Injected() var unlockmanager: UnlockManager!
 
         var cgmStateModel: CGMSettings.StateModel {
             CGMSettings.StateModel.shared
+        }
+
+        @MainActor var pendingMealTimeReminder: PendingMealTimeReminder? {
+            guard resolver != nil else { return nil }
+            return mealTimeReminderService.pendingReminder
+        }
+
+        @MainActor func cancelMealTimeReminder() {
+            guard resolver != nil else { return }
+            mealTimeReminderService.cancelPendingReminders()
         }
 
         private let timer = DispatchTimer(timeInterval: 30)

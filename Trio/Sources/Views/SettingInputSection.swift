@@ -185,33 +185,118 @@ struct SettingInputSection<VerboseHint: View>: View {
         setting: PickerSetting,
         decimalValue: Binding<Decimal>
     ) -> some View {
+        PickerSettingRow(
+            label: label,
+            decimalValue: decimalValue,
+            setting: setting,
+            units: units,
+            displayPicker: displayPicker
+        )
+    }
+
+    private func toggleView(label: String, isOn: Binding<Bool>) -> some View {
+        HStack {
+            Toggle(isOn: isOn) {
+                Text(label)
+            }
+        }.padding(.top)
+    }
+
+    public func hintSection(
+        miniHint: String,
+        shouldDisplayHint: Binding<Bool>,
+        verboseHint: VerboseHint,
+        miniHintColor: Color = .secondary
+    ) -> some View {
+        SettingHintRow(
+            miniHint: miniHint,
+            shouldDisplayHint: shouldDisplayHint,
+            selectedVerboseHint: $selectedVerboseHint,
+            verboseHint: verboseHint,
+            label: label,
+            miniHintColor: miniHintColor
+        )
+    }
+}
+
+/// The mini-hint text with a help button that presents the verbose hint, extracted from
+/// `SettingInputSection` so custom sections can offer the same help affordance.
+struct SettingHintRow<VerboseHint: View>: View {
+    let miniHint: String
+    @Binding var shouldDisplayHint: Bool
+    @Binding var selectedVerboseHint: (any View)?
+    let verboseHint: VerboseHint
+    let label: String
+    var miniHintColor: Color = .secondary
+
+    var body: some View {
+        HStack(alignment: .center) {
+            Text(miniHint)
+                .font(.footnote)
+                .foregroundColor(miniHintColor)
+                .lineLimit(nil)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer()
+            Button(action: {
+                shouldDisplayHint.toggle()
+                selectedVerboseHint = shouldDisplayHint ? verboseHint : nil
+            }) {
+                HStack {
+                    Image(systemName: "questionmark.circle")
+                }
+            }
+            .buttonStyle(BorderlessButtonStyle())
+            .accessibilityLabel(Text("More information about \(label)"))
+        }.padding(.vertical)
+    }
+}
+
+/// A decimal setting row with an inline wheel picker, extracted from `SettingInputSection` so
+/// several rows can be grouped in a single custom `Section`.
+struct PickerSettingRow: View {
+    let label: String
+    @Binding var decimalValue: Decimal
+    let setting: PickerSetting
+    var units: GlucoseUnits
+    /// When nil the row owns its picker-visibility state; pass a binding to control it from outside.
+    var displayPicker: Binding<Bool>?
+
+    @State private var ownDisplayPicker = false
+    @ObservedObject private var pickerSettingsProvider = PickerSettingsProvider.shared
+
+    private var isPickerShown: Binding<Bool> {
+        displayPicker ?? $ownDisplayPicker
+    }
+
+    var body: some View {
         VStack {
             HStack {
                 Text(label)
                 Spacer()
-                displayText(for: setting, decimalValue: decimalValue.wrappedValue)
-                    .foregroundColor(!displayPicker.wrappedValue ? .primary : .accentColor)
+                displayText(for: setting, decimalValue: decimalValue)
+                    .foregroundColor(!isPickerShown.wrappedValue ? .primary : .accentColor)
             }
             .padding(.top)
             // whole row is the tap target and reads as one element: "label, value, button"
             .contentShape(Rectangle())
             .onTapGesture {
-                displayPicker.wrappedValue.toggle()
+                isPickerShown.wrappedValue.toggle()
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(label))
-            .accessibilityValue(Text(accessibilityValueString(for: setting, decimalValue: decimalValue.wrappedValue)))
+            .accessibilityValue(Text(accessibilityValueString(for: setting, decimalValue: decimalValue)))
             .accessibilityHint(Text(
-                displayPicker.wrappedValue
+                isPickerShown.wrappedValue
                     ? String(localized: "Closes the value picker", comment: "Accessibility hint")
                     : String(localized: "Opens a picker to change the value", comment: "Accessibility hint")
             ))
             .accessibilityAddTraits(.isButton)
-            .accessibilityAction { displayPicker.wrappedValue.toggle() }
+            .accessibilityAction { isPickerShown.wrappedValue.toggle() }
 
-            if displayPicker.wrappedValue {
-                Picker(selection: decimalValue, label: Text(label)) {
-                    ForEach(pickerSettingsProvider.generatePickerValues(from: setting, units: self.units), id: \.self) { value in
+            if isPickerShown.wrappedValue {
+                Picker(selection: $decimalValue, label: Text(label)) {
+                    ForEach(pickerSettingsProvider.generatePickerValues(from: setting, units: units), id: \.self) { value in
                         displayText(for: setting, decimalValue: value).tag(value)
                     }
                 }
@@ -266,40 +351,5 @@ struct SettingInputSection<VerboseHint: View>: View {
         case .hour:
             return "\(decimalValue) \(UnitSpelling.spoken("hr"))"
         }
-    }
-
-    private func toggleView(label: String, isOn: Binding<Bool>) -> some View {
-        HStack {
-            Toggle(isOn: isOn) {
-                Text(label)
-            }
-        }.padding(.top)
-    }
-
-    public func hintSection(
-        miniHint: String,
-        shouldDisplayHint: Binding<Bool>,
-        verboseHint: VerboseHint,
-        miniHintColor: Color = .secondary
-    ) -> some View {
-        HStack(alignment: .center) {
-            Text(miniHint)
-                .font(.footnote)
-                .foregroundColor(miniHintColor)
-                .lineLimit(nil)
-                .multilineTextAlignment(.leading)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer()
-            Button(action: {
-                shouldDisplayHint.wrappedValue.toggle()
-                selectedVerboseHint = shouldDisplayHint.wrappedValue ? verboseHint : nil
-            }) {
-                HStack {
-                    Image(systemName: "questionmark.circle")
-                }
-            }
-            .buttonStyle(BorderlessButtonStyle())
-            .accessibilityLabel(Text("More information about \(label)"))
-        }.padding(.vertical)
     }
 }
