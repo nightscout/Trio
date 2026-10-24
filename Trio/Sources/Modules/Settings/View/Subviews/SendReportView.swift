@@ -52,7 +52,7 @@ struct SendReportView: View {
                     }
                 },
                 footer: {
-                    Text("\(draft.description.count) of \(ReportDraft.maxDescriptionLength) characters")
+                    Text("\(draft.description.unicodeScalars.count) of \(ReportDraft.maxDescriptionLength) characters")
                 }
             )
             .listRowBackground(Color.chart)
@@ -111,13 +111,13 @@ struct SendReportView: View {
             draft.save()
         }
         .onChange(of: draft.title) { _, title in
-            if title.count > ReportDraft.maxTitleLength {
-                draft.title = String(title.prefix(ReportDraft.maxTitleLength))
+            if title.unicodeScalars.count > ReportDraft.maxTitleLength {
+                draft.title = title.prefix(scalars: ReportDraft.maxTitleLength)
             }
         }
         .onChange(of: draft.description) { _, description in
-            if description.count > ReportDraft.maxDescriptionLength {
-                draft.description = String(description.prefix(ReportDraft.maxDescriptionLength))
+            if description.unicodeScalars.count > ReportDraft.maxDescriptionLength {
+                draft.description = description.prefix(scalars: ReportDraft.maxDescriptionLength)
             }
         }
         .onChange(of: photoSelection) { _, items in

@@ -3,6 +3,7 @@ import Foundation
 struct ReportDraft: Codable, Equatable {
     static let maxTitleLength = 200
     static let maxDescriptionLength = 20000
+    static let maxContactLength = 200
     static let storageKey = "ReportProblem.draft"
 
     var title = ""
@@ -16,14 +17,14 @@ struct ReportDraft: Codable, Equatable {
     }
 
     var canSubmit: Bool {
-        !trimmedDescription.isEmpty && description.count <= Self.maxDescriptionLength
+        !trimmedDescription.isEmpty && description.unicodeScalars.count <= Self.maxDescriptionLength
     }
 
     func report(context: ProblemReport.Context, attachments: [ProblemReport.Attachment]) -> ProblemReport {
-        let title = String(title.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Self.maxTitleLength))
+        let title = title.trimmingCharacters(in: .whitespacesAndNewlines).prefix(scalars: Self.maxTitleLength)
         return ProblemReport(
             title: title.isEmpty ? nil : title,
-            description: String(trimmedDescription.prefix(Self.maxDescriptionLength)),
+            description: trimmedDescription.prefix(scalars: Self.maxDescriptionLength),
             contact: isAnonymous ? nil : contact.trimmed,
             context: context,
             attachments: attachments
@@ -40,5 +41,12 @@ struct ReportDraft: Codable, Equatable {
 
     static func clear(in storage: KeyValueStorage = UserDefaults.standard) {
         storage.setValue(ReportDraft?.none, forKey: storageKey)
+    }
+}
+
+extension String {
+    // The server counts Unicode code points, not characters
+    func prefix(scalars limit: Int) -> String {
+        String(String.UnicodeScalarView(unicodeScalars.prefix(limit)))
     }
 }
