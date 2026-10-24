@@ -10,6 +10,7 @@ private final class StubURLProtocol: URLProtocol {
         let url: URL
         let headers: [String: String]
         let body: Data
+        let timeout: TimeInterval
 
         var path: String { url.path }
     }
@@ -37,14 +38,20 @@ private final class StubURLProtocol: URLProtocol {
             method: request.httpMethod ?? "GET",
             url: request.url ?? URL(fileURLWithPath: "/"),
             headers: request.allHTTPHeaderFields ?? [:],
-            body: body
+            body: body,
+            timeout: request.timeoutInterval
         )
         Self.lock.lock()
         Self.requests.append(recorded)
         let handler = Self.handler
         Self.lock.unlock()
 
+        // A negative status fails with that URLError code
         let (status, data) = handler?(recorded) ?? (500, Data())
+        guard status >= 0 else {
+            client?.urlProtocol(self, didFailWithError: URLError(URLError.Code(rawValue: status)))
+            return
+        }
         let response = HTTPURLResponse(url: recorded.url, statusCode: status, httpVersion: nil, headerFields: nil)
         if let response {
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
@@ -334,6 +341,48 @@ private final class FakeAttestService: AppAttestService {
         let signed = requests.filter { $0.path == "/v1/reports" }
         #expect(signed.map { $0.headers["X-Trio-Key-Id"] } == ["synthetic-key-1", "synthetic-key-1", "synthetic-key-2"])
         #expect(service.generatedKeys == 2)
+    }
+
+    @Test("A cold server gets a long wait and one retry per request after a timeout") func coldServer() async throws {
+        var challengeTimeouts = 0
+        var createTimeouts = 0
+        serve { request in
+            switch request.path {
+            case "/v1/attest/challenge" where challengeTimeouts == 0:
+                challengeTimeouts += 1
+                return (URLError.timedOut.rawValue, Data())
+            case "/v1/reports" where createTimeouts == 0:
+                createTimeouts += 1
+                return (URLError.timedOut.rawValue, Data())
+            default:
+                return nil
+            }
+        }
+        let id = try await submitter.submit(Self.report()) { _ in }
+
+        #expect(id == "TR-TEST-0001")
+        #expect(Array(steps().prefix(7)) == [
+            "POST /v1/attest/challenge",
+            "POST /v1/attest/challenge",
+            "POST /v1/attest/register",
+            "POST /v1/attest/challenge",
+            "POST /v1/reports",
+            "POST /v1/attest/challenge",
+            "POST /v1/reports"
+        ])
+        let signed = requests.filter { $0.path == "/v1/reports" }
+        #expect(signed[0].headers["X-Trio-Challenge"] != signed[1].headers["X-Trio-Challenge"])
+        #expect(requests.filter { $0.method == "POST" }.allSatisfy { $0.timeout == 60 })
+    }
+
+    @Test("A second timeout gives up") func repeatedTimeout() async throws {
+        serve { request in
+            request.path == "/v1/reports" ? (URLError.timedOut.rawValue, Data()) : nil
+        }
+        await #expect(throws: ReportSubmitError.network(URLError(.timedOut).localizedDescription)) {
+            try await self.submitter.submit(Self.report()) { _ in }
+        }
+        #expect(requests.filter { $0.path == "/v1/reports" }.count == 2)
     }
 
     @Test("Server errors map to plain messages by code and status") func errorMapping() throws {
