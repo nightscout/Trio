@@ -172,7 +172,9 @@ struct GlucoseSectorChart: View, Equatable {
                         StatChartUtils.formatPercentage(shareOf(upperMid))
                     ),
                     (
-                        "\(timeInRangeType.shortName) (\(label(for: .tight)))",
+                        String(
+                            localized: "TITR (\(label(for: .tight)))"
+                        ),
                         StatChartUtils.formatPercentage(shareOf(tight))
                     )
                 ],

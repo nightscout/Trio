@@ -8,13 +8,14 @@ import LoopKit
 /// move out of here and into the plugin repo.
 ///
 /// Scope covers pump + CGM-issued alerts (LibreLoop sensor expiry / attention
-/// / reconnect). G5/G6/One/G7/One+ don't go through `issueAlert` — their
-/// status surfaces via `cgmStatusHighlight` instead. Trio-internal alerts
+/// / reconnect, G7 sensor lifecycle). G5/G6/One don't go through `issueAlert`
+/// — their status surfaces via `cgmStatusHighlight` only. Trio-internal alerts
 /// (glucose thresholds, algorithm error, not-looping) set their level at
 /// construction and don't need a catalog entry.
 enum AlertCatalogRegistry {
     static let entries: [Alert.CatalogEntry] =
-        omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + trioAlgorithmEntries
+        omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + g7Entries
+            + syaiEntries + trioAlgorithmEntries
 
     static func lookup(_ identifier: Alert.Identifier) -> Alert.CatalogEntry? {
         if let exact = entries.first(where: { $0.identifier == identifier }) {
@@ -240,6 +241,95 @@ private extension AlertCatalogRegistry {
             "reconnectNeedsReScan",
             .timeSensitive,
             "Re-scan Sensor",
+            "Connectivity",
+            .cgmReconnectNeeded
+        )
+    ]
+}
+
+// MARK: - Syai (Ultra)
+
+private extension AlertCatalogRegistry {
+    static let syaiEntries: [Alert.CatalogEntry] = [
+        addEntry("SyaiCGMManager", "syai.signalLost", .timeSensitive, "Signal Loss", "Connectivity", .cgmReconnectNeeded),
+        addEntry("SyaiCGMManager", "syai.expired", .timeSensitive, "Sensor Expired", "Sensor", .cgmExpired),
+        addEntry("SyaiCGMManager", "syai.failed", .timeSensitive, "Sensor Malfunction", "Sensor", .cgmReplacementNeeded),
+        addEntry("SyaiCGMManager", "syai.unactivated", .timeSensitive, "Sensor Not Activated", "Sensor", .cgmReplacementNeeded)
+    ]
+}
+
+// MARK: - Dexcom G7 / ONE+ / Stelo
+
+private extension AlertCatalogRegistry {
+    /// The plugin issues these without a sound, so without an entry here they
+    /// reach the user as a silent banner with no tier config and no snooze
+    /// mapping. G7 was the one CGM with no entries at all.
+    ///
+    /// Levels are identical to the LibreLoop set — every CGM lifecycle alert
+    /// is `.timeSensitive`. Nothing is `.critical`, sensor failure included: a
+    /// dead sensor stops CGM, it doesn't dose, and once readings stop
+    /// `loop.notActive` escalates to Critical on its own. Nothing is `.active`
+    /// either, matching how the catalog escalates LibreLoop's 24h warning.
+    ///
+    /// Both plugins declare their own levels and the catalog overrides both
+    /// the same way (`G7LifecycleAlert.interruptionLevel`,
+    /// `LibreLoopExpiryAlerts`), so these rows are what the user actually gets.
+    static let g7Entries: [Alert.CatalogEntry] = [
+        addEntry(
+            "G7CGMManager",
+            "sensorExpiringSoon",
+            .timeSensitive,
+            "Sensor Expires in 24 Hours",
+            "Sensor",
+            .cgmExpiringSoon
+        ),
+        addEntry(
+            "G7CGMManager",
+            "sensorExpiringImminently",
+            .timeSensitive,
+            "Sensor Expires in 2 Hours",
+            "Sensor",
+            .cgmExpiringSoon
+        ),
+        addEntry(
+            "G7CGMManager",
+            "sensorExpired",
+            .timeSensitive,
+            "Sensor Expired",
+            "Sensor",
+            .cgmExpired
+        ),
+        addEntry(
+            "G7CGMManager",
+            "sessionEnded",
+            .timeSensitive,
+            "Sensor Session Ended",
+            "Sensor",
+            .cgmExpired
+        ),
+        addEntry(
+            "G7CGMManager",
+            "sensorFailed",
+            .timeSensitive,
+            "Sensor Failed",
+            "Sensor",
+            .cgmReplacementNeeded
+        ),
+        addEntry(
+            "G7CGMManager",
+            "connectionRefused",
+            .timeSensitive,
+            "Sensor Connection Refused",
+            "Connectivity",
+            .cgmReconnectNeeded
+        ),
+        // The plugin no longer raises this one, only retracts it; the entry
+        // stays so a build that re-enables it is configured, not silent.
+        addEntry(
+            "G7CGMManager",
+            "signalLoss",
+            .timeSensitive,
+            "No Sensor Readings",
             "Connectivity",
             .cgmReconnectNeeded
         )
