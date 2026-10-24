@@ -160,4 +160,22 @@ import UniformTypeIdentifiers
             .report(context: Self.context, attachments: [])
         #expect(longTitle.title?.count == ReportDraft.maxTitleLength)
     }
+
+    @Test("Missing build info is sent as unknown") func unknownContext() {
+        #expect(ProblemReport.Context.known(nil) == "unknown")
+        #expect(ProblemReport.Context.known(" \n") == "unknown")
+        #expect(ProblemReport.Context.known(" dev ") == "dev")
+
+        let context = ProblemReport.Context.current(pump: nil, cgm: nil)
+        let fields = [
+            context.appVersion,
+            context.buildNumber,
+            context.devVersion,
+            context.branch,
+            context.commit,
+            context.deviceModel,
+            context.osVersion
+        ]
+        #expect(fields.allSatisfy { !$0.isEmpty })
+    }
 }
