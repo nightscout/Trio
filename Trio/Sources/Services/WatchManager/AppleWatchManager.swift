@@ -1164,5 +1164,8 @@ extension BaseWatchManager {
         case tempTargetStopped = "temp_target_stopped"
         case genericSuccess = "success"
         case genericFailure = "failure"
+        /// A duplicate of a request that is still running; that request's own ack follows.
+        /// Not a failure, although `acknowledged` is false.
+        case inProgress = "in_progress"
     }
 }
