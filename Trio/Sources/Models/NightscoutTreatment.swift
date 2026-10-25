@@ -23,6 +23,7 @@ struct NightscoutTreatment: JSON, Hashable, Equatable {
     var units: String?
     var id: String?
     var fpuID: String?
+    var isProgrammedByPumpUI: Bool?
 
     static let local = "Trio"
 
@@ -61,5 +62,6 @@ extension NightscoutTreatment {
         case units
         case id
         case fpuID
+        case isProgrammedByPumpUI
     }
 }

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03B15F4B3077CD4B00DFEBE4 /* SyaiKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */; };
+		03B15F4D3077CD5400DFEBE4 /* SyaiKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */; };
+		03B15F4E3077CD6100DFEBE4 /* SyaiKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		03B15F4F3077CD6100DFEBE4 /* SyaiKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		041D1E995A6AE92E9289DC49 /* TreatmentsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */; };
 		0D9A5E34A899219C5C4CDFAF /* HistoryStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9455FA2D92E77A6C4AFED8A3 /* HistoryStateModel.swift */; };
 		10DAA318F47843A4B894173D /* ContainerResolutionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98546920BB7247B0AC73449A /* ContainerResolutionTests.swift */; };
@@ -55,6 +59,7 @@
 		1BBB001DAD60F3B8CEA4B1C7 /* ISFEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 505E09DC17A0C3D0AF4B66FE /* ISFEditorStateModel.swift */; };
 		1D845DF2E3324130E1D95E67 /* HistoryProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60744C3E9BB3652895C908CC /* HistoryProvider.swift */; };
 		23888883D4EA091C88480FF2 /* TreatmentsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C19984D62EFC0035A9E9644D /* TreatmentsProvider.swift */; };
+		25726254CCC5496EB7BD95C8 /* CGMSensorStateLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41BEC89F0411CF3EF0F6A61B /* CGMSensorStateLog.swift */; };
 		320D030F724170A637F06D50 /* (null) in Sources */ = {isa = PBXBuildFile; };
 		3811DE0B25C9D32F00A708ED /* BaseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3811DE0725C9D32E00A708ED /* BaseView.swift */; };
 		3811DE0C25C9D32F00A708ED /* BaseProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3811DE0825C9D32F00A708ED /* BaseProvider.swift */; };
@@ -299,7 +304,6 @@
 		3BCE75B52D4B391F009E9453 /* Decimal+rounding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BCE75B42D4B3917009E9453 /* Decimal+rounding.swift */; };
 		3BD6CE262DC24CFD00FA0472 /* pumphistory-24h-zoned.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BD6CE252DC24CFD00FA0472 /* pumphistory-24h-zoned.json */; };
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
-		5E12FE112EBC0000000000B2 /* RoundWhiteDiscKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5E12FE112EBC0000000000B1 /* RoundWhiteDiscKit */; };
 		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3BE2F1E82E030E2F009E2900 /* MealCobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E72E030E2F009E2900 /* MealCobTests.swift */; };
 		3BE2F1EA2E031951009E2900 /* MealCobBucketingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE2F1E92E031951009E2900 /* MealCobBucketingTests.swift */; };
@@ -336,6 +340,7 @@
 		4984D1D42EA2939E00263E83 /* WatchConfigGarminAppConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4984D1D32EA2939E00263E83 /* WatchConfigGarminAppConfigView.swift */; };
 		49B9B57F2D5768D2009C6B59 /* AdjustmentStored+Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B9B57E2D5768D2009C6B59 /* AdjustmentStored+Helper.swift */; };
 		49C782A72F73D9870062B0DD /* AlertEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C782A62F73D9870062B0DD /* AlertEntry.swift */; };
+		4A3C7DA31A04D14F83DC2957 /* CGMSensorStateLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71A58E19DE23455CB842C50C /* CGMSensorStateLogTests.swift */; };
 		5075C1608E6249A51495C422 /* TargetsEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDEA2DC60EDE0A3CA54DC73 /* TargetsEditorProvider.swift */; };
 		53F2382465BF74DB1A967C8B /* PumpConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8630D58BDAD6D9C650B9B39 /* PumpConfigProvider.swift */; };
 		581516A42BCED84A00BF67D7 /* DebuggingIdentifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581516A32BCED84A00BF67D7 /* DebuggingIdentifiers.swift */; };
@@ -379,6 +384,7 @@
 		5E12FE0E2EBC0000000000C1 /* LibreLoop.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5E12FE0E2EBC0000000000C2 /* LibreLoopUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5E12FE0E2EBC0000000000A2 /* LibreLoopUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5E12FE112EBC0000000000A2 /* LoopAlgorithm in Frameworks */ = {isa = PBXBuildFile; productRef = 5E12FE112EBC0000000000A1 /* LoopAlgorithm */; };
+		5E12FE112EBC0000000000B2 /* RoundWhiteDiscKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5E12FE112EBC0000000000B1 /* RoundWhiteDiscKit */; };
 		63E890B4D951EAA91C071D5C /* BasalProfileEditorStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFF91130F2FCCC7EBBA11AD /* BasalProfileEditorStateModel.swift */; };
 		642F76A05A4FF530463A9FD0 /* NightscoutConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8782B44544F38F2B2D82C38E /* NightscoutConfigRootView.swift */; };
 		65070A332BFDCB83006F213F /* TidepoolStartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65070A322BFDCB83006F213F /* TidepoolStartView.swift */; };
@@ -571,8 +577,6 @@
 		BD1179AA2F4E22C100F90001 /* NotLoopingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179AB2F4E22C100F90001 /* NotLoopingMonitor.swift */; };
 		BD1179AC2F4E22C100F90001 /* GlucoseSourceKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179AD2F4E22C100F90001 /* GlucoseSourceKey.swift */; };
 		BD11A001000000000000A002 /* AlertMuterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A002 /* AlertMuterTests.swift */; };
-		6D58D168F03780DA23CB2E52 /* QuickPickTreatmentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7DA23B64976670AC36D9E84 /* QuickPickTreatmentsTests.swift */; };
-		4A3C7DA31A04D14F83DC2957 /* CGMSensorStateLogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71A58E19DE23455CB842C50C /* CGMSensorStateLogTests.swift */; };
 		BD11A001000000000000A003 /* DeviceAlertsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */; };
 		CAF600000000000000000002 /* AlarmSoundCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF600000000000000000001 /* AlarmSoundCatalogTests.swift */; };
 		BD11A001000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */; };
@@ -745,6 +749,25 @@
 		CA06000000000000000010C2 /* GlucoseAlertsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA06000000000000000010C1 /* GlucoseAlertsStoreTests.swift */; };
 		CA07000000000000000010C2 /* TelemetrySendGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA07000000000000000010C1 /* TelemetrySendGateTests.swift */; };
 		CA370FC152BC98B3D1832968 /* BasalProfileEditorRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF8BCB0C37DEB5EC377B9612 /* BasalProfileEditorRootView.swift */; };
+		CAF200000000000000000000 /* Trio/Resources/Sounds/alarm.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000000 /* Trio/Resources/Sounds/alarm.caf */; };
+		CAF200000000000000000001 /* Trio/Resources/Sounds/bloom.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000001 /* Trio/Resources/Sounds/bloom.caf */; };
+		CAF200000000000000000002 /* Trio/Resources/Sounds/bloop.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000002 /* Trio/Resources/Sounds/bloop.caf */; };
+		CAF200000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf */; };
+		CAF200000000000000000004 /* Trio/Resources/Sounds/chime.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000004 /* Trio/Resources/Sounds/chime.caf */; };
+		CAF200000000000000000005 /* Trio/Resources/Sounds/clear_chimes.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000005 /* Trio/Resources/Sounds/clear_chimes.caf */; };
+		CAF200000000000000000006 /* Trio/Resources/Sounds/critical.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000006 /* Trio/Resources/Sounds/critical.caf */; };
+		CAF200000000000000000007 /* Trio/Resources/Sounds/crying.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000007 /* Trio/Resources/Sounds/crying.caf */; };
+		CAF200000000000000000008 /* Trio/Resources/Sounds/dings.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000008 /* Trio/Resources/Sounds/dings.caf */; };
+		CAF200000000000000000009 /* Trio/Resources/Sounds/high_chimes.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000009 /* Trio/Resources/Sounds/high_chimes.caf */; };
+		CAF20000000000000000000A /* Trio/Resources/Sounds/honk.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF10000000000000000000A /* Trio/Resources/Sounds/honk.caf */; };
+		CAF20000000000000000000B /* Trio/Resources/Sounds/minimal.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF10000000000000000000B /* Trio/Resources/Sounds/minimal.caf */; };
+		CAF20000000000000000000C /* Trio/Resources/Sounds/mood_synth.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF10000000000000000000C /* Trio/Resources/Sounds/mood_synth.caf */; };
+		CAF20000000000000000000D /* Trio/Resources/Sounds/simple.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF10000000000000000000D /* Trio/Resources/Sounds/simple.caf */; };
+		CAF20000000000000000000E /* Trio/Resources/Sounds/spring.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF10000000000000000000E /* Trio/Resources/Sounds/spring.caf */; };
+		CAF20000000000000000000F /* Trio/Resources/Sounds/synth.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF10000000000000000000F /* Trio/Resources/Sounds/synth.caf */; };
+		CAF200000000000000000010 /* Trio/Resources/Sounds/trill.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000010 /* Trio/Resources/Sounds/trill.caf */; };
+		CAF200000000000000000011 /* Trio/Resources/Sounds/urgent_low.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000011 /* Trio/Resources/Sounds/urgent_low.caf */; };
+		CAF300000000000000000002 /* CriticalAlertAlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF300000000000000000001 /* CriticalAlertAlarmScheduler.swift */; };
 		CC6C406E2ACDD69E009B8058 /* RawFetchedProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */; };
 		CC76E9512BD4812E008BEB61 /* Forecast+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC76E9502BD4812E008BEB61 /* Forecast+helper.swift */; };
 		CD1235B000000000000000F2 /* TidepoolUploadSerializerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1235A000000000000000F1 /* TidepoolUploadSerializerTests.swift */; };
@@ -778,7 +801,6 @@
 		CE94598729E9E4110047C9C6 /* WatchConfigRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94598629E9E4110047C9C6 /* WatchConfigRootView.swift */; };
 		CE95BF572BA5F5FE00DC3DE3 /* PluginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95BF562BA5F5FE00DC3DE3 /* PluginManager.swift */; };
 		CE95BF5A2BA62E4A00DC3DE3 /* PluginSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE95BF592BA62E4A00DC3DE3 /* PluginSource.swift */; };
-		25726254CCC5496EB7BD95C8 /* CGMSensorStateLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41BEC89F0411CF3EF0F6A61B /* CGMSensorStateLog.swift */; };
 		CE95BF5B2BA770C300DC3DE3 /* LoopKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; };
 		CE95BF5C2BA770C300DC3DE3 /* LoopKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CE95BF5D2BA770C300DC3DE3 /* LoopKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4D274C26A300843DB3 /* LoopKitUI.framework */; };
@@ -812,6 +834,7 @@
 		DB0BB0030000000000000002 /* ReleaseNotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB0030000000000000001 /* ReleaseNotesListView.swift */; };
 		DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F137F126D9F8DEB799F26 /* ISFEditorProvider.swift */; };
 		DC01A00B2E9F100000000002 /* DeviceCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC01A00A2E9F100000000001 /* DeviceCatalog.swift */; };
+		DC01A00E2E9F100000000005 /* DeviceCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC01A00D2E9F100000000004 /* DeviceCatalogTests.swift */; };
 		DC01A0102E9F100000000007 /* DevicePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC01A00F2E9F100000000006 /* DevicePickerView.swift */; };
 		DD09D47B2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD09D47A2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift */; };
 		DD09D47D2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD09D47C2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift */; };
@@ -1119,6 +1142,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				03B15F4E3077CD6100DFEBE4 /* SyaiKitUI.framework in Embed Frameworks */,
+				03B15F4F3077CD6100DFEBE4 /* SyaiKit.framework in Embed Frameworks */,
 				3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */,
 				3B4BA7732D8DBD690069D5B8 /* G7SensorKitUI.framework in Embed Frameworks */,
 				3B4BA76D2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Embed Frameworks */,
@@ -1187,6 +1212,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SyaiKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SyaiKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A1E8522E7684C6AA742F6E4 /* HomeStateModel+QuickPickTreatments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeStateModel+QuickPickTreatments.swift"; sourceTree = "<group>"; };
 		10E61A0885164081B57C357C /* NightscoutUploadSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadSerializer.swift; sourceTree = "<group>"; };
 		110AEDE02C5193D100615CC9 /* BolusIntent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BolusIntent.swift; sourceTree = "<group>"; };
@@ -1491,6 +1518,7 @@
 		3EF667122FE48502009FB31A /* BasalDeliveryState+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BasalDeliveryState+Extension.swift"; sourceTree = "<group>"; };
 		3F60E97100041040446F44E7 /* PumpConfigStateModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigStateModel.swift; sourceTree = "<group>"; };
 		3F8A87AA037BD079BA3528BA /* ConfigEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorDataFlow.swift; sourceTree = "<group>"; };
+		41BEC89F0411CF3EF0F6A61B /* CGMSensorStateLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMSensorStateLog.swift; sourceTree = "<group>"; };
 		42369F66CF91F30624C0B3A6 /* BasalProfileEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BasalProfileEditorProvider.swift; sourceTree = "<group>"; };
 		44080E4709E3AE4B73054563 /* ConfigEditorProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ConfigEditorProvider.swift; sourceTree = "<group>"; };
 		48B83503461B4F8D97B30115 /* SettingsSearchHighlight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSearchHighlight.swift; sourceTree = "<group>"; };
@@ -1738,8 +1766,6 @@
 		BD1179AB2F4E22C100F90001 /* NotLoopingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotLoopingMonitor.swift; sourceTree = "<group>"; };
 		BD1179AD2F4E22C100F90001 /* GlucoseSourceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseSourceKey.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A002 /* AlertMuterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertMuterTests.swift; sourceTree = "<group>"; };
-		C7DA23B64976670AC36D9E84 /* QuickPickTreatmentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickTreatmentsTests.swift; sourceTree = "<group>"; };
-		71A58E19DE23455CB842C50C /* CGMSensorStateLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMSensorStateLogTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAlertsStoreTests.swift; sourceTree = "<group>"; };
 		CAF600000000000000000001 /* AlarmSoundCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSoundCatalogTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastedGlucoseEvaluatorTests.swift; sourceTree = "<group>"; };
@@ -1902,6 +1928,7 @@
 		C2BA6B962F758E7500348E6A /* WatchNotificationHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchNotificationHandler.swift; sourceTree = "<group>"; };
 		C2BA6B982F758E7600348E6A /* NotificationIdentifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationIdentifiers.swift; sourceTree = "<group>"; };
 		C39FF1EC12CF4B1EBB13BE26 /* NightscoutUploadSerializerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutUploadSerializerTests.swift; sourceTree = "<group>"; };
+		C7DA23B64976670AC36D9E84 /* QuickPickTreatmentsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickTreatmentsTests.swift; sourceTree = "<group>"; };
 		C898B01F40421A1F8CF9F5F9 /* MealTimeReminderMetadata.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MealTimeReminderMetadata.swift; sourceTree = "<group>"; };
 		C8D1A7CA8C10C4403D4BBFA7 /* TreatmentsDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TreatmentsDataFlow.swift; sourceTree = "<group>"; };
 		CA01000000000000000010C1 /* AlertCatalogVendor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertCatalogVendor.swift; sourceTree = "<group>"; };
@@ -1913,6 +1940,25 @@
 		CA05000000000000000010C1 /* AlarmGramsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmGramsSection.swift; sourceTree = "<group>"; };
 		CA06000000000000000010C1 /* GlucoseAlertsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseAlertsStoreTests.swift; sourceTree = "<group>"; };
 		CA07000000000000000010C1 /* TelemetrySendGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetrySendGateTests.swift; sourceTree = "<group>"; };
+		CAF100000000000000000000 /* Trio/Resources/Sounds/alarm.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/alarm.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000001 /* Trio/Resources/Sounds/bloom.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bloom.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000002 /* Trio/Resources/Sounds/bloop.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bloop.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bright_alarm.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000004 /* Trio/Resources/Sounds/chime.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/chime.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000005 /* Trio/Resources/Sounds/clear_chimes.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/clear_chimes.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000006 /* Trio/Resources/Sounds/critical.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/critical.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000007 /* Trio/Resources/Sounds/crying.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/crying.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000008 /* Trio/Resources/Sounds/dings.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/dings.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000009 /* Trio/Resources/Sounds/high_chimes.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/high_chimes.caf; sourceTree = SOURCE_ROOT; };
+		CAF10000000000000000000A /* Trio/Resources/Sounds/honk.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/honk.caf; sourceTree = SOURCE_ROOT; };
+		CAF10000000000000000000B /* Trio/Resources/Sounds/minimal.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/minimal.caf; sourceTree = SOURCE_ROOT; };
+		CAF10000000000000000000C /* Trio/Resources/Sounds/mood_synth.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/mood_synth.caf; sourceTree = SOURCE_ROOT; };
+		CAF10000000000000000000D /* Trio/Resources/Sounds/simple.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/simple.caf; sourceTree = SOURCE_ROOT; };
+		CAF10000000000000000000E /* Trio/Resources/Sounds/spring.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/spring.caf; sourceTree = SOURCE_ROOT; };
+		CAF10000000000000000000F /* Trio/Resources/Sounds/synth.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/synth.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000010 /* Trio/Resources/Sounds/trill.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/trill.caf; sourceTree = SOURCE_ROOT; };
+		CAF100000000000000000011 /* Trio/Resources/Sounds/urgent_low.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/urgent_low.caf; sourceTree = SOURCE_ROOT; };
+		CAF300000000000000000001 /* CriticalAlertAlarmScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CriticalAlertAlarmScheduler.swift; sourceTree = "<group>"; };
 		CC6C406D2ACDD69E009B8058 /* RawFetchedProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawFetchedProfile.swift; sourceTree = "<group>"; };
 		CC76E9502BD4812E008BEB61 /* Forecast+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Forecast+helper.swift"; sourceTree = "<group>"; };
 		CD1235A000000000000000F1 /* TidepoolUploadSerializerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidepoolUploadSerializerTests.swift; sourceTree = "<group>"; };
@@ -1957,7 +2003,6 @@
 		CE95BF4A2BA5CED700DC3DE3 /* LoopKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE95BF562BA5F5FE00DC3DE3 /* PluginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginManager.swift; sourceTree = "<group>"; };
 		CE95BF592BA62E4A00DC3DE3 /* PluginSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginSource.swift; sourceTree = "<group>"; };
-		41BEC89F0411CF3EF0F6A61B /* CGMSensorStateLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMSensorStateLog.swift; sourceTree = "<group>"; };
 		CEB434DB28B8F5B900B70274 /* MKRingProgressView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MKRingProgressView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEB434E228B8F9DB00B70274 /* BluetoothStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothStateManager.swift; sourceTree = "<group>"; };
 		CEB434E428B8FF5D00B70274 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
@@ -1981,6 +2026,7 @@
 		DB0BB0030000000000000001 /* ReleaseNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesListView.swift; sourceTree = "<group>"; };
 		DB3EBC8BA17C4627BD32C58F /* QuickPickTreatmentsConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickTreatmentsConfigRootView.swift; sourceTree = "<group>"; };
 		DC01A00A2E9F100000000001 /* DeviceCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCatalog.swift; sourceTree = "<group>"; };
+		DC01A00D2E9F100000000004 /* DeviceCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCatalogTests.swift; sourceTree = "<group>"; };
 		DC01A00F2E9F100000000006 /* DevicePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicePickerView.swift; sourceTree = "<group>"; };
 		DD09D47A2C5986D1003FEA5D /* CalendarEventSettingsDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventSettingsDataFlow.swift; sourceTree = "<group>"; };
 		DD09D47C2C5986DA003FEA5D /* CalendarEventSettingsProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventSettingsProvider.swift; sourceTree = "<group>"; };
@@ -2246,6 +2292,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03B15F4D3077CD5400DFEBE4 /* SyaiKitUI.framework in Frameworks */,
+				03B15F4B3077CD4B00DFEBE4 /* SyaiKit.framework in Frameworks */,
 				CE95BF632BA771BE00DC3DE3 /* LoopTestingKit.framework in Frameworks */,
 				3B4BA7722D8DBD690069D5B8 /* G7SensorKitUI.framework in Frameworks */,
 				3B4BA7742D8DBD690069D5B8 /* LibreTransmitter.framework in Frameworks */,
@@ -2972,6 +3020,8 @@
 		3818AA48274C267000843DB3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */,
+				03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */,
 				3E5308A43002BC970075629E /* AccuChekKit.framework */,
 				B6E925122EB3932A0076D719 /* OmnipodKit.framework */,
 				3E54EF2B2E476DA40006F54D /* MedtrumKit.framework */,
@@ -7061,6 +7111,17 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = LoopAlgorithm;
+		};
+		5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = RoundWhiteDiscKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -7144,17 +7205,6 @@
 		};
 /* End XCRemoteSwiftPackageReference section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = LoopAlgorithm;
-		};
-		5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = RoundWhiteDiscKit;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
 		3811DE0F25C9D37700A708ED /* Swinject */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -7191,6 +7241,16 @@
 			package = 3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */;
 			productName = ConnectIQ;
 		};
+		5E12FE112EBC0000000000A1 /* LoopAlgorithm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */;
+			productName = LoopAlgorithm;
+		};
+		5E12FE112EBC0000000000B1 /* RoundWhiteDiscKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */;
+			productName = RoundWhiteDiscKit;
+		};
 		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */;
@@ -7205,16 +7265,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */;
 			productName = SwiftJWT;
-		};
-		5E12FE112EBC0000000000A1 /* LoopAlgorithm */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */;
-			productName = LoopAlgorithm;
-		};
-		5E12FE112EBC0000000000B1 /* RoundWhiteDiscKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */;
-			productName = RoundWhiteDiscKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 

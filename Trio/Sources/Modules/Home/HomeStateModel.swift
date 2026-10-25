@@ -13,6 +13,7 @@ import LoopKitUI
 import Observation
 import SwiftDate
 import SwiftUI
+import SyaiKit
 
 extension Home {
     @Observable final class StateModel: BaseStateModel<Provider> {
@@ -943,6 +944,9 @@ extension Home {
             case let accuChek as AccuChekCgmManager:
                 return accuChek.state.cgmEndTime
 
+            case let syai as SyaiCGMManager:
+                return syai.sensorExpirationDate
+
             default:
                 return nil
             }
@@ -987,6 +991,9 @@ extension Home {
                     return warmupCompleted
                 }
                 return nil
+
+            case let syai as SyaiCGMManager:
+                return syai.sensorWarmupEndDate
 
             default:
                 return nil

@@ -1091,6 +1091,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         switch event.type {
         case PumpEventStored.EventType.bolus.rawValue:
             return treatment.insulin == event.bolus?.amount as Decimal?
+                && (treatment.isProgrammedByPumpUI ?? false) == (event.bolus?.isProgrammedByPumpUI ?? false)
         case PumpEventStored.EventType.tempBasal.rawValue:
             return treatment.rate == event.tempBasal?.rate as Decimal?
                 && treatment.duration == Int(event.tempBasal?.duration ?? 0)
