@@ -2,6 +2,7 @@ import Combine
 import CoreData
 import Foundation
 import OSLog
+import UIKit
 
 class CoreDataStack: ObservableObject {
     static let shared = CoreDataStack()
@@ -277,6 +278,10 @@ class CoreDataStack: ObservableObject {
     /// - Returns: Void when initialization completes successfully.
     private func initializeStack(retryCount: Int) async throws {
         do {
+            if !inMemory {
+                await Self.waitForProtectedData()
+            }
+
             // Load stores asynchronously
             try await loadPersistentStores()
 
@@ -308,6 +313,50 @@ class CoreDataStack: ObservableObject {
                 throw error
             }
         }
+    }
+}
+
+// MARK: - Protected Data
+
+extension CoreDataStack {
+    /// Waits until the store files can be opened. After a restart, iOS can launch Trio in the background
+    /// before the first unlock, when every protected file is unreadable (SQLite error 23).
+    @MainActor static func waitForProtectedData(
+        isAvailable: @MainActor() -> Bool = { UIApplication.shared.isProtectedDataAvailable },
+        notificationCenter: Foundation.NotificationCenter = .default
+    ) async {
+        guard !isAvailable() else { return }
+        debug(.coreData, "Waiting for the first unlock before opening the Core Data store")
+
+        final class Waiter {
+            var observer: NSObjectProtocol?
+            var continuation: CheckedContinuation<Void, Never>?
+        }
+        let waiter = Waiter()
+
+        await withCheckedContinuation { continuation in
+            waiter.continuation = continuation
+            let finish = {
+                guard let continuation = waiter.continuation else { return }
+                waiter.continuation = nil
+                if let observer = waiter.observer {
+                    notificationCenter.removeObserver(observer)
+                }
+                continuation.resume()
+            }
+            waiter.observer = notificationCenter.addObserver(
+                forName: UIApplication.protectedDataDidBecomeAvailableNotification,
+                object: nil,
+                queue: .main
+            ) { _ in
+                MainActor.assumeIsolated { finish() }
+            }
+            // An unlock between the first check and adding the observer would otherwise be missed
+            if isAvailable() {
+                finish()
+            }
+        }
+        debug(.coreData, "Protected data available, opening the Core Data store")
     }
 }
 
