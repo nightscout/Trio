@@ -63,4 +63,7 @@ enum WatchMessageKeys {
     static let forecastConeMin = "forecastConeMin"
     static let forecastConeMax = "forecastConeMax"
     static let forecastLines = "forecastLines"
+
+    /// The last 24 hours of glucose as the phone shows them, compact (`WatchGlucoseTrace`).
+    static let glucoseTrace = "glucoseTrace"
 }

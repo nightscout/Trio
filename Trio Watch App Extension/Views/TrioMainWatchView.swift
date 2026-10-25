@@ -3,7 +3,7 @@ import SwiftUI
 import WatchKit
 
 struct TrioMainWatchView: View {
-    @State private var state = WatchState()
+    @State private var state = WatchState.shared
 
     // misc
     @State private var currentPage: Int = 0
@@ -20,15 +20,18 @@ struct TrioMainWatchView: View {
     // treatments
     @State private var selectedTreatment: TreatmentOption?
 
+    /// Advanced by a timer, so the view goes stale even when nothing new arrives.
+    @State private var now = Date()
+    @Environment(\.scenePhase) private var scenePhase
+
+    /// Dated by the newest reading, or by the last update when there is none. The extra minute covers the
+    /// next reading's delivery; unchanged messages are not resent, so the last update alone would go stale.
     var isWatchStateDated: Bool {
-        // If `lastWatchStateUpdate` is nil, treat as "dated"
-        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else {
-            return true
+        if let newestReading = state.glucoseValues.last?.date {
+            return now.timeIntervalSince(newestReading) > 6 * 60
         }
-        let now = Date().timeIntervalSince1970
-        let secondsSinceUpdate = now - lastUpdateTimestamp
-        // Return true if last update older than 5 min, so 1 loop cycle
-        return secondsSinceUpdate > 5 * 60
+        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else { return true }
+        return now.timeIntervalSince1970 - lastUpdateTimestamp > 5 * 60
     }
 
     var isSessionUnreachable: Bool {
@@ -226,6 +229,10 @@ struct TrioMainWatchView: View {
             }
         }
         .ignoresSafeArea()
+        .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { now = $0 }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { now = Date() }
+        }
     }
 
     private func updateRotation(for trend: String?) {

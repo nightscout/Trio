@@ -247,12 +247,13 @@ extension WatchState {
         }
     }
 
-    func requestWatchStateUpdate() {
+    /// - Returns: `true` if the request was sent.
+    @discardableResult func requestWatchStateUpdate() -> Bool {
         guard let session = session else {
             Task {
                 await WatchLogger.shared.log("⌚️ No session available for state update")
             }
-            return
+            return false
         }
 
         guard session.activationState == .activated else {
@@ -260,7 +261,7 @@ extension WatchState {
                 await WatchLogger.shared.log("⌚️ Session not activated. Activating...")
             }
             session.activate()
-            return
+            return false
         }
 
         if session.isReachable {
@@ -270,17 +271,29 @@ extension WatchState {
 
             let message = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
 
-            session.sendMessage(message, replyHandler: nil) { error in
+            session.sendMessage(message, replyHandler: { reply in
+                DispatchQueue.main.async {
+                    // Empty reply: the phone could not build a state.
+                    if reply.isEmpty || !self.acceptWatchStatePayload(reply) {
+                        self.showSyncingAnimation = false
+                    }
+                }
+            }, errorHandler: { error in
                 Task {
                     await WatchLogger.shared.log("⌚️ Error requesting WatchState update: \(error)")
                     await WatchLogger.shared.log("⌚️ Saving logs to disk as fallback!")
                     await WatchLogger.shared.persistLogsLocally()
                 }
-            }
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
+            })
+            return true
         } else {
             Task {
                 await WatchLogger.shared.log("⌚️ Phone not reachable for WatchState update")
             }
+            return false
         }
     }
 }
