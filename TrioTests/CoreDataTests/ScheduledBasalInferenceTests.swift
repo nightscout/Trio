@@ -14,9 +14,9 @@ import Testing
         [BasalProfileEntry(start: "00:00", minutes: 0, rate: 1.0)]
     }
 
-    // startOfDay-anchored so all times share one calendar day, matching the sweep's boundary math
+    // Wall-clock times on one calendar day, matching the sweep's boundary math; seconds from midnight drift on DST days
     private func time(_ hour: Int, _ minute: Int = 0) -> Date {
-        Calendar.current.startOfDay(for: Date()).addingTimeInterval(TimeInterval(hour * 3600 + minute * 60))
+        Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date())!
     }
 
     private func tempBasal(_ start: Date, _ end: Date) -> TimelineEvent {
@@ -218,7 +218,7 @@ import Testing
     }
 
     private func time(_ hour: Int, _ minute: Int = 0) -> Date {
-        Calendar.current.startOfDay(for: Date()).addingTimeInterval(TimeInterval(hour * 3600 + minute * 60))
+        Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date())!
     }
 
     private func temp(_ start: Date, minutes: Double, rate: Decimal) -> BasalEvent {

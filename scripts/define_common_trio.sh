@@ -23,7 +23,7 @@ TRIO_PROJECTS=( \
     loopandlearn:DanaKit:dev \
     loopandlearn:dexcom-share-client-swift:dev \
     loopandlearn:EversenseKit:dev \
-    loopandlearn:G7SensorKit:main \
+    loopandlearn:G7SensorKit:feat/trio-g7-direct \
     loopandlearn:LibreLoop:legacy-loopkit-compat \
     loopandlearn:LibreTransmitter:main \
     loopandlearn:LoopKit:trio \

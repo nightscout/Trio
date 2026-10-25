@@ -155,6 +155,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         toIncrement: Double(self.settings.preferences.bolusIncrement)
                     ))
                     newBolusEntry.isExternal = dose.manuallyEntered
+                    newBolusEntry.isProgrammedByPumpUI = dose.wasProgrammedByPumpUI
                     newBolusEntry.isSMB = dose.automatic ?? true
 
                 case .tempBasal:
@@ -249,6 +250,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         case PumpEventStored.EventType.bolus.rawValue:
             guard let bolus = event.bolus else { return }
             let previousAmount = bolus.amount
+            let previousProgrammedByPumpUI = bolus.isProgrammedByPumpUI
             let finalAmount = dose.deliveredUnits.map {
                 self.roundDose($0, toIncrement: Double(settings.preferences.bolusIncrement))
             }
@@ -256,8 +258,11 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 bolus.amount = finalAmount as NSDecimalNumber
             }
             bolus.isSMB = dose.automatic ?? true
+            bolus.isProgrammedByPumpUI = dose.wasProgrammedByPumpUI
             event.isMutable = dose.isMutable
-            if event.isUploadedToNS, bolus.amount != previousAmount {
+            if event.isUploadedToNS,
+               bolus.amount != previousAmount || bolus.isProgrammedByPumpUI != previousProgrammedByPumpUI
+            {
                 event.isUploadedToNS = false
             }
             if !dose.isMutable {
@@ -440,7 +445,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         protein: nil,
                         targetTop: nil,
                         targetBottom: nil,
-                        id: event.id
+                        id: event.id,
+                        // omitted unless set, like LoopKit's DoseEntry encoding
+                        isProgrammedByPumpUI: event.bolus?.isProgrammedByPumpUI == true ? true : nil
                     )
                 case PumpEvent.tempBasal.rawValue:
                     return NightscoutTreatment(
