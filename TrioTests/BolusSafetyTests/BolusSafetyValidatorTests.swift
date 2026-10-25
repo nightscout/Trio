@@ -110,4 +110,98 @@ import Testing
         )
         #expect(BolusSafetyEvaluator.evaluate(bolusAmount: 2, inputs: inputs) == .allowed)
     }
+
+    @Test("Overriding max IOB allows a bolus over max IOB") func testOverrideMaxIOB() {
+        let inputs = BolusSafetyInputs(
+            maxBolus: 10,
+            maxIOB: 5,
+            currentIOB: 3,
+            totalRecentBolus: 0
+        )
+        #expect(BolusSafetyEvaluator.evaluate(bolusAmount: 2.5, inputs: inputs, overriding: [.maxIOB]) == .allowed)
+    }
+
+    @Test("Max bolus cannot be overridden") func testOverrideMaxBolusIgnored() {
+        let inputs = BolusSafetyInputs(
+            maxBolus: 5,
+            maxIOB: 10,
+            currentIOB: 0,
+            totalRecentBolus: 0
+        )
+        let result = BolusSafetyEvaluator.evaluate(bolusAmount: 6, inputs: inputs, overriding: Set(BolusSafetyCheck.allCases))
+        #expect(result == .rejected(.exceedsMaxBolus(maxBolus: 5)))
+        #expect(!BolusSafetyCheck.maxBolus.canBeOverridden)
+    }
+
+    @Test("Overriding one check still runs the checks after it") func testOverrideRunsLaterChecks() {
+        let inputs = BolusSafetyInputs(
+            maxBolus: 10,
+            maxIOB: 5,
+            currentIOB: 3,
+            totalRecentBolus: 1.0
+        )
+        let result = BolusSafetyEvaluator.evaluate(bolusAmount: 2.5, inputs: inputs, overriding: [.maxIOB])
+        #expect(result == .rejected(.recentBolusWithinWindow(totalRecent: 1.0)))
+        #expect(BolusSafetyEvaluator.evaluate(bolusAmount: 2.5, inputs: inputs, overriding: [.maxIOB, .recentBolus]) == .allowed)
+    }
+
+    @Test("Overriding the recent bolus check still runs the max IOB check") func testOverrideRecentBolusKeepsMaxIOB() {
+        let inputs = BolusSafetyInputs(
+            maxBolus: 10,
+            maxIOB: 5,
+            currentIOB: 3,
+            totalRecentBolus: 1.0
+        )
+        let result = BolusSafetyEvaluator.evaluate(bolusAmount: 2.5, inputs: inputs, overriding: [.recentBolus])
+        #expect(result == .rejected(.exceedsMaxIOB(currentIOB: 3, maxIOB: 5)))
+    }
+
+    @Test("Overriding unavailable IOB skips max IOB and still runs the recent bolus check") func testOverrideIOBUnavailable() {
+        let inputs = BolusSafetyInputs(
+            maxBolus: 10,
+            maxIOB: 1,
+            currentIOB: nil,
+            totalRecentBolus: 1.0
+        )
+        let result = BolusSafetyEvaluator.evaluate(bolusAmount: 5, inputs: inputs, overriding: [.iobAvailable])
+        #expect(result == .rejected(.recentBolusWithinWindow(totalRecent: 1.0)))
+        #expect(
+            BolusSafetyEvaluator.evaluate(bolusAmount: 5, inputs: inputs, overriding: [.iobAvailable, .recentBolus]) ==
+                .allowed
+        )
+    }
+
+    @Test("Each rejection names the check that failed") func testRejectionCheck() {
+        #expect(BolusSafetyRejection.exceedsMaxBolus(maxBolus: 1).check == .maxBolus)
+        #expect(BolusSafetyRejection.iobUnavailable.check == .iobAvailable)
+        #expect(BolusSafetyRejection.exceedsMaxIOB(currentIOB: 1, maxIOB: 1).check == .maxIOB)
+        #expect(BolusSafetyRejection.recentBolusWithinWindow(totalRecent: 1).check == .recentBolus)
+    }
+
+    @Test("A confirmation past failed checks lasts as long as the recent-bolus window") func testOverrideLifetime() {
+        let now = Date()
+        let rawValues = [BolusSafetyCheck.maxIOB.rawValue, BolusSafetyCheck.recentBolus.rawValue]
+        let lifetime = TimeInterval(BolusSafetyEvaluator.recentBolusWindowMinutes * 60)
+
+        #expect(BolusSafetyCheck.overrideLifetimeMinutes == BolusSafetyEvaluator.recentBolusWindowMinutes)
+        #expect(
+            BolusSafetyCheck.overridden(rawValues, issuedAt: now.timeIntervalSince1970 - 60, now: now) ==
+                [.maxIOB, .recentBolus]
+        )
+        #expect(
+            BolusSafetyCheck.overridden(rawValues, issuedAt: now.timeIntervalSince1970 - lifetime, now: now) ==
+                [.maxIOB, .recentBolus]
+        )
+        #expect(BolusSafetyCheck.overridden(rawValues, issuedAt: now.timeIntervalSince1970 - lifetime - 1, now: now).isEmpty)
+        #expect(BolusSafetyCheck.overridden(rawValues, issuedAt: now.timeIntervalSince1970 + 60, now: now).isEmpty)
+        #expect(BolusSafetyCheck.overridden(rawValues, issuedAt: nil, now: now).isEmpty)
+    }
+
+    @Test("Unknown check names in a confirmation are ignored") func testOverrideUnknownChecks() {
+        let now = Date()
+        #expect(
+            BolusSafetyCheck.overridden(["max_iob", "not_a_check"], issuedAt: now.timeIntervalSince1970, now: now) ==
+                [.maxIOB]
+        )
+    }
 }

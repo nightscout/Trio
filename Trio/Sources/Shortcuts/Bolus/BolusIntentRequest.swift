@@ -16,10 +16,7 @@ final class BolusIntentRequest: BaseIntentsRequest {
             let validation = try await bolusSafetyValidator.validate(bolusAmount: requestedAmount)
 
             if case let .rejected(reason) = validation {
-                return reason.shortcutMessage(
-                    requestedAmount: requestedAmount,
-                    pumpMaxBolus: settingsManager.pumpSettings.maxBolus
-                )
+                return reason.localizedMessage(requestedAmount: requestedAmount)
             }
 
             let bolusQuantity = apsManager.roundBolus(amount: requestedAmount)
@@ -48,33 +45,6 @@ final class BolusIntentRequest: BaseIntentsRequest {
             return String(
                 localized:
                 "An external bolus of \(bolusQuantity.formatted()) U of insulin was recorded."
-            )
-        }
-    }
-}
-
-private extension BolusSafetyRejection {
-    func shortcutMessage(requestedAmount: Decimal, pumpMaxBolus: Decimal) -> String {
-        switch self {
-        case .exceedsMaxBolus:
-            return String(
-                localized:
-                "The bolus cannot be larger than the pump setting max bolus (\(pumpMaxBolus.description))."
-            )
-        case .iobUnavailable:
-            return String(
-                localized:
-                "Bolus blocked: current IOB is not available."
-            )
-        case let .exceedsMaxIOB(currentIOB, maxIOB):
-            return String(
-                localized:
-                "Bolus blocked: a \(requestedAmount.formatted()) U bolus would exceed max IOB (\(maxIOB.formatted()) U). Current IOB: \(currentIOB.formatted()) U."
-            )
-        case .recentBolusWithinWindow:
-            return String(
-                localized:
-                "Bolus blocked: a significant bolus was delivered within the last \(BolusSafetyEvaluator.recentBolusWindowMinutes) minutes."
             )
         }
     }
