@@ -49,7 +49,8 @@ struct LiveActivity: Widget {
             .widgetURL(URL(string: "Trio://"))
             .keylineTint(glucoseColor)
             .contentMargins(.horizontal, 0, for: .minimal)
-            .contentMargins(.trailing, 0, for: .compactLeading)
+            // compactLeading keeps the system trailing margin: with 0 the trend arrow is cut off in a narrow island
+            // (iOS 27 landscape). cf. https://github.com/nightscout/Trio/issues/1657
             .contentMargins(.leading, 0, for: .compactTrailing)
         }
 

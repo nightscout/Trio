@@ -264,7 +264,12 @@ struct LiveActivityCompactLeadingView: View {
     var glucoseColor: Color
 
     var body: some View {
-        LiveActivityBGAndTrendView(context: context, size: .compact, glucoseColor: glucoseColor).padding(.leading, 4)
+        // iOS 27 narrows the compact views (several Live Activities, landscape): scale the text down instead of
+        // truncating it to "…"; no extra leading padding, so the glucose value keeps more room
+        // cf. https://github.com/nightscout/Trio/issues/1657
+        LiveActivityBGAndTrendView(context: context, size: .compact, glucoseColor: glucoseColor)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
     }
 }
 
@@ -273,7 +278,11 @@ struct LiveActivityCompactTrailingView: View {
     var glucoseColor: Color
 
     var body: some View {
+        // scale the delta down instead of truncating it (see LiveActivityCompactLeadingView)
+        // cf. https://github.com/nightscout/Trio/issues/1657
         LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor).padding(.trailing, 4)
+            .lineLimit(1)
+            .minimumScaleFactor(0.5)
     }
 }
 
