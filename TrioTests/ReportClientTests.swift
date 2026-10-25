@@ -622,9 +622,24 @@ private final class FakeAttestService: AppAttestService {
         ])
     }
 
-    private func endpointSubmitter() throws -> HTTPReportSubmitter {
-        let submitter = ReportEndpoint.submitter(keychain: keychain, service: service, defaults: storage)
+    private func endpointSubmitter(buildUsesDev: Bool = false) throws -> HTTPReportSubmitter {
+        let submitter = ReportEndpoint.submitter(
+            keychain: keychain,
+            service: service,
+            defaults: storage,
+            buildUsesDev: buildUsesDev
+        )
         return try #require(submitter as? HTTPReportSubmitter)
+    }
+
+    @Test("The TRIO_REPORT_DEV flag picks the dev server and its own key") func buildFlagEndpoint() throws {
+        let dev = try endpointSubmitter(buildUsesDev: true)
+        #expect(dev.attest.baseURL.absoluteString == ReportEndpoint.dev)
+        #expect(dev.attest.namespace == "ReportAttest.dev")
+
+        let production = try endpointSubmitter(buildUsesDev: false)
+        #expect(production.attest.baseURL.absoluteString == ReportEndpoint.production)
+        #expect(production.attest.namespace == "ReportAttest")
     }
 
     @Test("Debug launch arguments pick the dev server and its own key") func debugEndpoint() throws {

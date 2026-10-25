@@ -500,13 +500,21 @@ enum ReportEndpoint {
         static let isDebug = false
     #endif
 
+    // SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) TRIO_REPORT_DEV in ConfigOverride.xcconfig uses the dev server in any build
+    #if TRIO_REPORT_DEV
+        static let buildUsesDev = true
+    #else
+        static let buildUsesDev = false
+    #endif
+
     static func submitter(
         keychain: Keychain,
         service: AppAttestService = DCAppAttestService.shared,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        buildUsesDev: Bool = buildUsesDev
     ) -> ReportSubmitting? {
         let baseURL = isDebug ? defaults.string(forKey: baseURLKey) : nil
-        let useDev = isDebug && (defaults.bool(forKey: devKey) || baseURL != nil)
+        let useDev = buildUsesDev || isDebug && (defaults.bool(forKey: devKey) || baseURL != nil)
         return submitter(attestSupported: service.isSupported, allowsMock: isDebug, useDev: useDev, baseURL: baseURL) { url in
             HTTPReportSubmitter(attest: .reports(
                 baseURL: url,
