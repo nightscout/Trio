@@ -1,9 +1,15 @@
 import Foundation
 
-struct BGTargets: JSON {
-    var units: GlucoseUnits
-    var userPreferredUnits: GlucoseUnits
-    var targets: [BGTargetEntry]
+public struct BGTargets: JSON {
+    public var units: GlucoseUnits
+    public var userPreferredUnits: GlucoseUnits
+    public var targets: [BGTargetEntry]
+
+    public init(units: GlucoseUnits, userPreferredUnits: GlucoseUnits, targets: [BGTargetEntry]) {
+        self.units = units
+        self.userPreferredUnits = userPreferredUnits
+        self.targets = targets
+    }
 }
 
 protocol BGTargetsObserver {
@@ -18,11 +24,18 @@ extension BGTargets {
     }
 }
 
-struct BGTargetEntry: JSON {
-    let low: Decimal
-    let high: Decimal
-    let start: String
-    let offset: Int
+public struct BGTargetEntry: JSON {
+    public let low: Decimal
+    public let high: Decimal
+    public let start: String
+    public let offset: Int
+
+    public init(low: Decimal, high: Decimal, start: String, offset: Int) {
+        self.low = low
+        self.high = high
+        self.start = start
+        self.offset = offset
+    }
 }
 
 extension BGTargets {

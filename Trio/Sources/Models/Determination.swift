@@ -1,48 +1,48 @@
 import Foundation
 
-struct Determination: JSON, Equatable {
-    let id: UUID?
-    var reason: String
-    var units: Decimal?
-    var insulinReq: Decimal?
-    var eventualBG: Int?
-    let sensitivityRatio: Decimal?
-    var rate: Decimal?
-    var duration: Decimal?
-    let iob: Decimal?
-    let cob: Decimal?
-    var predictions: Predictions?
-    var deliverAt: Date?
-    let carbsReq: Decimal?
-    let temp: TempType?
-    var bg: Decimal?
-    let reservoir: Decimal?
-    var isf: Decimal?
-    var timestamp: Date?
+public struct Determination: JSON, Equatable {
+    public let id: UUID?
+    public var reason: String
+    public var units: Decimal?
+    public var insulinReq: Decimal?
+    public var eventualBG: Int?
+    public let sensitivityRatio: Decimal?
+    public var rate: Decimal?
+    public var duration: Decimal?
+    public let iob: Decimal?
+    public let cob: Decimal?
+    public var predictions: Predictions?
+    public var deliverAt: Date?
+    public let carbsReq: Decimal?
+    public let temp: TempType?
+    public var bg: Decimal?
+    public let reservoir: Decimal?
+    public var isf: Decimal?
+    public var timestamp: Date?
 
     /// `tdd` (Total Daily Dose) is included so it can be part of the
     /// enacted and suggested devicestatus data that gets uploaded to Nightscout.
-    var tdd: Decimal?
+    public var tdd: Decimal?
 
-    var current_target: Decimal?
-    var minDelta: Decimal?
-    var expectedDelta: Decimal?
-    var minGuardBG: Decimal?
-    var minPredBG: Decimal?
-    var threshold: Decimal?
-    let carbRatio: Decimal?
-    let received: Bool?
+    public var current_target: Decimal?
+    public var minDelta: Decimal?
+    public var expectedDelta: Decimal?
+    public var minGuardBG: Decimal?
+    public var minPredBG: Decimal?
+    public var threshold: Decimal?
+    public let carbRatio: Decimal?
+    public let received: Bool?
 
     /// Remaining COB per 5 min forecast step; display-only,
     /// not part of CodingKeys so the serialized JSON is unchanged.
-    var cobProjection: [Decimal]? = nil
+    public var cobProjection: [Decimal]? = nil
 }
 
-struct Predictions: JSON, Equatable {
-    let iob: [Int]?
-    let zt: [Int]?
-    let cob: [Int]?
-    let uam: [Int]?
+public struct Predictions: JSON, Equatable {
+    public let iob: [Int]?
+    public let zt: [Int]?
+    public let cob: [Int]?
+    public let uam: [Int]?
 }
 
 extension Determination {

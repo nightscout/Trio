@@ -1,24 +1,40 @@
 import Foundation
 
-struct Autosens: JSON {
-    struct DebugInfo: Codable {
-        let iobClock: Date
-        let bgi: Decimal
-        let iobActivity: Decimal
-        let deltaGlucose: Decimal
-        let deviation: Decimal
-        let stateType: String
+public struct Autosens: JSON {
+    public struct DebugInfo: Codable {
+        public let iobClock: Date
+        public let bgi: Decimal
+        public let iobActivity: Decimal
+        public let deltaGlucose: Decimal
+        public let deviation: Decimal
+        public let stateType: String
         // COB state for debugging state transitions
-        var mealCOB: Decimal?
-        var absorbing: Bool?
-        var mealCarbs: Decimal?
-        var mealStartCounter: Int?
+        public var mealCOB: Decimal?
+        public var absorbing: Bool?
+        public var mealCarbs: Decimal?
+        public var mealStartCounter: Int?
     }
 
-    let ratio: Decimal
-    let newisf: Decimal?
-    var deviationsUnsorted: [Decimal]?
-    var timestamp: Date?
-    var debugInfo: [DebugInfo]?
-    var error: String?
+    public let ratio: Decimal
+    public let newisf: Decimal?
+    public var deviationsUnsorted: [Decimal]?
+    public var timestamp: Date?
+    public var debugInfo: [DebugInfo]?
+    public var error: String?
+
+    public init(
+        ratio: Decimal,
+        newisf: Decimal? = nil,
+        deviationsUnsorted: [Decimal]? = nil,
+        timestamp: Date? = nil,
+        debugInfo: [DebugInfo]? = nil,
+        error: String? = nil
+    ) {
+        self.ratio = ratio
+        self.newisf = newisf
+        self.deviationsUnsorted = deviationsUnsorted
+        self.timestamp = timestamp
+        self.debugInfo = debugInfo
+        self.error = error
+    }
 }

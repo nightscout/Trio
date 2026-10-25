@@ -1,6 +1,6 @@
 import Foundation
 
-enum IobError: LocalizedError, Equatable {
+public enum IobError: LocalizedError, Equatable {
     case tempBasalDurationMismatch
     case tempBasalMissingDuration(timestamp: Date)
     case tempBasalDurationMissingDuration(timestamp: Date)
@@ -10,7 +10,7 @@ enum IobError: LocalizedError, Equatable {
     case bilinearCurveNotSupported
     case diaNotSet
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .tempBasalDurationMismatch:
             return "Incomplete temp basal / duration pair"

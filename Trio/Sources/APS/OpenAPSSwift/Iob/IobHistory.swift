@@ -26,7 +26,7 @@ import Foundation
 ///
 /// These seem like small issues, and they are, but I have seen both in my data over a few days of running.
 
-struct IobHistory {
+public enum IobHistory {
     /// Used for calculating the beginning of a 0 temp when the pump history begins suspended
     static let MAX_PUMP_HISTORY_HOURS: Double = 36
 
@@ -452,7 +452,7 @@ struct IobHistory {
             .flatMap { try extractTempBoluses(from: $0, profile: profile, autosens: autosens, basalSchedule: basalSchedule) }
     }
 
-    static func calcTempTreatments(
+    public static func calcTempTreatments(
         history: [ComputedPumpHistoryEvent],
         profile: Profile,
         clock: Date,

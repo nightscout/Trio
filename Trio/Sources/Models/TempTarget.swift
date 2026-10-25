@@ -1,17 +1,43 @@
 import Foundation
 
-struct TempTarget: JSON, Identifiable, Equatable, Hashable {
-    var id = UUID().uuidString
-    let name: String?
-    var createdAt: Date
-    let targetTop: Decimal?
-    let targetBottom: Decimal?
-    let duration: Decimal
-    let enteredBy: String?
-    let reason: String?
-    let isPreset: Bool?
-    var enabled: Bool?
-    let halfBasalTarget: Decimal?
+public struct TempTarget: JSON, Identifiable, Equatable, Hashable {
+    public var id = UUID().uuidString
+    public let name: String?
+    public var createdAt: Date
+    public let targetTop: Decimal?
+    public let targetBottom: Decimal?
+    public let duration: Decimal
+    public let enteredBy: String?
+    public let reason: String?
+    public let isPreset: Bool?
+    public var enabled: Bool?
+    public let halfBasalTarget: Decimal?
+
+    public init(
+        id: String = UUID().uuidString,
+        name: String?,
+        createdAt: Date,
+        targetTop: Decimal?,
+        targetBottom: Decimal?,
+        duration: Decimal,
+        enteredBy: String?,
+        reason: String?,
+        isPreset: Bool?,
+        enabled: Bool? = nil,
+        halfBasalTarget: Decimal?
+    ) {
+        self.id = id
+        self.name = name
+        self.createdAt = createdAt
+        self.targetTop = targetTop
+        self.targetBottom = targetBottom
+        self.duration = duration
+        self.enteredBy = enteredBy
+        self.reason = reason
+        self.isPreset = isPreset
+        self.enabled = enabled
+        self.halfBasalTarget = halfBasalTarget
+    }
 
     static let local = "Trio"
     static let custom = "Temp Target"
@@ -21,11 +47,11 @@ struct TempTarget: JSON, Identifiable, Equatable, Hashable {
         name ?? reason ?? TempTarget.custom
     }
 
-    static func == (lhs: TempTarget, rhs: TempTarget) -> Bool {
+    public static func == (lhs: TempTarget, rhs: TempTarget) -> Bool {
         lhs.createdAt == rhs.createdAt
     }
 
-    func hash(into hasher: inout Hasher) {
+    public func hash(into hasher: inout Hasher) {
         hasher.combine(createdAt)
     }
 

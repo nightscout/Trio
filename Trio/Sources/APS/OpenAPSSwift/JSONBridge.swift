@@ -1,6 +1,6 @@
 import Foundation
 
-enum JSONError: Error {
+public enum JSONError: Error {
     case invalidString
     case invalidDate(String)
     case decodingFailed(Error)

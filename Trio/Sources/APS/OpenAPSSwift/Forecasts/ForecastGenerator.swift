@@ -1,7 +1,7 @@
 import Foundation
 
 /// The top-level orchestrator
-enum ForecastGenerator {
+public enum ForecastGenerator {
     public static func generate(
         glucose: Decimal,
         glucoseStatus: GlucoseStatus,

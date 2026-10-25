@@ -1,6 +1,6 @@
 import Foundation
 
-struct AutosensGenerator {
+public enum AutosensGenerator {
     /// Internal structure to keep track of bucketed glucose values
     struct BucketedGlucose {
         let glucose: Decimal
@@ -29,7 +29,7 @@ struct AutosensGenerator {
     /// Generates autosens ratio by analyzing glucose deviations from expected insulin activity
     ///
     /// This is the main Autosens algorithm entry point
-    static func generate(
+    public static func generate(
         glucose: [BloodGlucose],
         pumpHistory: [PumpHistoryEvent],
         basalProfile: [BasalProfileEntry],

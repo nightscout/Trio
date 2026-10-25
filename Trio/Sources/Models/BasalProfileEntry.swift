@@ -1,9 +1,15 @@
 import Foundation
 
-struct BasalProfileEntry: JSON, Equatable {
-    let start: String
-    let minutes: Int
-    let rate: Decimal
+public struct BasalProfileEntry: JSON, Equatable {
+    public let start: String
+    public let minutes: Int
+    public let rate: Decimal
+
+    public init(start: String, minutes: Int, rate: Decimal) {
+        self.start = start
+        self.minutes = minutes
+        self.rate = rate
+    }
 }
 
 protocol BasalProfileObserver {
@@ -17,7 +23,7 @@ extension BasalProfileEntry {
         case rate
     }
 
-    init(from decoder: Decoder) throws {
+    public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let start = try container.decode(String.self, forKey: .start)
         let minutes = try container.decode(Int.self, forKey: .minutes)

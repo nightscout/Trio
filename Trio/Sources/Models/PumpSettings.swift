@@ -1,9 +1,15 @@
 import Foundation
 
-struct PumpSettings: JSON {
-    let insulinActionCurve: Decimal
-    let maxBolus: Decimal
-    let maxBasal: Decimal
+public struct PumpSettings: JSON {
+    public let insulinActionCurve: Decimal
+    public let maxBolus: Decimal
+    public let maxBasal: Decimal
+
+    public init(insulinActionCurve: Decimal, maxBolus: Decimal, maxBasal: Decimal) {
+        self.insulinActionCurve = insulinActionCurve
+        self.maxBolus = maxBolus
+        self.maxBasal = maxBasal
+    }
 }
 
 extension PumpSettings {

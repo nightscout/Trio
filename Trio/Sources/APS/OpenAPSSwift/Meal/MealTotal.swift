@@ -1,15 +1,37 @@
 import Foundation
 
-struct ComputedCarbs: Codable {
-    var carbs: Decimal
-    var mealCOB: Decimal
-    var currentDeviation: Decimal?
-    var maxDeviation: Decimal
-    var minDeviation: Decimal
-    var slopeFromMaxDeviation: Decimal
-    var slopeFromMinDeviation: Decimal
-    var allDeviations: [Decimal]
-    var lastCarbTime: TimeInterval
+public struct ComputedCarbs: Codable {
+    public var carbs: Decimal
+    public var mealCOB: Decimal
+    public var currentDeviation: Decimal?
+    public var maxDeviation: Decimal
+    public var minDeviation: Decimal
+    public var slopeFromMaxDeviation: Decimal
+    public var slopeFromMinDeviation: Decimal
+    public var allDeviations: [Decimal]
+    public var lastCarbTime: TimeInterval
+
+    public init(
+        carbs: Decimal,
+        mealCOB: Decimal,
+        currentDeviation: Decimal? = nil,
+        maxDeviation: Decimal,
+        minDeviation: Decimal,
+        slopeFromMaxDeviation: Decimal,
+        slopeFromMinDeviation: Decimal,
+        allDeviations: [Decimal],
+        lastCarbTime: TimeInterval
+    ) {
+        self.carbs = carbs
+        self.mealCOB = mealCOB
+        self.currentDeviation = currentDeviation
+        self.maxDeviation = maxDeviation
+        self.minDeviation = minDeviation
+        self.slopeFromMaxDeviation = slopeFromMaxDeviation
+        self.slopeFromMinDeviation = slopeFromMinDeviation
+        self.allDeviations = allDeviations
+        self.lastCarbTime = lastCarbTime
+    }
 
     enum CodingKeys: String, CodingKey {
         case carbs
@@ -23,7 +45,7 @@ struct ComputedCarbs: Codable {
         case lastCarbTime
     }
 
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(carbs, forKey: .carbs)
         try container.encode(mealCOB, forKey: .mealCOB)
