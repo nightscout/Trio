@@ -209,10 +209,10 @@ extension BolusCalculatorConfig {
                             verboseHint: VStack(alignment: .leading, spacing: 10) {
                                 Text("Default: OFF").bold()
                                 Text(
-                                    "Enabling this setting adds a \"Remind Me to Eat\" row to the bolus calculator with preset buttons, an Off button, and a minutes picker."
+                                    "Enabling this option adds a \"Remind Me to Eat\" row to the bolus calculator. When enabled for a meal, it lets you set a timer based on your configured presets."
                                 )
                                 Text(
-                                    "Set how many minutes before eating you want to bolus. The reminder starts at Off for each meal. Once the bolus is delivered, an alarm counts down until it is time to eat. The first time, iOS asks for the alarm permission."
+                                    "Set how many minutes before eating you want to bolus. The reminder starts off for each meal. Once the bolus is delivered, an alarm counts down until it is time to eat."
                                 )
                             },
                             label: String(localized: "Enable Meal-Time Reminder Option")

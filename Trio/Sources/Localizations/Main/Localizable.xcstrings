@@ -128426,7 +128426,7 @@
         }
       }
     },
-    "Enabling this setting adds a \"Remind Me to Eat\" row to the bolus calculator with preset buttons, an Off button, and a minutes picker." : {
+    "Enabling this option adds a \"Remind Me to Eat\" row to the bolus calculator. When enabled for a meal, it lets you set a timer based on your configured presets." : {
 
     },
     "Enabling this setting adds a \"Super Bolus\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select." : {
@@ -266161,7 +266161,7 @@
         }
       }
     },
-    "Set how many minutes before eating you want to bolus. The reminder starts at Off for each meal. Once the bolus is delivered, an alarm counts down until it is time to eat. The first time, iOS asks for the alarm permission." : {
+    "Set how many minutes before eating you want to bolus. The reminder starts off for each meal. Once the bolus is delivered, an alarm counts down until it is time to eat." : {
 
     },
     "Set limits for each type of macro per meal entry." : {
