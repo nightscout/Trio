@@ -24,71 +24,59 @@ struct SendReportView: View {
     @State private var showError = false
 
     var body: some View {
-        Form {
-            if isSending {
-                Section {
-                    ProgressView(value: sendProgress) {
-                        Text("Sending Report")
-                    }
+        editor
+            .alert(
+                "Report Sent",
+                isPresented: Binding(get: { sentID != nil }, set: { if !$0 { sentID = nil } }),
+                presenting: sentID
+            ) { id in
+                Button("Copy ID") {
+                    UIPasteboard.general.string = id
+                    dismiss()
                 }
-                .listRowBackground(Color.chart)
+                Button("Done", role: .cancel) { dismiss() }
+            } message: { id in
+                Text("Thank you. Your report ID is \(id). Mention it if you ask about this on Discord or Facebook.")
             }
-
-            Section(
-                content: {
-                    TextField("Title (optional)", text: $draft.title)
-                    ZStack(alignment: .topLeading) {
-                        if draft.description.isEmpty {
-                            Text("Describe what happened and what you expected")
-                                .foregroundColor(Color(.placeholderText))
-                                .padding(.top, 8)
-                                .padding(.leading, 5)
-                                .accessibilityHidden(true)
-                        }
-                        TextEditor(text: $draft.description)
-                            .scrollContentBackground(.hidden)
-                            .frame(minHeight: 160)
-                            .accessibilityLabel(Text("Describe what happened and what you expected"))
-                    }
-                },
-                footer: {
-                    Text("\(draft.description.unicodeScalars.count) of \(ReportDraft.maxDescriptionLength) characters")
+            .alert("Couldn't Send Report", isPresented: $showError, presenting: sendError) { error in
+                if error.canRetry {
+                    Button("Try Again", action: send)
                 }
-            )
-            .listRowBackground(Color.chart)
+                Button("OK", role: .cancel) {}
+            } message: { error in
+                Text(error.message)
+            }
+    }
 
+    // Split into parts so the type checker stays within its time limit on slower machines
+    private var editor: some View {
+        form
+            .onChange(of: draft) { _, draft in
+                draft.save()
+            }
+            .onChange(of: draft.title) { _, title in
+                if title.unicodeScalars.count > ReportDraft.maxTitleLength {
+                    draft.title = title.prefix(scalars: ReportDraft.maxTitleLength)
+                }
+            }
+            .onChange(of: draft.description) { _, description in
+                if description.unicodeScalars.count > ReportDraft.maxDescriptionLength {
+                    draft.description = description.prefix(scalars: ReportDraft.maxDescriptionLength)
+                }
+            }
+            .onChange(of: photoSelection) { _, items in
+                loadScreenshots(items)
+            }
+    }
+
+    private var form: some View {
+        Form {
+            progressSection
+            descriptionSection
             screenshotsSection
-
-            Section(
-                content: {
-                    Toggle("Attach My Logs", isOn: $draft.attachLogs)
-                },
-                header: { Text("Your Logs") },
-                footer: {
-                    Text("Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed.")
-                }
-            )
-            .listRowBackground(Color.chart)
-
+            logsSection
             contactSection
-
-            Section(
-                content: {
-                    LabeledContent("App Version", value: appVersion)
-                    LabeledContent("Build", value: "\(context.branch) \(context.commit)")
-                    LabeledContent("iPhone Model", value: context.deviceModel)
-                    LabeledContent("iOS Version", value: context.osVersion)
-                    LabeledContent("Pump", value: context.pumpModel ?? String(localized: "None"))
-                    LabeledContent("CGM", value: context.cgmModel ?? String(localized: "None"))
-                },
-                header: { Text("Also Sent") },
-                footer: {
-                    Text(
-                        "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time."
-                    )
-                }
-            )
-            .listRowBackground(Color.chart)
+            alsoSentSection
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
@@ -107,43 +95,75 @@ struct SendReportView: View {
             }
         }
         .disabled(isSending)
-        .onChange(of: draft) { _, draft in
-            draft.save()
-        }
-        .onChange(of: draft.title) { _, title in
-            if title.unicodeScalars.count > ReportDraft.maxTitleLength {
-                draft.title = title.prefix(scalars: ReportDraft.maxTitleLength)
+    }
+
+    @ViewBuilder private var progressSection: some View {
+        if isSending {
+            Section {
+                ProgressView(value: sendProgress) {
+                    Text("Sending Report")
+                }
             }
+            .listRowBackground(Color.chart)
         }
-        .onChange(of: draft.description) { _, description in
-            if description.unicodeScalars.count > ReportDraft.maxDescriptionLength {
-                draft.description = description.prefix(scalars: ReportDraft.maxDescriptionLength)
+    }
+
+    private var descriptionSection: some View {
+        Section(
+            content: {
+                TextField("Title (optional)", text: $draft.title)
+                ZStack(alignment: .topLeading) {
+                    if draft.description.isEmpty {
+                        Text("Describe what happened and what you expected")
+                            .foregroundColor(Color(.placeholderText))
+                            .padding(.top, 8)
+                            .padding(.leading, 5)
+                            .accessibilityHidden(true)
+                    }
+                    TextEditor(text: $draft.description)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 160)
+                        .accessibilityLabel(Text("Describe what happened and what you expected"))
+                }
+            },
+            footer: {
+                Text("\(draft.description.unicodeScalars.count) of \(ReportDraft.maxDescriptionLength) characters")
             }
-        }
-        .onChange(of: photoSelection) { _, items in
-            loadScreenshots(items)
-        }
-        .alert(
-            "Report Sent",
-            isPresented: Binding(get: { sentID != nil }, set: { if !$0 { sentID = nil } }),
-            presenting: sentID
-        ) { id in
-            Button("Copy ID") {
-                UIPasteboard.general.string = id
-                dismiss()
+        )
+        .listRowBackground(Color.chart)
+    }
+
+    private var logsSection: some View {
+        Section(
+            content: {
+                Toggle("Attach My Logs", isOn: $draft.attachLogs)
+            },
+            header: { Text("Your Logs") },
+            footer: {
+                Text("Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed.")
             }
-            Button("Done", role: .cancel) { dismiss() }
-        } message: { id in
-            Text("Thank you. Your report ID is \(id). Mention it if you ask about this on Discord or Facebook.")
-        }
-        .alert("Couldn't Send Report", isPresented: $showError, presenting: sendError) { error in
-            if error.canRetry {
-                Button("Try Again", action: send)
+        )
+        .listRowBackground(Color.chart)
+    }
+
+    private var alsoSentSection: some View {
+        Section(
+            content: {
+                LabeledContent("App Version", value: appVersion)
+                LabeledContent("Build", value: "\(context.branch) \(context.commit)")
+                LabeledContent("iPhone Model", value: context.deviceModel)
+                LabeledContent("iOS Version", value: context.osVersion)
+                LabeledContent("Pump", value: context.pumpModel ?? String(localized: "None"))
+                LabeledContent("CGM", value: context.cgmModel ?? String(localized: "None"))
+            },
+            header: { Text("Also Sent") },
+            footer: {
+                Text(
+                    "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time."
+                )
             }
-            Button("OK", role: .cancel) {}
-        } message: { error in
-            Text(error.message)
-        }
+        )
+        .listRowBackground(Color.chart)
     }
 
     private var screenshotsSection: some View {
