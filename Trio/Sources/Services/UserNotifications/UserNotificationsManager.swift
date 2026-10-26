@@ -99,7 +99,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                     guard let error else {
                         return
                     }
-                    print(error)
+                    warning(.alerts, "Setting app badge failed", error: error)
                 }
             }
             return
@@ -117,7 +117,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
                 guard let error else {
                     return
                 }
-                print(error)
+                warning(.alerts, "Setting app badge failed", error: error)
             }
         }
     }
@@ -174,7 +174,7 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
             }.first?.glucose
             addAppBadge(glucose: latest.map { Int($0) })
         } catch {
-            debug(.service, "Failed to update glucose badge: \(error)")
+            warning(.alerts, "Updating glucose app badge failed", error: error)
         }
     }
 
@@ -187,15 +187,15 @@ final class BaseUserNotificationsManager: NSObject, UserNotificationsManager, In
     }
 
     func requestNotificationPermissions(completion: @escaping (Bool) -> Void) {
-        debug(.service, "requestNotificationPermissions")
+        debug(.alerts, "Requesting notification permission")
         notificationCenter.requestAuthorization(options: [.badge, .sound, .alert]) { granted, error in
             if granted {
-                debug(.service, "requestNotificationPermissions was granted")
+                info(.alerts, "Notification permission granted")
                 DispatchQueue.main.async {
                     completion(granted)
                 }
             } else {
-                warning(.service, "requestNotificationPermissions failed", error: error)
+                warning(.alerts, "Notification permission not granted", error: error)
             }
         }
     }

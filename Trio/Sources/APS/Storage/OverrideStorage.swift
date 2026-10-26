@@ -214,9 +214,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                 guard self.viewContext.hasChanges else { return }
                 try self.viewContext.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to copy Override with error: \(error.userInfo)"
-                )
+                warning(.storage, "Saving copied override failed", error: error)
             }
         }
 
@@ -232,7 +230,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         await taskContext.perform {
             do {
                 guard let override = try taskContext.existingObject(with: objectID) as? OverrideStored else {
-                    debugPrint("Override for batch delete not found. \(DebuggingIdentifiers.failed)")
+                    warning(.storage, "Override preset to delete not found")
                     return
                 }
 
@@ -241,11 +239,9 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
                 guard taskContext.hasChanges else { return }
                 try taskContext.save()
 
-                debugPrint(
-                    "OverrideStorage: \(#function) \(DebuggingIdentifiers.succeeded) deleted override from core data"
-                )
+                debug(.storage, "Deleted override preset")
             } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) Error deleting override: \(error)")
+                warning(.storage, "Deleting override preset failed", error: error)
             }
         }
     }
@@ -329,7 +325,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
         guard let jsonDate = formatter.date(from: createdAtString) else {
-            debug(.nightscout, "Could not parse override created_at string: \(createdAtString)")
+            warning(.nightscout, "Parsing override creation date '\(createdAtString)' failed")
             return
         }
 

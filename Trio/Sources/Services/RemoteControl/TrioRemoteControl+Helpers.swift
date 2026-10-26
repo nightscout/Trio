@@ -16,7 +16,7 @@ extension TrioRemoteControl {
                 )
             }
         }
-        debug(.remoteControl, note)
+        warning(.remote, note)
         await nightscoutManager.uploadNoteTreatment(note: note)
     }
 
@@ -26,7 +26,7 @@ extension TrioRemoteControl {
         customNotificationMessage: String? = nil,
         ack: RemoteCommandAck? = nil
     ) async {
-        debug(.remoteControl, message)
+        info(.remote, message)
 
         if let returnInfo = payload.returnNotification {
             await RemoteNotificationResponseManager.shared.sendResponseNotification(

@@ -22,7 +22,7 @@ final class TrioUserNotificationAlertScheduler {
         let request = makeRequest(alert: alert, muted: muted, soundURL: soundURL, silenced: silenced)
         notificationCenter.add(request) { error in
             if let error = error {
-                debug(.service, "UserNotificationAlertScheduler failed: \(error.localizedDescription)")
+                warning(.alerts, "Scheduling alert notification \(alert.identifier.value) failed", error: error)
             }
         }
     }

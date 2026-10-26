@@ -413,14 +413,14 @@ final class TelemetryClient: Injectable {
                 return failed("anonymous_non_http_response")
             }
             guard (200 ..< 300).contains(http.statusCode) else {
-                warning(.telemetry, "anonymous send non-2xx status=\(http.statusCode)")
+                warning(.telemetry, "Anonymous send failed with HTTP \(http.statusCode)")
                 return failed("anonymous_http_\(http.statusCode)")
             }
             PropertyPersistentFlags.shared.telemetryLastFailureReason = nil
-            debug(.telemetry, "anonymous send ok status=\(http.statusCode)")
+            info(.telemetry, "Anonymous send succeeded")
             return true
         } catch {
-            warning(.telemetry, "anonymous send request failed", error: error)
+            warning(.telemetry, "Anonymous send failed", error: error)
             return failed("anonymous_request_failed")
         }
     }
@@ -451,17 +451,17 @@ final class TelemetryClient: Injectable {
         }
 
         guard let baseURL = Self.baseURL else {
-            debug(.telemetry, "skip send: server URL not configured")
+            debug(.telemetry, "Send skipped: server URL not set")
             return failed("server_url_not_configured")
         }
 
         let attestor = TelemetryAttestor.shared
         guard attestor.isSupported else {
-            debug(.telemetry, "skip send: App Attest unsupported (simulator or older device)")
+            debug(.telemetry, "Send skipped: App Attest unsupported on this device")
             return failed("app_attest_unsupported")
         }
         guard !attestor.isForbidden else {
-            debug(.telemetry, "skip send: app_id previously rejected (403)")
+            debug(.telemetry, "Send skipped: registration was rejected with HTTP 403")
             return failed("app_attest_forbidden")
         }
 
@@ -476,17 +476,17 @@ final class TelemetryClient: Injectable {
             // Already logged + sticky-flagged in registerIfNeeded.
             return failed("registration_forbidden")
         } catch {
-            debug(.telemetry, "register failed: \(error) — will retry next cycle")
+            warning(.telemetry, "Registration failed, retrying next cycle", error: error)
             return failed("registration_failed")
         }
 
         let payload = buildPayload()
         guard let body = try? JSONSerialization.data(withJSONObject: payload, options: []) else {
-            debug(.telemetry, "skip send: payload not JSON-serializable")
+            warning(.telemetry, "Send skipped: payload could not be serialized")
             return failed("payload_serialization_failed")
         }
         guard body.count <= Self.maxPayloadBytes else {
-            debug(.telemetry, "skip send: payload exceeds \(Self.maxPayloadBytes) bytes (\(body.count))")
+            warning(.telemetry, "Send skipped: payload is \(body.count) bytes, limit \(Self.maxPayloadBytes)")
             return failed("payload_too_large")
         }
 
@@ -498,7 +498,7 @@ final class TelemetryClient: Injectable {
                 context: context
             )
         } catch {
-            debug(.telemetry, "assertion failed: \(error)")
+            warning(.telemetry, "App Attest assertion failed", error: error)
             return failed("assertion_failed")
         }
 
@@ -524,13 +524,13 @@ final class TelemetryClient: Injectable {
         do {
             let (_, response) = try await URLSession.shared.data(for: request)
             guard let http = response as? HTTPURLResponse else {
-                debug(.telemetry, "send: non-HTTP response")
+                warning(.telemetry, "Send failed: response was not HTTP")
                 return failed("non_http_response")
             }
             switch http.statusCode {
             case 200 ..< 300:
                 PropertyPersistentFlags.shared.telemetryLastFailureReason = nil
-                debug(.telemetry, "send ok status=\(http.statusCode)")
+                info(.telemetry, "Send succeeded")
                 return true
             case 401:
                 // Server doesn't recognize our registration (e.g. its registry
@@ -538,14 +538,14 @@ final class TelemetryClient: Injectable {
                 // next cycle generates a fresh key and re-attests — `attestKey`
                 // can't be re-run on the existing keyID (one-shot per Apple).
                 attestor.invalidateRegistration()
-                warning(.telemetry, "send 401: stale registration, will re-register next cycle")
+                warning(.telemetry, "Send rejected with HTTP 401, re-registering next cycle")
                 return failed("http_401")
             default:
-                warning(.telemetry, "send non-2xx status=\(http.statusCode)")
+                warning(.telemetry, "Send failed with HTTP \(http.statusCode)")
                 return failed("http_\(http.statusCode)")
             }
         } catch {
-            warning(.telemetry, "send request failed", error: error)
+            warning(.telemetry, "Send failed", error: error)
             return failed("request_failed")
         }
     }

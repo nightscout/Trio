@@ -26,7 +26,7 @@ extension TrioRemoteControl {
                 waitForUpload: true
             )
             if let ended = outcome.ended.first {
-                debug(.remoteControl, "Recorded run for replaced temp target \"\(ended.name ?? "Temp Target")\"")
+                debug(.remote, "Recorded run for replaced temp target \"\(ended.name ?? "Temp Target")\"")
             }
             await logSuccess(
                 "Remote command processed successfully. \(payload.humanReadableDescription())",
@@ -43,7 +43,7 @@ extension TrioRemoteControl {
     @MainActor func cancelTempTarget(_ payload: CommandPayload) async {
         do {
             let outcome = try await adjustmentManager.cancelTempTarget(source: .remote, waitForUpload: true)
-            debug(.remoteControl, "Cancelled temp target \"\(outcome.ended.first?.name ?? "Temp Target")\"")
+            debug(.remote, "Temp target \"\(outcome.ended.first?.name ?? "Temp Target")\" cancelled")
             await logSuccess(
                 "Remote command processed successfully. \(payload.humanReadableDescription())",
                 payload: payload,
@@ -57,7 +57,7 @@ extension TrioRemoteControl {
                 customNotificationMessage: "Temp target canceled"
             )
         } catch {
-            debug(.remoteControl, "Failed to cancel temp target: \(error)")
+            warning(.remote, "Temp target cancel failed", error: error)
             await logError("Command failed: \(error.localizedDescription)", payload: payload)
         }
     }

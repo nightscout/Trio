@@ -58,6 +58,6 @@ extension AlertPermissionsChecker {
 
     private func notificationCenterSettingsChanged(_: Bool) {
         // TODO: Add processing for other actions in delegate AlertManager, InAppAlertScheduler, etc., from Loop
-        debug(.default, "notificationCenterSettingsChanged")
+        debug(.alerts, "Notification settings changed")
     }
 }

@@ -35,12 +35,12 @@ extension AppleHealthKit {
                         }
 
                         if permissionGranted {
-                            debug(.service, "Permission granted for HealthKitManager")
+                            info(.healthKit, "Apple Health permission granted")
                         } else {
-                            warning(.service, "Permission not granted for HealthKitManager")
+                            info(.healthKit, "Apple Health permission not granted")
                         }
                     } catch {
-                        warning(.service, "Error requesting permission for HealthKitManager", error: error)
+                        warning(.healthKit, "Requesting Apple Health permission failed", error: error)
                     }
                 }
             }

@@ -58,6 +58,21 @@ Trio is a collaborative project, and contributions of all kinds are welcome. Whe
 - Translation and localization for other languages should go through [Crowdin](https://crowdin.triodocs.org/).
 - Translations from shared pump managers, CGM managers and services are handled by the [Loop lokalise project](https://loopkit.github.io/loopdocs/faqs/app-translation/#code-translation).
 
+### Logging
+
+Users share Trio's logs when they ask for help, so every line should make sense to someone who doesn't know the code.
+
+- Use `debug`, `info`, `warning`, `error`, or `fault`; never `print`, `debugPrint`, or `NSLog`.
+  - `debug`: detail for developers.
+  - `info`: something meaningful happened (loop ran, bolus delivered, pump connected, setting changed).
+  - `warning`: something failed and Trio recovered or will retry.
+  - `error`: something failed and the user may notice.
+  - `fault`: something that should never happen.
+- Pick the category by what the line is about (`loop`, `pump`, `cgm`, `nightscout`, `storage`, …), not by folder.
+- Write a short plain sentence: no emoji, no decorative prefixes, no "function called" traces, units with numbers (`BG 123 mg/dL`, `IOB 1.25 U`).
+- Don't log whole objects or JSON, and never log secrets, tokens, names, or emails.
+- A `catch` that swallows an error logs at `warning` or higher and passes it: `warning(.nightscout, "Upload of glucose failed", error: error)`.
+
 ### Documentation
 
 - Update docstrings when your change affects setup, configuration, behavior, workflows, or troubleshooting.
