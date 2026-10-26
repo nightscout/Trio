@@ -90,7 +90,10 @@ extension AutotuneConfig {
                     return
                 }
                 let syncValues = basals.map {
-                    RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate))
+                    RepeatingScheduleValue(
+                        startTime: TimeInterval($0.minutes * 60),
+                        value: Double($0.rate).roundedDouble(toPlaces: 3)
+                    )
                 }
                 pump.syncBasalRateSchedule(items: syncValues) { result in
                     switch result {
