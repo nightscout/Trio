@@ -155,19 +155,18 @@ protocol MealTimeReminderService: AnyObject {
         // Must run before setPendingReminder(nil), which clears scheduledAlarmID.
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *), let alarmID = scheduledAlarmID {
-                // cancel only clears a scheduled alarm; stop also dismisses one that is
-                // already alerting. Mirrors CriticalAlertAlarmScheduler.
-                do {
-                    try AlarmManager.shared.stop(id: alarmID)
-                    debug(.bolusState, "Meal-time reminder alarm stopped: \(alarmID)")
-                } catch {
-                    debug(.bolusState, "Meal-time reminder alarm stop skipped: \(error.localizedDescription)")
-                }
+                // cancel clears a scheduled or counting-down alarm; an already alerting one
+                // rejects cancel and needs stop instead.
                 do {
                     try AlarmManager.shared.cancel(id: alarmID)
                     debug(.bolusState, "Meal-time reminder alarm canceled: \(alarmID)")
                 } catch {
-                    warning(.bolusState, "Meal-time reminder alarm cancel failed: \(error.localizedDescription)")
+                    do {
+                        try AlarmManager.shared.stop(id: alarmID)
+                        debug(.bolusState, "Meal-time reminder alarm stopped: \(alarmID)")
+                    } catch {
+                        warning(.bolusState, "Meal-time reminder alarm cancel/stop failed: \(error.localizedDescription)")
+                    }
                 }
                 scheduledAlarmID = nil
             }
