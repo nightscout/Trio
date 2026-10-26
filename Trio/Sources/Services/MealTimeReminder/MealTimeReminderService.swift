@@ -38,7 +38,7 @@ protocol MealTimeReminderService: AnyObject {
     private static let notificationIdentifier = "Trio.mealTimeReminder"
     private static let pendingReminderDefaultsKey = "Trio.mealTimeReminderPending"
 
-    /// LoopKit alert identifier for the iOS 17–25 path. Distinct from the backstop
+    /// LoopKit alert identifier for the pre-iOS 26 path. Distinct from the backstop
     /// notification's identifier so retracting one can't clobber the other.
     private static let alertIdentifier = Alert.Identifier(
         managerIdentifier: "Trio.mealTimeReminder",
@@ -286,14 +286,14 @@ protocol MealTimeReminderService: AnyObject {
         }
     #endif
 
-    // MARK: - LoopKit alert (iOS 17–25)
+    // MARK: - LoopKit alert (pre-iOS 26)
 
     /// Routes the reminder through Trio's alert pipeline: an in-app banner while the app is
     /// open, a time-sensitive notification otherwise. Cancellation goes through
     /// `retractAlert`, which also resets the throttler so an immediate re-issue isn't dropped.
     private func issueEatAlert(leadTime: TimeInterval, carbs: Decimal, bolusAmount: Decimal) {
         let content = Alert.Content(
-            title: String(localized: "Time to eat"),
+            title: String(localized: "Meal-Time Reminder"),
             body: Self.reminderBody(carbs: carbs, bolusAmount: bolusAmount),
             acknowledgeActionButtonLabel: String(localized: "OK")
         )
@@ -322,7 +322,7 @@ protocol MealTimeReminderService: AnyObject {
         }
 
         let content = UNMutableNotificationContent()
-        content.title = String(localized: "Time to eat")
+        content.title = String(localized: "Meal-Time Reminder")
         content.body = Self.reminderBody(carbs: carbs, bolusAmount: bolusAmount)
         content.sound = .default
         content.interruptionLevel = .timeSensitive
