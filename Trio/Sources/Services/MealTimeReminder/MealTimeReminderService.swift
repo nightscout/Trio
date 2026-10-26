@@ -43,10 +43,7 @@ protocol MealTimeReminderService: AnyObject {
 
     /// LoopKit alert identifier for the pre-iOS 26 path. Distinct from the backstop
     /// notification's identifier so retracting one can't clobber the other.
-    private static let alertIdentifier = Alert.Identifier(
-        managerIdentifier: "Trio.mealTimeReminder",
-        alertIdentifier: "eatReminder"
-    )
+    private static let alertIdentifier = Alert.Identifier.mealTimeReminderEat
 
     /// Extra time past the lead time the backstop notification waits, roughly covering the bolus
     /// delivery in case the completion signal never arrives (e.g. the app was force-quit).
@@ -400,4 +397,14 @@ extension BaseMealTimeReminderService: BolusDeliveryObserver {
             )
         }
     }
+}
+
+extension Alert.Identifier {
+    /// Fallback alert for the pre-iOS 26 meal-time reminder. The user arms the reminder
+    /// explicitly, so the alert pipeline lets it pierce the global snooze the same way
+    /// critical alerts do (see `BaseTrioAlertManager.issueAlert`).
+    static let mealTimeReminderEat = Alert.Identifier(
+        managerIdentifier: "Trio.mealTimeReminder",
+        alertIdentifier: "eatReminder"
+    )
 }

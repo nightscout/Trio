@@ -60,7 +60,8 @@ enum AlertColdStartReplay {
             ?? .timeSensitive
 
         // Same gates as issueAlert: tier snooze for catalog-known device
-        // alerts, global mute for everything non-critical.
+        // alerts, global mute for everything non-critical. The user-armed
+        // meal-time reminder pierces the mute there, so it does here too.
         if let tier = DeviceAlertSeverity(level: level),
            catalogEntry != nil,
            tier != .critical,
@@ -68,7 +69,7 @@ enum AlertColdStartReplay {
         {
             return .skip
         }
-        if level != .critical, isMuted { return .skip }
+        if level != .critical, identifier != .mealTimeReminderEat, isMuted { return .skip }
 
         // The banner drops alerts without foregroundContent, so mirror the
         // stored content into both slots. The ack label is required non-nil
