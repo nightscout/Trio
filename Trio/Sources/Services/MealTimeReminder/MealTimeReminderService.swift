@@ -1,7 +1,6 @@
 import Foundation
 import LoopKit
 import Swinject
-import UserNotifications
 
 #if canImport(AlarmKit)
     import AlarmKit
@@ -25,7 +24,7 @@ protocol MealTimeReminderService: AnyObject {
 
     /// Registers the reminder to be scheduled once the pump reports the bolus has finished
     /// delivering (or was cancelled early), so the lead time is not eaten into by the delivery.
-    @discardableResult func prepareEatReminder(after leadTime: TimeInterval, carbs: Decimal, bolusAmount: Decimal) async -> Bool
+    func prepareEatReminder(after leadTime: TimeInterval, carbs: Decimal, bolusAmount: Decimal) async
 
     @MainActor func cancelPendingReminders()
 
@@ -33,31 +32,18 @@ protocol MealTimeReminderService: AnyObject {
 }
 
 @Observable final class BaseMealTimeReminderService: MealTimeReminderService, Injectable {
-    @ObservationIgnored private let notificationCenter = UNUserNotificationCenter.current()
     @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
     @ObservationIgnored @Injected() private var trioAlertManager: TrioAlertManager!
-    @ObservationIgnored @Injected() private var deviceDataManager: DeviceDataManager!
 
-    /// Fixed identifier so a second meal-time reminder replaces the first rather than stacking.
-    private static let notificationIdentifier = "Trio.mealTimeReminder"
     private static let pendingReminderDefaultsKey = "Trio.mealTimeReminderPending"
 
-    /// LoopKit alert identifier for the pre-iOS 26 path. Distinct from the backstop
-    /// notification's identifier so retracting one can't clobber the other.
+    /// LoopKit alert identifier for the pre-iOS 26 path.
     private static let alertIdentifier = Alert.Identifier.mealTimeReminderEat
 
-    /// Extra time past the lead time the backstop notification waits when no delivery estimate
-    /// is available, roughly covering the bolus delivery in case the completion signal never
-    /// arrives (e.g. the app was force-quit).
-    private static let backstopDeliveryAllowance: TimeInterval = 5 * 60
-
-    /// Grace added to the pump's estimated delivery end when deriving the backstop fire date,
-    /// covering estimate slop (BLE round trips, brief delivery stalls).
-    private static let backstopEstimateGrace: TimeInterval = 60
-
-    /// How long to poll for the pump's in-progress delivery status before settling for the
-    /// flat allowance. The status update trails the enact by a second or two.
-    private static let deliveryEstimateTimeout: TimeInterval = 5
+    /// Extra time past the lead time after which an awaiting bolus completion is considered
+    /// lost (pump went silent mid-delivery), so a much-later, unrelated completion can't
+    /// schedule a stale reminder.
+    private static let staleCompletionAllowance: TimeInterval = 5 * 60
 
     /// A reminder whose bolus is still delivering; scheduled once delivery stops.
     private struct AwaitingBolusCompletion: Equatable {
@@ -71,7 +57,6 @@ protocol MealTimeReminderService: AnyObject {
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
 
     @ObservationIgnored private var awaitingCompletion: AwaitingBolusCompletion?
-    @ObservationIgnored private var awaitingBackstopTask: Task<Void, Never>?
     @ObservationIgnored private var awaitingExpiryTask: Task<Void, Never>?
 
     /// The AlarmKit alarm this service scheduled, so cancel never touches foreign alarms (e.g.
@@ -93,11 +78,6 @@ protocol MealTimeReminderService: AnyObject {
                 }
             }
         #endif
-        // The backstop notification needs its own permission; nothing else in the app
-        // reliably requests it.
-        if await notificationCenter.notificationSettings().authorizationStatus == .notDetermined {
-            try? await notificationCenter.requestAuthorization(options: [.alert, .sound])
-        }
     }
 
     @discardableResult func scheduleEatReminder(
@@ -134,12 +114,12 @@ protocol MealTimeReminderService: AnyObject {
         return true
     }
 
-    @discardableResult func prepareEatReminder(
+    func prepareEatReminder(
         after leadTime: TimeInterval,
         carbs: Decimal,
-        bolusAmount: Decimal
-    ) async -> Bool {
-        guard leadTime > 0 else { return false }
+        bolusAmount _: Decimal
+    ) async {
+        guard leadTime > 0 else { return }
 
         await cancelPendingReminders()
 
@@ -147,60 +127,13 @@ protocol MealTimeReminderService: AnyObject {
         await MainActor.run { awaitingCompletion = awaiting }
         debug(.bolusState, "Meal-time reminder awaiting bolus completion: \(Int(leadTime / 60)) min lead time")
 
-        // Backstop: if the bolus-completion signal never arrives, the user still gets reminded.
-        // Schedule it at the flat allowance right away so it survives a force-quit, then
-        // tighten it to the pump's delivery estimate once the in-progress status arrives
-        // (that status update trails the enact by a second or two).
-        let scheduled = await scheduleNotification(
-            leadTime: leadTime + Self.backstopDeliveryAllowance,
-            carbs: carbs,
-            bolusAmount: bolusAmount
-        )
-
-        let backstopTask = Task { [weak self] in
-            guard let self else { return }
-            guard let estimate = await self.deliveryEstimate(pollingUpTo: Self.deliveryEstimateTimeout) else {
-                await MainActor.run {
-                    self.startAwaitingExpiry(awaiting, after: leadTime + Self.backstopDeliveryAllowance)
-                }
-                return
-            }
-            let stillAwaiting = await MainActor.run { self.awaitingCompletion == awaiting }
-            guard stillAwaiting else { return }
-
-            // Same identifier, so this replaces the conservative backstop scheduled above.
-            let tightenedDelay = leadTime + estimate
-            _ = await self.scheduleNotification(leadTime: tightenedDelay, carbs: carbs, bolusAmount: bolusAmount)
-            await MainActor.run {
-                debug(.bolusState, "Meal-time reminder backstop tightened to pump delivery estimate")
-                self.startAwaitingExpiry(awaiting, after: tightenedDelay)
-            }
+        await MainActor.run {
+            startAwaitingExpiry(awaiting, after: leadTime + Self.staleCompletionAllowance)
         }
-        await MainActor.run { awaitingBackstopTask = backstopTask }
-
-        return scheduled
     }
 
-    /// Polls briefly for the pump's in-progress bolus and returns its estimated remaining
-    /// delivery time plus a small grace. Returns nil when no bolus shows up in time, in
-    /// which case the caller keeps the flat allowance.
-    private func deliveryEstimate(pollingUpTo timeout: TimeInterval) async -> TimeInterval? {
-        let deadline = Date().addingTimeInterval(timeout)
-        while !Task.isCancelled, Date() < deadline {
-            let estimate = await MainActor.run { () -> TimeInterval? in
-                guard case let .inProgress(dose) = deviceDataManager.pumpManager?.status.bolusState else {
-                    return nil
-                }
-                return max(0, dose.endDate.timeIntervalSinceNow) + Self.backstopEstimateGrace
-            }
-            if let estimate { return estimate }
-            try? await Task.sleep(nanoseconds: 500_000_000)
-        }
-        return nil
-    }
-
-    /// Once the backstop would have fired, drop the awaiting record so a much-later,
-    /// unrelated completion can't schedule a stale reminder.
+    /// Once delivery plus lead time would surely have passed, drop the awaiting record so a
+    /// much-later, unrelated completion can't schedule a stale reminder.
     @MainActor private func startAwaitingExpiry(_ awaiting: AwaitingBolusCompletion, after delay: TimeInterval) {
         awaitingExpiryTask?.cancel()
         awaitingExpiryTask = Task { [weak self] in
@@ -216,14 +149,11 @@ protocol MealTimeReminderService: AnyObject {
 
     @MainActor func cancelPendingReminders() {
         awaitingCompletion = nil
-        awaitingBackstopTask?.cancel()
-        awaitingBackstopTask = nil
         awaitingExpiryTask?.cancel()
         awaitingExpiryTask = nil
 
         setPendingReminder(nil)
 
-        notificationCenter.removePendingNotificationRequests(withIdentifiers: [Self.notificationIdentifier])
         trioAlertManager.retractAlert(identifier: Self.alertIdentifier)
 
         #if canImport(AlarmKit)
@@ -395,41 +325,6 @@ protocol MealTimeReminderService: AnyObject {
         trioAlertManager.issueAlert(alert)
     }
 
-    // MARK: - Backstop notification (app-killed case)
-
-    private func scheduleNotification(leadTime: TimeInterval, carbs: Decimal, bolusAmount: Decimal) async -> Bool {
-        var status = await notificationCenter.notificationSettings().authorizationStatus
-        if status == .notDetermined {
-            _ = try? await notificationCenter.requestAuthorization(options: [.alert, .sound])
-            status = await notificationCenter.notificationSettings().authorizationStatus
-        }
-        guard status == .authorized || status == .provisional else {
-            debug(.bolusState, "Meal-time reminder not scheduled: notification authorization is \(status.rawValue)")
-            return false
-        }
-
-        let content = UNMutableNotificationContent()
-        content.title = String(localized: "Meal-Time Reminder")
-        content.body = Self.reminderBody(carbs: carbs, bolusAmount: bolusAmount)
-        content.sound = .default
-        content.interruptionLevel = .timeSensitive
-
-        let request = UNNotificationRequest(
-            identifier: Self.notificationIdentifier,
-            content: content,
-            trigger: UNTimeIntervalNotificationTrigger(timeInterval: max(leadTime, 1), repeats: false)
-        )
-
-        do {
-            try await notificationCenter.add(request)
-            debug(.bolusState, "Meal-time reminder backstop notification scheduled in \(Int(leadTime / 60)) min")
-            return true
-        } catch {
-            warning(.bolusState, "Failed to schedule meal-time reminder: \(error)")
-            return false
-        }
-    }
-
     private static func reminderBody(carbs: Decimal, bolusAmount: Decimal) -> String {
         let carbsText = Formatter.integerFormatter.string(from: carbs as NSDecimalNumber) ?? "\(carbs)"
         let bolusText = Formatter.decimalFormatterWithTwoFractionDigits
@@ -459,8 +354,6 @@ extension BaseMealTimeReminderService: BolusDeliveryObserver {
             guard let awaiting = awaitingCompletion else { return }
             debug(.bolusState, "Bolus delivery finished with \(deliveredUnits) U; scheduling meal-time reminder")
             awaitingCompletion = nil
-            awaitingBackstopTask?.cancel()
-            awaitingBackstopTask = nil
             awaitingExpiryTask?.cancel()
             awaitingExpiryTask = nil
 
@@ -469,8 +362,6 @@ extension BaseMealTimeReminderService: BolusDeliveryObserver {
                 return
             }
 
-            // scheduleEatReminder cancels the backstop notification (same identifier) before
-            // setting the precise alarm.
             await scheduleEatReminder(
                 after: awaiting.leadTime,
                 carbs: awaiting.carbs,
