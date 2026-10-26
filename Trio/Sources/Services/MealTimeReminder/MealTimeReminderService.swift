@@ -11,6 +11,9 @@ struct PendingMealTimeReminder: Equatable, Codable {
     var fireDate: Date
     var carbs: Decimal
     var bolusAmount: Decimal
+    /// The AlarmKit alarm backing this reminder (iOS 26+ path only), persisted so a cancel
+    /// after an app restart can still reach it.
+    var alarmID: UUID?
 }
 
 protocol MealTimeReminderService: AnyObject {
@@ -100,11 +103,12 @@ protocol MealTimeReminderService: AnyObject {
 
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
-                if await scheduleAlarm(leadTime: leadTime, carbs: carbs, bolusAmount: bolusAmount) {
+                if let alarmID = await scheduleAlarm(leadTime: leadTime, carbs: carbs, bolusAmount: bolusAmount) {
                     await setPendingReminder(PendingMealTimeReminder(
                         fireDate: Date().addingTimeInterval(leadTime),
                         carbs: carbs,
-                        bolusAmount: bolusAmount
+                        bolusAmount: bolusAmount,
+                        alarmID: alarmID
                     ))
                     return true
                 }
@@ -116,7 +120,8 @@ protocol MealTimeReminderService: AnyObject {
         await setPendingReminder(PendingMealTimeReminder(
             fireDate: Date().addingTimeInterval(leadTime),
             carbs: carbs,
-            bolusAmount: bolusAmount
+            bolusAmount: bolusAmount,
+            alarmID: nil
         ))
         return true
     }
@@ -171,6 +176,9 @@ protocol MealTimeReminderService: AnyObject {
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 if let alarmID = scheduledAlarmID {
+                    // cancel only clears a scheduled alarm; stop also dismisses one that is
+                    // already alerting. Mirrors CriticalAlertAlarmScheduler.
+                    try? AlarmManager.shared.stop(id: alarmID)
                     try? AlarmManager.shared.cancel(id: alarmID)
                     scheduledAlarmID = nil
                 }
@@ -184,6 +192,7 @@ protocol MealTimeReminderService: AnyObject {
         expiryTask?.cancel()
         expiryTask = nil
         pendingReminder = reminder
+        scheduledAlarmID = reminder?.alarmID
 
         guard let reminder else {
             UserDefaults.standard.removeObject(forKey: Self.pendingReminderDefaultsKey)
@@ -200,7 +209,6 @@ protocol MealTimeReminderService: AnyObject {
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 guard let self, self.pendingReminder == reminder else { return }
-                self.scheduledAlarmID = nil
                 self.setPendingReminder(nil)
             }
         }
@@ -227,7 +235,7 @@ protocol MealTimeReminderService: AnyObject {
             leadTime: TimeInterval,
             carbs: Decimal,
             bolusAmount: Decimal
-        ) async -> Bool {
+        ) async -> UUID? {
             let manager = AlarmManager.shared
 
             var authorization = manager.authorizationState
@@ -236,7 +244,7 @@ protocol MealTimeReminderService: AnyObject {
             }
             guard authorization == .authorized else {
                 debug(.bolusState, "Meal-time reminder alarm not scheduled: AlarmKit authorization is \(authorization)")
-                return false
+                return nil
             }
 
             let presentation = AlarmPresentation(
@@ -263,12 +271,11 @@ protocol MealTimeReminderService: AnyObject {
             do {
                 let alarmID = UUID()
                 _ = try await manager.schedule(id: alarmID, configuration: configuration)
-                await MainActor.run { self.scheduledAlarmID = alarmID }
                 debug(.bolusState, "Meal-time reminder alarm scheduled for \(Int(leadTime / 60)) min")
-                return true
+                return alarmID
             } catch {
                 warning(.bolusState, "Failed to schedule meal-time reminder alarm: \(error)")
-                return false
+                return nil
             }
         }
 
