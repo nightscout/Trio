@@ -250,6 +250,7 @@ extension BolusCalculatorConfig {
                         let presetLimitReached = state.mealTimeReminderPresets.count >= TrioSettings.mealTimeReminderPresetLimit
                         Button {
                             let next = min((state.mealTimeReminderPresets.max() ?? 5) + 5, 60)
+                            guard !state.mealTimeReminderPresets.contains(next) else { return }
                             state.mealTimeReminderPresets.append(next)
                         } label: {
                             Label("Add Preset", systemImage: "plus.circle.fill")

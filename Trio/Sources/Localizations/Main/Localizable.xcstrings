@@ -1089,149 +1089,6 @@
         }
       }
     },
-    "Choose the preferred lower threshold for Time in Range statistics." : {
-      "comment" : "Short description of the lower range threshold setting.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the preferred lower threshold for Time in Range statistics."
-          }
-        }
-      }
-    },
-    "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)." : {
-      "comment" : "Explains that the lower threshold applies to both TIR and TITR. Placeholders are the upper thresholds including units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)."
-          }
-        }
-      }
-    },
-    "Extended (%@)" : {
-      "comment" : "Extended lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended (%@)"
-          }
-        }
-      }
-    },
-    "Extended Lower Threshold" : {
-      "comment" : "Search term for the extended lower range threshold setting.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended Lower Threshold"
-          }
-        }
-      }
-    },
-    "Extended:" : {
-      "comment" : "Heading for the extended lower range threshold description.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended:"
-          }
-        }
-      }
-    },
-    "TIR Lower Threshold" : {
-      "comment" : "Setting for the lower glucose boundary shared by TIR and TITR statistics.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TIR Lower Threshold"
-          }
-        }
-      }
-    },
-    "Standard (%@)" : {
-      "comment" : "Standard lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard (%@)"
-          }
-        }
-      }
-    },
-    "Standard Lower Threshold" : {
-      "comment" : "Search term for the standard lower range threshold setting.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard Lower Threshold"
-          }
-        }
-      }
-    },
-    "Standard:" : {
-      "comment" : "Heading for the standard lower range threshold description.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard:"
-          }
-        }
-      }
-    },
-    "TIR (%@-%@)" : {
-      "comment" : "Time in Range with the selected lower threshold and the upper threshold.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TIR (%@-%@)"
-          }
-        }
-      }
-    },
-    "TITR (%@-%@)" : {
-      "comment" : "Time in Tight Range with either the Standard or Extended lower threshold.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TITR (%@-%@)"
-          }
-        }
-      }
-    },
-    "Uses the established lower threshold of %@." : {
-      "comment" : "Standard lower range threshold description; placeholder includes glucose value and units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uses the established lower threshold of %@."
-          }
-        }
-      }
-    },
-    "Uses the newer Time in Normoglycemia (TING) lower threshold of %@." : {
-      "comment" : "Extended lower range threshold description; placeholder includes glucose value and units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uses the newer Time in Normoglycemia (TING) lower threshold of %@."
-          }
-        }
-      }
-    },
     " " : {
       "localizations" : {
         "bg" : {
@@ -2555,7 +2412,7 @@
       }
     },
     " g" : {
-      "comment" : "gram of carb equilvalents\ngram of carbs",
+      "comment" : "Carb grams in meal-time reminder meal summary\ngram of carb equilvalents\ngram of carbs",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -5330,6 +5187,10 @@
           }
         }
       }
+    },
+    "—" : {
+      "comment" : "A placeholder value.",
+      "isCommentAutoGenerated" : true
     },
     ", %lld%%" : {
       "localizations" : {
@@ -8659,6 +8520,7 @@
       }
     },
     "%@ (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -57086,13 +56948,13 @@
         }
       }
     },
-    "Average of the Last 24 Hours" : {
-      "comment" : "Stats banner subtitle"
-    },
     "Average of the Last 3 Months" : {
       "comment" : "Stats banner subtitle"
     },
     "Average of the Last 7 Days" : {
+      "comment" : "Stats banner subtitle"
+    },
+    "Average of the Last 24 Hours" : {
       "comment" : "Stats banner subtitle"
     },
     "Average of the Last Month" : {
@@ -80451,6 +80313,28 @@
         }
       }
     },
+    "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)." : {
+      "comment" : "Explains that the lower threshold applies to both TIR and TITR",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)."
+          }
+        }
+      }
+    },
+    "Choose the preferred lower threshold for Time in Range statistics." : {
+      "comment" : "Short description of the lower range threshold setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the preferred lower threshold for Time in Range statistics."
+          }
+        }
+      }
+    },
     "Choose the time span the home statistics panel covers." : {
 
     },
@@ -80976,6 +80860,7 @@
       }
     },
     "Choose type of time in range to be used for Trio's statistics." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -81234,9 +81119,6 @@
           }
         }
       }
-    },
-    "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
-      "extractionState" : "stale"
     },
     "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nToday's Treatments: insulin delivered since midnight — no glucose statistics. Announced carbs (and fat and protein, if you log them) appear once logged that day.\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
       "extractionState" : "stale",
@@ -81763,6 +81645,7 @@
       }
     },
     "Choose which type of time in range Trio should adopt for all its statistical charts and displays:" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -128296,6 +128179,9 @@
         }
       }
     },
+    "Enabling this option adds a \"Remind Me to Eat\" row to the bolus calculator. When enabled for a meal, it lets you set a timer based on your configured presets." : {
+
+    },
     "Enabling this setting adds a \"Reduced Bolus\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select." : {
       "localizations" : {
         "bg" : {
@@ -128425,9 +128311,6 @@
           }
         }
       }
-    },
-    "Enabling this option adds a \"Remind Me to Eat\" row to the bolus calculator. When enabled for a meal, it lets you set a timer based on your configured presets." : {
-
     },
     "Enabling this setting adds a \"Super Bolus\" option to the bolus calculator. Once this feature is enabled, a percentage setting will appear for you to select." : {
       "localizations" : {
@@ -136119,6 +136002,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "擴展"
+          }
+        }
+      }
+    },
+    "Extended (%@)" : {
+      "comment" : "Extended lower threshold for TIR and TITR statistics",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended (%@)"
+          }
+        }
+      }
+    },
+    "Extended Lower Threshold" : {
+      "comment" : "Search term for the extended lower range threshold setting.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended Lower Threshold"
+          }
+        }
+      }
+    },
+    "Extended:" : {
+      "comment" : "Heading for the extended lower range threshold description.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended:"
           }
         }
       }
@@ -162148,6 +162065,9 @@
         }
       }
     },
+    "Home Statistics Range" : {
+
+    },
     "Home View Button Panel " : {
       "comment" : "UI/UX option",
       "extractionState" : "manual",
@@ -178262,12 +178182,6 @@
         }
       }
     },
-    "last 24 hours" : {
-      "comment" : "Stats banner scope"
-    },
-    "Last 24 Hours" : {
-      "comment" : "Home stats panel range option"
-    },
     "last 3 months" : {
       "comment" : "Stats banner scope"
     },
@@ -178278,6 +178192,12 @@
       "comment" : "Stats banner scope"
     },
     "Last 7 Days" : {
+      "comment" : "Home stats panel range option"
+    },
+    "last 24 hours" : {
+      "comment" : "Stats banner scope"
+    },
+    "Last 24 Hours" : {
       "comment" : "Home stats panel range option"
     },
     "Last Blood Sugar prediction" : {
@@ -215880,6 +215800,7 @@
       }
     },
     "Normal (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -223128,7 +223049,7 @@
       }
     },
     "Off" : {
-      "comment" : "Meal-time reminder disabled\nNotification Setting Status is Off",
+      "comment" : "Notification Setting Status is Off",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -241365,6 +241286,9 @@
         }
       }
     },
+    "Programmed on pump" : {
+      "comment" : "Accessibility label for bolus programmed on the pump itself"
+    },
     "Protein" : {
       "comment" : "Add Protein",
       "localizations" : {
@@ -241495,9 +241419,6 @@
           }
         }
       }
-    },
-    "Programmed on pump" : {
-      "comment" : "Accessibility label for bolus programmed on the pump itself"
     },
     "Protein / Fat" : {
       "comment" : "Treatment type",
@@ -279848,6 +279769,40 @@
         }
       }
     },
+    "Standard (%@)" : {
+      "comment" : "Standard lower threshold for TIR and TITR statistics",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard (%@)"
+          }
+        }
+      }
+    },
+    "Standard Lower Threshold" : {
+      "comment" : "Search term for the standard lower range threshold setting.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard Lower Threshold"
+          }
+        }
+      }
+    },
+    "Standard:" : {
+      "comment" : "Heading for the standard lower range threshold description.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard:"
+          }
+        }
+      }
+    },
     "start" : {
       "localizations" : {
         "bg" : {
@@ -282499,9 +282454,6 @@
           }
         }
       }
-    },
-    "Home Statistics Range" : {
-
     },
     "Stay in open loop (no automated dosing) for a bit to help Trio catch up to keep you safe" : {
       "localizations" : {
@@ -311023,6 +310975,7 @@
       }
     },
     "Time in Normoglycemia (TING)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311153,6 +311106,7 @@
       }
     },
     "Time in Normoglycemia (TING):" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311544,6 +311498,7 @@
       }
     },
     "Time in Range Type" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311674,6 +311629,7 @@
       }
     },
     "Time in Tight Range (TITR)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311804,6 +311760,7 @@
       }
     },
     "Time in Tight Range (TITR):" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -313544,6 +313501,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提示：當您開始添加脂肪和蛋白質的輸入時，您會發現您的正常碳水比需要增加到更大的數字。因此，最好從約 50% 的因子開始。"
+          }
+        }
+      }
+    },
+    "TIR (%@-%@)" : {
+      "comment" : "Time in Range with the selected lower threshold and the upper threshold.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIR (%@-%@)"
+          }
+        }
+      }
+    },
+    "TIR Lower Threshold" : {
+      "comment" : "Setting for the lower glucose boundary shared by TIR and TITR statistics.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIR Lower Threshold"
+          }
+        }
+      }
+    },
+    "TITR (%@-%@)" : {
+      "comment" : "Time in Tight Range with either the Standard or Extended lower threshold.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TITR (%@-%@)"
           }
         }
       }
@@ -335989,8 +335979,20 @@
         }
       }
     },
+    "Uses the established lower threshold of %@." : {
+      "comment" : "Standard lower range threshold description",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the established lower threshold of %@."
+          }
+        }
+      }
+    },
     "Uses the fairly established Time in Tight Range definition, which is defined as time between %@ and %@  %@." : {
       "comment" : "Time in Tight Range (TITR) verbose hint description",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -336256,8 +336258,20 @@
         }
       }
     },
+    "Uses the newer Time in Normoglycemia (TING) lower threshold of %@." : {
+      "comment" : "Extended lower range threshold description",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the newer Time in Normoglycemia (TING) lower threshold of %@."
+          }
+        }
+      }
+    },
     "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts its range as all values between the normoglycemic minimum threshold (%@ %@) and %@ %@." : {
       "comment" : "Time in Normoglycemia (TING) verbose hint description",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {

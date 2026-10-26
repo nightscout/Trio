@@ -63,6 +63,10 @@ protocol MealTimeReminderService: AnyObject {
     @ObservationIgnored private var awaitingCompletion: AwaitingBolusCompletion?
     @ObservationIgnored private var awaitingExpiryTask: Task<Void, Never>?
 
+    /// The AlarmKit alarm this service scheduled, so cancel never touches foreign alarms (e.g.
+    /// the critical safety alarms that share `AlarmManager.shared`).
+    @MainActor private var scheduledAlarmID: UUID?
+
     init(resolver: Resolver) {
         injectServices(resolver)
         broadcaster.register(BolusDeliveryObserver.self, observer: self)
@@ -166,10 +170,9 @@ protocol MealTimeReminderService: AnyObject {
 
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
-                // Trio schedules no other alarms, so clearing all of them is safe here.
-                let manager = AlarmManager.shared
-                for alarm in (try? manager.alarms) ?? [] {
-                    try? manager.cancel(id: alarm.id)
+                if let alarmID = scheduledAlarmID {
+                    try? AlarmManager.shared.cancel(id: alarmID)
+                    scheduledAlarmID = nil
                 }
             }
         #endif
@@ -197,6 +200,7 @@ protocol MealTimeReminderService: AnyObject {
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 guard let self, self.pendingReminder == reminder else { return }
+                self.scheduledAlarmID = nil
                 self.setPendingReminder(nil)
             }
         }
@@ -257,7 +261,9 @@ protocol MealTimeReminderService: AnyObject {
             )
 
             do {
-                _ = try await manager.schedule(id: UUID(), configuration: configuration)
+                let alarmID = UUID()
+                _ = try await manager.schedule(id: alarmID, configuration: configuration)
+                await MainActor.run { self.scheduledAlarmID = alarmID }
                 debug(.bolusState, "Meal-time reminder alarm scheduled for \(Int(leadTime / 60)) min")
                 return true
             } catch {

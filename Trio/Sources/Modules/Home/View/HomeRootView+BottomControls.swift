@@ -530,8 +530,19 @@ extension Home.RootView {
         let carbsText = Formatter.integerFormatter.string(from: reminder.carbs as NSDecimalNumber) ?? "0"
         let bolusText = Formatter.decimalFormatterWithTwoFractionDigits
             .string(from: reminder.bolusAmount as NSDecimalNumber) ?? "0"
-        let mealSummary = carbsText + String(localized: " g · ", comment: "Separator in meal-time reminder meal summary") +
+        // Zero halves are omitted, matching the reminder body's wording; with neither, only the
+        // countdown is shown.
+        let mealSummary: String? = switch (reminder.bolusAmount > 0, reminder.carbs > 0) {
+        case (true, true):
+            carbsText + String(localized: " g · ", comment: "Separator in meal-time reminder meal summary") +
+                bolusText + String(localized: " U", comment: "Insulin unit")
+        case (true, false):
             bolusText + String(localized: " U", comment: "Insulin unit")
+        case (false, true):
+            carbsText + String(localized: " g", comment: "Carb grams in meal-time reminder meal summary")
+        case (false, false):
+            nil
+        }
 
         HStack {
             Image(systemName: "fork.knife")
@@ -544,9 +555,11 @@ extension Home.RootView {
                 Text("Meal-Time Reminder")
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text(mealSummary)
-                    .font(.caption)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let mealSummary {
+                    Text(mealSummary)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }.padding(.leading, 5)
 
             Spacer()
