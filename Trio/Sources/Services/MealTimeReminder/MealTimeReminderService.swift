@@ -256,8 +256,7 @@ protocol MealTimeReminderService: AnyObject {
                 presentation: presentation,
                 metadata: MealTimeReminderMetadata(
                     carbs: NSDecimalNumber(decimal: carbs).doubleValue,
-                    bolusAmount: NSDecimalNumber(decimal: bolusAmount).doubleValue,
-                    bolusDate: Date()
+                    bolusAmount: NSDecimalNumber(decimal: bolusAmount).doubleValue
                 ),
                 tintColor: MealTimeReminderStyle.tint
             )

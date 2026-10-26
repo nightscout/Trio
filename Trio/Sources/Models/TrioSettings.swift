@@ -236,23 +236,6 @@ extension TrioSettings: Decodable {
         if let mealTimeReminderPresets = try? container.decode([Decimal].self, forKey: .mealTimeReminderPresets) {
             let normalized = Array(Set(mealTimeReminderPresets.filter { $0 > 0 })).sorted()
             settings.mealTimeReminderPresets = Array(normalized.prefix(TrioSettings.mealTimeReminderPresetLimit))
-        } else {
-            // Migrate the pre-list per-preset keys into the array.
-            enum LegacyPresetKeys: String, CodingKey {
-                case mealTimeReminderPreset1
-                case mealTimeReminderPreset2
-                case mealTimeReminderPreset3
-            }
-            if let legacyContainer = try? decoder.container(keyedBy: LegacyPresetKeys.self) {
-                let migrated = [
-                    try? legacyContainer.decode(Decimal.self, forKey: .mealTimeReminderPreset1),
-                    try? legacyContainer.decode(Decimal.self, forKey: .mealTimeReminderPreset2),
-                    try? legacyContainer.decode(Decimal.self, forKey: .mealTimeReminderPreset3)
-                ].compactMap { $0 }.filter { $0 > 0 }
-                if !migrated.isEmpty {
-                    settings.mealTimeReminderPresets = Array(Set(migrated)).sorted()
-                }
-            }
         }
 
         if let overrideFactor = try? container.decode(Decimal.self, forKey: .overrideFactor) {

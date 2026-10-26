@@ -8,8 +8,6 @@ import Foundation
         let carbs: Double
 
         let bolusAmount: Double
-
-        let bolusDate: Date
     }
 
     @available(iOS 26.0, *) enum MealTimeReminderStyle {
