@@ -82,6 +82,20 @@ import Testing
         #expect(retrieved?.count == 1, "Should not append duplicate id")
     }
 
+    @Test("Appending to an array file by key path logs no warning") func testAppendUniqueToArrayIsQuiet() {
+        let name = "dummy_array_\(UUID().uuidString)"
+        defer { storage.remove(name) }
+        storage.save([DummyObject(id: "1", value: 1)], as: name)
+
+        let sink = InMemoryLogSink()
+        TrioLogger.capturing(into: sink) {
+            storage.append(DummyObject(id: "2", value: 2), to: name, uniqBy: \.id)
+        }
+
+        #expect(storage.retrieve(name, as: [DummyObject].self)?.map(\.id) == ["1", "2"])
+        #expect(!sink.snapshot().contains { $0.level == .warning })
+    }
+
     @Test("Can remove file") func testRemoveFile() {
         // Given
         let dummy = DummyObject(id: "123", value: 78.2)
