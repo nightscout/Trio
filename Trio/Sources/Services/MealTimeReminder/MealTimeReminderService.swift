@@ -36,6 +36,7 @@ protocol MealTimeReminderService: AnyObject {
     @ObservationIgnored private let notificationCenter = UNUserNotificationCenter.current()
     @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
     @ObservationIgnored @Injected() private var trioAlertManager: TrioAlertManager!
+    @ObservationIgnored @Injected() private var deviceDataManager: DeviceDataManager!
 
     /// Fixed identifier so a second meal-time reminder replaces the first rather than stacking.
     private static let notificationIdentifier = "Trio.mealTimeReminder"
@@ -45,9 +46,14 @@ protocol MealTimeReminderService: AnyObject {
     /// notification's identifier so retracting one can't clobber the other.
     private static let alertIdentifier = Alert.Identifier.mealTimeReminderEat
 
-    /// Extra time past the lead time the backstop notification waits, roughly covering the bolus
-    /// delivery in case the completion signal never arrives (e.g. the app was force-quit).
+    /// Extra time past the lead time the backstop notification waits when no delivery estimate
+    /// is available, roughly covering the bolus delivery in case the completion signal never
+    /// arrives (e.g. the app was force-quit).
     private static let backstopDeliveryAllowance: TimeInterval = 5 * 60
+
+    /// Grace added to the pump's estimated delivery end when deriving the backstop fire date,
+    /// covering estimate slop (BLE round trips, brief delivery stalls).
+    private static let backstopEstimateGrace: TimeInterval = 60
 
     /// A reminder whose bolus is still delivering; scheduled once delivery stops.
     private struct AwaitingBolusCompletion: Equatable {
@@ -136,10 +142,12 @@ protocol MealTimeReminderService: AnyObject {
         await MainActor.run { awaitingCompletion = awaiting }
         debug(.bolusState, "Meal-time reminder awaiting bolus completion: \(Int(leadTime / 60)) min lead time")
 
-        // Backstop: if the bolus-completion signal never arrives, the user still gets reminded —
-        // at worst `backstopDeliveryAllowance` later than the old schedule-at-enact behavior.
+        // Backstop: if the bolus-completion signal never arrives, the user still gets reminded.
+        // Fire it at the pump's estimated delivery end plus a small grace when a bolus is
+        // delivering, falling back to a flat allowance when no estimate is available.
+        let backstopDelay = await leadTime + backstopDeliveryEstimate()
         let scheduled = await scheduleNotification(
-            leadTime: leadTime + Self.backstopDeliveryAllowance,
+            leadTime: backstopDelay,
             carbs: carbs,
             bolusAmount: bolusAmount
         )
@@ -147,7 +155,7 @@ protocol MealTimeReminderService: AnyObject {
         // Once the backstop would have fired, drop the awaiting record so a much-later,
         // unrelated completion can't schedule a stale reminder.
         let expiryTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: UInt64((leadTime + Self.backstopDeliveryAllowance) * 1_000_000_000))
+            try? await Task.sleep(nanoseconds: UInt64(backstopDelay * 1_000_000_000))
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 guard let self, self.awaitingCompletion == awaiting else { return }
@@ -158,6 +166,16 @@ protocol MealTimeReminderService: AnyObject {
         await MainActor.run { awaitingExpiryTask = expiryTask }
 
         return scheduled
+    }
+
+    /// Time beyond the lead time the backstop notification waits: the pump's estimated
+    /// remaining delivery plus a small grace when a bolus is in progress, otherwise a flat
+    /// allowance. Read on the main actor since `pumpManager` has no thread confinement.
+    @MainActor private func backstopDeliveryEstimate() -> TimeInterval {
+        guard case let .inProgress(dose) = deviceDataManager.pumpManager?.status.bolusState else {
+            return Self.backstopDeliveryAllowance
+        }
+        return max(0, dose.endDate.timeIntervalSinceNow) + Self.backstopEstimateGrace
     }
 
     @MainActor func cancelPendingReminders() {
