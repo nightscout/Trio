@@ -152,10 +152,7 @@ protocol MealTimeReminderService: AnyObject {
         awaitingExpiryTask?.cancel()
         awaitingExpiryTask = nil
 
-        setPendingReminder(nil)
-
-        trioAlertManager.retractAlert(identifier: Self.alertIdentifier)
-
+        // Must run before setPendingReminder(nil), which clears scheduledAlarmID.
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *), let alarmID = scheduledAlarmID {
                 // cancel only clears a scheduled alarm; stop also dismisses one that is
@@ -175,6 +172,10 @@ protocol MealTimeReminderService: AnyObject {
                 scheduledAlarmID = nil
             }
         #endif
+
+        setPendingReminder(nil)
+
+        trioAlertManager.retractAlert(identifier: Self.alertIdentifier)
     }
 
     // MARK: - Pending-reminder state (in-app banner)
