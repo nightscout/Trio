@@ -20,7 +20,7 @@ extension Stat.StateModel {
                     self.dailyMealStats = daily
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch meal stats: \(error)")
+                warning(.ui, "Fetching meal statistics failed", error: error)
             }
         }
     }

@@ -18,7 +18,7 @@ extension Stat.StateModel {
                     self.dailyTDDStats = daily
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed fetching TDD stats: \(error)")
+                warning(.ui, "Fetching total daily dose statistics failed", error: error)
             }
         }
     }

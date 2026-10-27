@@ -47,7 +47,8 @@ import Testing
         deliveredUnits: Double? = nil,
         syncIdentifier: String?,
         isMutable: Bool,
-        automatic: Bool = true
+        automatic: Bool = true,
+        wasProgrammedByPumpUI: Bool = false
     ) -> LoopKit.NewPumpEvent {
         LoopKit.NewPumpEvent(
             date: date,
@@ -63,7 +64,8 @@ import Testing
                 insulinType: .lyumjev,
                 automatic: automatic,
                 manuallyEntered: false,
-                isMutable: isMutable
+                isMutable: isMutable,
+                wasProgrammedByPumpUI: wasProgrammedByPumpUI
             ),
             raw: Data((syncIdentifier ?? UUID().uuidString).utf8),
             title: "Test Bolus",
@@ -274,6 +276,67 @@ import Testing
         let tidepoolBolus = tidepool.first { $0.type == .bolus }
         #expect(abs((tidepoolBolus?.amount ?? 0) - 2.4) < 0.0001, "Delivered units")
         #expect(abs((tidepoolBolus?.programmedAmount ?? 0) - 5.0) < 0.0001, "Programmed units")
+    }
+
+    @Test("Nightscout payload marks boluses programmed on the pump") func testNightscoutPayloadCarriesPumpUIFlag() async throws {
+        let date = Date().addingTimeInterval(-30.minutes.timeInterval)
+        try await storage.storePumpEvents(
+            [
+                bolusEvent(
+                    date: date,
+                    units: 1.0,
+                    syncIdentifier: "bolus-pump-ui",
+                    isMutable: false,
+                    automatic: false,
+                    wasProgrammedByPumpUI: true
+                ),
+                bolusEvent(
+                    date: date.addingTimeInterval(5.minutes.timeInterval),
+                    units: 2.0,
+                    syncIdentifier: "bolus-app",
+                    isMutable: false,
+                    automatic: false
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let treatments = try await storage.getPumpHistoryNotYetUploadedToNightscout()
+        // event ids are UUIDs; tell the rows apart by amount, away from rounding noise
+        let pumpUI = treatments.first { ($0.insulin ?? 0) < 1.5 }
+        let app = treatments.first { ($0.insulin ?? 0) > 1.5 }
+        #expect(pumpUI?.isProgrammedByPumpUI == true, "Pump-programmed bolus must say so in NS")
+        #expect(app?.isProgrammedByPumpUI == nil, "Unset flag is omitted from the NS document")
+    }
+
+    @Test("Finalizing an uploaded bolus as pump-programmed resets the NS upload flag") func testPumpUIFinalizationResetsNSFlag(
+    ) async throws {
+        let date = Date().addingTimeInterval(-5.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [bolusEvent(date: date, units: 1.5, syncIdentifier: "bolus-ns3", isMutable: true)],
+            replacePendingEvents: false
+        )
+        try await testContext.perform {
+            let rows = try testContext.fetch(PumpEventStored.fetchRequest())
+            rows.forEach { $0.isUploadedToNS = true }
+            try testContext.save()
+        }
+        // same delivery, but the final report attributes it to the pump UI
+        try await storage.storePumpEvents(
+            [bolusEvent(
+                date: date,
+                units: 1.5,
+                deliveredUnits: 1.5,
+                syncIdentifier: "bolus-ns3",
+                isMutable: false,
+                wasProgrammedByPumpUI: true
+            )],
+            replacePendingEvents: false
+        )
+
+        let events = try await fetchAllEvents()
+        #expect(events.first?.isUploadedToNS == false, "A changed NS-visible flag must re-upload")
     }
 
     @Test("External doses expose no insulin type to uploaders") func testExternalDoseHasNoInsulinType() async throws {

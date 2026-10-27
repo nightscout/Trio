@@ -21,7 +21,7 @@ extension Stat.StateModel {
                     self.dailyBolusStats = daily
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to setup bolus stats: \(error)")
+                warning(.ui, "Fetching bolus statistics failed", error: error)
             }
         }
     }

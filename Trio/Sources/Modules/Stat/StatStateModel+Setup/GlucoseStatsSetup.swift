@@ -301,7 +301,7 @@ extension Stat.StateModel {
                 return GlucoseReading(value: number.intValue, date: date)
             }
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error)")
+            warning(.ui, "Fetching glucose for statistics failed", error: error)
             return []
         }
     }

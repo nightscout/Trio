@@ -23,7 +23,7 @@ extension Stat.StateModel {
                     self.earliestLoopDate = earliestLoopDate
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch loop stats: \(error)")
+                warning(.ui, "Fetching loop statistics failed", error: error)
             }
         }
     }

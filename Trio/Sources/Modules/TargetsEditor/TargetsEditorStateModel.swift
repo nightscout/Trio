@@ -95,6 +95,7 @@ extension TargetsEditor {
             }
             let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
             provider.saveProfile(profile)
+            info(.settings, "Glucose target schedule saved with \(targets.count) entries")
             initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
 
             DispatchQueue.main.async {
@@ -105,13 +106,9 @@ extension TargetsEditor {
 
             Task.detached(priority: .low) {
                 do {
-                    debug(.nightscout, "Attempting to upload targets to Nightscout")
                     try await self.nightscout.uploadProfiles()
                 } catch {
-                    debug(
-                        .default,
-                        "\(DebuggingIdentifiers.failed) failed to upload targets to Nightscout: \(error)"
-                    )
+                    warning(.nightscout, "Uploading profile after glucose target change failed", error: error)
                 }
             }
 
