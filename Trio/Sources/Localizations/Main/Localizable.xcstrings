@@ -1129,6 +1129,9 @@
         }
       }
     },
+    "Command expired. Please try again." : {
+      "comment" : "Watch command ack"
+    },
     "Extended (%@)" : {
       "comment" : "Extended lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
       "localizations" : {
@@ -1161,6 +1164,12 @@
           }
         }
       }
+    },
+    "Request ID was already used." : {
+      "comment" : "Watch command ack"
+    },
+    "Request is already in progress." : {
+      "comment" : "Watch command ack"
     },
     "TIR Lower Threshold" : {
       "comment" : "Setting for the lower glucose boundary shared by TIR and TITR statistics.",
@@ -1228,6 +1237,9 @@
         }
       }
     },
+    "Too many requests in progress. Please try again." : {
+      "comment" : "Watch command ack"
+    },
     "Uses the established lower threshold of %@." : {
       "comment" : "Standard lower range threshold description; placeholder includes glucose value and units.",
       "localizations" : {
@@ -1249,6 +1261,9 @@
           }
         }
       }
+    },
+    "Watch command settings changed." : {
+      "comment" : "Watch command ack"
     },
     " " : {
       "localizations" : {

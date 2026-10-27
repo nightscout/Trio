@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9A3CE4DF1D01738B99BBF795 /* WatchCommandPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C9B44D186FF8A7079468A /* WatchCommandPipelineTests.swift */; };
+		9A3C0ECD1617389255D168CF /* WatchCommandRequestCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C3CA768CF7D5036326306 /* WatchCommandRequestCacheTests.swift */; };
+		9A3C70FF5CD33060FE5626A7 /* WatchCommandTestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C3F1091C03368A75DD96E /* WatchCommandTestDoubles.swift */; };
+		9A3C3B50509CE7ABFE2E3D1D /* WatchCommandRequestCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3CA06D5CC8AB3491F284C1 /* WatchCommandRequestCache.swift */; };
+		9A3C76A08493CDC6FBF71373 /* WatchCommandPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A3C6BB18B32890597D63BD9 /* WatchCommandPipeline.swift */; };
 		03B15F4B3077CD4B00DFEBE4 /* SyaiKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */; };
 		03B15F4D3077CD5400DFEBE4 /* SyaiKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */; };
 		03B15F4E3077CD6100DFEBE4 /* SyaiKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -1239,6 +1244,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		9A3C9B44D186FF8A7079468A /* WatchCommandPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandPipelineTests.swift; sourceTree = "<group>"; };
+		9A3C3CA768CF7D5036326306 /* WatchCommandRequestCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandRequestCacheTests.swift; sourceTree = "<group>"; };
+		9A3C3F1091C03368A75DD96E /* WatchCommandTestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandTestDoubles.swift; sourceTree = "<group>"; };
+		9A3CA06D5CC8AB3491F284C1 /* WatchCommandRequestCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandRequestCache.swift; sourceTree = "<group>"; };
+		9A3C6BB18B32890597D63BD9 /* WatchCommandPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCommandPipeline.swift; sourceTree = "<group>"; };
 		03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SyaiKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SyaiKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A1E8522E7684C6AA742F6E4 /* HomeStateModel+QuickPickTreatments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeStateModel+QuickPickTreatments.swift"; sourceTree = "<group>"; };
@@ -2433,6 +2443,25 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9A3C6118713FEDFA9AD437CA /* WatchCommandTests */ = {
+			isa = PBXGroup;
+			children = (
+				9A3C9B44D186FF8A7079468A /* WatchCommandPipelineTests.swift */,
+				9A3C3CA768CF7D5036326306 /* WatchCommandRequestCacheTests.swift */,
+				9A3C3F1091C03368A75DD96E /* WatchCommandTestDoubles.swift */,
+			);
+			path = WatchCommandTests;
+			sourceTree = "<group>";
+		};
+		9A3CC598A206D8D945713F97 /* WatchCommand */ = {
+			isa = PBXGroup;
+			children = (
+				9A3CA06D5CC8AB3491F284C1 /* WatchCommandRequestCache.swift */,
+				9A3C6BB18B32890597D63BD9 /* WatchCommandPipeline.swift */,
+			);
+			path = WatchCommand;
+			sourceTree = "<group>";
+		};
 		0610F7D6D2EC00E3BA1569F0 /* ConfigEditor */ = {
 			isa = PBXGroup;
 			children = (
@@ -2861,6 +2890,7 @@
 				3811DEA525C9D88300A708ED /* UnlockManager */,
 				38E87406274F9AA500975559 /* UserNotifications */,
 				38E8754D275556E100975559 /* WatchManager */,
+				9A3CC598A206D8D945713F97 /* WatchCommand */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -3517,6 +3547,7 @@
 				B015AFF62E600000000D7351 /* AdjustmentsTests */,
 				B015AFE62E500000000D7351 /* BolusSafetyTests */,
 				BD8FC0552D66187700B95AED /* CoreDataTests */,
+				9A3C6118713FEDFA9AD437CA /* WatchCommandTests */,
 				38FCF3F125E9028E0078B0D1 /* Info.plist */,
 				CEE9A65D2BBC9F6500EB5194 /* CalibrationsTests.swift */,
 				CA02000000000000000010C1 /* DeliveryLimitsSyncTests.swift */,
@@ -5767,6 +5798,8 @@
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
 				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
+				9A3C3B50509CE7ABFE2E3D1D /* WatchCommandRequestCache.swift in Sources */,
+				9A3C76A08493CDC6FBF71373 /* WatchCommandPipeline.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
 				DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */,
@@ -6556,6 +6589,9 @@
 				41740E936552456AAC0EDCC3 /* MaxIOBSuggestionTests.swift in Sources */,
 				41740E936552456AAC0EDBC3 /* DosingModeMigrationTests.swift in Sources */,
 				B015AFE52E500000000D7351 /* BolusSafetyValidatorTests.swift in Sources */,
+				9A3CE4DF1D01738B99BBF795 /* WatchCommandPipelineTests.swift in Sources */,
+				9A3C0ECD1617389255D168CF /* WatchCommandRequestCacheTests.swift in Sources */,
+				9A3C70FF5CD33060FE5626A7 /* WatchCommandTestDoubles.swift in Sources */,
 				BD8FC0712D661B0000B95AED /* TidepoolTherapySettingsTests.swift in Sources */,
 				CA03000000000000000010C2 /* AlertCatalogRegistryOmniFaultTests.swift in Sources */,
 				CD1235B000000000000000F2 /* TidepoolUploadSerializerTests.swift in Sources */,
