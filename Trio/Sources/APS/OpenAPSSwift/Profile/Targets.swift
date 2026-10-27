@@ -53,7 +53,7 @@ struct Targets {
                     break
                 }
             } else {
-                warning(.openAPS, "eventualBG target range invalid: \(target.targetBottom ?? -1)-\(target.targetTop ?? -1)")
+                warning(.algorithm, "Temp target range invalid: \(target.targetBottom ?? -1)-\(target.targetTop ?? -1) mg/dL")
                 break
             }
         }

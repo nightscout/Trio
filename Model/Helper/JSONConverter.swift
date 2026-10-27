@@ -13,7 +13,7 @@ class JSONConverter {
                 return jsonString
             }
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) could not convert object to JSON: \(error)")
+            warning(.algorithm, "Encoding \(T.self) as JSON failed", error: error)
         }
 
         return "could not convert object to JSON"

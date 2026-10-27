@@ -717,83 +717,63 @@ extension JSONImporter {
     }
 
     func importGlucoseHistoryIfNeeded() async throws {
-        debug(.coreData, "Checking for glucose history JSON file...")
-
         let url = openAPSFileURL(OpenAPS.Monitor.glucose)
         let suffix = "migrated.json"
 
         guard FileManager.default.fileExists(atPath: url.path) else {
-            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            debug(.storage, "No legacy glucose history to import")
             return
         }
 
-        debug(.coreData, "Glucose history JSON file found, proceeding with import of glucose history...")
-
         try await importGlucoseHistory(url: url, now: Date())
-
-        debug(.coreData, "Glucose history JSON file imported successfully, moving to \(suffix)")
 
         try FileManager.default.moveItem(
             at: url,
             to: url.deletingPathExtension().appendingPathExtension(suffix)
         )
 
-        debug(.coreData, "Import of glucose history completed successfully.")
+        info(.storage, "Imported legacy glucose history")
     }
 
     func importPumpHistoryIfNeeded() async throws {
-        debug(.coreData, "Checking for pump history JSON file...")
-
         let url = openAPSFileURL(OpenAPS.Monitor.pumpHistory)
         let suffix = "migrated.json"
 
         guard FileManager.default.fileExists(atPath: url.path) else {
-            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            debug(.storage, "No legacy pump history to import")
             return
         }
 
-        debug(.coreData, "Pump history JSON file found, proceeding with import of glucose history...")
-
         try await importPumpHistory(url: url, now: Date())
-
-        debug(.coreData, "Pump history JSON file imported successfully, moving to \(suffix)")
 
         try FileManager.default.moveItem(
             at: url,
             to: url.deletingPathExtension().appendingPathExtension(suffix)
         )
 
-        debug(.coreData, "Import of pump history completed successfully.")
+        info(.storage, "Imported legacy pump history")
     }
 
     func importCarbHistoryIfNeeded() async throws {
-        debug(.coreData, "Checking for carb history JSON file...")
-
         let url = openAPSFileURL(OpenAPS.Monitor.carbHistory)
         let suffix = "migrated.json"
 
         guard FileManager.default.fileExists(atPath: url.path) else {
-            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            debug(.storage, "No legacy carb history to import")
             return
         }
 
-        debug(.coreData, "Carb history JSON file found, proceeding with import of glucose history...")
-
         try await importCarbHistory(url: url, now: Date())
-
-        debug(.coreData, "Carb history JSON file imported successfully, moving to \(suffix)")
 
         try FileManager.default.moveItem(
             at: url,
             to: url.deletingPathExtension().appendingPathExtension(suffix)
         )
 
-        debug(.coreData, "Import of carb history completed successfully.")
+        info(.storage, "Imported legacy carb history")
     }
 
     func importDeterminationIfNeeded() async throws {
-        debug(.coreData, "Checking for determination JSON files...")
-
         let enactedPath = OpenAPS.Enact.enacted // "enact/enacted.json"
         let suggestedPath = OpenAPS.Enact.suggested // "enact/suggested.json"
         let suffix = "migrated.json"
@@ -804,15 +784,11 @@ extension JSONImporter {
         guard FileManager.default.fileExists(atPath: enactedURL.path),
               FileManager.default.fileExists(atPath: suggestedURL.path)
         else {
-            debug(.coreData, "❌ No JSON file to import at \(enactedURL.path) and/or \(suggestedURL.path)")
+            debug(.storage, "No legacy determination files to import")
             return
         }
 
-        debug(.coreData, "Determination JSON files found, proceeding with import...")
-
         try await importOrefDetermination(enactedUrl: enactedURL, suggestedUrl: suggestedURL, now: Date())
-
-        debug(.coreData, "Determination JSON file(s) imported successfully, moving to \(suffix)")
 
         try FileManager.default.moveItem(at: enactedURL, to: enactedURL.deletingPathExtension().appendingPathExtension(suffix))
         try FileManager.default.moveItem(
@@ -820,6 +796,6 @@ extension JSONImporter {
             to: suggestedURL.deletingPathExtension().appendingPathExtension(suffix)
         )
 
-        debug(.coreData, "Import of determination data completed successfully.")
+        info(.storage, "Imported legacy determinations")
     }
 }

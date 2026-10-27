@@ -89,8 +89,8 @@ actor TidepoolUploadSerializer {
         let age = Date().timeIntervalSince(start)
         guard age > watchdogLimit else { return }
         warning(
-            .service,
-            "Tidepool upload chain wedged: '\(headPipeline?.rawValue ?? "?")' has not completed after \(Int(age))s; abandoning chain and starting fresh"
+            .tidepool,
+            "Tidepool \(headPipeline?.rawValue ?? "unknown") upload stuck for \(Int(age)) s, restarting upload chain"
         )
         generation += 1
         tail = nil
@@ -102,10 +102,7 @@ actor TidepoolUploadSerializer {
     private func begin(_ pipeline: TidepoolUploadPipeline, generation: Int) -> Bool {
         guard isCurrent(generation) else {
             if !pipeline.coalesces {
-                warning(
-                    .service,
-                    "Tidepool '\(pipeline.rawValue)' upload dropped: chain abandoned before it started; payload is not retried"
-                )
+                warning(.tidepool, "Tidepool \(pipeline.rawValue) upload dropped before it started, not retried")
             }
             return false
         }

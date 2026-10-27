@@ -15,7 +15,7 @@ extension Home.StateModel {
             try overrideController.performFetch()
             updateOverridesFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform override fetch: \(error)")
+            warning(.ui, "Fetching overrides for home screen failed", error: error)
         }
     }
 
@@ -37,7 +37,7 @@ extension Home.StateModel {
             try overrideRunController.performFetch()
             updateOverrideRunsFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform override run fetch: \(error)")
+            warning(.ui, "Fetching override history for home screen failed", error: error)
         }
     }
 
@@ -62,7 +62,7 @@ extension Home.StateModel {
 
             Foundation.NotificationCenter.default.post(name: .didUpdateOverrideConfiguration, object: nil)
         } catch let error as NSError {
-            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Profile with error: \(error)")
+            warning(.treatments, "Cancelling override failed", error: error)
         }
     }
 
@@ -81,9 +81,7 @@ extension Home.StateModel {
             guard viewContext.hasChanges else { return }
             try viewContext.save()
         } catch let error as NSError {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save an Override to the OverrideRunStored entity with error: \(error)"
-            )
+            warning(.treatments, "Saving override history entry failed", error: error)
         }
     }
 }

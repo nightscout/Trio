@@ -10,20 +10,20 @@ extension TrioRemoteControl {
 
         if let token = deviceToken, token != previousDeviceToken {
             UserDefaults.standard.set(token, forKey: "deviceToken")
-            debug(.remoteControl, "Device token updated: \(token)")
+            info(.remote, "Push device token updated")
             shouldUploadProfiles = true
         }
 
         if previousIsAPNSProduction != isAPNSProduction {
             UserDefaults.standard.set(isAPNSProduction, forKey: "isAPNSProduction")
-            debug(.remoteControl, "APNS environment changed to: \(isAPNSProduction ? "Production" : "Sandbox")")
+            info(.remote, "Push environment changed to \(isAPNSProduction ? "production" : "sandbox")")
             shouldUploadProfiles = true
         }
 
         if shouldUploadProfiles {
             try await nightscoutManager.uploadProfiles()
         } else {
-            debug(.remoteControl, "No changes detected in device token or APNS environment.")
+            debug(.remote, "Push device token and environment unchanged")
         }
     }
 
