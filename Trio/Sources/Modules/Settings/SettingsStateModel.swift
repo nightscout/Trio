@@ -14,6 +14,7 @@ extension Settings {
         @Injected() var fetchCgmManager: FetchGlucoseManager!
         @Injected() private var storage: FileStorage!
         @Injected() var overrideStorage: OverrideStorage!
+        @Injected() private var keychain: Keychain!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var dosingMode: DosingMode = .open
@@ -25,9 +26,11 @@ extension Settings {
         private(set) var versionNumber = ""
         private(set) var branch = ""
         private(set) var copyrightNotice = ""
+        private(set) var reportSubmitter: ReportSubmitting?
 
         override func subscribe() {
             units = settingsManager.settings.units
+            reportSubmitter = ReportEndpoint.submitter(keychain: keychain)
 
             subscribeSetting(\.debugOptions, on: $debugOptions) { debugOptions = $0 }
             subscribeSetting(\.dosingMode, on: $dosingMode) { dosingMode = $0 }
@@ -54,6 +57,14 @@ extension Settings {
                 kinds.append(.cgm)
             }
             return kinds
+        }
+
+        func reportContext() -> ProblemReport.Context {
+            var cgm: String?
+            if let source = fetchCgmManager?.cgmGlucoseSourceType, source != .none {
+                cgm = source == .plugin ? fetchCgmManager?.cgmManager?.localizedTitle : source.displayName
+            }
+            return .current(pump: provider?.deviceManager?.pumpManager?.localizedTitle, cgm: cgm)
         }
 
         func hideSettingsModal() {
