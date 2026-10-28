@@ -28,7 +28,6 @@ extension OpenAPS {
         static let podAge = "monitor/pod-age.json"
         static let trio_custom_oref_variables = "monitor/trio_custom_oref_variables.json"
         static let alertHistory = "monitor/alerthistory.json"
-        static let statistics = "monitor/statistics.json"
     }
 
     enum Enact {

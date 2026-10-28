@@ -21,7 +21,6 @@ protocol DeviceDataManager {
     var recommendsLoop: PassthroughSubject<Void, Never> { get }
     var bolusTrigger: CurrentValueSubject<BolusStatus, Never> { get }
     var manualTempBasal: PassthroughSubject<Bool, Never> { get }
-    var scheduledBasal: PassthroughSubject<Bool?, Never> { get }
     var suspended: PassthroughSubject<Bool, Never> { get }
     var errorSubject: PassthroughSubject<Error, Never> { get }
     var pumpName: CurrentValueSubject<String, Never> { get }
@@ -62,7 +61,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     let errorSubject = PassthroughSubject<Error, Never>()
     let pumpNewStatus = PassthroughSubject<Void, Never>()
     let manualTempBasal = PassthroughSubject<Bool, Never>()
-    let scheduledBasal = PassthroughSubject<Bool?, Never>()
     let suspended = PassthroughSubject<Bool, Never>()
 
     @SyncAccess private var pumpUpdateCancellable: AnyCancellable?
@@ -459,18 +457,13 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
         switch status.basalDeliveryState {
         case let .active(at):
-            if at == .distantPast {
-                scheduledBasal.send(nil) // pump is not currently available
-            } else {
+            if at != .distantPast {
                 suspended.send(false)
-                scheduledBasal.send(true)
             }
         case .suspended:
             suspended.send(true)
-            scheduledBasal.send(false)
         default:
             suspended.send(false)
-            scheduledBasal.send(false)
         }
 
         if status.insulinType != oldStatus.insulinType {

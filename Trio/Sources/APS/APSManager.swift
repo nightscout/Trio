@@ -25,9 +25,7 @@ protocol APSManager {
     var pumpExpiresAtDate: CurrentValueSubject<Date?, Never> { get }
     var pumpActivatedAtDate: CurrentValueSubject<Date?, Never> { get }
     var isManualTempBasal: Bool { get }
-    var isScheduledBasal: Bool? { get }
     var isSuspended: Bool { get }
-    func determineBasal() async throws
     /// Runs a determination outside the loop, after a treatment or adjustment changed what the
     /// algorithm reads. Waits for a loop in flight to finish first, since that loop determined
     /// before the change landed. Concurrent calls collapse into the one already running. Algorithm
@@ -124,8 +122,6 @@ final class BaseAPSManager: APSManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseAPSManager.processQueue")
     @Injected() private var storage: FileStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
-    @Injected() private var alertHistoryStorage: AlertHistoryStorage!
-    @Injected() private var tempTargetsStorage: TempTargetsStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
@@ -161,8 +157,6 @@ final class BaseAPSManager: APSManager, Injectable {
     var bluetoothManager: BluetoothStateManager? { deviceDataManager.bluetoothManager }
 
     @Persisted(key: "isManualTempBasal") var isManualTempBasal: Bool = false
-
-    @Persisted(key: "isScheduledBasal") var isScheduledBasal: Bool? = false
 
     @Persisted(key: "isSuspended") var isSuspended: Bool = false
 
@@ -246,15 +240,6 @@ final class BaseAPSManager: APSManager, Injectable {
                 case .noBolus:
                     self?.clearBolusReporter()
                 }
-            }
-            .store(in: &lifetime)
-
-        // The following three publishers update `@Persisted` properties that
-        // are also read from the main thread (UI bindings)
-        deviceDataManager.scheduledBasal
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] scheduledBasal in
-                self?.isScheduledBasal = scheduledBasal
             }
             .store(in: &lifetime)
 
@@ -457,7 +442,7 @@ final class BaseAPSManager: APSManager, Injectable {
         return nil
     }
 
-    func autosense() async throws -> Bool {
+    private func autosense() async throws -> Bool {
         guard let autosense = await storage.retrieveAsync(OpenAPS.Settings.autosense, as: Autosens.self),
               (autosense.timestamp ?? .distantPast).addingTimeInterval(30.minutes.timeInterval) > Date()
         else {
@@ -487,7 +472,7 @@ final class BaseAPSManager: APSManager, Injectable {
         await tddStorage.storeTDD(tddResult)
     }
 
-    func determineBasal() async throws {
+    private func determineBasal() async throws {
         try await calculateAndStoreTDD()
 
         var invalidGlucoseError: String?
@@ -874,7 +859,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     /// Synchronously fetches glucose on the given context. Must be called from within a `perform`/`performAndWait` block of that context
-    func fetchGlucose(
+    private func fetchGlucose(
         on context: NSManagedObjectContext,
         predicate: NSPredicate,
         fetchLimit: Int? = nil,
@@ -1084,30 +1069,6 @@ private extension PumpManager {
             }
         }
     }
-
-    func suspendDelivery() async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            self.suspendDelivery { error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-        }
-    }
-
-    func resumeDelivery() async throws {
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            self.resumeDelivery { error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            }
-        }
-    }
 }
 
 extension BaseAPSManager: SettingsObserver {
@@ -1137,47 +1098,6 @@ extension BaseAPSManager: SettingsObserver {
             warning(.pump, "Cancelling temp basal for basal testing failed", error: error)
             processError(APSError.pumpError(error))
         }
-    }
-}
-
-extension BaseAPSManager: PumpManagerStatusObserver {
-    func pumpManager(_: PumpManager, didUpdate status: PumpManagerStatus, oldStatus _: PumpManagerStatus) {
-        let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
-
-        let context = CoreDataStack.shared.newTaskContext()
-        context.name = "storeBatteryStatus"
-        context.perform {
-            /// only update the last item with the current battery infos instead of saving a new one each time
-            let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
-            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-            fetchRequest.predicate = NSPredicate.predicateFor30MinAgo
-            fetchRequest.fetchLimit = 1
-
-            do {
-                let results = try context.fetch(fetchRequest)
-                let batteryToStore: OpenAPS_Battery
-
-                if let existingBattery = results.first {
-                    batteryToStore = existingBattery
-                } else {
-                    batteryToStore = OpenAPS_Battery(context: context)
-                    batteryToStore.id = UUID()
-                }
-
-                batteryToStore.date = Date()
-                batteryToStore.percent = Double(percent)
-                batteryToStore.voltage = nil
-                batteryToStore.status = percent > 10 ? "normal" : "low"
-                batteryToStore.display = status.pumpBatteryChargeRemaining != nil
-
-                guard context.hasChanges else { return }
-                try context.save()
-            } catch {
-                warning(.storage, "Saving pump battery status failed", error: error)
-            }
-        }
-        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
-        storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
     }
 }
 
