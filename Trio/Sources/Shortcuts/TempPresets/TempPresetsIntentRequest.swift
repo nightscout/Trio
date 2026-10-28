@@ -26,7 +26,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
             // Fetch existing TempTargetStored objects based on their NSManagedObjectIDs
             let tempTargetObjects: [TempTargetStored] = allTempTargetPresetsIDs.compactMap { id in
                 guard let object = try? context.existingObject(with: id) as? TempTargetStored else {
-                    debugPrint("\(#file) \(#function) Failed to fetch object for ID: \(id)")
+                    warning(.treatments, "Skipped temp target preset that could not be loaded")
                     return nil
                 }
                 return object
@@ -39,7 +39,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                       let target = object.target?.decimalValue,
                       let duration = object.duration?.decimalValue
                 else {
-                    debugPrint("\(#file) \(#function) Missing data for TempTargetStored object.")
+                    debug(.treatments, "Temp target preset is missing required fields")
                     throw TempPresetsError.noTempTargetFound
                 }
                 return TempPreset(id: id, name: name, targetTop: target, duration: duration)
@@ -63,7 +63,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 let result = try context.fetch(fetchRequest)
 
                 if result.isEmpty {
-                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) No TempTargetStored found for ids: \(uuid)")
+                    debug(.treatments, "No temp target presets found for \(uuid.count) IDs")
                     return [TempPreset(id: UUID(), name: "", duration: 0)]
                 }
 
@@ -75,9 +75,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                     )
                 }
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch TempTarget: \(error)"
-                )
+                warning(.treatments, "Fetching temp target presets failed", error: error)
                 return [TempPreset(id: UUID(), name: "", duration: 0)]
             }
         }
@@ -90,7 +88,7 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
     /// - Parameter preset: The `TempPreset` to apply.
     /// - Returns: `true` if successfully enacted, otherwise `false`.
     @MainActor func enactTempTarget(_ preset: TempPreset) async -> Bool {
-        debug(.default, "Enacting Temp Target: \(preset.name)")
+        debug(.treatments, "Starting temp target \(preset.name) from shortcut")
         var backgroundTaskID = startBackgroundTask(withName: "TempTarget Enact")
         defer { endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Enact") }
 
@@ -100,30 +98,26 @@ final class TempPresetsIntentRequest: BaseIntentsRequest {
                 source: .shortcut,
                 waitForUpload: true
             )
-            debug(.default, "Finished. Temp Target enacted via Shortcut.")
+            debug(.treatments, "Temp target started from shortcut")
             return true
         } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to enact Temp Target with error: \(error)"
-            )
+            warning(.treatments, "Starting temp target from shortcut failed", error: error)
             return false
         }
     }
 
     /// Cancels the active temporary target. Nothing running is the state the intent asks for.
     @MainActor func cancelTempTarget() async {
-        debug(.default, "Cancelling active temp target")
+        debug(.treatments, "Stopping temp target from shortcut")
         var backgroundTaskID = startBackgroundTask(withName: "TempTarget Cancel")
         defer { endBackgroundTaskSafely(&backgroundTaskID, taskName: "TempTarget Cancel") }
 
         do {
             try await adjustmentManager.cancelTempTarget(source: .shortcut, waitForUpload: true)
         } catch AdjustmentError.nothingActive {
-            debug(.default, "No active temp target to cancel")
+            debug(.treatments, "No active temp target to stop")
         } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to cancel Temp Target with error: \(error)"
-            )
+            warning(.treatments, "Stopping temp target from shortcut failed", error: error)
         }
     }
 }

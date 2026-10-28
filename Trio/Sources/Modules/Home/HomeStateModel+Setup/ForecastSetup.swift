@@ -11,7 +11,7 @@ extension Home.StateModel {
             guard let determination = await viewContext.perform({
                 self.enactedAndNonEnactedDeterminations.first
             }) else {
-                debug(.default, "No determination found for forecast preprocessing")
+                debug(.ui, "No determination yet, forecast not shown")
                 return []
             }
 
@@ -24,10 +24,7 @@ extension Home.StateModel {
                 in: taskContext
             )
         } catch {
-            debug(
-                .default,
-                "\(DebuggingIdentifiers.failed) Failed to preprocess forecast data: \(error)"
-            )
+            warning(.ui, "Preparing forecast for home screen failed", error: error)
             return []
         }
     }

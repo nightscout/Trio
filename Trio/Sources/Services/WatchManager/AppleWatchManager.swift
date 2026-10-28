@@ -153,9 +153,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             session.activate()
             self.session = session
 
-            debug(.watchManager, "📱 Phone session setup - isPaired: \(session.isPaired)")
+            debug(.watch, "Watch session set up, paired: \(session.isPaired)")
         } else {
-            debug(.watchManager, "📱 WCSession is not supported on this device")
+            debug(.watch, "Watch connectivity not supported on this device")
         }
     }
 
@@ -164,7 +164,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         guard let session = session else { return }
 
         if !session.isReachable {
-            debug(.watchManager, "📱 Attempting to reactivate session...")
+            debug(.watch, "Reactivating watch session")
             session.activate()
         }
     }
@@ -174,13 +174,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     func setupWatchState() async -> WatchState {
         // Check if a watch is paired and reachable before doing expensive calculations
         guard let session = session, session.isPaired, session.isReachable, session.isWatchAppInstalled else {
-            debug(.watchManager, "⌚️❌ Skipping setupWatchState - No Watch is paired or app not installed")
+            debug(.watch, "Watch state skipped: no watch paired or app not installed")
             return WatchState(date: Date())
         }
 
         // Skip if watch session is not activated
         guard session.activationState == .activated else {
-            debug(.watchManager, "⌚️❌ Skipping setupWatchState - Watch session not activated")
+            debug(.watch, "Watch state skipped: session not activated")
             return WatchState(date: Date())
         }
         do {
@@ -425,18 +425,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 }
 
                 debug(
-                    .watchManager,
-
-                    "📱 Setup WatchState - currentGlucose: \(watchState.currentGlucose ?? "nil"), trend: \(watchState.trend ?? "nil"), delta: \(watchState.delta ?? "nil"), values: \(watchState.glucoseValues.count)"
+                    .watch,
+                    "Watch state built: glucose \(watchState.currentGlucose ?? "none"), trend \(watchState.trend ?? "none"), delta \(watchState.delta ?? "none"), \(watchState.glucoseValues.count) readings"
                 )
 
                 return watchState
             }
         } catch {
-            debug(
-                .watchManager,
-                "\(DebuggingIdentifiers.failed) Error setting up watch state: \(error)"
-            )
+            warning(.watch, "Building watch state failed", error: error)
             // Return empty state in case of error
             return WatchState(date: Date())
         }
@@ -498,10 +494,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 activeBolusAmount = lastBolusObject.first?.bolus?.amount?.doubleValue ?? 0.0
             }
         } catch {
-            debug(
-                .default,
-                "\(DebuggingIdentifiers.failed) Error getting active bolus amount: \(error)"
-            )
+            warning(.watch, "Fetching active bolus amount failed", error: error)
         }
     }
 
@@ -569,18 +562,17 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         guard let session = session else { return }
 
         guard session.isPaired else {
-            debug(.watchManager, "⌚️❌ No Watch is paired")
+            debug(.watch, "No watch paired")
             return
         }
 
         guard session.isWatchAppInstalled else {
-            debug(.watchManager, "⌚️❌ Trio Watch app is")
+            debug(.watch, "Trio watch app not installed")
             return
         }
 
         guard session.activationState == .activated else {
-            let activationStateString = "\(session.activationState)"
-            debug(.watchManager, "⌚️ Watch session activationState = \(activationStateString). Reactivating...")
+            debug(.watch, "Watch session not activated (state \(session.activationState.rawValue)), reactivating")
             session.activate()
             return
         }
@@ -598,18 +590,18 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // if session is not reachable, it means it's in background -> send watchState as userInfo
         if session.isReachable {
             session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { error in
-                debug(.watchManager, "❌ Error sending watch state: \(error)")
+                warning(.watch, "Sending watch state failed", error: error)
             }
         } else {
             session.transferUserInfo([WatchMessageKeys.watchState: message])
-            debug(.watchManager, "📤 Transferred new WatchState snapshot via userInfo")
+            debug(.watch, "Watch state queued for background transfer")
         }
         WatchStateSnapshot.saveLatestDateToDisk(state.date)
     }
 
     func sendAcknowledgment(toWatch success: Bool, message: String = "", ackCode: AcknowledgmentCode) {
         guard let session = session, session.isReachable else {
-            debug(.watchManager, "⌚️ Watch not reachable for acknowledgment")
+            debug(.watch, "Watch not reachable, acknowledgment not sent")
             return
         }
 
@@ -620,7 +612,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         ]
 
         session.sendMessage(ackMessage, replyHandler: nil) { error in
-            debug(.watchManager, "❌ Error sending acknowledgment: \(error)")
+            warning(.watch, "Sending acknowledgment to watch failed", error: error)
         }
     }
 
@@ -628,12 +620,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
-            debug(.watchManager, "📱 Phone session activation failed: \(error)")
+            warning(.watch, "Watch session activation failed", error: error)
             return
         }
 
-        debug(.watchManager, "📱 Phone session activated with state: \(activationState.rawValue)")
-        debug(.watchManager, "📱 Phone isReachable after activation: \(session.isReachable)")
+        info(.watch, "Watch session activated, state \(activationState.rawValue), reachable: \(session.isReachable)")
 
         // Try to send initial data after activation
         Task {
@@ -645,7 +636,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     func session(_: WCSession, didReceiveMessage message: [String: Any]) {
         // Handle logs first - doesn't need self, so it can run even during teardown
         if let logs = message["watchLogs"] as? String {
-            SimpleLogReporter.appendToWatchLog(logs)
+            WatchLogIngest.legacyRecords(from: logs).forEach(TrioLogger.sink.accept)
+            if message.count == 1 { return }
         }
 
         Task { @MainActor [weak self] in
@@ -654,7 +646,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             if let requestWatchUpdate = message[WatchMessageKeys.requestWatchUpdate] as? String,
                requestWatchUpdate == WatchMessageKeys.watchState
             {
-                debug(.watchManager, "📱 Watch requested watch state data update.")
+                debug(.watch, "Watch requested a state update")
                 // Skip if no watch is paired or app not installed
                 guard let session = self.session, session.isPaired, session.isReachable,
                       session.isWatchAppInstalled else { return }
@@ -666,31 +658,28 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
 
             if let snoozeMinutes = message[WatchMessageKeys.snoozeDuration] as? Int {
-                debug(.watchManager, "📱 Received snooze request from watch: \(snoozeMinutes) minutes")
+                info(.watch, "Watch requested alert snooze for \(snoozeMinutes) min")
                 await self.notificationsManager.applySnooze(for: TimeInterval(snoozeMinutes * 60))
                 return
             } else if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
                       message[WatchMessageKeys.carbs] == nil,
                       message[WatchMessageKeys.date] == nil
             {
-                debug(.watchManager, "📱 Received bolus request from watch: \(bolusAmount)U")
+                info(.watch, "Watch requested bolus of \(bolusAmount) U")
                 self.handleBolusRequest(Decimal(bolusAmount))
             } else if let carbsAmount = message[WatchMessageKeys.carbs] as? Int,
                       let timestamp = message[WatchMessageKeys.date] as? TimeInterval,
                       message[WatchMessageKeys.bolus] == nil
             {
                 let date = Date(timeIntervalSince1970: timestamp)
-                debug(.watchManager, "📱 Received carbs request from watch: \(carbsAmount)g at \(date)")
+                info(.watch, "Watch requested \(carbsAmount) g carbs at \(date)")
                 self.handleCarbsRequest(carbsAmount, date)
             } else if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
                       let carbsAmount = message[WatchMessageKeys.carbs] as? Int,
                       let timestamp = message[WatchMessageKeys.date] as? TimeInterval
             {
                 let date = Date(timeIntervalSince1970: timestamp)
-                debug(
-                    .watchManager,
-                    "📱 Received meal bolus combo request from watch: \(bolusAmount)U, \(carbsAmount)g at \(date)"
-                )
+                info(.watch, "Watch requested bolus of \(bolusAmount) U with \(carbsAmount) g carbs at \(date)")
                 self.handleCombinedRequest(bolusAmount: Decimal(bolusAmount), carbsAmount: Decimal(carbsAmount), date: date)
             } else if message[WatchMessageKeys.cancelOverride] == nil,
                       message[WatchMessageKeys.activateOverride] == nil,
@@ -698,7 +687,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                       message[WatchMessageKeys.activateTempTarget] == nil,
                       message[WatchMessageKeys.requestBolusRecommendation] == nil
             {
-                debug(.watchManager, "📱 Invalid or incomplete data received from watch. Received:  \(message)")
+                warning(
+                    .watch,
+                    "Invalid or incomplete message from watch, keys: \(message.keys.sorted().joined(separator: ", "))"
+                )
                 // Acknowledge failure
                 self.sendAcknowledgment(
                     toWatch: false,
@@ -708,22 +700,22 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
 
             if message[WatchMessageKeys.cancelOverride] as? Bool == true {
-                debug(.watchManager, "📱 Received cancel override request from watch")
+                info(.watch, "Watch requested override cancel")
                 self.handleCancelOverride()
             }
 
             if let presetName = message[WatchMessageKeys.activateOverride] as? String {
-                debug(.watchManager, "📱 Received activate override request from watch for preset: \(presetName)")
+                info(.watch, "Watch requested override preset \(presetName)")
                 self.handleActivateOverride(presetName)
             }
 
             if let presetName = message[WatchMessageKeys.activateTempTarget] as? String {
-                debug(.watchManager, "📱 Received activate temp target request from watch for preset: \(presetName)")
+                info(.watch, "Watch requested temp target preset \(presetName)")
                 self.handleActivateTempTarget(presetName)
             }
 
             if message[WatchMessageKeys.cancelTempTarget] as? Bool == true {
-                debug(.watchManager, "📱 Received cancel temp target request from watch")
+                info(.watch, "Watch requested temp target cancel")
                 self.handleCancelTempTarget()
             }
 
@@ -752,9 +744,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         }
 
                     } catch let error as CoreDataError {
-                        debug(.default, "Core Data error: \(error)")
+                        warning(.watch, "Fetching determination for watch bolus recommendation failed", error: error)
                     } catch {
-                        debug(.default, "Unexpected error: \(error)")
+                        warning(.watch, "Fetching determination for watch bolus recommendation failed", error: error)
                     }
 
                     // Get recommendation from BolusCalculationManager
@@ -774,7 +766,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     ]
 
                     if let session = self.session, session.isReachable {
-                        debug(.watchManager, "📱 Sending recommendedBolus: \(result.insulinCalculated)")
+                        debug(.watch, "Sending recommended bolus \(result.insulinCalculated) U to watch")
                         session.sendMessage(recommendationMessage, replyHandler: nil)
                     }
                 }
@@ -785,16 +777,20 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         if let logs = userInfo["watchLogs"] as? String {
-            SimpleLogReporter.appendToWatchLog(logs)
+            WatchLogIngest.legacyRecords(from: logs).forEach(TrioLogger.sink.accept)
         }
 
         if let snoozeMinutes = userInfo[WatchMessageKeys.snoozeDuration] as? Int {
-            debug(.watchManager, "📱 Received snooze userInfo from watch: \(snoozeMinutes) minutes")
+            info(.watch, "Watch requested alert snooze for \(snoozeMinutes) min")
             Task { @MainActor [weak self] in
                 guard let self else { return }
                 await self.notificationsManager.applySnooze(for: TimeInterval(snoozeMinutes * 60))
             }
         }
+    }
+
+    func session(_: WCSession, didReceive file: WCSessionFile) {
+        WatchLogIngest.shared.receive(file.fileURL, metadata: file.metadata)
     }
 
     #if os(iOS)
@@ -805,7 +801,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     #endif
 
     func sessionReachabilityDidChange(_ session: WCSession) {
-        debug(.watchManager, "📱 Phone reachability changed: \(session.isReachable)")
+        debug(.watch, "Watch reachable: \(session.isReachable)")
 
         if session.isReachable {
             // Try to send data when connection is established
@@ -833,7 +829,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     ackCode: success == true ? .genericSuccess : .genericFailure
                 )
             }
-            debug(.watchManager, "📱 Enacted bolus via APS Manager: \(amount)U")
+            debug(.bolus, "Watch bolus of \(amount) U handed to APS manager")
         }
     }
 
@@ -867,7 +863,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         return
                     }
                     try context.save()
-                    debug(.watchManager, "📱 Saved carbs from watch: \(amount)g at \(date)")
+                    debug(.treatments, "Saved \(amount) g carbs from watch")
 
                     // Acknowledge success
                     self.sendAcknowledgment(
@@ -878,8 +874,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         ),
                         ackCode: .carbsLogged
                     )
-                } catch {
-                    debug(.watchManager, "❌ Error saving carbs: \(error)")
+                } catch let saveError {
+                    error(.treatments, "Saving carbs from watch failed", error: saveError)
 
                     // Acknowledge failure
                     self.sendAcknowledgment(toWatch: false, message: "Error logging carbs", ackCode: .genericFailure)
@@ -930,7 +926,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         return
                     }
                     try context.save()
-                    debug(.watchManager, "📱 Saved carbs from watch: \(carbsAmount) g at \(date)")
+                    debug(.treatments, "Saved \(carbsAmount) g carbs from watch")
                 }
 
                 // Notify Watch: "Enacting bolus..."
@@ -953,7 +949,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         ackCode: success == true ? .genericSuccess : .genericFailure
                     )
                 }
-                debug(.watchManager, "📱 Enacted bolus from watch via APS Manager: \(bolusDouble) U")
+                debug(.bolus, "Watch bolus of \(bolusDouble) U handed to APS manager")
                 // Notify Watch: "Carbs and bolus logged successfully"
                 sendAcknowledgment(
                     toWatch: true,
@@ -964,8 +960,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     ackCode: .comboComplete
                 )
 
-            } catch {
-                debug(.watchManager, "❌ Error processing combined request: \(error)")
+            } catch let requestError {
+                error(.watch, "Logging carbs and bolus from watch failed", error: requestError)
                 sendAcknowledgment(toWatch: false, message: "Failed to log carbs and bolus", ackCode: .genericFailure)
             }
         }
@@ -975,7 +971,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         Task {
             do {
                 let outcome = try await adjustmentManager.cancelOverride(source: .watch)
-                debug(.watchManager, "📱 Successfully stopped override \"\(outcome.ended.first?.name ?? "Custom Override")\"")
+                debug(.treatments, "Override \"\(outcome.ended.first?.name ?? "Custom Override")\" stopped from watch")
 
                 self.sendAcknowledgment(
                     toWatch: true,
@@ -986,7 +982,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     ackCode: .overrideStopped
                 )
             } catch {
-                debug(.watchManager, "❌ Error cancelling override: \(error)")
+                warning(.treatments, "Stopping override from watch failed", error: error)
                 self.sendAcknowledgment(
                     toWatch: false,
                     message: (error as? AdjustmentError)?.errorDescription ?? "Error stopping Override.",
@@ -1000,9 +996,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         Task {
             do {
                 let outcome = try await adjustmentManager.activateOverride(.presetName(presetName), source: .watch)
-                debug(.watchManager, "📱 Successfully activated override: \(presetName)")
+                debug(.treatments, "Override \(presetName) started from watch")
                 if let ended = outcome.ended.first {
-                    debug(.watchManager, "📱 Recorded run for replaced override \"\(ended.name ?? "Custom Override")\"")
+                    debug(.treatments, "Recorded run for replaced override \"\(ended.name ?? "Custom Override")\"")
                 }
 
                 self.sendAcknowledgment(
@@ -1014,7 +1010,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     ackCode: .overrideStarted
                 )
             } catch {
-                debug(.watchManager, "❌ Error activating override: \(error)")
+                warning(.treatments, "Starting override from watch failed", error: error)
                 self.sendAcknowledgment(
                     toWatch: false,
                     message: (error as? AdjustmentError)?.errorDescription ?? "Error activating Override \"\(presetName)\".",
@@ -1028,9 +1024,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         Task {
             do {
                 let outcome = try await adjustmentManager.activateTempTarget(.presetName(presetName), source: .watch)
-                debug(.watchManager, "📱 Successfully activated temp target: \(presetName)")
+                debug(.treatments, "Temp target \(presetName) started from watch")
                 if let ended = outcome.ended.first {
-                    debug(.watchManager, "📱 Recorded run for replaced temp target \"\(ended.name ?? "Temp Target")\"")
+                    debug(.treatments, "Recorded run for replaced temp target \"\(ended.name ?? "Temp Target")\"")
                 }
 
                 self.sendAcknowledgment(
@@ -1042,7 +1038,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     ackCode: .tempTargetStarted
                 )
             } catch {
-                debug(.watchManager, "❌ Error activating temp target: \(error)")
+                warning(.treatments, "Starting temp target from watch failed", error: error)
                 self.sendAcknowledgment(
                     toWatch: false,
                     message: (error as? AdjustmentError)?.errorDescription ?? "Error activating Temp Target \"\(presetName)\".",
@@ -1056,7 +1052,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         Task {
             do {
                 let outcome = try await adjustmentManager.cancelTempTarget(source: .watch)
-                debug(.watchManager, "📱 Successfully cancelled temp target \"\(outcome.ended.first?.name ?? "Temp Target")\"")
+                debug(.treatments, "Temp target \"\(outcome.ended.first?.name ?? "Temp Target")\" stopped from watch")
 
                 self.sendAcknowledgment(
                     toWatch: true,
@@ -1067,7 +1063,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     ackCode: .tempTargetStopped
                 )
             } catch {
-                debug(.watchManager, "❌ Error stopping temp target: \(error)")
+                warning(.treatments, "Stopping temp target from watch failed", error: error)
                 self.sendAcknowledgment(
                     toWatch: false,
                     message: (error as? AdjustmentError)?.errorDescription ?? "Error stopping Temp Target.",
@@ -1120,7 +1116,7 @@ extension BaseWatchManager {
 
         for (index, entry) in entries.enumerated() {
             guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
-                debug(.default, "Invalid entry start time: \(entry.start)")
+                warning(.watch, "Skipped glucose target with invalid start time \(entry.start)")
                 continue
             }
 

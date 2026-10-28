@@ -6,10 +6,10 @@ import UIKit
 func endBackgroundTaskSafely(_ taskID: inout UIBackgroundTaskIdentifier, taskName: String = "Unnamed Task") {
     if taskID != .invalid {
         UIApplication.shared.endBackgroundTask(taskID)
-        debug(.default, "Background task '\(taskName)' ended successfully.")
+        debug(.lifecycle, "Background task '\(taskName)' ended")
         taskID = .invalid
     } else {
-        debug(.default, "Background task '\(taskName)' was already invalid or ended.")
+        debug(.lifecycle, "Background task '\(taskName)' already ended")
     }
 }
 
@@ -26,11 +26,11 @@ func startBackgroundTask(withName name: String) -> UIBackgroundTaskIdentifier {
             // we simply end the Task with the given ID
             if taskID != .invalid {
                 UIApplication.shared.endBackgroundTask(taskID)
-                debug(.default, "Background task '\(name)' ended in expiration handler.")
+                warning(.lifecycle, "Background task '\(name)' expired")
             }
         }
     }
 
-    debug(.default, "Background task '\(name)' started with ID: \(taskID)")
+    debug(.lifecycle, "Background task '\(name)' started")
     return taskID
 }

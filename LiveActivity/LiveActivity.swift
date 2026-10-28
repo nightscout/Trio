@@ -49,7 +49,6 @@ struct LiveActivity: Widget {
             .widgetURL(URL(string: "Trio://"))
             .keylineTint(glucoseColor)
             .contentMargins(.horizontal, 0, for: .minimal)
-            .contentMargins(.trailing, 0, for: .compactLeading)
             .contentMargins(.leading, 0, for: .compactTrailing)
         }
 

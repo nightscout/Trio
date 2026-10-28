@@ -145,9 +145,7 @@ extension Adjustments {
                     setupOverridePresetsArray()
                     try await nightscoutManager.uploadProfiles()
                 } catch {
-                    debugPrint(
-                        "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Override Presets order or upload profiles"
-                    )
+                    warning(.treatments, "Saving override preset order or uploading profiles failed", error: error)
                 }
             }
         }
@@ -163,7 +161,7 @@ extension Adjustments {
                 try viewContext.save()
                 setupTempTargetPresetsArray()
             } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Temp Target Presets order")
+                warning(.treatments, "Saving temp target preset order failed", error: error)
             }
         }
     }

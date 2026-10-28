@@ -128,6 +128,7 @@ extension Notification.Name {
     }
 
     init() {
+        TrioLogger.install(AppLogStore.shared)
         FileProtectionFixer.fixFlagFileProtectionForPropertyPersistentFlags() // TODO: ‼️ REMOVE ME BEFORE PUBLIC BETA / RELEASE
 
         let notificationCenter = Foundation.NotificationCenter.default
@@ -153,10 +154,6 @@ extension Notification.Name {
             showOnboardingCompletedSplash = true
         }
 
-        let submodulesInfo = BuildDetails.shared.submodules.map { key, value in
-            "\(key): \(value.branch) \(value.commitSHA)"
-        }.joined(separator: ", ")
-
         /// The current development version of the app.
         ///
         /// Follows a semantic pattern where release versions are like `0.5.0`, and
@@ -171,9 +168,13 @@ extension Notification.Name {
         /// If the dev version is unavailable, `"unknown"` is returned.
         let devVersion = Bundle.main.appDevVersion ?? "unknown"
 
-        debug(
-            .default,
-            "Trio Started: v\(devVersion)(\(Bundle.main.buildVersionNumber ?? "")) [buildDate: \(String(describing: BuildDetails.shared.buildDate()))] [buildExpires: \(String(describing: BuildDetails.shared.calculateExpirationDate()))] [Branch: \(BuildDetails.shared.branchAndSha)] [submodules: \(submodulesInfo)]"
+        // Submodules can change between launches within one exported window
+        let submodules = BuildDetails.shared.submodules.sorted { $0.key < $1.key }
+            .map { "\($0.key) \($0.value.commitSHA.prefix(7))" }
+            .joined(separator: ", ")
+        info(
+            .lifecycle,
+            "Trio started: v\(devVersion) (\(Bundle.main.buildVersionNumber ?? "")) \(BuildDetails.shared.branchAndSha); \(submodules)"
         )
         // Fix bug in iOS 18 related to the translucent tab bar
         configureTabBarAppearance()
@@ -212,14 +213,11 @@ extension Notification.Name {
                     do {
                         try await BuildDetails.shared.handleExpireDateChange()
                     } catch {
-                        debug(.default, "Failed to handle expire date change: \(error)")
+                        warning(.nightscout, "Uploading profile after build change failed", error: error)
                     }
                 }.value
-            } catch {
-                debug(
-                    .coreData,
-                    "\(DebuggingIdentifiers.failed) Failed to initialize Core Data Stack: \(error)"
-                )
+            } catch let initError {
+                error(.storage, "Core Data stack could not be initialized", error: initError)
 
                 await MainActor.run {
                     self.initState.error = true
@@ -238,21 +236,21 @@ extension Notification.Name {
         } catch {
             importErrors
                 .append(String(localized: "Failed to import glucose history."))
-            debug(.coreData, "❌ Failed to import JSON-based Glucose History: \(error)")
+            warning(.storage, "Importing legacy glucose history failed", error: error)
         }
 
         do {
             try await importer.importPumpHistoryIfNeeded()
         } catch {
             importErrors.append(String(localized: "Failed to import pump history."))
-            debug(.coreData, "❌ Failed to import JSON-based Pump History: \(error)")
+            warning(.storage, "Importing legacy pump history failed", error: error)
         }
 
         do {
             try await importer.importCarbHistoryIfNeeded()
         } catch {
             importErrors.append(String(localized: "Failed to import algorithm data."))
-            debug(.coreData, "❌ Failed to import JSON-based Carb History: \(error)")
+            warning(.storage, "Importing legacy carb history failed", error: error)
         }
 
         do {
@@ -262,7 +260,7 @@ extension Notification.Name {
                 .append(
                     String(localized: "Migration of JSON-based OpenAPS Determination Data failed: \(error.localizedDescription)")
                 )
-            debug(.coreData, "❌ Failed to import JSON-based OpenAPS Determination Data: \(error)")
+            warning(.storage, "Importing legacy determinations failed", error: error)
         }
 
         initState.migrationErrors = importErrors
@@ -401,7 +399,7 @@ extension Notification.Name {
             .developmentBranchWarning(developmentBranchAlerter)
         }
         .onChange(of: scenePhase) { _, newScenePhase in
-            debug(.default, "APPLICATION PHASE: \(newScenePhase)")
+            info(.lifecycle, "Scene phase changed to \(newScenePhase)")
 
             /// If the App goes to the background we should ensure that all the changes are saved from the viewContext to the Persistent Container
             if newScenePhase == .background {
