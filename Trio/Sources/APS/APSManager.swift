@@ -709,7 +709,7 @@ final class BaseAPSManager: APSManager, Injectable {
         debug(.bolus, "Cancelling bolus")
         do {
             let dose = try await pump.cancelBolus()
-            debug(.apsManager, "Bolus cancelled")
+            debug(.bolus, "Bolus cancelled")
             // An early cancel still delivers part of the bolus; report it like a completion
             // so observers (e.g. the meal-time reminder) can react to what was delivered.
             // Pump managers may return a nil dose on cancel, so fall back to the progress
@@ -1445,7 +1445,7 @@ final class BaseAPSManager: APSManager, Injectable {
             guard let reporter = self.bolusReporter else { return }
             let deliveredUnits = reporter.progress.deliveredUnits
             self.clearBolusReporter()
-            debug(.apsManager, "Bolus stopped via pump status with \(deliveredUnits) U reported delivered")
+            debug(.bolus, "Bolus stopped via pump status with \(deliveredUnits) U reported delivered")
             DispatchQueue.main.async {
                 self.broadcaster.notify(BolusDeliveryObserver.self, on: .main) {
                     $0.bolusDeliveryDidFinish(deliveredUnits: deliveredUnits)

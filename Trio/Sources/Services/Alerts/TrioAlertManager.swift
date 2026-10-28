@@ -249,7 +249,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         let piercesSnooze = effective.interruptionLevel == .critical
             || effective.identifier == .mealTimeReminderEat
         if !piercesSnooze, muter.shouldMute(at: fireDate) {
-            debug(.service, "TrioAlertManager muted \(effective.identifier.value) (snooze window active)")
+            debug(.alerts, "Alert \(effective.identifier.value) muted, snooze window active")
             return
         }
         guard throttler.shouldDeliver(effective) else {

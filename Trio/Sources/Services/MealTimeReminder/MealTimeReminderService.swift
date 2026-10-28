@@ -125,7 +125,7 @@ protocol MealTimeReminderService: AnyObject {
 
         let awaiting = AwaitingBolusCompletion(id: UUID(), leadTime: leadTime, carbs: carbs)
         await MainActor.run { awaitingCompletion = awaiting }
-        debug(.bolusState, "Meal-time reminder awaiting bolus completion: \(Int(leadTime / 60)) min lead time")
+        debug(.bolus, "Meal-time reminder awaiting bolus completion: \(Int(leadTime / 60)) min lead time")
 
         await MainActor.run {
             startAwaitingExpiry(awaiting, after: leadTime + Self.staleCompletionAllowance)
@@ -141,7 +141,7 @@ protocol MealTimeReminderService: AnyObject {
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 guard let self, self.awaitingCompletion == awaiting else { return }
-                debug(.bolusState, "Meal-time reminder dropped: bolus completion never arrived")
+                debug(.bolus, "Meal-time reminder dropped: bolus completion never arrived")
                 self.awaitingCompletion = nil
             }
         }
@@ -159,13 +159,13 @@ protocol MealTimeReminderService: AnyObject {
                 // rejects cancel and needs stop instead.
                 do {
                     try AlarmManager.shared.cancel(id: alarmID)
-                    debug(.bolusState, "Meal-time reminder alarm canceled: \(alarmID)")
+                    debug(.bolus, "Meal-time reminder alarm canceled: \(alarmID)")
                 } catch {
                     do {
                         try AlarmManager.shared.stop(id: alarmID)
-                        debug(.bolusState, "Meal-time reminder alarm stopped: \(alarmID)")
+                        debug(.bolus, "Meal-time reminder alarm stopped: \(alarmID)")
                     } catch {
-                        warning(.bolusState, "Meal-time reminder alarm cancel/stop failed: \(error.localizedDescription)")
+                        warning(.bolus, "Meal-time reminder alarm cancel/stop failed: \(error.localizedDescription)")
                     }
                 }
                 scheduledAlarmID = nil
@@ -218,7 +218,7 @@ protocol MealTimeReminderService: AnyObject {
 
         setPendingReminder(reminder)
         debug(
-            .bolusState,
+            .bolus,
             "Meal-time reminder restored: fires at \(reminder.fireDate), alarmID \(reminder.alarmID?.uuidString ?? "none")"
         )
 
@@ -226,7 +226,7 @@ protocol MealTimeReminderService: AnyObject {
             if #available(iOS 26.0, *) {
                 let alarms = (try? AlarmManager.shared.alarms) ?? []
                 debug(
-                    .bolusState,
+                    .bolus,
                     "Meal-time reminder sees \(alarms.count) system alarm(s): \(alarms.map { "\($0.id) state=\($0.state)" })"
                 )
             }
@@ -248,7 +248,7 @@ protocol MealTimeReminderService: AnyObject {
                 authorization = (try? await manager.requestAuthorization()) ?? .denied
             }
             guard authorization == .authorized else {
-                debug(.bolusState, "Meal-time reminder alarm not scheduled: AlarmKit authorization is \(authorization)")
+                debug(.bolus, "Meal-time reminder alarm not scheduled: AlarmKit authorization is \(authorization)")
                 return nil
             }
 
@@ -275,10 +275,10 @@ protocol MealTimeReminderService: AnyObject {
             do {
                 let alarmID = UUID()
                 _ = try await manager.schedule(id: alarmID, configuration: configuration)
-                debug(.bolusState, "Meal-time reminder alarm scheduled for \(Int(leadTime / 60)) min")
+                debug(.bolus, "Meal-time reminder alarm scheduled for \(Int(leadTime / 60)) min")
                 return alarmID
             } catch {
-                warning(.bolusState, "Failed to schedule meal-time reminder alarm: \(error)")
+                warning(.bolus, "Failed to schedule meal-time reminder alarm: \(error)")
                 return nil
             }
         }
@@ -352,7 +352,7 @@ extension BaseMealTimeReminderService: BolusDeliveryObserver {
     func bolusDeliveryDidFinish(deliveredUnits: Double) {
         Task { @MainActor in
             guard let awaiting = awaitingCompletion else { return }
-            debug(.bolusState, "Bolus delivery finished with \(deliveredUnits) U; scheduling meal-time reminder")
+            debug(.bolus, "Bolus delivery finished with \(deliveredUnits) U; scheduling meal-time reminder")
             awaitingCompletion = nil
             awaitingExpiryTask?.cancel()
             awaitingExpiryTask = nil

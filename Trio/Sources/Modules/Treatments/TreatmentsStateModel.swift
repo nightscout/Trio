@@ -255,7 +255,7 @@ extension Treatments {
             // meal-time reminder starts counting down.
             mealTimeReminderMinutes = 0
 
-            debug(.bolusState, "StateModel cleanup() finished")
+            debug(.bolus, "StateModel cleanup() finished")
         }
 
         private func setupBolusStateConcurrently() {
@@ -584,7 +584,7 @@ extension Treatments {
 
         /// - Returns: `true` if the insulin was delivered (pump) or logged (external).
         private func handleInsulin(isExternal: Bool) async -> Bool {
-            debug(.bolusState, "handleInsulin fired")
+            debug(.bolus, "handleInsulin fired")
 
             if !isExternal {
                 return await addPumpInsulin()
@@ -695,7 +695,7 @@ extension Treatments {
                         self.isAwaitingDeterminationResult = true
                     }
                     info(.bolus, "Bolus of \(maxAmount) U requested")
-                    
+
                     var enacted = false
                     await apsManager.enactBolus(amount: maxAmount, isSMB: false) { success, _ in
                         enacted = success
