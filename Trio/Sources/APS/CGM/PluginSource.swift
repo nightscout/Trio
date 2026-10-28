@@ -274,6 +274,7 @@ extension PluginSource: CGMManagerDelegate {
             var sensorActivatedAt: Date?
             var sensorStartDate: Date?
             var sensorTransmitterID: String?
+            var sensorTransmitterCode: String?
 
             /// SAGE
             if let cgmTransmitterManager = cgmManager as? LibreTransmitterManagerV3 {
@@ -295,10 +296,20 @@ extension PluginSource: CGMManagerDelegate {
                 sensorActivatedAt = cgmTransmitterManager.sensorActivatedAt
                 sensorStartDate = cgmTransmitterManager.sensorActivatedAt
                 sensorTransmitterID = cgmTransmitterManager.sensorName
+                if let pairingCode = cgmTransmitterManager.state.pairingCode {
+                    sensorTransmitterCode = "with pairing code \(pairingCode)"
+                }
             } else if let cgmTransmitterManager = cgmManager as? LibreLoopCGMManager {
                 sensorActivatedAt = cgmTransmitterManager.state.activatedAt
                 sensorStartDate = cgmTransmitterManager.state.activatedAt
                 sensorTransmitterID = cgmTransmitterManager.state.sensorSerial
+                if let receiverID = cgmTransmitterManager.state.receiverID, receiverID.count == 4 {
+                    let value = UInt32(receiverID[0])
+                        | (UInt32(receiverID[1]) << 8)
+                        | (UInt32(receiverID[2]) << 16)
+                        | (UInt32(receiverID[3]) << 24)
+                    sensorTransmitterCode = String(format: "using receiver ID %08X", value)
+                }
             } else if let cgmTransmitterManager = cgmManager as? AccuChekCgmManager {
                 sensorActivatedAt = cgmTransmitterManager.state.cgmStartTime
                 sensorStartDate = cgmTransmitterManager.state.cgmStartTime
@@ -340,7 +351,8 @@ extension PluginSource: CGMManagerDelegate {
                         type: "mbg",
                         activationDate: sensorActivatedAt,
                         sessionStartDate: sensorStartDate,
-                        transmitterID: sensorTransmitterID
+                        transmitterID: sensorTransmitterID,
+                        transmitterCode: sensorTransmitterCode
                     )
                 }
 
@@ -357,7 +369,8 @@ extension PluginSource: CGMManagerDelegate {
                     type: "sgv",
                     activationDate: sensorActivatedAt,
                     sessionStartDate: sensorStartDate,
-                    transmitterID: sensorTransmitterID
+                    transmitterID: sensorTransmitterID,
+                    transmitterCode: sensorTransmitterCode
                 )
             }
             return .success(bloodGlucose)
