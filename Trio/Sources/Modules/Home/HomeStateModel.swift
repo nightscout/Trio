@@ -553,7 +553,7 @@ extension Home {
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
 
-            timer.eventHandler = {
+            timer.eventHandler = { [weak self] in
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.timerDate = Date()
