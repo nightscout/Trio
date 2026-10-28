@@ -605,6 +605,7 @@
 		BD1179AA2F4E22C100F90001 /* NotLoopingMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179AB2F4E22C100F90001 /* NotLoopingMonitor.swift */; };
 		BD1179AC2F4E22C100F90001 /* GlucoseSourceKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD1179AD2F4E22C100F90001 /* GlucoseSourceKey.swift */; };
 		BD11A001000000000000A002 /* AlertMuterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A002 /* AlertMuterTests.swift */; };
+		6B9E2BEA4C0929B03089FE33 /* AlertDismissalSnoozeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AB77F52DD1FA5095BD61C1 /* AlertDismissalSnoozeTests.swift */; };
 		BD11A001000000000000A003 /* DeviceAlertsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */; };
 		CAF600000000000000000002 /* AlarmSoundCatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAF600000000000000000001 /* AlarmSoundCatalogTests.swift */; };
 		BD11A001000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */; };
@@ -1830,6 +1831,7 @@
 		BD1179AB2F4E22C100F90001 /* NotLoopingMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotLoopingMonitor.swift; sourceTree = "<group>"; };
 		BD1179AD2F4E22C100F90001 /* GlucoseSourceKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseSourceKey.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A002 /* AlertMuterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertMuterTests.swift; sourceTree = "<group>"; };
+		04AB77F52DD1FA5095BD61C1 /* AlertDismissalSnoozeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertDismissalSnoozeTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A003 /* DeviceAlertsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceAlertsStoreTests.swift; sourceTree = "<group>"; };
 		CAF600000000000000000001 /* AlarmSoundCatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSoundCatalogTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A006 /* ForecastedGlucoseEvaluatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastedGlucoseEvaluatorTests.swift; sourceTree = "<group>"; };
@@ -3550,6 +3552,7 @@
 				3BAAE60B2DE776630049589B /* DynamicISFEnableTests.swift */,
 				38FCF3F825E902C20078B0D1 /* FileStorageTests.swift */,
 				BD11A000000000000000A002 /* AlertMuterTests.swift */,
+				04AB77F52DD1FA5095BD61C1 /* AlertDismissalSnoozeTests.swift */,
 				C7DA23B64976670AC36D9E84 /* QuickPickTreatmentsTests.swift */,
 				71A58E19DE23455CB842C50C /* CGMSensorStateLogTests.swift */,
 				BD11A000000000000000A013 /* TandemKitAlertEmissionTests.swift */,
@@ -6566,6 +6569,7 @@
 				3B1C5C482D68E269004E9273 /* IobHistoryTests.swift in Sources */,
 				38FCF3F925E902C20078B0D1 /* FileStorageTests.swift in Sources */,
 				BD11A001000000000000A002 /* AlertMuterTests.swift in Sources */,
+				6B9E2BEA4C0929B03089FE33 /* AlertDismissalSnoozeTests.swift in Sources */,
 				6D58D168F03780DA23CB2E52 /* QuickPickTreatmentsTests.swift in Sources */,
 				4A3C7DA31A04D14F83DC2957 /* CGMSensorStateLogTests.swift in Sources */,
 				BD11A001000000000000A013 /* TandemKitAlertEmissionTests.swift in Sources */,
