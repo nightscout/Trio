@@ -173,10 +173,10 @@ struct BloodGlucose: JSON, Identifiable, Hashable, Codable {
     var activationDate: Date? = nil
     var sessionStartDate: Date? = nil
     var transmitterID: String? = nil
-    
+
     // Code used to authenticate with transmitter e.g. 4-digit pairing code on G7
     var transmitterCode: String? = nil
-    
+
     var isStateValid: Bool { sgv ?? 0 >= 39 && noise ?? 1 != 4 }
 
     // TODO: remove this custom Equatable/Hashable. Keying identity on `dateString` is a footgun:

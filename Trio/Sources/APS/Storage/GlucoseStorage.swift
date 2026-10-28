@@ -276,7 +276,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                     continue
                 }
 
-                let notes = createCGMStateNotes(transmitterID: x.transmitterID, transmitterCode: x.transmitterCode, activationDate: x.activationDate)
+                let notes = createCGMStateNotes(
+                    transmitterID: x.transmitterID,
+                    transmitterCode: x.transmitterCode,
+                    activationDate: x.activationDate
+                )
                 let treatment = createCGMStateTreatment(sessionStartDate: sessionStartDate, notes: notes)
 
                 info(.cgm, "Recorded CGM sensor change at \(sessionStartDate)")
@@ -295,22 +299,22 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
     private func createCGMStateNotes(transmitterID: String?, transmitterCode: String?, activationDate: Date?) -> String {
         var notes = ""
-        
+
         if let t = transmitterID {
             notes = t
         }
-        
+
         if let c = transmitterCode {
             // In case the sensor/transmitter uses extra information to authenticate:
             // Pairing code (G7): "DX02Ab with pairing code 1234"
             // Receiver ID (L3/L3+): "0HRD58WRW using receiver ID A1B2C3D4"
             notes = "\(notes) \(c)"
         }
-        
+
         if let a = activationDate {
             notes = "\(notes) activated on \(a)"
         }
-        
+
         return notes
     }
 
