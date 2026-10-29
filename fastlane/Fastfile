@@ -149,13 +149,22 @@ platform :ios do
     # APP_DEV_VERSION only has a 4th component off main (e.g. 1.0.2.33 on dev)
     dev_version = xcconfig["APP_DEV_VERSION"].to_s
     version_note = dev_version.split(".").length == 4 ? " "+dev_version : ""
+    notes = git_branch+version_note+" "+last_git_commit[:abbreviated_commit_hash]
+
+    # changelog alone only updates existing "What to Test" notes, so name the primary locale to create one.
+    # Keep changelog too: without it, skip_waiting_for_build_processing returns before notes are set.
+    primary_locale = Spaceship::ConnectAPI::App.find(ENV["BUNDLE_ID"])&.primary_locale || "en-US"
 
     upload_to_testflight(
       api_key: api_key,
       skip_submission: false,
       ipa: "Trio.ipa",
       skip_waiting_for_build_processing: true,
-      changelog: git_branch+version_note+" "+last_git_commit[:abbreviated_commit_hash],
+      changelog: notes,
+      localized_build_info: {
+        "default" => { whats_new: notes },
+        primary_locale => { whats_new: notes },
+      },
     )
   end
 
