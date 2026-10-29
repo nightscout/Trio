@@ -145,13 +145,17 @@ platform :ios do
       issuer_id: "#{FASTLANE_ISSUER_ID}",
       key_content: "#{FASTLANE_KEY}"
     )
-    
+
+    # APP_DEV_VERSION only has a 4th component off main (e.g. 1.0.2.33 on dev)
+    dev_version = xcconfig["APP_DEV_VERSION"].to_s
+    version_note = dev_version.split(".").length == 4 ? " "+dev_version : ""
+
     upload_to_testflight(
       api_key: api_key,
       skip_submission: false,
       ipa: "Trio.ipa",
       skip_waiting_for_build_processing: true,
-      changelog: git_branch+" "+last_git_commit[:abbreviated_commit_hash],
+      changelog: git_branch+version_note+" "+last_git_commit[:abbreviated_commit_hash],
     )
   end
 
