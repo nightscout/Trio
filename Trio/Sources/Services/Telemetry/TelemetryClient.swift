@@ -246,7 +246,7 @@ final class TelemetryClient: Injectable {
         guard PropertyPersistentFlags.shared.telemetrySharingEnabled != false else {
             return
         }
-        await sendGate.runIfEligible(
+        _ = await sendGate.runIfEligible(
             now: Date(),
             lastSentAt: PropertyPersistentFlags.shared.telemetryLastSentAt,
             lastAttemptAt: PropertyPersistentFlags.shared.telemetryLastAttemptAt,
