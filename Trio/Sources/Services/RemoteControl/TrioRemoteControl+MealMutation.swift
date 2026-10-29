@@ -210,7 +210,7 @@ extension TrioRemoteControl {
         do {
             try await apsManager.determineBasalSync()
         } catch {
-            debug(.remoteControl, "COB recalculation after meal change failed: \(error.localizedDescription)")
+            warning(.remote, "COB recalculation after meal change failed", error: error)
         }
     }
 

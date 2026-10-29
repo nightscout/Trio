@@ -8,12 +8,13 @@ import TidepoolServiceKit
 extension Settings {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var broadcaster: Broadcaster!
-        @Injected() private var fileManager: FileManager!
+        @Injected() var logExport: LogExport!
         @Injected() private var nightscoutManager: NightscoutManager!
         @Injected() var pluginManager: PluginManager!
         @Injected() var fetchCgmManager: FetchGlucoseManager!
         @Injected() private var storage: FileStorage!
         @Injected() var overrideStorage: OverrideStorage!
+        @Injected() private var keychain: Keychain!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var dosingMode: DosingMode = .open
@@ -25,9 +26,11 @@ extension Settings {
         private(set) var versionNumber = ""
         private(set) var branch = ""
         private(set) var copyrightNotice = ""
+        private(set) var reportSubmitter: ReportSubmitting?
 
         override func subscribe() {
             units = settingsManager.settings.units
+            reportSubmitter = ReportEndpoint.submitter(keychain: keychain)
 
             subscribeSetting(\.debugOptions, on: $debugOptions) { debugOptions = $0 }
             subscribeSetting(\.dosingMode, on: $dosingMode) { dosingMode = $0 }
@@ -44,18 +47,24 @@ extension Settings {
             serviceUIType = TidepoolService.self as? ServiceUI.Type
         }
 
-        func logItems() -> [URL] {
-            var items: [URL] = []
-
-            if fileManager.fileExists(atPath: SimpleLogReporter.logFile) {
-                items.append(URL(fileURLWithPath: SimpleLogReporter.logFile))
+        var logKinds: [LogExport.Kind] {
+            var kinds: [LogExport.Kind] = [.all]
+            // Read during the first render, before the resolver is set
+            if provider?.deviceManager?.pumpManager != nil {
+                kinds.append(.pump)
             }
-
-            if fileManager.fileExists(atPath: SimpleLogReporter.logFilePrev) {
-                items.append(URL(fileURLWithPath: SimpleLogReporter.logFilePrev))
+            if let fetchCgmManager, fetchCgmManager.cgmGlucoseSourceType == .plugin, fetchCgmManager.cgmManager != nil {
+                kinds.append(.cgm)
             }
+            return kinds
+        }
 
-            return items
+        func reportContext() -> ProblemReport.Context {
+            var cgm: String?
+            if let source = fetchCgmManager?.cgmGlucoseSourceType, source != .none {
+                cgm = source == .plugin ? fetchCgmManager?.cgmManager?.localizedTitle : source.displayName
+            }
+            return .current(pump: provider?.deviceManager?.pumpManager?.localizedTitle, cgm: cgm)
         }
 
         func hideSettingsModal() {
@@ -95,13 +104,13 @@ extension Settings.StateModel: SettingsObserver {
 
 extension Settings.StateModel: ServiceOnboardingDelegate {
     func serviceOnboarding(didCreateService service: Service) {
-        debug(.nightscout, "Service with identifier \(service.pluginIdentifier) created")
+        info(.settings, "Service \(service.pluginIdentifier) added")
         provider.tidepoolManager.addTidepoolService(service: service)
     }
 
     func serviceOnboarding(didOnboardService service: Service) {
         precondition(service.isOnboarded)
-        debug(.nightscout, "Service with identifier \(service.pluginIdentifier) onboarded")
+        debug(.settings, "Service \(service.pluginIdentifier) onboarded")
     }
 }
 

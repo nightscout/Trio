@@ -69,7 +69,7 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                 }
             }
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Error fetching contact image entries: \(error)")
+            warning(.storage, "Fetching contact image entries failed", error: error)
             return []
         }
     }
@@ -111,9 +111,7 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to save Contact Trick Entry to Core Data with error: \(error.userInfo)"
-                )
+                warning(.storage, "Saving contact image entry failed", error: error)
             }
         }
     }
@@ -156,14 +154,10 @@ final class BaseContactImageStorage: ContactImageStorage, Injectable {
                     guard context.hasChanges else { return }
                     try context.save()
                 } else {
-                    debugPrint(
-                        "\(DebuggingIdentifiers.failed) \(#file) \(#function) No matching Contact Trick Entry found to update."
-                    )
+                    warning(.storage, "Contact image entry to update not found")
                 }
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update Contact Trick Entry with error: \(error.userInfo)"
-                )
+                warning(.storage, "Updating contact image entry failed", error: error)
             }
         }
     }

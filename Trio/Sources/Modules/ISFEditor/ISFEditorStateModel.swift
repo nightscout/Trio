@@ -116,6 +116,7 @@ extension ISFEditor {
                 sensitivities: sensitivities
             )
             provider.saveProfile(profile)
+            info(.settings, "Insulin sensitivity schedule saved with \(sensitivities.count) entries")
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
             DispatchQueue.main.async {
@@ -126,13 +127,9 @@ extension ISFEditor {
 
             Task.detached(priority: .low) {
                 do {
-                    debug(.nightscout, "Attempting to upload ISF to Nightscout")
                     try await self.nightscout.uploadProfiles()
                 } catch {
-                    debug(
-                        .default,
-                        "\(DebuggingIdentifiers.failed) Faile to upload ISF to Nightscout: \(error)"
-                    )
+                    warning(.nightscout, "Uploading profile after insulin sensitivity change failed", error: error)
                 }
             }
 

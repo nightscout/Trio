@@ -175,7 +175,7 @@ extension Stat {
                     return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Error fetching glucose for stats: \(error)")
+                warning(.ui, "Fetching glucose for statistics failed", error: error)
                 return []
             }
         }
@@ -187,9 +187,7 @@ extension Stat {
                 }
                 glucoseFromPersistence = glucoseObjects
             } catch {
-                debugPrint(
-                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the glucose array: \(error)"
-                )
+                warning(.ui, "Loading glucose for statistics failed", error: error)
             }
         }
 
@@ -200,9 +198,7 @@ extension Stat {
                 }
                 glucoseReadings = glucoseObjects
             } catch {
-                debugPrint(
-                    "Home State: \(#function) \(DebuggingIdentifiers.failed) error while updating the all glucose array: \(error.localizedDescription)"
-                )
+                warning(.ui, "Loading all glucose readings for statistics failed", error: error)
             }
         }
     }

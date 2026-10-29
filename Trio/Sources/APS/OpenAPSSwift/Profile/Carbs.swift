@@ -15,12 +15,13 @@ struct Carbs {
                 }
             }
         } catch {
+            warning(.algorithm, "Carb ratio lookup failed", error: error)
             return nil
         }
 
         // Check for invalid values
         if currentRatio < 1 || currentRatio > 150 {
-            warning(.openAPS, "Warning: carbRatio of \(currentRatio) out of bounds.")
+            warning(.algorithm, "Carb ratio \(currentRatio) is outside 1-150")
             return nil
         }
 
