@@ -368,8 +368,15 @@ extension Home {
             }
         }
 
+        /// iOS 26 with UIDesignRequiresCompatibility draws the classic tab bar, not glass;
+        /// iOS 27 ignores the key
+        private static let designRequiresCompatibility: Bool = {
+            if #available(iOS 27.0, *) { return false }
+            return Bundle.main.object(forInfoDictionaryKey: "UIDesignRequiresCompatibility") as? Bool ?? false
+        }()
+
         @ViewBuilder func tabBar() -> some View {
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, *), !RootView.designRequiresCompatibility {
                 modernTabBar()
             } else {
                 legacyTabBar()

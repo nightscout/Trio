@@ -279,15 +279,21 @@ private struct TonePickerRow: View {
 
     private lazy var previewDelegate: PreviewDelegate = {
         let delegate = PreviewDelegate()
-        delegate.onFinish = { [weak self] in self?.stop() }
+        // Which player finished matters: the hop to the main actor leaves a
+        // tick in which a new preview can already have started, and that one
+        // must not be stopped by its predecessor finishing.
+        delegate.onFinish = { [weak self] finished in
+            guard let self, self.player === finished else { return }
+            self.stop()
+        }
         return delegate
     }()
 }
 
 private final class PreviewDelegate: NSObject, AVAudioPlayerDelegate {
-    var onFinish: (() -> Void)?
+    var onFinish: ((AVAudioPlayer) -> Void)?
 
-    func audioPlayerDidFinishPlaying(_: AVAudioPlayer, successfully _: Bool) {
-        Task { @MainActor in self.onFinish?() }
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully _: Bool) {
+        Task { @MainActor in self.onFinish?(player) }
     }
 }

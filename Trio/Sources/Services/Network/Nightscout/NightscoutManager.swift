@@ -638,7 +638,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             enacted: settingsManager.settings.dosingMode.automation != .off ? enactedToUpload : nil,
             version: Bundle.main.releaseVersionNumber ?? "Unknown",
             recommendedBolus: recommendedBolus,
-            dosingMode: settingsManager.settings.dosingMode.rawValue
+            dosingMode: settingsManager.settings.dosingMode.rawValue,
+            iobForecast: iob.flatMap { $0.count > 1 ? NightscoutIOBForecast($0) : nil }
         )
 
         debug(
