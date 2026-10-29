@@ -350,12 +350,12 @@ final class BaseAPSManager: APSManager, Injectable {
             )
 
             do {
-                try await executeLoop(loopStatRecord: &loopStatRecord)
+                let enacted = try await executeLoop(loopStatRecord: &loopStatRecord)
                 requestNightscoutUpload(
                     [.carbs, .pumpHistory, .overrides, .tempTargets],
                     source: "APSManager"
                 )
-                await finalizeLoop(loopStatRecord: loopStatRecord)
+                await finalizeLoop(enacted: enacted, loopStatRecord: loopStatRecord)
             } catch {
                 let endDate = Date()
                 loopStatRecord.end = endDate
@@ -372,18 +372,21 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func executeLoop(loopStatRecord: inout LoopStats) async throws {
+    /// Returns whether the determination was enacted.
+    private func executeLoop(loopStatRecord: inout LoopStats) async throws -> Bool {
         try await determineBasal()
 
         // Closed loop: also enact the determination.
+        var enacted = false
         if settings.dosingMode.automation != .off {
-            try await enactDetermination()
+            enacted = try await enactDetermination()
         }
 
         let endDate = Date()
         loopStatRecord.end = endDate
         loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
         loopStatRecord.loopStatus = "Success"
+        return enacted
     }
 
     private func calculateLoopInterval(loopStartDate: Date) async -> Double? {
@@ -413,7 +416,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     /// Single exit point for loop — replaces the old `loopCompleted()`.
-    private func finalizeLoop(error: Error? = nil, loopStatRecord: LoopStats) async {
+    private func finalizeLoop(error: Error? = nil, enacted: Bool = false, loopStatRecord: LoopStats) async {
         await loopGuard.finish()
         isLooping.send(false)
 
@@ -431,7 +434,7 @@ final class BaseAPSManager: APSManager, Injectable {
         loopStats(loopStatRecord: loopStatRecord)
 
         if settings.dosingMode.automation != .off {
-            await reportEnacted(wasEnacted: error == nil)
+            await reportEnacted(wasEnacted: error == nil && enacted)
         }
     }
 
@@ -766,7 +769,8 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func enactDetermination() async throws {
+    /// Returns false when the determination is skipped because the pump is suspended.
+    private func enactDetermination() async throws -> Bool {
         guard let determinationID = try await determinationStorage
             .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
         else {
@@ -779,7 +783,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if pump.status.pumpStatus.suspended {
             info(.loop, "Determination not enacted: pump suspended")
-            return
+            return false
         }
 
         // Unable to do temp basal during manual temp basal 😁
@@ -799,6 +803,7 @@ final class BaseAPSManager: APSManager, Injectable {
             try await performBolus(pump: pump, smbToDeliver: smb)
             info(.loop, "SMB enacted: \(smb) U")
         }
+        return true
     }
 
     private func setValues(determinationID: NSManagedObjectID) async throws
