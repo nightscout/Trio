@@ -7,10 +7,13 @@ struct AlarmSnoozeView: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 15)) { context in
-            let isSnoozed = state.snoozeUntilDate > context.date
-            let remainingMinutes = max(Int(ceil(state.snoozeUntilDate.timeIntervalSince(context.date) / 60)), 0)
+            // measure from now, so calculation is not based off stale tick date
+            // cf. https://github.com/nightscout/Trio/issues/1381
+            let now = max(context.date, Date())
+            let isSnoozed = state.snoozeUntilDate > now
+            let remainingMinutes = max(Int(ceil(state.snoozeUntilDate.timeIntervalSince(now) / 60)), 0)
 
-            VStack(spacing: 8) {
+            VStack {
                 Button {
                     showingSnoozeOptions = true
                 } label: {
@@ -31,6 +34,8 @@ struct AlarmSnoozeView: View {
                 }
                 .buttonStyle(.plain)
 
+                Spacer()
+
                 Text(
                     isSnoozed
                         ? String(
@@ -41,7 +46,10 @@ struct AlarmSnoozeView: View {
                 )
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+
+                Spacer()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("Alarms"))
             .accessibilityValue(Text(
@@ -76,7 +84,10 @@ struct AlarmSnoozeOptionsView: View {
                         state.sendSnoozeRequest(minutes: 0)
                         onDismiss()
                     } label: {
-                        Label("End Snooze", systemImage: "alarm.waves.left.and.right.fill")
+                        HStack(spacing: 8) {
+                            Image(systemName: "alarm.waves.left.and.right.fill")
+                            Text("End Snooze")
+                        }
                     }
                     .foregroundColor(.white)
                     .listRowBackground(
