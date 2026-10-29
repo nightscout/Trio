@@ -537,6 +537,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxProtein: state.maxProtein,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
+            WatchMessageKeys.allowWatchTreatments: state.allowWatchTreatments,
             WatchMessageKeys.units: state.units.rawValue,
             WatchMessageKeys.showForecastWatch: state.showForecast,
             WatchMessageKeys.isForecastCone: state.isForecastCone
@@ -583,6 +584,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // tick has bumped the build-time date.
         var state = state
         state.date = Date()
+
+        // Set here so fallback states (e.g. no recent glucose) never re-enable watch treatments
+        state.allowWatchTreatments = settingsManager.settings.allowWatchTreatments
 
         let message: [String: Any] = watchStateToDictionary(from: state)
 
@@ -666,6 +670,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                       message[WatchMessageKeys.date] == nil
             {
                 info(.watch, "Watch requested bolus of \(bolusAmount) U")
+                guard self.settingsManager.settings.allowWatchTreatments else {
+                    self.rejectDisabledWatchTreatment()
+                    return
+                }
                 self.handleBolusRequest(Decimal(bolusAmount))
             } else if let carbsAmount = message[WatchMessageKeys.carbs] as? Int,
                       let timestamp = message[WatchMessageKeys.date] as? TimeInterval,
@@ -673,6 +681,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             {
                 let date = Date(timeIntervalSince1970: timestamp)
                 info(.watch, "Watch requested \(carbsAmount) g carbs at \(date)")
+                guard self.settingsManager.settings.allowWatchTreatments else {
+                    self.rejectDisabledWatchTreatment()
+                    return
+                }
                 self.handleCarbsRequest(carbsAmount, date)
             } else if let bolusAmount = message[WatchMessageKeys.bolus] as? Double,
                       let carbsAmount = message[WatchMessageKeys.carbs] as? Int,
@@ -680,6 +692,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             {
                 let date = Date(timeIntervalSince1970: timestamp)
                 info(.watch, "Watch requested bolus of \(bolusAmount) U with \(carbsAmount) g carbs at \(date)")
+                guard self.settingsManager.settings.allowWatchTreatments else {
+                    self.rejectDisabledWatchTreatment()
+                    return
+                }
                 self.handleCombinedRequest(bolusAmount: Decimal(bolusAmount), carbsAmount: Decimal(carbsAmount), date: date)
             } else if message[WatchMessageKeys.cancelOverride] == nil,
                       message[WatchMessageKeys.activateOverride] == nil,
@@ -720,6 +736,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
 
             if message[WatchMessageKeys.requestBolusRecommendation] as? Bool == true {
+                guard self.settingsManager.settings.allowWatchTreatments else {
+                    info(.watch, "Ignored watch bolus recommendation request, treatments from watch are disabled")
+                    return
+                }
                 let carbs = message[WatchMessageKeys.carbs] as? Int ?? 0
 
                 var minPredBG: Decimal = 54
@@ -815,6 +835,19 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 self?.retryConnection()
             }
         }
+    }
+
+    /// Rejects a bolus and/or carbs request from the Watch because the user disabled it in the Apple Watch settings
+    private func rejectDisabledWatchTreatment() {
+        info(.watch, "Rejected watch treatment request, treatments from watch are disabled")
+        sendAcknowledgment(
+            toWatch: false,
+            message: String(
+                localized: "Treatments from Apple Watch are disabled in Trio settings.",
+                comment: "Failure message sent to watch when bolus or carbs entry from watch is disabled"
+            ),
+            ackCode: .genericFailure
+        )
     }
 
     /// Processes bolus requests received from the Watch

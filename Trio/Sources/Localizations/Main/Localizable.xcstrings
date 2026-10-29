@@ -42904,6 +42904,9 @@
         }
       }
     },
+    "Allow bolusing and entering carbs from the Apple Watch." : {
+
+    },
     "Allow Bolusing with Shortcuts" : {
       "localizations" : {
         "bg" : {
@@ -44866,6 +44869,9 @@
           }
         }
       }
+    },
+    "Allow Treatments from Watch" : {
+
     },
     "Allow Trio to read from and write to Apple Health." : {
       "localizations" : {
@@ -318652,6 +318658,9 @@
         }
       }
     },
+    "Treatments from Apple Watch are disabled in Trio settings." : {
+      "comment" : "Failure message sent to watch when bolus or carbs entry from watch is disabled"
+    },
     "Trend" : {
       "localizations" : {
         "bg" : {
@@ -343062,6 +343071,9 @@
           }
         }
       }
+    },
+    "When disabled, the treatment button is removed from the Apple Watch and Trio rejects any bolus or carb entry sent from the watch. Overrides and temp targets remain available on the watch." : {
+
     },
     "When enabled, long-pressing the + button on the home screen opens a Quick-Pick Treatments sheet. It suggests up to three bolus amounts and, if you have carb history, up to three carb amounts based on what you typically enter at this time of day, weighted by recency and day type (weekday vs. weekend)." : {
       "comment" : "A description of the Quick-Pick Treatments setting.",
