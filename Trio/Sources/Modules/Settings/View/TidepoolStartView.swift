@@ -30,12 +30,14 @@ struct TidepoolStartView: BaseView {
                                     state.setupTidepool.toggle()
                                 }
                                 label: {
+                                    let isAuthenticated = !state.provider.tidepoolManager.tidepoolLoginRequired.value
                                     HStack {
-                                        Text("Connected to Tidepool").font(.title3)
+                                        (isAuthenticated ? Text("Connected to Tidepool") : Text("Tidepool Login Required"))
+                                            .font(.title3)
                                         ZStack {
                                             Image(systemName: "network")
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(.green).font(.caption2)
+                                            Image(systemName: isAuthenticated ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                                .foregroundColor(isAuthenticated ? .green : .red).font(.caption2)
                                                 .offset(x: 9, y: 6)
                                         }
                                         .accessibilityHidden(true)

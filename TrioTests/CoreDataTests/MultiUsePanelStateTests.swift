@@ -13,6 +13,7 @@ import Testing
         pumpTimeMismatch: Bool = false,
         lastGlucoseDate: Date?,
         maxIOB: Decimal = 10,
+        tidepoolLoginRequired: Bool = false,
         hasUnacknowledgedReleaseNotes: Bool = false,
         dosingMode: DosingMode = .closed
     ) -> MultiUsePanelState {
@@ -21,6 +22,7 @@ import Testing
             pumpTimeMismatch: pumpTimeMismatch,
             lastGlucoseDate: lastGlucoseDate,
             maxIOB: maxIOB,
+            tidepoolLoginRequired: tidepoolLoginRequired,
             hasUnacknowledgedReleaseNotes: hasUnacknowledgedReleaseNotes,
             dosingMode: dosingMode,
             now: now
@@ -102,5 +104,16 @@ import Testing
 
     @Test("Acknowledged release notes fall back to stats") func testAcknowledgedShowsStats() {
         #expect(resolve(lastGlucoseDate: fresh, hasUnacknowledgedReleaseNotes: false) == .stats)
+    }
+
+    @Test("Tidepool login sits between dosing warnings and release notes") func testTidepoolLoginRequired() {
+        #expect(resolve(lastGlucoseDate: fresh, tidepoolLoginRequired: true) == .tidepoolLoginRequired)
+        #expect(resolve(
+            lastGlucoseDate: fresh,
+            tidepoolLoginRequired: true,
+            hasUnacknowledgedReleaseNotes: true
+        ) == .tidepoolLoginRequired)
+        #expect(resolve(lastGlucoseDate: fresh, maxIOB: 0, tidepoolLoginRequired: true) == .maxIOBZero)
+        #expect(resolve(lastGlucoseDate: stale, tidepoolLoginRequired: true) == .cgmStale)
     }
 }

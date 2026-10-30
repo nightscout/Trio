@@ -44,6 +44,9 @@ extension Alert {
         case notLooping
         case algorithmError
         case glucoseDataStale
+        // Service concepts. Surface through `TrioAlertManager` via
+        // `TidepoolManager.issueAlert(_:)`.
+        case tidepoolLoginRequired
         /// Plugin-unique alarm that doesn't merge with anything else.
         case unspecified
 
@@ -81,6 +84,7 @@ extension Alert {
             case .notLooping: return String(localized: "Trio Not Looping")
             case .algorithmError: return String(localized: "Algorithm Error")
             case .glucoseDataStale: return String(localized: "Glucose Data Stale")
+            case .tidepoolLoginRequired: return String(localized: "Tidepool Login Required")
             case .unspecified: return ""
             }
         }

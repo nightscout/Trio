@@ -6,6 +6,7 @@ import HealthKit
 import LoopKit
 import LoopKitUI
 import Swinject
+import TidepoolKit
 import TidepoolServiceKit
 import UIKit
 
@@ -13,6 +14,7 @@ protocol TidepoolManager {
     func addTidepoolService(service: Service)
     func getTidepoolServiceUI() -> ServiceUI?
     func getTidepoolPluginHost() -> PluginHost?
+    var tidepoolLoginRequired: CurrentValueSubject<Bool, Never> { get }
     func uploadCarbs() async
     func deleteCarbs(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String)
     func uploadInsulin() async
@@ -32,6 +34,13 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var notificationCenter: NotificationCenter!
+    @Injected() private var trioAlertManager: TrioAlertManager!
+
+    /// Raised by `TidepoolService` when its login session is cleared
+    static let authenticationAlertIdentifier = LoopKit.Alert.Identifier(
+        managerIdentifier: TidepoolService.pluginIdentifier,
+        alertIdentifier: "authentication-needed"
+    )
 
     // Lazy access to avoid circular dependency (TidepoolManager ↔ FetchGlucoseManager)
     private var resolver: Resolver?
@@ -69,6 +78,8 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     private var subscriptions = Set<AnyCancellable>()
+    private var sessionSubscription: AnyCancellable?
+    let tidepoolLoginRequired = CurrentValueSubject<Bool, Never>(false)
 
     // MARK: - Upload triggers
 
@@ -129,6 +140,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     }()
 
     @PersistedProperty(key: "TidepoolState") var rawTidepoolManager: Service.RawValue?
+    @PersistedProperty(key: "TidepoolLoginRequired") var persistedLoginRequired: Bool?
 
     init(resolver: Resolver) {
         self.resolver = resolver
@@ -174,12 +186,53 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         broadcaster.register(PreferencesObserver.self, observer: self)
     }
 
+    /// Persisted because `TidepoolService` can't be restored without a session, so the flag must outlive a relaunch
+    private func setLoginRequired(_ required: Bool) {
+        persistedLoginRequired = required ? true : nil
+        tidepoolLoginRequired.send(required)
+    }
+
     /// Loads the Tidepool service from saved state
     fileprivate func loadTidepoolManager() {
+        tidepoolLoginRequired.send(persistedLoginRequired ?? false)
         if let rawTidepoolManager = rawTidepoolManager {
             tidepoolService = tidepoolServiceFromRaw(rawTidepoolManager)
             tidepoolService?.serviceDelegate = self
             tidepoolService?.stateDelegate = self
+            observeTidepoolSession()
+        }
+    }
+
+    /// Tracks whether the Tidepool service lost its login; retracts the re-login alert once it is back
+    private func observeTidepoolSession() {
+        sessionSubscription = (tidepoolService as? TidepoolService)?.$session
+            .sink { [weak self] session in
+                guard let self else { return }
+                self.setLoginRequired(session == nil)
+                if session != nil {
+                    self.trioAlertManager.retractAlert(identifier: Self.authenticationAlertIdentifier)
+                }
+            }
+    }
+
+    /// Signs out when Tidepool rejects the stored login, so the plugin raises its re-login alert
+    private func handleUploadFailure(_ error: Error) {
+        guard Self.isAuthenticationFailure(error), let service = tidepoolService as? TidepoolService else { return }
+        warning(.tidepool, "Tidepool rejected the stored login, signing out until the user logs in again", error: error)
+        Task { await service.tapi.logout() }
+    }
+
+    static func isAuthenticationFailure(_ error: Error) -> Bool {
+        switch error as? TError {
+        case .requestNotAuthenticated:
+            return true
+        case let .responseMalformedJSON(response, data, _):
+            // Token refresh rejected, e.g. after a Tidepool password change
+            struct OAuthError: Decodable { let error: String }
+            return response.statusCode == 400
+                && (try? JSONDecoder().decode(OAuthError.self, from: data))?.error == "invalid_grant"
+        default:
+            return false
         }
     }
 
@@ -196,6 +249,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     /// Adds a Tidepool service
     func addTidepoolService(service: Service) {
         tidepoolService = service as? RemoteDataService
+        tidepoolService?.serviceDelegate = self
+        tidepoolService?.stateDelegate = self
+        observeTidepoolSession()
     }
 
     /// Loads the Tidepool service from raw stored data
@@ -242,9 +298,13 @@ extension BaseTidepoolManager: ServiceDelegate {
         return semanticVersion
     }
 
-    func issueAlert(_: LoopKit.Alert) {}
+    func issueAlert(_ alert: LoopKit.Alert) {
+        trioAlertManager.issueAlert(alert)
+    }
 
-    func retractAlert(identifier _: LoopKit.Alert.Identifier) {}
+    func retractAlert(identifier: LoopKit.Alert.Identifier) {
+        trioAlertManager.retractAlert(identifier: identifier)
+    }
 
     func enactRemoteOverride(name _: String, durationTime _: TimeInterval?, remoteAddress _: String) async throws {}
 
@@ -298,6 +358,7 @@ extension BaseTidepoolManager {
                 await updateCarbsAsUploaded(Array(chunk))
             case let .failure(error):
                 warning(.tidepool, "Tidepool upload of \(chunk.count) carb entries failed", error: error)
+                handleUploadFailure(error)
             }
         }
     }
@@ -355,6 +416,7 @@ extension BaseTidepoolManager {
                     debug(.tidepool, "Carb entry deletion synced to Tidepool")
                 case let .failure(error):
                     warning(.tidepool, "Tidepool carb entry deletion failed", error: error)
+                    self?.handleUploadFailure(error)
                 }
             }
         }
@@ -483,6 +545,7 @@ extension BaseTidepoolManager {
                 await updateInsulinAsUploaded(insulinEvents)
             case let .failure(error):
                 warning(.tidepool, "Tidepool upload of \(insulinDoseEvents.count) dose entries failed", error: error)
+                handleUploadFailure(error)
             }
 
             guard await uploadSerializer.isCurrent(generation) else { return }
@@ -497,6 +560,7 @@ extension BaseTidepoolManager {
                 await updateInsulinAsUploaded(pumpEventsToMark)
             case let .failure(error):
                 warning(.tidepool, "Tidepool upload of \(pumpEvents.count) pump events failed", error: error)
+                handleUploadFailure(error)
             }
         } catch {
             warning(.tidepool, "Failed to prepare dose entries for Tidepool upload", error: error)
@@ -547,6 +611,7 @@ extension BaseTidepoolManager {
                     debug(.tidepool, "Dose deletion synced to Tidepool")
                 case let .failure(error):
                     warning(.tidepool, "Tidepool dose deletion failed", error: error)
+                    self?.handleUploadFailure(error)
                 }
             }
         }
@@ -742,6 +807,7 @@ extension BaseTidepoolManager {
                 await updateGlucoseAsUploaded(Array(chunk))
             case let .failure(error):
                 warning(.tidepool, "Tidepool upload of \(chunk.count) glucose values failed", error: error)
+                handleUploadFailure(error)
             }
         }
     }
@@ -823,6 +889,7 @@ extension BaseTidepoolManager {
             info(.tidepool, "Settings uploaded to Tidepool")
         case let .failure(error):
             warning(.tidepool, "Tidepool settings upload failed", error: error)
+            handleUploadFailure(error)
         }
     }
 }
@@ -855,6 +922,9 @@ extension BaseTidepoolManager: StatefulPluggableDelegate {
 
     func pluginWantsDeletion(_: LoopKit.StatefulPluggable) {
         tidepoolService = nil
+        sessionSubscription = nil
+        setLoginRequired(false)
+        trioAlertManager.retractAlert(identifier: Self.authenticationAlertIdentifier)
     }
 }
 
