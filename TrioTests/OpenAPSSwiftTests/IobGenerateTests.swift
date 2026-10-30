@@ -34,4 +34,37 @@ import Testing
         // Matches the long suspend test in JS iob.test.js
         #expect(iob[0].netbasalinsulin == -8.95)
     }
+
+    /// With no temp basal in pump history (e.g. open loop on scheduled basal), `lastTemp` is written as
+    /// `{"date": 0}`. The Nightscout upload reads monitor/iob.json back as `[IOBEntry]`, and must not
+    /// fail on that, or the uploaded device status silently loses its `iob`.
+    @Test("IOB without a temp basal reads back as IOBEntry") func testIobWithoutTempBasalDecodesAsIOBEntry() async throws {
+        let now = Calendar.current.startOfDay(for: Date()) + 20.hoursToSeconds
+
+        let history = [
+            PumpHistoryEvent(id: UUID().uuidString, type: .bolus, timestamp: now - 1.hoursToSeconds, amount: 1)
+        ]
+
+        var profile = Profile()
+        profile.dia = 5
+        profile.currentBasal = 1
+        profile.maxDailyBasal = 1
+        profile.basalprofile = [
+            BasalProfileEntry(
+                start: "00:00:00",
+                minutes: 0,
+                rate: 1
+            )
+        ]
+
+        let iob = try IobGenerator.generate(history: history, profile: profile, clock: now, autosens: nil)
+        #expect(iob[0].lastTemp?.rate == nil)
+
+        let data = try JSONCoding.encoder.encode(iob)
+        let entries = try JSONCoding.decoder.decode([IOBEntry].self, from: data)
+
+        #expect(entries.first?.iob == iob[0].iob)
+        #expect(entries.first?.lastTemp?.date == 0)
+        #expect(entries.first?.lastTemp?.rate == nil)
+    }
 }
