@@ -55,4 +55,4 @@
 [submodule "TandemKit"]
 	path = TandemKit
 	url = https://github.com/jwoglom/TandemKit.git
-	branch = main
+	branch = dev
