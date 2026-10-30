@@ -499,6 +499,38 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
+    /// The pump status at upload time, read from the pump manager.
+    private func pumpStatusForUpload() async -> PumpStatus? {
+        guard let liveStatus = apsManager.pumpManager?.status else {
+            return await storage.retrieveAsync(OpenAPS.Monitor.status, as: PumpStatus.self)
+        }
+        guard case let .active(deliveryActiveSince) = liveStatus.basalDeliveryState else {
+            return liveStatus.pumpStatus
+        }
+
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "pumpStatusForUpload"
+        let eventTypes: [PumpEventStored.EventType] = [.pumpSuspend, .pumpResume, .tempBasal, .bolus]
+        let predicate = NSPredicate(
+            format: "timestamp >= %@ AND type IN %@ AND \(NSPredicate.notScheduledBasal) AND (bolus == nil OR bolus.isExternal == NO)",
+            Date.oneDayAgo as NSDate,
+            eventTypes.map(\.rawValue)
+        )
+        let lastEvent: (type: String, date: Date)? = await context.perform {
+            do {
+                let request = PumpEventStored.fetch(predicate, ascending: false, fetchLimit: 1)
+                guard let event = try context.fetch(request).first, let type = event.type, let date = event.timestamp
+                else { return nil }
+                return (type, date)
+            } catch {
+                warning(.storage, "Pump event fetch for the upload status failed", error: error)
+                return nil
+            }
+        }
+
+        return liveStatus.pumpStatus.includingSuspend(deliveryActiveSince: deliveryActiveSince, lastPumpEvent: lastEvent)
+    }
+
     /// Asynchronously uploads the current status to Nightscout, including OpenAPS status, pump status, and uploader details.
     ///
     /// This function gathers and processes various pieces of information such as the "enacted" and "suggested" determinations,
@@ -547,7 +579,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         async let fetchedBattery = fetchBattery()
         async let fetchedReservoir = Decimal(from: storage.retrieveRawAsync(OpenAPS.Monitor.reservoir) ?? "0")
         async let fetchedIOBEntry = storage.retrieveAsync(OpenAPS.Monitor.iob, as: [IOBEntry].self)
-        async let fetchedPumpStatus = storage.retrieveAsync(OpenAPS.Monitor.status, as: PumpStatus.self)
+        async let fetchedPumpStatus = pumpStatusForUpload()
 
         var (fetchedEnactedDetermination, fetchedSuggestedDetermination) = try await (
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(enactedDeterminationID),
