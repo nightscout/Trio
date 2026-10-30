@@ -111,7 +111,7 @@ extension Stat {
                     StatCard {
                         GRIExplanationView(result: GRICalculator.calculate(
                             glucoseValues: state.glucoseFromPersistence.map { Int($0.glucose) }
-                        ))
+                        ), units: state.units)
                     }
                 } else {
                     if !isGlucoseDaySelected && state.selectedGlucoseChartType != .percentileByDay && state
@@ -196,7 +196,7 @@ extension Stat {
                     case .glycemiaRiskIndex:
                         GRIChartView(result: GRICalculator.calculate(
                             glucoseValues: state.glucoseFromPersistence.map { Int($0.glucose) }
-                        ))
+                        ), units: state.units)
 
                     case .percentileByTime:
                         GlucosePercentileChart(
