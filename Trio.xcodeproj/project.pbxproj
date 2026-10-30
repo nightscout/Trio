@@ -356,6 +356,7 @@
 		41740E936552456AAC0EDAC3 /* SettingsSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3919BBB515547118D684CA2 /* SettingsSearchTests.swift */; };
 		41740E936552456AAC0EDBC3 /* DosingModeMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3919BBB515547118D684CB2 /* DosingModeMigrationTests.swift */; };
 		41740E936552456AAC0EDCC3 /* MaxIOBSuggestionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3919BBB515547118D684CC2 /* MaxIOBSuggestionTests.swift */; };
+		2A3D41ADE8834E8485A9504D /* PumpStatusSuspendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2DC7144FFD427B96B8A2B8 /* PumpStatusSuspendTests.swift */; };
 		41740E936552456AAC0EDDC3 /* LoopIndicatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3919BBB515547118D684CD2 /* LoopIndicatorTests.swift */; };
 		41740E936552456AAC0EDEC3 /* DosingModeClampTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3919BBB515547118D684CE2 /* DosingModeClampTests.swift */; };
 		41740E936552456AAC0EDFC3 /* AlgorithmSuggestedBolusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3919BBB515547118D684CF2 /* AlgorithmSuggestedBolusTests.swift */; };
@@ -684,6 +685,7 @@
 		BD54A95B2D28087C00F9C1EE /* OverridePresetWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A95A2D28087700F9C1EE /* OverridePresetWatch.swift */; };
 		BD54A95C2D2808A300F9C1EE /* OverridePresetWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A95A2D28087700F9C1EE /* OverridePresetWatch.swift */; };
 		BD54A9712D281A8100F9C1EE /* TempTargetPresetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */; };
+		A1B2C3D40F00000000000002 /* AlarmSnoozeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40F00000000000001 /* AlarmSnoozeView.swift */; };
 		BD54A9732D281ABC00F9C1EE /* TempTargetPresetWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */; };
 		BD54A9742D281AEF00F9C1EE /* TempTargetPresetWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */; };
 		BD6EB2D62C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */; };
@@ -1699,6 +1701,7 @@
 		B3919BBB515547118D684CA2 /* SettingsSearchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsSearchTests.swift; sourceTree = "<group>"; };
 		B3919BBB515547118D684CB2 /* DosingModeMigrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DosingModeMigrationTests.swift; sourceTree = "<group>"; };
 		B3919BBB515547118D684CC2 /* MaxIOBSuggestionTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MaxIOBSuggestionTests.swift; sourceTree = "<group>"; };
+		AE2DC7144FFD427B96B8A2B8 /* PumpStatusSuspendTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpStatusSuspendTests.swift; sourceTree = "<group>"; };
 		B3919BBB515547118D684CD2 /* LoopIndicatorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoopIndicatorTests.swift; sourceTree = "<group>"; };
 		B3919BBB515547118D684CE2 /* DosingModeClampTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DosingModeClampTests.swift; sourceTree = "<group>"; };
 		B3919BBB515547118D684CF2 /* AlgorithmSuggestedBolusTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AlgorithmSuggestedBolusTests.swift; sourceTree = "<group>"; };
@@ -1908,6 +1911,7 @@
 		BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverridePresetsView.swift; sourceTree = "<group>"; };
 		BD54A95A2D28087700F9C1EE /* OverridePresetWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverridePresetWatch.swift; sourceTree = "<group>"; };
 		BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetPresetsView.swift; sourceTree = "<group>"; };
+		A1B2C3D40F00000000000001 /* AlarmSnoozeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSnoozeView.swift; sourceTree = "<group>"; };
 		BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetPresetWatch.swift; sourceTree = "<group>"; };
 		BD6EB2D52C7D049B0086BBB6 /* LiveActivityWidgetConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityWidgetConfiguration.swift; sourceTree = "<group>"; };
 		BD793CAF2CE7C60E00D669AC /* OverrideRunStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OverrideRunStored+helper.swift"; sourceTree = "<group>"; };
@@ -3585,6 +3589,7 @@
 				B3919BBB515547118D684CF2 /* AlgorithmSuggestedBolusTests.swift */,
 				B3919BBB515547118D684CE2 /* DosingModeClampTests.swift */,
 				B3919BBB515547118D684CD2 /* LoopIndicatorTests.swift */,
+				AE2DC7144FFD427B96B8A2B8 /* PumpStatusSuspendTests.swift */,
 				B3919BBB515547118D684CC2 /* MaxIOBSuggestionTests.swift */,
 				B3919BBB515547118D684CB2 /* DosingModeMigrationTests.swift */,
 				BD8FC0532D66186000B95AED /* TestError.swift */,
@@ -4363,6 +4368,7 @@
 				DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */,
 				BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */,
 				BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */,
+				A1B2C3D40F00000000000001 /* AlarmSnoozeView.swift */,
 				DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */,
 				BDA25F1B2D26BD0300035F34 /* TrendShape.swift */,
 				BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */,
@@ -6603,6 +6609,7 @@
 				41740E936552456AAC0EDFC3 /* AlgorithmSuggestedBolusTests.swift in Sources */,
 				41740E936552456AAC0EDEC3 /* DosingModeClampTests.swift in Sources */,
 				41740E936552456AAC0EDDC3 /* LoopIndicatorTests.swift in Sources */,
+				2A3D41ADE8834E8485A9504D /* PumpStatusSuspendTests.swift in Sources */,
 				41740E936552456AAC0EDCC3 /* MaxIOBSuggestionTests.swift in Sources */,
 				41740E936552456AAC0EDBC3 /* DosingModeMigrationTests.swift in Sources */,
 				B015AFE52E500000000D7351 /* BolusSafetyValidatorTests.swift in Sources */,
@@ -6669,6 +6676,7 @@
 				C2BA6B9A2F7593C300348E6A /* NotificationIdentifiers.swift in Sources */,
 				DD8262CB2D289297009F6F62 /* BolusConfirmationView.swift in Sources */,
 				BD54A9712D281A8100F9C1EE /* TempTargetPresetsView.swift in Sources */,
+				A1B2C3D40F00000000000002 /* AlarmSnoozeView.swift in Sources */,
 				DD3A3CE92D29C97800AE478E /* Helper+ButtonStyles.swift in Sources */,
 				BDAE40002D372BAD009C12B1 /* WatchState+Requests.swift in Sources */,
 				BDA25EE62D260D5E00035F34 /* WatchState.swift in Sources */,

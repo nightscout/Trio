@@ -76,9 +76,9 @@ actor TidepoolUploadSerializer {
         // without running uploads at UI priority.
         tail = Task(priority: .utility) {
             await previous?.value
-            guard await self.begin(pipeline, generation: generation) else { return }
+            guard self.begin(pipeline, generation: generation) else { return }
             await operation(generation)
-            await self.end(generation: generation)
+            self.end(generation: generation)
         }
     }
 
