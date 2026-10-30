@@ -13,7 +13,7 @@ import LoopKit
 enum AlertCatalogRegistry {
     static let entries: [Alert.CatalogEntry] =
         omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + g7Entries
-            + syaiEntries + trioAlgorithmEntries
+            + syaiEntries + trioAlgorithmEntries + tidepoolEntries
 
     static func lookup(_ identifier: Alert.Identifier) -> Alert.CatalogEntry? {
         if let exact = entries.first(where: { $0.identifier == identifier }) {
@@ -347,6 +347,21 @@ private extension AlertCatalogRegistry {
         addEntry("trio.aps", "loop.notActive", .critical, "Trio Not Looping", "Algorithm", .notLooping),
         addEntry("trio.aps", "algorithmError", .active, "Algorithm Error", "Algorithm", .algorithmError),
         addEntry("trio.aps", "glucoseDataStale", .timeSensitive, "Glucose Data Stale", "Algorithm", .glucoseDataStale)
+    ]
+}
+
+// MARK: - Tidepool
+
+private extension AlertCatalogRegistry {
+    static let tidepoolEntries: [Alert.CatalogEntry] = [
+        addEntry(
+            "TidepoolService",
+            "authentication-needed",
+            .active,
+            "Tidepool Service Authorization",
+            "Services",
+            .tidepoolLoginRequired
+        )
     ]
 }
 
