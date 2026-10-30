@@ -327,6 +327,7 @@
 		3BAE87702E480BE100FCA8D2 /* ForecastResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAE876F2E480BE100FCA8D2 /* ForecastResults.swift */; };
 		3BBB76AA2E01C70B0040977D /* MealCob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBB76A92E01C7070040977D /* MealCob.swift */; };
 		3BBC22632DF5B94100169236 /* AutosensTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBC22622DF5B93900169236 /* AutosensTests.swift */; };
+		446AC96E2A1942639C623094 /* OrefPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BDC48EFE80A444B901EA3D5 /* OrefPipelineTests.swift */; };
 		3BC07D6F3017B837004F96AF /* DecimalExtensions+SwiftUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC07D6E3017B830004F96AF /* DecimalExtensions+SwiftUI.swift */; };
 		3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */; };
 		3BCA5F7C2DC7B16400A7EAC7 /* pumphistory-with-external.json in Resources */ = {isa = PBXBuildFile; fileRef = 3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */; };
@@ -1129,6 +1130,10 @@
 		FE41E4D629463EE20047FD55 /* NightscoutPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41E4D529463EE20047FD55 /* NightscoutPreferences.swift */; };
 		FE66D16B291F74F8005D6F77 /* Bundle+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */; };
 		FEFFA7A22929FE49007B8193 /* UIDevice+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */; };
+		0C07B0DAE834E9B934D195F6 /* OrefPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FCEB19A6ED03C5248D45FB0 /* OrefPipeline.swift */; };
+		B3AC54122218A0D2BB8E1D96 /* BolusCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D9D6A065662BC1B46E82744 /* BolusCalculator.swift */; };
+		ECFBBF00FA1E2B41520E35E1 /* GlucoseSmoothing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B448CF467188976CDCE24F8E /* GlucoseSmoothing.swift */; };
+		FB577530C9B3657AC5E8A6C3 /* TDDCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB460F337DA644C5F2D601E8 /* TDDCalculator.swift */; };
 		CA0924000000000000000002 /* GRICalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0924000000000000000001 /* GRICalculator.swift */; };
 		CA0924000000000000000004 /* GRIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0924000000000000000003 /* GRIView.swift */; };
 		CA0924000000000000000006 /* GRICalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0924000000000000000005 /* GRICalculatorTests.swift */; };
@@ -1541,6 +1546,7 @@
 		3BAE876F2E480BE100FCA8D2 /* ForecastResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastResults.swift; sourceTree = "<group>"; };
 		3BBB76A92E01C7070040977D /* MealCob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealCob.swift; sourceTree = "<group>"; };
 		3BBC22622DF5B93900169236 /* AutosensTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutosensTests.swift; sourceTree = "<group>"; };
+		9BDC48EFE80A444B901EA3D5 /* OrefPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrefPipelineTests.swift; sourceTree = "<group>"; };
 		3BC07D6E3017B830004F96AF /* DecimalExtensions+SwiftUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DecimalExtensions+SwiftUI.swift"; sourceTree = "<group>"; };
 		3BC26E542D7418830066ACD6 /* IobSuspendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IobSuspendTests.swift; sourceTree = "<group>"; };
 		3BCA5F7B2DC7B15400A7EAC7 /* pumphistory-with-external.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "pumphistory-with-external.json"; sourceTree = "<group>"; };
@@ -2351,6 +2357,10 @@
 		FE66D16A291F74F8005D6F77 /* Bundle+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+Extensions.swift"; sourceTree = "<group>"; };
 		FEA5E2B256AC7F8447B1F1C3 /* WatchLogRingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogRingTests.swift; sourceTree = "<group>"; };
 		FEFFA7A12929FE49007B8193 /* UIDevice+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIDevice+Extensions.swift"; sourceTree = "<group>"; };
+		1FCEB19A6ED03C5248D45FB0 /* OrefPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrefPipeline.swift; sourceTree = "<group>"; };
+		5D9D6A065662BC1B46E82744 /* BolusCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusCalculator.swift; sourceTree = "<group>"; };
+		B448CF467188976CDCE24F8E /* GlucoseSmoothing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseSmoothing.swift; sourceTree = "<group>"; };
+		CB460F337DA644C5F2D601E8 /* TDDCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TDDCalculator.swift; sourceTree = "<group>"; };
 		CA0924000000000000000001 /* GRICalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRICalculator.swift; sourceTree = "<group>"; };
 		CA0924000000000000000003 /* GRIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRIView.swift; sourceTree = "<group>"; };
 		CA0924000000000000000005 /* GRICalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRICalculatorTests.swift; sourceTree = "<group>"; };
@@ -3075,6 +3085,7 @@
 			sourceTree = "<group>";
 		};
 		3811DF0A25CAAAA500A708ED /* APS */ = {
+				B448CF467188976CDCE24F8E /* GlucoseSmoothing.swift */,
 			isa = PBXGroup;
 			children = (
 				CE95BF562BA5F5FE00DC3DE3 /* PluginManager.swift */,
@@ -3279,6 +3290,7 @@
 			sourceTree = "<group>";
 		};
 		388E5A5825B6F0070019842D /* OpenAPS */ = {
+				1FCEB19A6ED03C5248D45FB0 /* OrefPipeline.swift */,
 			isa = PBXGroup;
 			children = (
 				388E596B25AD95110019842D /* OpenAPS.swift */,
@@ -3409,6 +3421,7 @@
 			sourceTree = "<group>";
 		};
 		38A0362725ECF05300FCBB52 /* Storage */ = {
+				CB460F337DA644C5F2D601E8 /* TDDCalculator.swift */,
 			isa = PBXGroup;
 			children = (
 				38AEE75625F0F18E0013F05B /* CarbsStorage.swift */,
@@ -3727,6 +3740,7 @@
 				FAB1E00000000000000000A0 /* Parity */,
 				3B1C5C3F2D68E269004E9273 /* utils */,
 				3BBC22622DF5B93900169236 /* AutosensTests.swift */,
+				9BDC48EFE80A444B901EA3D5 /* OrefPipelineTests.swift */,
 				3BA643E92ED9FAD8007BC31F /* DetermineBasalAggressiveDosingTests.swift */,
 				DD30B9FF2E0745C400DA677C /* DetermineBasalDeltaCalculationTests.swift */,
 				3B8221B12E5882D900585156 /* DetermineBasalEarlyExitTests.swift */,
@@ -4322,6 +4336,7 @@
 			sourceTree = "<group>";
 		};
 		BD7DB88C2D2C49FF003D3155 /* BolusCalculator */ = {
+				5D9D6A065662BC1B46E82744 /* BolusCalculator.swift */,
 			isa = PBXGroup;
 			children = (
 				BD7DB88D2D2C4A0A003D3155 /* BolusCalculationManager.swift */,
@@ -6476,6 +6491,10 @@
 				BD175EBE000010000000000B /* HistoryRootView+Filters.swift in Sources */,
 				BD175EBE000010000000000C /* HistoryRootView+AddGlucose.swift in Sources */,
 				BD175EBE000010000000000D /* HistoryRootView+Confirmations.swift in Sources */,
+				FB577530C9B3657AC5E8A6C3 /* TDDCalculator.swift in Sources */,
+				ECFBBF00FA1E2B41520E35E1 /* GlucoseSmoothing.swift in Sources */,
+				B3AC54122218A0D2BB8E1D96 /* BolusCalculator.swift in Sources */,
+				0C07B0DAE834E9B934D195F6 /* OrefPipeline.swift in Sources */,
 				DE6F63D93662C12AD18A3802 /* LogRecord.swift in Sources */,
 				91FC2FB975FB723C55744FB1 /* LogSink.swift in Sources */,
 				5C55695D8C9185BDB57B3E7B /* LogRetentionPolicy.swift in Sources */,
@@ -6534,6 +6553,7 @@
 				BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */,
 				3BE2F1E82E030E2F009E2900 /* MealCobTests.swift in Sources */,
 				3BBC22632DF5B94100169236 /* AutosensTests.swift in Sources */,
+				446AC96E2A1942639C623094 /* OrefPipelineTests.swift in Sources */,
 				BD8FC0542D66186000B95AED /* TestError.swift in Sources */,
 				FB9012AE66284A92A6531037 /* NightscoutUploadSerializerTests.swift in Sources */,
 				782BE9AEFDD94938A6F3EFE9 /* NightscoutImportRoundTripTests.swift in Sources */,
