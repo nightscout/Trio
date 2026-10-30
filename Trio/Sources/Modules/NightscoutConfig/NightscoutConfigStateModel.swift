@@ -56,19 +56,16 @@ extension NightscoutConfig {
                 .sink { [weak self] enabled in
                     guard let self = self else { return }
                     if enabled {
-                        debug(.nightscout, "Upload has been enabled by the user.")
+                        info(.nightscout, "Upload enabled")
                         Task {
                             do {
                                 try await self.nightscoutManager.uploadProfiles()
                             } catch {
-                                debug(
-                                    .default,
-                                    "\(DebuggingIdentifiers.failed) failed to upload profiles: \(error)"
-                                )
+                                warning(.nightscout, "Profile upload failed", error: error)
                             }
                         }
                     } else {
-                        debug(.nightscout, "Upload has been disabled by the user.")
+                        info(.nightscout, "Upload disabled")
                     }
                 }
                 .store(in: &lifetime)
@@ -152,14 +149,14 @@ extension NightscoutConfig {
                         await self.healthKitManager.uploadGlucose()
                     }
                 } catch let error as CoreDataError {
-                    debug(.nightscout, "Core Data error while storing backfilled glucose: \(error)")
+                    warning(.storage, "Failed to store backfilled glucose", error: error)
                     message = "Error: \(error.localizedDescription)"
                 } catch {
-                    debug(.nightscout, "Unexpected error while storing backfilled glucose: \(error)")
+                    warning(.storage, "Failed to store backfilled glucose", error: error)
                     message = "Error: \(error.localizedDescription)"
                 }
             } else {
-                debug(.nightscout, "No glucose values found or fetched to backfill.")
+                debug(.nightscout, "No glucose to backfill")
             }
 
             await MainActor.run {

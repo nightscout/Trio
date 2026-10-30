@@ -6,6 +6,7 @@ import UserNotifications
 
     init() {
         WatchNotificationHandler.shared.configure()
+        WatchLogger.shared.info(.lifecycle, "App launched")
     }
 
     var body: some Scene {
@@ -14,9 +15,8 @@ import UserNotifications
         }
         .onChange(of: scenePhase) { _, newScenePhase in
             if newScenePhase == .background {
-                Task {
-                    await WatchLogger.shared.flushPersistedLogs()
-                }
+                WatchLogger.shared.info(.lifecycle, "App moved to background")
+                WatchLogger.shared.didEnterBackground()
             }
         }
     }

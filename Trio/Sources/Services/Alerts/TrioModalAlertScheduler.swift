@@ -202,7 +202,7 @@ struct TrioAlertBanner: View {
     @State private var presentedAt = Date()
     @State private var dragOffset: CGSize = .zero
 
-    private static let quickSnooze: TimeInterval = 15 * 60
+    private static let quickSnooze: TimeInterval = BaseTrioAlertManager.quickSnooze
 
     /// Critical alerts and urgent-low glucose alarms are limited to the
     /// 15-minute quick snooze — the safety floor. Other alerts get the full
@@ -395,7 +395,7 @@ struct TrioAlertModifier: ViewModifier {
         HStack {
             Spacer()
             Button {
-                scheduler.snoozeAll(duration: 15 * 60)
+                scheduler.snoozeAll(duration: BaseTrioAlertManager.quickSnooze)
             } label: {
                 HStack(spacing: 4) {
                     Text(String(localized: "Snooze all (15 min)"))

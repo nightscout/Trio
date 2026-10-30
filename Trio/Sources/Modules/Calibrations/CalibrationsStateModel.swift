@@ -78,13 +78,14 @@ extension Calibrations {
                     let calibration = Calibration(x: Double(unfiltered), y: Double(glucose))
 
                     calibrationService.addCalibration(calibration)
+                    info(.cgm, "Calibration added: BG \(glucose) mg/dL")
                 } else {
-                    debug(.service, "Glucose is stale for calibration")
+                    debug(.cgm, "Calibration not added, no recent glucose")
                     issueStaleGlucoseAlert()
                     return
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to add calibration: \(error)")
+                warning(.cgm, "Adding calibration failed", error: error)
             }
         }
 

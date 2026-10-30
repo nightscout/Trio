@@ -182,70 +182,64 @@ struct EditTempTargetForm: View {
             }
             .listRowBackground(Color.chart)
 
-            if target != TempTargetCalculations.normalTarget {
-                let computedHalfBasalTarget = Decimal(
-                    TempTargetCalculations.computeHalfBasalTarget(target: target, percentage: percentage)
-                )
-
-                if state.isAdjustSensEnabled(usingTarget: target) {
-                    Section(
-                        footer: state.percentageDescription(percentage),
-                        content: {
-                            Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
-                                ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
-                                    Text(option.rawValue).tag(option)
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                                .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
-                                    if newValue == .standard {
-                                        halfBasalTarget = nil
-                                        hasChanges = true
-                                        percentage = TempTargetCalculations.computeAdjustedPercentage(
-                                            halfBasalTarget: state.settingHalfBasalTarget,
-                                            target: target,
-                                            autosensMax: state.autosensMax
-                                        )
-                                    }
-                                }
+            if state.isAdjustSensEnabled(usingTarget: target) {
+                Section(
+                    footer: state.percentageDescription(percentage),
+                    content: {
+                        Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
+                            ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
+                                Text(option.rawValue).tag(option)
                             }
-
-                            Text("\(formattedPercentage(percentage))% Insulin")
-                                .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .frame(maxWidth: .infinity, alignment: .center)
-
-                            if tempTargetSensitivityAdjustmentType == .slider {
-                                Slider(
-                                    value: Binding(
-                                        get: {
-                                            Double(truncating: percentage as NSNumber)
-                                        },
-                                        set: { newValue in
-                                            percentage = newValue
-                                            hasChanges = true
-                                            halfBasalTarget = Decimal(TempTargetCalculations.computeHalfBasalTarget(
-                                                target: target,
-                                                percentage: percentage
-                                            ))
-                                        }
-                                    ),
-                                    in: state.computeSliderLow(usingTarget: target) ... state
-                                        .computeSliderHigh(usingTarget: target),
-                                    step: 5
-                                ) {}
-                                minimumValueLabel: {
-                                    Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
+                            .pickerStyle(MenuPickerStyle())
+                            .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
+                                if newValue == .standard {
+                                    halfBasalTarget = nil
+                                    hasChanges = true
+                                    percentage = TempTargetCalculations.computeAdjustedPercentage(
+                                        halfBasalTarget: state.settingHalfBasalTarget,
+                                        target: target,
+                                        autosensMax: state.autosensMax
+                                    )
                                 }
-                                maximumValueLabel: {
-                                    Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
-                                }
-                                .listRowSeparator(.hidden, edges: .top)
                             }
                         }
-                    )
-                    .listRowBackground(Color.chart)
-                }
+
+                        Text("\(formattedPercentage(percentage))% Insulin")
+                            .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity, alignment: .center)
+
+                        if tempTargetSensitivityAdjustmentType == .slider {
+                            Slider(
+                                value: Binding(
+                                    get: {
+                                        Double(truncating: percentage as NSNumber)
+                                    },
+                                    set: { newValue in
+                                        percentage = newValue
+                                        hasChanges = true
+                                        halfBasalTarget = Decimal(TempTargetCalculations.computeHalfBasalTarget(
+                                            target: target,
+                                            percentage: percentage
+                                        ))
+                                    }
+                                ),
+                                in: state.computeSliderLow(usingTarget: target) ... state
+                                    .computeSliderHigh(usingTarget: target),
+                                step: 5
+                            ) {}
+                            minimumValueLabel: {
+                                Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
+                            }
+                            maximumValueLabel: {
+                                Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
+                            }
+                            .listRowSeparator(.hidden, edges: .top)
+                        }
+                    }
+                )
+                .listRowBackground(Color.chart)
             }
 
             Section {
@@ -329,9 +323,9 @@ struct EditTempTargetForm: View {
             Spacer()
             Button(action: {
                 saveChanges()
-                debug(
-                    .default,
-                    "TempTarget: target=\(target), HBT=\(state.settingHalfBasalTarget), effectiveHBT=\(String(describing: halfBasalTarget)), percentage=\(Int(percentage))%, adjustmentType=\(tempTargetSensitivityAdjustmentType.rawValue)"
+                info(
+                    .treatments,
+                    "Temp target edited: target \(target) mg/dL, half basal target \(halfBasalTarget.map { "\($0) mg/dL" } ?? "default"), insulin \(Int(percentage))%"
                 )
                 do {
                     guard let moc = tempTarget.managedObjectContext else { return }
@@ -373,7 +367,7 @@ struct EditTempTargetForm: View {
                     hasChanges = false
                     presentationMode.wrappedValue.dismiss()
                 } catch {
-                    debugPrint("Failed to Edit Temp Target")
+                    warning(.treatments, "Saving edited temp target failed", error: error)
                 }
             }, label: {
                 Text("Save")
