@@ -2,172 +2,94 @@ import Charts
 import SwiftUI
 
 struct GlucoseDailyDistributionChart: View {
-    let glucose: [GlucoseStored]
-    let highLimit: Decimal
     let units: GlucoseUnits
     let timeInRangeType: TimeInRangeType
     let selectedInterval: Stat.StateModel.StatsTimeInterval
     let eA1cDisplayUnit: EstimatedA1cDisplayUnit
 
-    @Binding var isDaySelected: Bool
+    let dailyStats: [GlucoseDailyDistributionStats]
+    let readingsByDay: [Date: [GlucoseReading]]
 
-    // Scrolling and selection states
     @State private var scrollPosition = Date()
     @State private var selectedDate: Date?
-    @State private var updateTimer = Stat.UpdateTimer()
-    @State private var visibleGlucose: [GlucoseStored] = []
 
-    // State model for accessing the shared data
-    let state: Stat.StateModel
-
-    // Computes the visible date range based on the current scroll position
-    @State private var visibleDateRange: (start: Date, end: Date) = (Date(), Date())
-
-    // Gets daily distribution stats for the visible date range
-    private var visibleDailyStats: [GlucoseDailyDistributionStats] {
-        let calendar = Calendar.current
-        return state.dailyGlucoseDistributionStats.filter { stat in
-            let statDate = calendar.startOfDay(for: stat.date)
-            return statDate >= calendar.startOfDay(for: visibleDateRange.start) &&
-                statDate <= calendar.startOfDay(for: visibleDateRange.end)
-        }
+    private var selectedDayStart: Date? {
+        selectedDate.map { Calendar.current.startOfDay(for: $0) }
     }
 
-    private func calculateVisibleDateRange() {
-        visibleDateRange = StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
-    }
-
-    // Gets selected day stats
-    private var selectedDateStats: GlucoseDailyDistributionStats? {
-        guard let selectedDate = selectedDate else { return nil }
-        let calendar = Calendar.current
-        let startOfSelectedDate = calendar.startOfDay(for: selectedDate)
-        return state.glucoseDistributionCache[startOfSelectedDate]
-    }
-
-    private func calculateVisibleGlucose() {
-        let calendar = Calendar.current
-        visibleGlucose = glucose.filter { reading in
-            guard let date = reading.date else { return false }
-            return date >= calendar.startOfDay(for: visibleDateRange.start) &&
-                date <= calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: visibleDateRange.end))!
-        }
-    }
-
-    // Compute selected day glucose readings
-    private var selectedDateGlucose: [GlucoseStored] {
-        guard let selectedDate = selectedDate else { return [] }
-        let calendar = Calendar.current
-        let dayStart = calendar.startOfDay(for: selectedDate)
-        let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
-
-        return glucose.filter { reading in
-            guard let date = reading.date else { return false }
-            return date >= dayStart && date < dayEnd
-        }
-    }
-
-    // Active glucose data - either selected day or visible range
-    private var activeGlucoseData: [GlucoseStored] {
-        selectedDate != nil ? selectedDateGlucose : visibleGlucose
+    private var visibleDateRange: (start: Date, end: Date) {
+        StatChartUtils.visibleDateRange(from: scrollPosition, for: selectedInterval)
     }
 
     var body: some View {
+        let range = visibleDateRange
+        let activeGlucose = selectedDayStart.map { readingsByDay[$0, default: []] } ?? readingsByDay
+            .filter { StatChartUtils.isStatInRange($0.key, in: range) }
+            .flatMap(\.value)
+
         VStack(alignment: .leading, spacing: 8) {
             chartView
                 .frame(height: 200)
 
-            // Date label with transition
-            Text(selectedDate.map { formattedDate(for: $0) } ?? StatChartUtils.formatVisibleDateRange(
-                from: visibleDateRange.start,
-                to: visibleDateRange.end,
+            Text(selectedDate.map { StatChartUtils.formatDate($0) } ?? StatChartUtils.formatVisibleDateRange(
+                from: range.start,
+                to: range.end,
                 for: selectedInterval
             ))
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.top, 8)
-                .animation(.easeInOut, value: selectedDate)
 
-            // Single sector chart with data switching
             GlucoseSectorChart(
-                highLimit: highLimit,
                 units: units,
-                glucose: activeGlucoseData,
+                glucose: activeGlucose,
                 timeInRangeType: timeInRangeType,
                 showChart: false
             )
-            .animation(.easeInOut, value: selectedDate)
+            .equatable()
 
             Divider().padding(.vertical, 4)
 
-            // Single metrics view with data switching
             GlucoseMetricsView(
                 units: units,
                 eA1cDisplayUnit: eA1cDisplayUnit,
-                glucose: activeGlucoseData
+                glucose: activeGlucose
             )
-            .animation(.easeInOut, value: selectedDate)
+            .equatable()
         }
-        .onAppear {
-            scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
-            calculateVisibleDateRange()
-            calculateVisibleGlucose()
-        }
-        .onChange(of: scrollPosition) {
-            updateTimer.scheduleUpdate {
-                calculateVisibleDateRange()
-                calculateVisibleGlucose()
-            }
-        }
-        .onChange(of: selectedInterval) { _, _ in
+        .onChange(of: selectedInterval, initial: true) {
             selectedDate = nil
-            isDaySelected = false
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
     }
 
-    /// Formatted date string for display
-    private func formattedDate(for date: Date) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "EEEE, MMMM d, yyyy"
-        return dateFormatter.string(from: date)
-    }
-
-    /// The main chart visualization showing glucose distribution by day
     private var chartView: some View {
-        Chart {
-            ForEach(state.dailyGlucoseDistributionStats) { day in
-                barMark(x: day, y: day.veryLowPct, rangeName: "veryLow")
-                barMark(x: day, y: day.lowPct, rangeName: "low")
-                barMark(x: day, y: day.inSmallRangePct, rangeName: "inSmallRange")
-                barMark(x: day, y: day.inRangePct - day.inSmallRangePct, rangeName: "inRange")
-                barMark(x: day, y: day.highPct, rangeName: "high")
-                barMark(x: day, y: day.veryHighPct, rangeName: "veryHigh")
+        let bandInfos = GlucoseBand.allCases.map {
+            (band: $0, label: $0.rangeLabel(units: units, timeInRangeType: timeInRangeType), color: $0.color.opacity(0.8))
+        }
+
+        return Chart {
+            ForEach(dailyStats) { day in
+                let opacity = selectedDayStart.map { day.date == $0 ? 1 : 0.3 } ?? 1
+                ForEach(bandInfos, id: \.band) { entry in
+                    barMark(x: day, y: day.pct(for: entry.band), name: entry.label, opacity: opacity)
+                }
             }
         }
-        .chartForegroundStyleScale([
-            legend("veryLow"): Color.dynamicRed,
-            legend("low"): Color.dynamicOrange,
-            legend("inSmallRange"): Color.dynamicGreen,
-            legend("inRange"): Color.dynamicTeal,
-            legend("high"): Color.dynamicBlue,
-            legend("veryHigh"): Color.dynamicPurple
-        ])
-        .chartXSelection(value: $selectedDate.animation(.easeInOut))
-        .onChange(of: selectedDate) { _, newValue in
-            withAnimation(.easeInOut) {
-                isDaySelected = newValue != nil
-            }
-        }
+        .chartForegroundStyleScale(
+            domain: bandInfos.map(\.label),
+            range: bandInfos.map(\.color)
+        )
+        .chartXSelection(value: $selectedDate)
         .chartYScale(domain: 0 ... 100)
         .chartXAxis {
             StatChartUtils.dateAxisMarks(for: selectedInterval)
         }
         .chartYAxis {
-            AxisMarks(position: .trailing, values: [4, 25, 50, 75, 100]) { value in
+            AxisMarks(position: .trailing) { value in
                 if let percentage = value.as(Double.self) {
                     AxisValueLabel {
-                        Text((percentage / 100).formatted(.percent.precision(.fractionLength(0))))
+                        Text(StatChartUtils.formatPercentage(percentage, fractionLength: 0))
                             .font(.footnote)
                     }
                     AxisGridLine()
@@ -175,7 +97,7 @@ struct GlucoseDailyDistributionChart: View {
             }
         }
         .chartScrollableAxes(.horizontal)
-        .chartScrollPosition(x: $scrollPosition.animation(.easeInOut))
+        .chartScrollPosition(x: $scrollPosition)
         .chartScrollTargetBehavior(
             .valueAligned(
                 matching: DateComponents(hour: 0),
@@ -184,38 +106,17 @@ struct GlucoseDailyDistributionChart: View {
                 )
             )
         )
-        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval))
+        .chartXVisibleDomain(length: StatChartUtils.visibleDomainLength(for: selectedInterval, at: scrollPosition))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Daily glucose distribution chart"))
     }
 
-    /// Formats a short string with the glucose values of the requested range.
-    private func legend(_ rangeName: String) -> String {
-        switch rangeName {
-        case "veryLow":
-            return "<\(Decimal(54).formatted(for: units))"
-        case "low":
-            return "\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold - 1).formatted(for: units))"
-        case "inSmallRange":
-            return "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))"
-        case "inRange":
-            return "\(Decimal(timeInRangeType.topThreshold + 1).formatted(for: units))-\(highLimit.formatted(for: units))"
-        case "high":
-            return "\((highLimit + 1).formatted(for: units))-\(Decimal(250).formatted(for: units))"
-        case "veryHigh":
-            return ">\(Decimal(250).formatted(for: units))"
-        default:
-            return "error"
-        }
-    }
-
-    /// Creates a bar mark for the requested date and range
-    private func barMark(x: GlucoseDailyDistributionStats, y: Double, rangeName: String) -> some ChartContent {
+    private func barMark(x: GlucoseDailyDistributionStats, y: Double, name: String, opacity: Double) -> some ChartContent {
         BarMark(
             x: .value("Date", x.date, unit: .day),
             y: .value("Percentage", y)
         )
-        .foregroundStyle(by: .value("Range", legend(rangeName)))
-        .opacity(selectedDate == nil || Calendar.current.isDate(selectedDate!, inSameDayAs: x.date) ? 1 : 0.3)
+        .foregroundStyle(by: .value("Range", name))
+        .opacity(opacity)
     }
 }

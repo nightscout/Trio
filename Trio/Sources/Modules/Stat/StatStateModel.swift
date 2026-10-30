@@ -1,223 +1,74 @@
-import CoreData
 import Foundation
 import Observation
-import SwiftUI
-import Swinject
 
 extension Stat {
     @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() var settings: SettingsManager!
-        var highLimit: Decimal = 180
-        var lowLimit: Decimal = 70
         var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent
         var units: GlucoseUnits = .mgdL
         var timeInRangeType: TimeInRangeType = .timeInTightRange
         var useFPUconversion: Bool = false
-        var glucoseFromPersistence: [GlucoseStored] = []
-        var loopStatRecords: [LoopStatRecord] = []
-        var loopStats: [LoopStatsProcessedData] = []
-        var groupedLoopStats: [LoopStatsByPeriod] = []
-        var bolusStats: [BolusStats] = []
+        var glucoseFromPersistence: [GlucoseReading] = []
         var hourlyStats: [HourlyStats] = []
         var glucoseRangeStats: [GlucoseRangeStats] = []
+        var griResult: GRICalculator.Result?
 
-        // Cache for Meal Stats
+        var hourlyLoopStats: [LoopingStats] = []
+        var dailyLoopStats: [LoopingStats] = []
+        var earliestLoopDate: Date?
+
         var hourlyMealStats: [MealStats] = []
         var dailyMealStats: [MealStats] = []
-        var dailyMealTotalsCache: [Date: (carbs: Double, fat: Double, protein: Double)] = [:]
 
-        // Cache for TDD Stats
         var hourlyTDDStats: [TDDStats] = []
         var dailyTDDStats: [TDDStats] = []
-        var tddAveragesCache: [Date: Double] = [:]
 
-        // Cache for Bolus Stats
         var hourlyBolusStats: [BolusStats] = []
         var dailyBolusStats: [BolusStats] = []
-        var bolusAveragesCache: [Date: (manual: Double, smb: Double, external: Double)] = [:]
-        var bolusTotalsCache: [(Date, total: Double)] = []
 
-        // Cache for Glucose Daily Stats
         var dailyGlucosePercentileStats: [GlucoseDailyPercentileStats] = []
-        var glucosePercentileCache: [Date: GlucoseDailyPercentileStats] = [:]
         var dailyGlucoseDistributionStats: [GlucoseDailyDistributionStats] = []
-        var glucoseDistributionCache: [Date: GlucoseDailyDistributionStats] = [:]
-        var glucoseReadings: [GlucoseStored] = []
+        var glucoseReadingsByDay: [Date: [GlucoseReading]] = [:]
 
-        // Selected Duration for Glucose Stats
-        var selectedIntervalForGlucoseStats: StatsTimeIntervalWithToday = .today {
-            didSet {
-                setupGlucoseArray(for: selectedIntervalForGlucoseStats)
-            }
-        }
+        var selectedIntervalForGlucoseStats: StatsTimeIntervalWithToday = .today
 
-        // Selected Duration for Insulin Stats
         var selectedIntervalForInsulinStats: StatsTimeInterval = .day
 
-        // Selected Duration for Meal Stats
         var selectedIntervalForMealStats: StatsTimeInterval = .day
 
-        // Selected Duration for Loop Stats
-        var selectedIntervalForLoopStats: StatsTimeIntervalWithToday = .today {
-            didSet {
-                setupLoopStatRecords()
-            }
-        }
+        var selectedIntervalForLoopStats: StatsTimeInterval = .day
 
-        // Selected Glucose Chart Type
         var selectedGlucoseChartType: GlucoseChartType = .percentileByTime
 
-        // Selected Insulin Chart Type
         var selectedInsulinChartType: InsulinChartType = .totalDailyDose
 
-        // Selected Looping Chart Type
         var selectedLoopingChartType: LoopingChartType = .loopingPerformance
 
-        // Selected Meal Chart Type
         var selectedMealChartType: MealChartType = .totalMeals
 
-        // Fetching Contexts
-        let viewContext = CoreDataStack.shared.persistentContainer.viewContext
-
         override func subscribe() {
-            // open on the span the home stats panel reports
-            let range = settingsManager.settings.homeStatsPanelRange
-            selectedIntervalForInsulinStats = StatsTimeInterval(range)
-            selectedIntervalForMealStats = StatsTimeInterval(range)
-
-            // `didSet` starts these fetches; assign only on change so each runs exactly once
-            let glucoseInterval = StatsTimeIntervalWithToday(range)
-            if glucoseInterval != selectedIntervalForGlucoseStats {
-                selectedIntervalForGlucoseStats = glucoseInterval
-            } else {
-                setupGlucoseArray(for: glucoseInterval)
-            }
-            let loopInterval = StatsTimeIntervalWithToday(range)
-            if loopInterval != selectedIntervalForLoopStats {
-                selectedIntervalForLoopStats = loopInterval
-            } else {
-                setupLoopStatRecords()
-            }
-
-            setupTDDStats()
-            setupBolusStats()
-            setupMealStats()
-            setupGlucoseDailyStats()
             units = settingsManager.settings.units
             eA1cDisplayUnit = settingsManager.settings.eA1cDisplayUnit
             useFPUconversion = settingsManager.settings.useFPUconversion
             timeInRangeType = settingsManager.settings.timeInRangeType
-        }
 
-        func setupGlucoseArray(for interval: StatsTimeIntervalWithToday) {
-            Task {
-                // Load data for current interval (existing code)
-                let ids = await fetchGlucose(for: interval)
-                await updateGlucoseArray(with: ids)
+            // open on the span the home stats panel reports
+            let range = settingsManager.settings.homeStatsPanelRange
+            selectedIntervalForInsulinStats = StatsTimeInterval(range)
+            selectedIntervalForMealStats = StatsTimeInterval(range)
+            selectedIntervalForLoopStats = StatsTimeInterval(range)
 
-                // Also ensure we have the full dataset loaded
-                if glucoseReadings.isEmpty {
-                    let allIds = await fetchGlucose(for: .total)
-                    await updateAllGlucoseArray(with: allIds)
-                }
-
-                // Calculate hourly stats and glucose range stats asynchronously with fetched glucose IDs
-                async let hourlyStats: () = calculateHourlyStatsForGlucoseAreaChart(from: ids)
-                async let glucoseRangeStats: () = calculateGlucoseRangeStatsForStackedChart(from: ids)
-                _ = await (hourlyStats, glucoseRangeStats)
+            let glucoseInterval = StatsTimeIntervalWithToday(range)
+            if selectedIntervalForGlucoseStats != glucoseInterval {
+                selectedIntervalForGlucoseStats = glucoseInterval
+            } else {
+                setupGlucoseArray(for: glucoseInterval)
             }
-        }
 
-        func setupGlucoseDailyStats() {
-            Task {
-                // Get glucose IDs once (using the private fetchGlucose method)
-                let allIds = await fetchGlucose(for: .total)
-
-                // Pass the IDs to the implementation in GlucoseStatsSetup.swift
-                await setupGlucoseStats(with: allIds)
-            }
-        }
-
-        private func fetchGlucose(for interval: StatsTimeIntervalWithToday) async -> [NSManagedObjectID] {
-            do {
-                let context = CoreDataStack.shared.newTaskContext()
-                context.name = "StatStateModel.fetchGlucose"
-
-                let predicate: NSPredicate
-
-                switch interval {
-                case .day:
-                    predicate = NSPredicate.glucoseForStatsDay
-                case .week:
-                    predicate = NSPredicate.glucoseForStatsWeek
-                case .today:
-                    predicate = NSPredicate.glucoseForStatsToday
-                case .month:
-                    predicate = NSPredicate.glucoseForStatsMonth
-                case .total:
-                    predicate = NSPredicate.glucoseForStatsTotal
-                }
-
-                let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-                    ofType: GlucoseStored.self,
-                    onContext: context,
-                    predicate: predicate,
-                    key: "date",
-                    ascending: false,
-                    batchSize: 100,
-                    propertiesToFetch: ["glucose", "objectID"]
-                )
-
-                return try await context.perform {
-                    guard let fetchedResults = results as? [[String: Any]] else {
-                        throw CoreDataError.fetchError(function: #function, file: #file)
-                    }
-                    return fetchedResults.compactMap { $0["objectID"] as? NSManagedObjectID }
-                }
-            } catch {
-                warning(.ui, "Fetching glucose for statistics failed", error: error)
-                return []
-            }
-        }
-
-        @MainActor private func updateGlucoseArray(with IDs: [NSManagedObjectID]) {
-            do {
-                let glucoseObjects = try IDs.compactMap { id in
-                    try viewContext.existingObject(with: id) as? GlucoseStored
-                }
-                glucoseFromPersistence = glucoseObjects
-            } catch {
-                warning(.ui, "Loading glucose for statistics failed", error: error)
-            }
-        }
-
-        @MainActor private func updateAllGlucoseArray(with IDs: [NSManagedObjectID]) {
-            do {
-                let glucoseObjects = try IDs.compactMap { id in
-                    try viewContext.existingObject(with: id) as? GlucoseStored
-                }
-                glucoseReadings = glucoseObjects
-            } catch {
-                warning(.ui, "Loading all glucose readings for statistics failed", error: error)
-            }
-        }
-    }
-
-    @Observable final class UpdateTimer {
-        private var workItem: DispatchWorkItem?
-
-        /// Schedules a delayed update action
-        /// - Parameter action: The closure to execute after the delay
-        /// Cancels any previously scheduled update before scheduling a new one
-        func scheduleUpdate(action: @escaping () -> Void) {
-            workItem?.cancel()
-
-            let newWorkItem = DispatchWorkItem {
-                action()
-            }
-            workItem = newWorkItem
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: newWorkItem)
+            setupTDDStats()
+            setupBolusStats()
+            setupLoopStats()
+            setupMealStats()
+            setupGlucoseDailyStats()
         }
     }
 }
@@ -225,18 +76,17 @@ extension Stat {
 // MARK: Stats Types + Enums
 
 extension Stat.StateModel {
-    /// Defines the available types of glucose charts
     enum GlucoseChartType: String, CaseIterable {
-        /// Ambulatory Glucose Profile showing percentile ranges
         case percentileByTime = "Percentile"
-        /// Time-based distribution of glucose ranges
         case distributionByTime = "Distribution"
         /// Glycemia Risk Index for the selected period
         case glycemiaRiskIndex = "Glycemia Risk Index"
         /// Day-based box plot of glucose percentile ranges
         case percentileByDay = "Percentile (by day)"
-        /// Day-based distribution of glucose ranges
         case distributionByDay = "Distribution (by day)"
+
+        var isDaily: Bool { self == .percentileByDay || self == .distributionByDay }
+        var showsSummaryCard: Bool { !isDaily && self != .glycemiaRiskIndex }
 
         var displayName: String {
             switch self {
@@ -254,11 +104,8 @@ extension Stat.StateModel {
         }
     }
 
-    /// Defines the available types of insulin charts
     enum InsulinChartType: String, CaseIterable {
-        /// Shows total daily insulin doses
         case totalDailyDose = "Total Daily Dose"
-        /// Shows distribution of bolus types
         case bolusDistribution = "Bolus Distribution"
 
         var displayName: String {
@@ -271,13 +118,9 @@ extension Stat.StateModel {
         }
     }
 
-    /// Defines the available types of looping charts
     enum LoopingChartType: String, CaseIterable {
-        /// Shows loop completion and success rates
         case loopingPerformance = "Looping Performance"
-        /// Shows CGM connection status over time
         case cgmConnectionTrace = "CGM Connection Trace"
-        /// Shows Trio pump uptime statistics
         case trioUpTime = "Trio Up-Time"
 
         var displayName: String {
@@ -292,11 +135,8 @@ extension Stat.StateModel {
         }
     }
 
-    /// Defines the available types of meal charts
     enum MealChartType: String, CaseIterable {
-        /// Shows total meal statistics
         case totalMeals = "Total Meals"
-        /// Shows correlation between meals and glucose excursions
         case mealToHypoHyperDistribution = "Meal to Hypo/Hyper"
 
         var displayName: String {
@@ -309,17 +149,11 @@ extension Stat.StateModel {
         }
     }
 
-    /// Defines the available time periods for duration-based statistics including 'Today' (time since midnight until now)
     enum StatsTimeIntervalWithToday: String, CaseIterable, Identifiable {
-        /// Current day
         case today
-        /// Single day view
         case day = "D"
-        /// Week view
         case week = "W"
-        /// Month view
         case month = "M"
-        /// Three month view
         case total = "3 M"
 
         var id: Self { self }
@@ -350,15 +184,10 @@ extension Stat.StateModel {
         }
     }
 
-    /// Defines the available time periods for duration-based statistics
     enum StatsTimeInterval: String, CaseIterable, Identifiable {
-        /// Single day interval
         case day = "D"
-        /// Week interval
         case week = "W"
-        /// Month interval
         case month = "M"
-        /// Three month interval
         case total = "3 M"
 
         var id: Self { self }
@@ -388,15 +217,10 @@ extension Stat.StateModel {
         }
     }
 
-    /// Defines the main categories of statistics available in the app
     enum StatisticViewType: String, CaseIterable, Identifiable {
-        /// Glucose-related statistics including AGP and distributions
         case glucose
-        /// Insulin delivery statistics including TDD and bolus distributions
         case insulin
-        /// Loop performance and system status statistics
         case looping
-        /// Meal-related statistics and correlations
         case meals
 
         var id: String { rawValue }

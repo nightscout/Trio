@@ -1,5 +1,3 @@
-enum Stat {
-    enum Config {}
-}
+enum Stat {}
 
 protocol StatProvider: Provider {}
