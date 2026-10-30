@@ -142,6 +142,100 @@ extension Treatments {
             }
         }
 
+        private var reminderMinutesBinding: Binding<Int> {
+            Binding(
+                get: { min(max(Int(state.mealTimeReminderMinutes), 0), 60) },
+                set: { state.mealTimeReminderMinutes = Decimal($0) }
+            )
+        }
+
+        /// Checking the box arms the reminder at the first preset; unchecking it is the "off"
+        /// state (minutes = 0), which all the downstream scheduling logic keys off.
+        private var remindMeToEatBinding: Binding<Bool> {
+            Binding(
+                get: { state.mealTimeReminderMinutes > 0 },
+                set: { isOn in
+                    if isOn, state.mealTimeReminderMinutes <= 0 {
+                        state.mealTimeReminderMinutes = state.mealTimeReminderPresets.first ?? 15
+                    } else if !isOn {
+                        state.mealTimeReminderMinutes = 0
+                    }
+                }
+            )
+        }
+
+        /// "Remind Me to Eat" row: a checkbox that reveals preset buttons (the values configured
+        /// in settings) on the left and a minutes wheel for fine control on the right.
+        /// The checkbox starts unchecked every time the calculator opens.
+        @ViewBuilder private func mealTimeReminderRow() -> some View {
+            HStack {
+                Text("Remind Me to Eat")
+                Spacer()
+                Toggle("", isOn: remindMeToEatBinding).toggleStyle(CheckboxToggleStyle())
+            }
+            .onChange(of: state.mealTimeReminderMinutes) {
+                // Ask for the alarm permission only when the user actually arms a reminder.
+                if state.mealTimeReminderMinutes > 0 {
+                    Task { await state.mealTimeReminderService.requestAuthorization() }
+                }
+            }
+
+            if state.mealTimeReminderMinutes > 0 {
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(spacing: 8) {
+                        ForEach(state.mealTimeReminderPresets, id: \.self) { preset in
+                            reminderPresetPill(
+                                minutes: Int(preset),
+                                label: "\(Int(preset)) " +
+                                    String(localized: "min", comment: "Units for meal-time reminder lead time")
+                            )
+                        }
+                    }
+
+                    Picker(
+                        selection: reminderMinutesBinding,
+                        label: Text("Remind Me to Eat")
+                    ) {
+                        ForEach(1 ... 60, id: \.self) { minute in
+                            Text("\(minute) " + String(localized: "min", comment: "Units for meal-time reminder lead time"))
+                                .tag(minute)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                }
+            }
+        }
+
+        private func reminderPresetPill(minutes: Int, label: String) -> some View {
+            let isSelected = Int(state.mealTimeReminderMinutes) == minutes
+
+            return Button {
+                state.mealTimeReminderMinutes = Decimal(minutes)
+            } label: {
+                Text(label)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .frame(minWidth: 72, minHeight: 36)
+                    .background(isSelected ? Color.accentColor : Color(.secondarySystemFill))
+                    .foregroundStyle(isSelected ? Color.white : Color.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(Color.accentColor, lineWidth: 2)
+                        }
+                    }
+            }
+            .buttonStyle(.plain)
+            .animation(.easeInOut(duration: 0.15), value: isSelected)
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+        }
+
         @ViewBuilder private func carbsTextField() -> some View {
             HStack {
                 Text("Carbs")
@@ -165,7 +259,7 @@ extension Treatments {
 
         /// Determines the next field to focus on based on the current focused field.
         private func nextField(from current: FocusedField) -> FocusedField? {
-            // If fat/protein fields are hidden, skip them in navigation
+            // If the fat/protein fields are hidden, skip them in navigation
             let showFPU = state.useFPUconversion
 
             switch current {
@@ -335,6 +429,10 @@ extension Treatments {
                     }
             }
             .id(FocusedField.bolus)
+
+            if state.mealTimeReminderEnabled {
+                mealTimeReminderRow()
+            }
 
             HStack {
                 Text("External Insulin")
@@ -736,7 +834,11 @@ extension Treatments {
             case (false, false, true):
                 return Text("Log FPU")
             default:
-                return Text("Continue Without Treatment")
+                return Text(
+                    state.mealTimeReminderMinutes > 0
+                        ? String(localized: "Start Meal-Time Reminder")
+                        : String(localized: "Continue Without Treatment")
+                )
             }
         }
 

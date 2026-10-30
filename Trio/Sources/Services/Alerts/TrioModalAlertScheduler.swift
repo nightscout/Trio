@@ -115,17 +115,17 @@ final class TrioModalAlertScheduler: ObservableObject {
     }
 
     /// Pure decision for what a timer fire should do, given the alert's
-    /// interruption level and the manager's current active/snooze state.
+    /// snooze-piercing status and the manager's current active/snooze state.
     /// - `dropStale`: alert no longer tracked — skip and drop pending.
-    /// - `suppressKeepPending`: non-critical banner muted by global snooze.
+    /// - `suppressKeepPending`: non-piercing banner muted by global snooze.
     /// - `insert`: present the banner.
     static func shouldInsertOnFire(
-        interruptionLevel: LoopKit.Alert.InterruptionLevel,
+        piercesSnooze: Bool,
         isAlertActive: Bool,
         isSnoozeActive: Bool
     ) -> FireDecision {
         guard isAlertActive else { return .dropStale }
-        if interruptionLevel != .critical, isSnoozeActive { return .suppressKeepPending }
+        if !piercesSnooze, isSnoozeActive { return .suppressKeepPending }
         return .insert
     }
 
@@ -138,10 +138,13 @@ final class TrioModalAlertScheduler: ObservableObject {
                 // than `interval`; on resume the timer fires immediately
                 // even if the underlying alert was already retracted).
                 let isAlertActive = self.responder?.isAlertActive(identifier: alert.identifier) ?? true
-                // Honor active global snooze for non-critical banners.
+                // Honor active global snooze, except for alerts that pierce it:
+                // critical alerts and the explicitly user-armed meal-time reminder.
                 let isSnoozeActive = self.responder?.isSnoozeActive(at: Date()) == true
+                let piercesSnooze = alert.interruptionLevel == .critical
+                    || alert.identifier == .mealTimeReminderEat
                 switch Self.shouldInsertOnFire(
-                    interruptionLevel: alert.interruptionLevel,
+                    piercesSnooze: piercesSnooze,
                     isAlertActive: isAlertActive,
                     isSnoozeActive: isSnoozeActive
                 ) {

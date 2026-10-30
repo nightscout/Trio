@@ -244,10 +244,13 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             effective = alert
         }
 
-        // Critical alerts pierce the snooze/mute window. Everything else is
-        // suppressed entirely while muted (no modal, no UN sound, no critical
-        // audio fallback).
-        if effective.interruptionLevel != .critical, muter.shouldMute(at: fireDate) {
+        // Critical alerts pierce the snooze/mute window, and so does the meal-time
+        // reminder: the user armed it explicitly, so a snooze started before arming
+        // must not swallow it. Everything else is suppressed entirely while muted
+        // (no modal, no UN sound, no critical audio fallback).
+        let piercesSnooze = effective.interruptionLevel == .critical
+            || effective.identifier == .mealTimeReminderEat
+        if !piercesSnooze, muter.shouldMute(at: fireDate) {
             debug(.alerts, "Alert \(effective.identifier.value) muted, snooze window active")
             return
         }
@@ -259,7 +262,8 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             self.liveAlerts[effective.identifier] = effective
         }
         recordIssued(effective)
-        let muted = muter.shouldMute(at: now)
+        // Snooze-piercing alerts keep their sound while the window is active.
+        let muted = piercesSnooze ? false : muter.shouldMute(at: now)
         modalScheduler.schedule(effective)
         // AlarmKit sounds critical alerts itself; posting the notification with
         // a sound too would play the tone twice, at once.

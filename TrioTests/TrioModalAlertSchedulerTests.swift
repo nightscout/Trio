@@ -67,70 +67,60 @@ import Testing
 }
 
 @Suite("Trio Alerts: TrioModalAlertScheduler fire-gate") struct TrioModalAlertSchedulerFireGateTests {
-    @Test("Critical, active, snoozed -> insert") func criticalActiveSnoozedInserts() {
+    @Test("Piercing, active, snoozed -> insert") func piercingActiveSnoozedInserts() {
         #expect(
             TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .critical,
+                piercesSnooze: true,
                 isAlertActive: true,
                 isSnoozeActive: true
             ) == .insert
         )
     }
 
-    @Test("TimeSensitive, active, snoozed -> suppressKeepPending") func timeSensitiveActiveSnoozedSuppresses() {
+    @Test("Non-piercing, active, snoozed -> suppressKeepPending") func nonPiercingActiveSnoozedSuppresses() {
         #expect(
             TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .timeSensitive,
+                piercesSnooze: false,
                 isAlertActive: true,
                 isSnoozeActive: true
             ) == .suppressKeepPending
         )
     }
 
-    @Test("TimeSensitive, active, not snoozed -> insert") func timeSensitiveActiveNotSnoozedInserts() {
+    @Test("Non-piercing, active, not snoozed -> insert") func nonPiercingActiveNotSnoozedInserts() {
         #expect(
             TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .timeSensitive,
+                piercesSnooze: false,
                 isAlertActive: true,
                 isSnoozeActive: false
             ) == .insert
         )
     }
 
-    @Test("Active, active, snoozed -> suppressKeepPending") func activeActiveSnoozedSuppresses() {
+    @Test("Non-piercing, inactive, not snoozed -> dropStale") func nonPiercingInactiveDropsStale() {
         #expect(
             TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .active,
-                isAlertActive: true,
-                isSnoozeActive: true
-            ) == .suppressKeepPending
-        )
-    }
-
-    @Test("TimeSensitive, inactive, not snoozed -> dropStale") func timeSensitiveInactiveDropsStale() {
-        #expect(
-            TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .timeSensitive,
+                piercesSnooze: false,
                 isAlertActive: false,
                 isSnoozeActive: false
             ) == .dropStale
         )
     }
 
-    @Test("Critical, inactive, snoozed -> dropStale") func criticalInactiveDropsStale() {
+    @Test("Piercing, inactive, snoozed -> dropStale") func piercingInactiveDropsStale() {
         #expect(
             TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .critical,
+                piercesSnooze: true,
                 isAlertActive: false,
                 isSnoozeActive: true
             ) == .dropStale
         )
     }
 
-    @Test("Active, inactive, snoozed -> dropStale") func activeInactiveDropsStale() {
+    @Test("Non-piercing, inactive, snoozed -> dropStale") func nonPiercingInactiveSnoozedDropsStale() {
         #expect(
             TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .active,
+                piercesSnooze: false,
                 isAlertActive: false,
                 isSnoozeActive: true
             ) == .dropStale
@@ -139,20 +129,20 @@ import Testing
 
     // nil-responder modeled as isAlertActive defaulting true and
     // isSnoozeActive defaulting false (== true comparison yields false).
-    @Test("Nil responder, timeSensitive -> insert") func nilResponderTimeSensitiveInserts() {
+    @Test("Nil responder, non-piercing -> insert") func nilResponderNonPiercingInserts() {
         #expect(
             TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .timeSensitive,
+                piercesSnooze: false,
                 isAlertActive: true,
                 isSnoozeActive: false
             ) == .insert
         )
     }
 
-    @Test("Nil responder, critical -> insert") func nilResponderCriticalInserts() {
+    @Test("Nil responder, piercing -> insert") func nilResponderPiercingInserts() {
         #expect(
             TrioModalAlertScheduler.shouldInsertOnFire(
-                interruptionLevel: .critical,
+                piercesSnooze: true,
                 isAlertActive: true,
                 isSnoozeActive: false
             ) == .insert
