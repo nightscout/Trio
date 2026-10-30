@@ -83,6 +83,76 @@ jobs:
           fi
         shell: bash
 
+  # Parses the sources rather than compiling them, so Linux, no Xcode and no submodules.
+  harmonize:
+    name: Run Harmonize Rules
+    runs-on: ubuntu-latest
+    container: swift:6.1.2-noble
+    if: github.repository_owner == 'nightscout'
+    # In a container the runner's default shell is sh, whose pipefail is an "Illegal option" (exit 2).
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Restore cache
+        id: harmonize-cache-restore
+        uses: actions/cache/restore@v5
+        with:
+          path: TrioTests/HarmonizeRules/.build
+          key: ${{ runner.os }}-spm-harmonize-${{ hashFiles('TrioTests/HarmonizeRules/Package.swift', 'TrioTests/HarmonizeRules/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-harmonize-
+
+      - name: Run the Harmonize rules
+        run: swift test --package-path TrioTests/HarmonizeRules 2>&1 | tee harmonize.log
+
+      # A test bundle with no tests in it passes, so check that the rules actually ran.
+      - name: Check that the rules ran
+        run: |
+          if ! grep -qE 'Test run with [1-9][0-9]* tests? (passed|failed)|Executed [1-9][0-9]* tests?,' harmonize.log; then
+            echo "::error title=Harmonize::The rules package executed no tests"
+            exit 1
+          fi
+
+      - name: Save cache
+        if: always() && github.event_name == 'push' && steps.harmonize-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: TrioTests/HarmonizeRules/.build
+          key: ${{ runner.os }}-spm-harmonize-${{ hashFiles('TrioTests/HarmonizeRules/Package.swift', 'TrioTests/HarmonizeRules/Package.resolved') }}
+
+      - name: Annotate Harmonize results
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "::notice title=Harmonize Rules::✅ swift test passed"
+            echo "✅ Harmonize rules passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::error title=Harmonize Rules::❌ swift test failed"
+            failures=$(grep -E 'recorded an issue at |: error: ' harmonize.log 2>/dev/null | sed -E 's/^.*(recorded an issue at |: error: )//' | sort -u | head -n 40 || true)
+            {
+              echo "## ❌ Harmonize rules failed"
+              echo ""
+              echo '```'
+              echo "${failures:-(no rule failures listed: the package did not build, see the job log)}"
+              echo '```'
+            } >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload the log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harmonize-log
+          path: harmonize.log
+          if-no-files-found: ignore
+
   test:
     name: Run Unit Tests
     runs-on: macos-26
