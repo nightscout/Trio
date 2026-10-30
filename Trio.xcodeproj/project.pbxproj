@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		477F2885616B2839D22FF0A4 /* PumpStatusStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C7EA1FA38A1728182C949F4 /* PumpStatusStorageTests.swift */; };
+		3A627606ABC518974CC60B55 /* PumpStatusStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E3EA2038BADFBCBC8801A4 /* PumpStatusStorage.swift */; };
+		4AB6E54D1659F6137A70BF74 /* PumpStatusStored+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE4D8D4BA1BD69A89CA1C13 /* PumpStatusStored+helper.swift */; };
+		BDDB1F2A2BEE371D5C0765DE /* PumpStatusStored+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D62B1642A5DA5C2ADB0F9AA /* PumpStatusStored+CoreDataProperties.swift */; };
+		FACBD2E6052820E56AC57A75 /* PumpStatusStored+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD86951C1C2313AD6D03EAD /* PumpStatusStored+CoreDataClass.swift */; };
 		03B15F4B3077CD4B00DFEBE4 /* SyaiKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */; };
 		03B15F4D3077CD5400DFEBE4 /* SyaiKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */; };
 		03B15F4E3077CD6100DFEBE4 /* SyaiKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -1250,6 +1255,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5C7EA1FA38A1728182C949F4 /* PumpStatusStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpStatusStorageTests.swift; sourceTree = "<group>"; };
+		A0E3EA2038BADFBCBC8801A4 /* PumpStatusStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpStatusStorage.swift; sourceTree = "<group>"; };
+		1EE4D8D4BA1BD69A89CA1C13 /* PumpStatusStored+helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpStatusStored+helper.swift"; sourceTree = "<group>"; };
+		1D62B1642A5DA5C2ADB0F9AA /* PumpStatusStored+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpStatusStored+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		5CD86951C1C2313AD6D03EAD /* PumpStatusStored+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpStatusStored+CoreDataClass.swift"; sourceTree = "<group>"; };
 		03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SyaiKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		03B15F4C3077CD5400DFEBE4 /* SyaiKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = SyaiKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A1E8522E7684C6AA742F6E4 /* HomeStateModel+QuickPickTreatments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeStateModel+QuickPickTreatments.swift"; sourceTree = "<group>"; };
@@ -3411,6 +3421,7 @@
 		38A0362725ECF05300FCBB52 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
+				A0E3EA2038BADFBCBC8801A4 /* PumpStatusStorage.swift */,
 				38AEE75625F0F18E0013F05B /* CarbsStorage.swift */,
 				3A2F107674CF1D9C0A2A9ACF /* CarbEntryMutationService.swift */,
 				DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */,
@@ -3813,6 +3824,7 @@
 		5825D1622BD405AE00F36E9B /* Helper */ = {
 			isa = PBXGroup;
 			children = (
+				1EE4D8D4BA1BD69A89CA1C13 /* PumpStatusStored+helper.swift */,
 				49B9B57E2D5768D2009C6B59 /* AdjustmentStored+Helper.swift */,
 				581516A82BCEEDF800BF67D7 /* NSPredicates.swift */,
 				583684052BD178DB00070A60 /* GlucoseStored+helper.swift */,
@@ -4332,6 +4344,7 @@
 		BD8FC0552D66187700B95AED /* CoreDataTests */ = {
 			isa = PBXGroup;
 			children = (
+				5C7EA1FA38A1728182C949F4 /* PumpStatusStorageTests.swift */,
 				BD8FC0562D66188700B95AED /* PumpHistoryStorageTests.swift */,
 				7A11AC0DE00000000000000C /* ScheduledBasalInferenceTests.swift */,
 				7A11AC0DE000000000000009 /* PumpEventFinalizationTests.swift */,
@@ -5060,6 +5073,8 @@
 		DDE179112C9100FA003CDDB7 /* Classes+Properties */ = {
 			isa = PBXGroup;
 			children = (
+				1D62B1642A5DA5C2ADB0F9AA /* PumpStatusStored+CoreDataProperties.swift */,
+				5CD86951C1C2313AD6D03EAD /* PumpStatusStored+CoreDataClass.swift */,
 				DDD7C8BF2F4DB45400E5CF09 /* GlucoseStored+CoreDataClass.swift */,
 				DDD7C8C02F4DB45400E5CF09 /* GlucoseStored+CoreDataProperties.swift */,
 				BD4D738B2D15A4080052227B /* TDDStored+CoreDataClass.swift */,
@@ -5736,6 +5751,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A627606ABC518974CC60B55 /* PumpStatusStorage.swift in Sources */,
+				4AB6E54D1659F6137A70BF74 /* PumpStatusStored+helper.swift in Sources */,
+				BDDB1F2A2BEE371D5C0765DE /* PumpStatusStored+CoreDataProperties.swift in Sources */,
+				FACBD2E6052820E56AC57A75 /* PumpStatusStored+CoreDataClass.swift in Sources */,
 				DD5DC9F12CF3D97C00AB8703 /* AdjustmentsStateModel+Overrides.swift in Sources */,
 				3811DE2325C9D48300A708ED /* MainDataFlow.swift in Sources */,
 				C2A0A42F2CE03131003B98E8 /* ConstantValues.swift in Sources */,
@@ -6510,6 +6529,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				477F2885616B2839D22FF0A4 /* PumpStatusStorageTests.swift in Sources */,
 				3B5CD2C92D4AECD500CE213C /* ProfileCarbsTests.swift in Sources */,
 				3BEDC9932EEB27B600AC6492 /* IobConsecutiveEventsTests.swift in Sources */,
 				3B1DB90F2E63C14C00BD814B /* DetermineBasalLowEventualGlucoseTests.swift in Sources */,

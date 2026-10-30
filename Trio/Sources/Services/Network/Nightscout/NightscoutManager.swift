@@ -31,6 +31,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var overridesStorage: OverrideStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
+    @Injected() private var pumpStatusStorage: PumpStatusStorage!
     @Injected() private var storage: FileStorage!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
@@ -499,10 +500,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    /// The pump status at upload time, read from the pump manager.
+    /// The pump status at upload time, read from the pump manager, or the last stored status without one.
     private func pumpStatusForUpload() async -> PumpStatus? {
         guard let liveStatus = apsManager.pumpManager?.status else {
-            return await storage.retrieveAsync(OpenAPS.Monitor.status, as: PumpStatus.self)
+            return await pumpStatusStorage.lastPumpStatus()
         }
         guard case let .active(deliveryActiveSince) = liveStatus.basalDeliveryState else {
             return liveStatus.pumpStatus
