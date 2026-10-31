@@ -100,10 +100,17 @@ final class CriticalAlertAlarmScheduler {
 
             let id = Self.alarmID(for: alert.identifier)
             let identifier = alert.identifier
+            // AlarmKit rings until stopped, so end it after the same burst the
+            // in-app player would play. Best-effort: if iOS suspends Trio, it
+            // stops on Trio's next wake (the next CGM reading at the latest).
+            let burst = alert.sound?.filename
+                .map(CriticalAlertAudioPlayer.burstDuration(forSoundNamed:)) ?? CriticalAlertAudioPlayer.minBurstDuration
             Task {
                 do {
                     _ = try await AlarmManager.shared.schedule(id: id, configuration: configuration)
                     info(.alerts, "AlarmKit alarm scheduled for \(identifier.value)")
+                    try? await Task.sleep(for: .seconds(Self.immediateFireDelay + burst))
+                    stopIfAlerting(id: id, identifier: identifier)
                 } catch let scheduleError {
                     warning(
                         .alerts,
@@ -116,6 +123,16 @@ final class CriticalAlertAlarmScheduler {
             return true
         #else
             return false
+        #endif
+    }
+
+    @available(iOS 26, *) private func stopIfAlerting(id: UUID, identifier: Alert.Identifier) {
+        #if canImport(AlarmKit)
+            guard let alarm = try? AlarmManager.shared.alarms.first(where: { $0.id == id }),
+                  alarm.state == .alerting
+            else { return }
+            try? AlarmManager.shared.stop(id: id)
+            debug(.alerts, "AlarmKit alarm for \(identifier.value) stopped after its burst")
         #endif
     }
 
