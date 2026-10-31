@@ -21,24 +21,6 @@ extension UserInterfaceSettings {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var glucoseFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            if state.units == .mmolL {
-                formatter.maximumFractionDigits = 1
-            }
-            formatter.roundingMode = .halfUp
-            return formatter
-        }
-
-        private var carbsFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            return formatter
-        }
-
         var body: some View {
             List {
                 Section(

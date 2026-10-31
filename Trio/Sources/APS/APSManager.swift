@@ -1557,8 +1557,6 @@ extension BaseAPSManager: PumpManagerStatusObserver {
                 warning(.storage, "Saving pump battery status failed", error: error)
             }
         }
-        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
-        storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
     }
 }
 
