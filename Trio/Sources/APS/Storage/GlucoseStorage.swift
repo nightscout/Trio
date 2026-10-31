@@ -53,17 +53,6 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         injectServices(resolver)
     }
 
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if settingsManager.settings.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.decimalSeparator = "."
-        return formatter
-    }
-
     /// Backfills glucose values and stores in CoreData
     ///
     /// CGM managers will sometimes backfill glucose readings. To handle these backfilled values

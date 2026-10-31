@@ -17,20 +17,6 @@ extension BolusCalculatorConfig {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var conversionFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
-
-            return formatter
-        }
-
-        private var formatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            return formatter
-        }
-
         var body: some View {
             List {
                 SettingInputSection(

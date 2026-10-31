@@ -13,13 +13,6 @@ extension ISFEditor {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var numberFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = state.units == .mmolL ? 1 : 0
-            return formatter
-        }
-
         var saveButton: some View {
             ZStack {
                 let shouldDisableButton = state.items.isEmpty || !state.hasChanges

@@ -12,27 +12,6 @@ struct ListStateView: View {
         return formatter
     }
 
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if state.unit == "mmolL" {
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "  +"
-        formatter.negativePrefix = "  -"
-        return formatter
-    }
-
     private var timaAgoFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal

@@ -1,20 +1,5 @@
 import Foundation
 
-enum Formatters {
-    static func percent(for number: Double) -> String {
-        let formater = NumberFormatter()
-        formater.numberStyle = .percent
-        return formater.string(for: number)!
-    }
-
-    static func timeFor(minutes: Int) -> String {
-        let formater = DateComponentsFormatter()
-        formater.unitsStyle = .abbreviated
-        formater.allowedUnits = [.hour, .minute]
-        return formater.string(from: TimeInterval(minutes * 60))!
-    }
-}
-
 extension Formatter {
     static let iso8601withFractionalSeconds: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -48,19 +33,6 @@ extension Formatter {
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .short
         return dateFormatter
-    }()
-
-    static let dayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter
-    }()
-
-    static let timeForLogFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        formatter.timeZone = TimeZone.current
-        return formatter
     }()
 
     static let decimalFormatterWithOneFractionDigit: NumberFormatter = {

@@ -73,25 +73,6 @@ extension Treatments {
             return formatter
         }
 
-        private var gluoseFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            if state.units == .mmolL {
-                formatter.maximumIntegerDigits = 2
-                formatter.maximumFractionDigits = 1
-            } else {
-                formatter.maximumIntegerDigits = 3
-                formatter.maximumFractionDigits = 0
-            }
-            return formatter
-        }
-
-        private var fractionDigits: Int {
-            if state.units == .mmolL {
-                return 1
-            } else { return 0 }
-        }
-
         /// Handles macro input (carb, fat, protein) in a debounced fashion.
         func handleDebouncedInput() {
             debounce?.cancel()
