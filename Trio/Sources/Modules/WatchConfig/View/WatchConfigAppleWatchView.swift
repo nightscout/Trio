@@ -45,6 +45,27 @@ struct WatchConfigAppleWatchView: BaseView {
 
             SettingInputSection(
                 decimalValue: $decimalPlaceholder,
+                booleanValue: $state.allowWatchTreatments,
+                shouldDisplayHint: $shouldDisplayHint,
+                selectedVerboseHint: Binding(
+                    get: { selectedVerboseHint },
+                    set: {
+                        selectedVerboseHint = $0.map { AnyView($0) }
+                        hintLabel = String(localized: "Allow Treatments from Watch")
+                    }
+                ),
+                units: state.units,
+                type: .boolean,
+                label: String(localized: "Allow Treatments from Watch"),
+                miniHint: String(localized: "Allow bolusing and entering carbs from the Apple Watch."),
+                verboseHint: Text(
+                    "When disabled, the treatment button is removed from the Apple Watch and Trio rejects any bolus or carb entry sent from the watch. Overrides and temp targets remain available on the watch."
+                ),
+                headerText: String(localized: "Apple Watch Configuration")
+            )
+
+            SettingInputSection(
+                decimalValue: $decimalPlaceholder,
                 booleanValue: $state.showForecastWatch,
                 shouldDisplayHint: $shouldDisplayHint,
                 selectedVerboseHint: Binding(

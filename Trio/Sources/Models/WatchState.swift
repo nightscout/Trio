@@ -26,6 +26,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
+    var allowWatchTreatments: Bool = true
 
     // Forecast options
     var showForecast: Bool = false
@@ -60,6 +61,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.maxProtein == rhs.maxProtein &&
             lhs.bolusIncrement == rhs.bolusIncrement &&
             lhs.confirmBolusFaster == rhs.confirmBolusFaster &&
+            lhs.allowWatchTreatments == rhs.allowWatchTreatments &&
             lhs.showForecast == rhs.showForecast &&
             lhs.isForecastCone == rhs.isForecastCone &&
             lhs.forecastStartDate == rhs.forecastStartDate &&
@@ -93,6 +95,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(maxProtein)
         hasher.combine(bolusIncrement)
         hasher.combine(confirmBolusFaster)
+        hasher.combine(allowWatchTreatments)
         hasher.combine(showForecast)
         hasher.combine(isForecastCone)
         hasher.combine(forecastStartDate)
