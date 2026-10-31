@@ -21,7 +21,10 @@ extension PumpConfig {
             Task {
                 let basalSchedule = BasalRateSchedule(
                     dailyItems: await provider.getBasalProfile().map {
-                        RepeatingScheduleValue(startTime: $0.minutes.minutes.timeInterval, value: Double($0.rate))
+                        RepeatingScheduleValue(
+                            startTime: $0.minutes.minutes.timeInterval,
+                            value: Double($0.rate).roundedDouble(toPlaces: 3)
+                        )
                     }
                 )
 
