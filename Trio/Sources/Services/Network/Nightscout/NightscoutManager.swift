@@ -581,7 +581,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         // OpenAPS Status
         async let fetchedBattery = fetchBattery()
-        async let fetchedReservoir = storage.retrieveAsync(OpenAPS.Monitor.reservoir, as: Decimal.self)
         async let fetchedIOBEntry = storage.retrieveAsync(OpenAPS.Monitor.iob, as: [IOBEntry].self)
         async let fetchedPumpStatus = pumpStatusForUpload()
 
@@ -685,7 +684,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         // Gather all relevant data for NS Status
         let battery = await fetchedBattery
-        let reservoir = await fetchedReservoir
+        let reservoir = apsManager.pumpManager?.currentReservoir
         let pumpStatus = await fetchedPumpStatus
         let pump = NSPumpStatus(
             clock: Date(),
