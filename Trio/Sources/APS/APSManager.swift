@@ -452,11 +452,6 @@ final class BaseAPSManager: APSManager, Injectable {
             return APSError.invalidPumpState(message: String(localized: "Pump suspended"))
         }
 
-        let reservoir = storage.retrieve(OpenAPS.Monitor.reservoir, as: Decimal.self) ?? 100
-        guard reservoir >= 0 else {
-            return APSError.invalidPumpState(message: String(localized: "Reservoir is empty"))
-        }
-
         return nil
     }
 
