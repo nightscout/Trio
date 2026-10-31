@@ -99,11 +99,11 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     }
 
     private var previewGlucoseText: String {
-        LiveActivityAttributes.ContentState.formatGlucose(Self.previewGlucose, units: state.units, forceSign: false)
+        Self.previewGlucose.formatted(for: state.units)
     }
 
     private var previewDeltaText: String {
-        LiveActivityAttributes.ContentState.formatGlucose(Self.previewDelta, units: state.units, forceSign: true)
+        Decimal(Self.previewDelta).formattedDelta(for: state.units)
     }
 
     private var previewTimeText: String {
