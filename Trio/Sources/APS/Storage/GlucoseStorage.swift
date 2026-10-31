@@ -96,6 +96,8 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
                 withoutDeletedGlucose,
                 fetchRequest: GlucoseStored.fetchRequest(),
                 timeBuffer: 3.5 * 60,
+                // Manual entries must not shadow CGM readings
+                predicate: .cgmGlucose,
                 context: context
             )
 
@@ -173,6 +175,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         _ glucose: [BloodGlucose],
         fetchRequest: NSFetchRequest<NSFetchRequestResult>,
         timeBuffer: TimeInterval,
+        predicate: NSPredicate? = nil,
         context: NSManagedObjectContext
     ) -> [BloodGlucose] {
         let datesToCheck = glucose.map(\.dateString).sorted()
@@ -184,7 +187,7 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
             NSPredicate(format: "date >= %@", firstDate as NSDate),
             NSPredicate(format: "date <= %@", lastDate as NSDate)
-        ])
+        ] + [predicate].compactMap { $0 })
         fetchRequest.propertiesToFetch = ["date"]
         fetchRequest.resultType = .dictionaryResultType
 
@@ -362,7 +365,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
 
         // Optimize fetch request to only get the date
         let fr = NSFetchRequest<NSDictionary>(entityName: "GlucoseStored")
-        fr.predicate = NSPredicate.predicateForOneDayAgo
+        // Only CGM readings; a manual entry would filter out the next CGM reading
+        fr.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate.predicateForOneDayAgo,
+            NSPredicate.cgmGlucose
+        ])
         fr.propertiesToFetch = ["date"]
         fr.fetchLimit = 1
         fr.resultType = .dictionaryResultType
@@ -390,7 +397,11 @@ final class BaseGlucoseStorage: GlucoseStorage, Injectable {
         context.name = "lastGlucoseDate"
 
         let fetchRequest = GlucoseStored.fetchRequest()
-        fetchRequest.predicate = NSPredicate.predicateForOneDayAgo
+        // CGM plugins drop readings older than this, so manual entries must not count
+        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate.predicateForOneDayAgo,
+            NSPredicate.cgmGlucose
+        ])
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \GlucoseStored.date, ascending: false)]
         fetchRequest.fetchLimit = 1
 
