@@ -199,12 +199,8 @@ extension Int {
         Trio.rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
 
-    var formattedAsMmolL: String {
-        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
-    }
-
     func formatted(for units: GlucoseUnits) -> String {
-        units == .mgdL ? description : formattedAsMmolL
+        Decimal(self).formatted(for: units)
     }
 
     func formatted(withUnits units: GlucoseUnits) -> String {
@@ -225,12 +221,9 @@ extension Decimal {
         Trio.rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 
-    var formattedAsMmolL: String {
-        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
-    }
-
     func formatted(for units: GlucoseUnits) -> String {
-        units == .mgdL ? description : formattedAsMmolL
+        let value = units == .mgdL ? self : self * GlucoseUnits.exchangeRate
+        return value.formatted(Self.glucoseStyle(for: units))
     }
 
     func formattedDelta(for units: GlucoseUnits) -> String {
@@ -263,28 +256,13 @@ extension Double {
         Trio.rounded(Decimal(self) / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 
-    var formattedAsMmolL: String {
-        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
-    }
-
     func formatted(for units: GlucoseUnits) -> String {
-        units == .mgdL ? description : formattedAsMmolL
+        Decimal(self).formatted(for: units)
     }
 
     func formatted(withUnits units: GlucoseUnits) -> String {
         formatted(for: units) + " \(units.rawValue)"
     }
-}
-
-extension NumberFormatter {
-    static let glucoseFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.locale = Locale.current
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 1
-        formatter.maximumFractionDigits = 1
-        return formatter
-    }()
 }
 
 /// Spells out compact unit abbreviations for VoiceOver so screen readers don't voice

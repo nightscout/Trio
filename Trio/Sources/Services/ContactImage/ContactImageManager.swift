@@ -201,7 +201,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
                     ? Decimal(firstGlucoseValue.glucose)
                     : Decimal(firstGlucoseValue.glucose).asMmolL
 
-                state.glucose = Formatter.glucoseFormatter(for: units).string(from: value as NSNumber)
+                state.glucose = Decimal(firstGlucoseValue.glucose).formatted(for: settingsManager.settings.units)
                 state.glucoseValue = value
                 state.trend = firstGlucoseValue.directionEnum?.symbol
                 state.direction = firstGlucoseValue.directionEnum
@@ -239,12 +239,8 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
                 state.cobText = "0"
             }
 
-            if let eventualBG = settingsManager.settings.units == .mgdL ? lastDetermination?
-                .eventualBG : lastDetermination?
-                .eventualBG?.decimalValue.asMmolL as NSDecimalNumber?
-            {
-                let eventualBGAsString = Formatter.decimalFormatterWithOneFractionDigit.string(from: eventualBG)
-                state.eventualBG = eventualBGAsString.map { "⇢ " + $0 }
+            if let eventualBG = lastDetermination?.eventualBG {
+                state.eventualBG = "⇢ " + eventualBG.decimalValue.formatted(for: settingsManager.settings.units)
             }
 
             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose

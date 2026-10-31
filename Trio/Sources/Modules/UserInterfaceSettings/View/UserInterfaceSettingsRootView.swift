@@ -217,7 +217,7 @@ extension UserInterfaceSettings {
                                     Spacer()
 
                                     Group {
-                                        Text(state.units == .mgdL ? state.low.description : state.low.asMmolL.description)
+                                        Text(state.low.formatted(for: state.units))
                                             .foregroundColor(!displayPickerLowThreshold ? .primary : .accentColor)
 
                                         Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
@@ -230,8 +230,7 @@ extension UserInterfaceSettings {
                                 .accessibilityElement(children: .ignore)
                                 .accessibilityLabel(Text("Low Threshold"))
                                 .accessibilityValue(Text(
-                                    (state.units == .mgdL ? state.low.description : state.low.asMmolL.description)
-                                        + " " + state.units.spokenValue
+                                    state.low.formatted(for: state.units) + " " + state.units.spokenValue
                                 ))
                                 .accessibilityHint(Text(
                                     displayPickerLowThreshold
@@ -269,7 +268,7 @@ extension UserInterfaceSettings {
                                     Spacer()
 
                                     Group {
-                                        Text(state.units == .mgdL ? state.high.description : state.high.asMmolL.description)
+                                        Text(state.high.formatted(for: state.units))
                                             .foregroundColor(!displayPickerHighThreshold ? .primary : .accentColor)
 
                                         Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
@@ -282,8 +281,7 @@ extension UserInterfaceSettings {
                                 .accessibilityElement(children: .ignore)
                                 .accessibilityLabel(Text("High Threshold"))
                                 .accessibilityValue(Text(
-                                    (state.units == .mgdL ? state.high.description : state.high.asMmolL.description)
-                                        + " " + state.units.spokenValue
+                                    state.high.formatted(for: state.units) + " " + state.units.spokenValue
                                 ))
                                 .accessibilityHint(Text(
                                     displayPickerHighThreshold
@@ -331,7 +329,7 @@ extension UserInterfaceSettings {
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
                                                     Text(
-                                                        "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmolL)-\(state.units == .mgdL ? "180" : 180.formattedAsMmolL) \(state.units.rawValue)."
+                                                        "Default values are based on internationally accepted Time in Range values of \(70.formatted(for: state.units))-\(180.formatted(for: state.units)) \(state.units.rawValue)."
                                                     ).bold()
                                                     Text(
                                                         "These thresholds drive the chart band colors, statistics in-range buckets, Live Activity colors, and Contact Image colors."

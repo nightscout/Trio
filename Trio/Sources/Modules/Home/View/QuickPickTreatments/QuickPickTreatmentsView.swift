@@ -375,7 +375,7 @@ struct QuickPickTreatmentsView: View {
         .buttonStyle(.plain)
         .animation(.easeInOut(duration: 0.15), value: isSelected)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(formatted) \(unitSpoken)"))
+        .accessibilityLabel(Text(formatted + " " + unitSpoken))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }

@@ -86,17 +86,10 @@ extension AutosensSettings {
                     HStack {
                         Text("Calculated Sensitivity")
                         Spacer()
-                        if state.units == .mgdL {
-                            Text(
-                                !state.settingsManager.preferences
-                                    .useNewFormula ? newISF!.description : (dynamicISF ?? 0).description
-                            )
-                        } else {
-                            Text((
-                                !state.settingsManager.preferences
-                                    .useNewFormula ? newISF!.formattedAsMmolL : dynamicISF?.decimalValue.formattedAsMmolL
-                            ) ?? "0")
-                        }
+                        Text(
+                            (!state.settingsManager.preferences.useNewFormula ? newISF! : dynamicISF?.decimalValue ?? 0)
+                                .formatted(for: state.units)
+                        )
                         Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                     }
 
