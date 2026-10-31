@@ -232,6 +232,13 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
+    <entity name="PumpStatusStored" representedClassName="PumpStatusStored" syncable="YES">
+        <attribute name="basalDeliveryState" optional="YES" attributeType="String"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="date" type="Binary" order="descending"/>
+        </fetchIndex>
+    </entity>
     <entity name="StatsData" representedClassName="StatsData" syncable="YES">
         <attribute name="lastrun" attributeType="Date" defaultDateTimeInterval="704497620" usesScalarValueType="NO"/>
     </entity>
