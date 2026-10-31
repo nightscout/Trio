@@ -439,6 +439,8 @@ extension Treatments {
                             treatmentButton
                         }
                         .listSectionSpacing(sectionSpacing)
+                        // iOS's default on iPhone; iPhone Duo defaults to 0, which put the first row under the sheet's bar
+                        .contentMargins(.top, 35, for: .scrollContent)
                         .onChange(of: focusedField) { _, newValue in
                             scrollFocusedFieldIntoView(newValue, proxy: proxy)
                         }
