@@ -55,4 +55,7 @@
    <FileRef
       location = "group:SyaiKit/SyaiKit.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:TandemKit/TandemKit.xcodeproj">
+   </FileRef>
 </Workspace>
