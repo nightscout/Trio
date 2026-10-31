@@ -39,15 +39,6 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
     private var units: GlucoseUnits = .mgdL
 
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = settingsManager.settings.units == .mmolL ? 1 : 0
-        formatter.positivePrefix = "+"
-        formatter.negativePrefix = "-"
-        return formatter
-    }
-
     weak var delegate: ContactImageManagerDelegate?
 
     init(resolver: Resolver) {
@@ -216,11 +207,12 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
                 state.direction = firstGlucoseValue.directionEnum
                 state.glucoseDate = firstGlucoseValue.date
 
-                let delta = glucoseObjects.count >= 2
-                    ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects.dropFirst().first?.glucose ?? 0)
-                    : 0
-                let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL
-                state.delta = deltaFormatter.string(from: deltaConverted as NSNumber)
+                if glucoseObjects.count >= 2 {
+                    let delta = Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects[1].glucose)
+                    state.delta = delta.formattedDelta(for: settingsManager.settings.units)
+                } else {
+                    state.delta = nil
+                }
             } else {
                 // fetchGlucose() only looks back 20 minutes, so an empty result means dropout.
                 state.glucose = nil
