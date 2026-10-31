@@ -36,14 +36,16 @@ struct OverrideHelpView: View {
                 }.listRowBackground(Color.gray.opacity(0.1))
             }
             .navigationBarTitle("Help", displayMode: .inline)
+            .padding(.horizontal)
 
             Button { state.isHelpSheetPresented.toggle() }
             label: { Text("Got it!").bold().frame(maxWidth: .infinity, minHeight: 30, alignment: .center) }
                 .buttonStyle(.bordered)
                 .padding(.top)
+                .padding(.horizontal)
         }
 
-        .padding()
+        .padding(.vertical)
         .scrollContentBackground(.hidden)
         .presentationDetents(
             [.fraction(0.9), .large],

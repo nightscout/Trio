@@ -1,4 +1,5 @@
 import Foundation
+import LoopKit
 import Testing
 @testable import Trio
 
@@ -53,5 +54,18 @@ import Testing
     @Test("A suspended pump manager status is kept") func alreadySuspended() {
         let suspended = status(suspended: true)
         #expect(suspended.includingSuspend(deliveryActiveSince: .distantPast, lastPumpEvent: nil) == suspended)
+    }
+
+    @Test("Delivery states without delivery map to suspended") func deliveryStateMapping() {
+        for state in [PumpStatusStored.DeliveryState.suspended, .inactive, .unknown] {
+            #expect(PumpStatus(deliveryState: state, bolusing: false, timestamp: nil).suspended)
+        }
+        for state in [PumpStatusStored.DeliveryState.active, .suspending, .resuming] {
+            #expect(!PumpStatus(deliveryState: state, bolusing: false, timestamp: nil).suspended)
+        }
+        #expect(PumpStatus(deliveryState: .active, bolusing: true, timestamp: nil).status == .bolusing)
+        #expect(PumpStatus(deliveryState: .suspended, bolusing: true, timestamp: nil).status == .suspended)
+        #expect(PumpStatusStored.DeliveryState(.active(.distantPast)) == .inactive)
+        #expect(PumpStatusStored.DeliveryState(nil) == .unknown)
     }
 }

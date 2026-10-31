@@ -18,7 +18,6 @@ extension OpenAPS {
         static let reservoir = "monitor/reservoir.json"
         static let carbHistory = "monitor/carbhistory.json"
         static let clock = "monitor/clock-zoned.json"
-        static let status = "monitor/status.json"
         static let tempBasal = "monitor/temp_basal.json"
         static let meal = "monitor/meal.json"
         static let glucose = "monitor/glucose.json"

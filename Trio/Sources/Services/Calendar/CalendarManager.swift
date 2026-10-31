@@ -38,14 +38,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         return formatter
     }
 
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "+"
-        return formatter
-    }
-
     private var iobFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -270,8 +262,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
             let directionText = lastGlucoseObject.directionEnum?.symbol ?? "↔︎"
 
-            let deltaValue = settingsManager.settings.units == .mmolL ? delta.asMmolL : delta
-            let deltaText = deltaFormatter.string(from: deltaValue as NSNumber) ?? "--"
+            let deltaText = delta.formattedDelta(for: settingsManager.settings.units)
 
             let iobText = iobFormatter.string(from: (iobService.currentIOB ?? 0) as NSNumber) ?? ""
             let cobText = cobFormatter.string(from: determinationObject.cob as NSNumber) ?? ""

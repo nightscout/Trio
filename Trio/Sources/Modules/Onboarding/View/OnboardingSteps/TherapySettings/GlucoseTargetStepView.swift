@@ -17,14 +17,6 @@ struct GlucoseTargetStepView: View {
     @State private var now = Date()
     @Namespace private var bottomID
 
-    // Formatter for glucose values
-    private var numberFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = state.units == .mmolL ? 1 : 0
-        return formatter
-    }
-
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.timeZone = TimeZone(secondsFromGMT: 0)

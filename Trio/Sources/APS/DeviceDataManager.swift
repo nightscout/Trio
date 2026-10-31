@@ -40,6 +40,7 @@ private let accessLock = NSRecursiveLock(label: "BaseDeviceDataManager.accessLoc
 final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     private let processQueue = DispatchQueue.markedQueue(label: "BaseDeviceDataManager.processQueue", qos: .userInitiated)
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
+    @Injected() private var pumpStatusStorage: PumpStatusStorage!
     @Injected() var alertHistoryStorage: AlertHistoryStorage!
     @Injected() private var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
@@ -167,6 +168,10 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 }
             } else {
                 info(.pump, oldValue == nil ? "No pump configured" : "Pump removed")
+                // A stored pump manager that fails to decode at launch counts as removed.
+                if oldValue != nil || rawPumpManager != nil {
+                    pumpStatusStorage.storePumpRemoved()
+                }
                 pumpDisplayState.value = nil
                 pumpExpiresAtDate.send(nil)
                 pumpActivatedAtDate.send(nil)
@@ -445,8 +450,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
         // Before any of the pump-specific branches below, which return early.
         storeBatteryStatus(status)
-        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
-        storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
+        pumpStatusStorage.storePumpStatus(status)
 
         switch status.bolusState {
         case .initiating:
