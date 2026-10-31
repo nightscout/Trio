@@ -26,44 +26,12 @@ extension LiveActivityAttributes.SimpleViewStyle {
 }
 
 extension LiveActivityAttributes.ContentState {
-    static func formatGlucose(_ value: Int, units: GlucoseUnits, forceSign: Bool) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if units == .mmolL {
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-        if forceSign {
-            formatter.positivePrefix = formatter.plusSign
-        }
-        formatter.roundingMode = .halfUp
-
-        return formatter
-            .string(from: units == .mmolL ? value.asMmolL as NSNumber : NSNumber(value: value))!
-    }
-
     static func calculateChange(chart: [GlucoseData], units: GlucoseUnits) -> String {
-        guard chart.count > 2 else { return "" }
+        guard chart.count >= 2 else { return "" }
 
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "  +"
-        formatter.negativePrefix = "  -"
-
-        var lastGlucose = Decimal(chart.first?.glucose ?? 0)
-        var secondLastGlucose = Decimal(chart.dropFirst().first?.glucose ?? 0)
-        if units == .mmolL {
-            lastGlucose = lastGlucose.asMmolL
-            secondLastGlucose = secondLastGlucose.asMmolL
-
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-
-        let delta = lastGlucose - secondLastGlucose
-        return formatter.string(from: delta as NSNumber) ?? "--"
+        let lastGlucose = Decimal(chart.first?.glucose ?? 0)
+        let secondLastGlucose = Decimal(chart.dropFirst().first?.glucose ?? 0)
+        return (lastGlucose - secondLastGlucose).formattedDelta(for: units)
     }
 
     init(
@@ -79,7 +47,7 @@ extension LiveActivityAttributes.ContentState {
         widgetItems: [LiveActivityAttributes.LiveActivityItem]?
     ) {
         let glucose = bg.glucose
-        let formattedBG = Self.formatGlucose(Int(glucose), units: units, forceSign: false)
+        let formattedBG = glucose.formatted(for: units)
         var rotationDegrees = 0.0
 
         switch bg.direction {

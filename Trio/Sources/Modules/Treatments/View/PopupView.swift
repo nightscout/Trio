@@ -462,7 +462,7 @@ struct PopupView: View {
 
             // Row 2: The delta calculation formula
             GridRow {
-                Text(state.units == .mmolL ? state.deltaBG.formattedAsMmolL : state.deltaBG.description)
+                Text(state.deltaBG.formattedDelta(for: state.units))
                     .valueStyle()
                 Text("/")
                     .operatorStyle()

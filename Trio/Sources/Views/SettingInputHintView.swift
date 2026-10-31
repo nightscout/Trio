@@ -19,6 +19,7 @@ struct SettingInputHintView<HintView: View>: View {
             }
             .scrollContentBackground(.hidden)
             .navigationBarTitle(sheetTitle, displayMode: .inline)
+            .padding(.horizontal)
 
             Spacer()
 
@@ -29,8 +30,9 @@ struct SettingInputHintView<HintView: View>: View {
             }
             .buttonStyle(.bordered)
             .padding(.top)
+            .padding(.horizontal)
         }
-        .padding()
+        .padding(.vertical)
         .presentationDetents(
             [.fraction(0.9), .large],
             selection: $hintDetent

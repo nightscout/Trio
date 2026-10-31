@@ -13,12 +13,6 @@ struct PumpView: View {
 
     let NORMAL_PATCH_AGE = TimeInterval.hours(80)
 
-    private var batteryFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .percent
-        return formatter
-    }
-
     private var hourglassIcon: String {
         if activatedAtDate != nil { return "hourglass.badge.plus" }
         guard let expiration = expiresAtDate else { return "hourglass" }
