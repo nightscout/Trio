@@ -129,6 +129,8 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 }
 
                 if let medtrumPump = pumpManager as? MedtrumPumpManager {
+                    storeReservoir(of: medtrumPump)
+
                     // Medtrum's state.patchExpiresAt is actually lifespan + grace
                     // keeping this in line with omnipod, we will use just the lifetime
                     // i.e., state.patchGracePeriodFrom
@@ -167,6 +169,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 }
             } else {
                 info(.pump, oldValue == nil ? "No pump configured" : "Pump removed")
+                storage.remove(OpenAPS.Monitor.reservoir)
                 pumpDisplayState.value = nil
                 pumpExpiresAtDate.send(nil)
                 pumpActivatedAtDate.send(nil)
@@ -485,7 +488,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         manualTempBasal.send(manualTempBasalActive)
 
         if let medtrumPump = pumpManager as? MedtrumPumpManager {
-            storage.save(Decimal(medtrumPump.state.reservoir), as: OpenAPS.Monitor.reservoir)
+            storeReservoir(of: medtrumPump)
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
                 $0.pumpReservoirDidChange(Decimal(medtrumPump.state.reservoir))
             }
@@ -532,6 +535,15 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
                 $0.pumpReservoirDidChange(Decimal(simulatorPump.state.reservoirUnitsRemaining))
             }
+        }
+    }
+
+    /// MedtrumKit keeps the last patch's reservoir until a new patch is activated
+    private func storeReservoir(of medtrumPump: MedtrumPumpManager) {
+        if medtrumPump.state.patchSessionEnded {
+            storage.remove(OpenAPS.Monitor.reservoir)
+        } else {
+            storage.save(Decimal(medtrumPump.state.reservoir), as: OpenAPS.Monitor.reservoir)
         }
     }
 
