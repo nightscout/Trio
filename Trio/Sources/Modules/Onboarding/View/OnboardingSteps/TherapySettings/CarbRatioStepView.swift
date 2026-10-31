@@ -11,7 +11,6 @@ import UIKit
 /// Carb ratio step view for setting insulin-to-carb ratio.
 struct CarbRatioStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var therapyItems: [TherapySettingsEditor.Item] = []
     @Namespace private var bottomID
 
     private var formatter: NumberFormatter {
@@ -25,7 +24,8 @@ struct CarbRatioStepView: View {
         ScrollViewReader { proxy in
             LazyVStack(alignment: .leading, spacing: 0) {
                 TherapySettingsEditor.EditingView(
-                    items: $therapyItems,
+                    therapyType: .carbRatio,
+                    items: $state.carbRatioItems,
                     unit: .gramPerUnit,
                     timeOptions: state.carbRatioTimeValues,
                     valueOptions: state.carbRatioRateValues,
@@ -34,9 +34,7 @@ struct CarbRatioStepView: View {
                         withAnimation {
                             proxy.scrollTo(bottomID, anchor: .bottom)
                         }
-                    },
-                    chartColor: Color.orange,
-                    chartAccessibilityLabel: String(localized: "Carb ratio profile chart, 24 hours")
+                    }
                 )
 
                 // Example calculation based on first carb ratio
@@ -55,11 +53,10 @@ struct CarbRatioStepView: View {
 
                             let insulinNeeded = 45 /
                                 Double(
-                                    truncating: state
-                                        .carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber
+                                    truncating: state.carbRatioItems.first!.value as NSNumber
                                 )
                             Text(
-                                "45 \(String(localized: "g", comment: "Gram abbreviation")) / \(formatter.string(from: state.carbRatioRateValues[state.carbRatioItems.first!.rateIndex] as NSNumber) ?? "--") \(String(localized: "g/U")) = \(String(format: "%.1f", insulinNeeded))" +
+                                "45 \(String(localized: "g", comment: "Gram abbreviation")) / \(formatter.string(from: state.carbRatioItems.first!.value as NSNumber) ?? "--") \(String(localized: "g/U")) = \(String(format: "%.1f", insulinNeeded))" +
                                     " " + String(localized: "U", comment: "Insulin unit abbreviation")
                             )
                             .font(.system(.body, design: .monospaced))
@@ -97,9 +94,6 @@ struct CarbRatioStepView: View {
                     state.addInitialCarbRatio()
                 }
                 state.validateCarbRatios()
-                therapyItems = state.getCarbRatioTherapyItems()
-            }.onChange(of: therapyItems) { _, newItems in
-                state.updateCarbRatio(from: newItems)
             }
         }
     }

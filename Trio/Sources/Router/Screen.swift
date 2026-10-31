@@ -86,13 +86,13 @@ extension Screen {
                 bluetoothManager: resolver.resolve(BluetoothStateManager.self)!
             )
         case .basalProfileEditor:
-            BasalProfileEditor.RootView(resolver: resolver)
+            TherapySettingsEditor.RootView(resolver: resolver, therapyType: .basalRate)
         case .isfEditor:
-            ISFEditor.RootView(resolver: resolver)
+            TherapySettingsEditor.RootView(resolver: resolver, therapyType: .insulinSensitivity)
         case .crEditor:
-            CarbRatioEditor.RootView(resolver: resolver)
+            TherapySettingsEditor.RootView(resolver: resolver, therapyType: .carbRatio)
         case .targetsEditor:
-            TargetsEditor.RootView(resolver: resolver)
+            TherapySettingsEditor.RootView(resolver: resolver, therapyType: .bloodGlucoseTarget)
         case .treatmentView:
             Treatments.RootView(resolver: resolver)
         case .history:

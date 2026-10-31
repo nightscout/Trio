@@ -1,85 +1,67 @@
 import SwiftUI
+import Swinject
 
 extension TherapySettingsEditor {
-    struct RootView<State: TherapySettingsEditor.StateModel, HeaderContent: View, FooterContent: View>: View {
-        @ObservedObject var state: State
-        var configureView: () -> Void
-        var chartColor: Color
-        var chartAccessibilityLabel: String
-        var chartShowsArea: Bool
-        var chartYScale: ClosedRange<Decimal>?
-        @Namespace private var bottomID
+    struct RootView: BaseView {
+        let resolver: Resolver
+        let therapyType: TherapyType
+        @State var state: StateModel
 
-        let headerContent: HeaderContent
-        let footerContent: FooterContent
+        @Namespace private var bottomID
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
         init(
-            state: State,
-            configureView: @escaping () -> Void,
-            chartColor: Color,
-            chartAccessibilityLabel: String,
-            @ViewBuilder headerContent: () -> HeaderContent,
-            @ViewBuilder footerContent: () -> FooterContent,
-            chartShowsArea: Bool? = nil,
-            chartYScale: ClosedRange<Decimal>? = nil,
+            resolver: Resolver,
+            therapyType: TherapyType
         ) {
-            self.state = state
-            self.configureView = configureView
-            self.chartColor = chartColor
-            self.chartAccessibilityLabel = chartAccessibilityLabel
-            self.chartShowsArea = chartShowsArea ?? true
-            self.chartYScale = chartYScale
-            self.headerContent = headerContent()
-            self.footerContent = footerContent()
+            self.resolver = resolver
+            self.therapyType = therapyType
+            state = StateModel(therapyType)
         }
 
         var body: some View {
             ScrollViewReader { proxy in
-                VStack(spacing: 0) {
-                    ScrollView {
-                        LazyVStack {
-                            headerContent
-
-                            TherapySettingsEditor.EditingView(
-                                items: $state.therapyItems,
-                                unit: state.unit,
-                                timeOptions: state.timeOptions,
-                                valueOptions: state.valueOptions,
-                                validateOnDelete: state.validate,
-                                onItemAdded: {
-                                    withAnimation {
-                                        proxy.scrollTo(bottomID, anchor: .bottom)
-                                    }
-                                },
-                                chartColor: chartColor,
-                                chartShowsArea: chartShowsArea,
-                                chartYScale: chartYScale,
-                                chartAccessibilityLabel: chartAccessibilityLabel
-                            )
-                            .padding(.horizontal)
-
-                            footerContent
-                                .id(bottomID)
-                        }
-                        .padding(.bottom)
+                ScrollView {
+                    LazyVStack {
+                        TherapySettingsEditor.EditingView(
+                            therapyType: therapyType,
+                            items: $state.items,
+                            unit: state.unit,
+                            timeOptions: state.timeOptions,
+                            valueOptions: state.valueOptions,
+                            validateOnDelete: state.validate,
+                            onItemAdded: {
+                                withAnimation {
+                                    proxy.scrollTo(bottomID, anchor: .bottom)
+                                }
+                            },
+                            total: state.total
+                        )
+                        .padding(.horizontal)
                     }
-
+                    .id(bottomID)
+                    .padding(.bottom, 70)
+                }
+                .overlay(alignment: .bottom) {
                     saveButton
                 }
-                .background(appState.trioBackgroundColor(for: colorScheme))
-                .navigationBarTitleDisplayMode(.automatic)
-                .onAppear {
-                    configureView()
-                    state.validate()
-                    state.therapyItems = state.getTherapyItems()
-                }
-                .onChange(of: state.therapyItems) { _, newItems in
-                    state.updateFromTherapyItems(newItems)
-                }
             }
+            .onAppear {
+                configureView()
+                state.validate()
+            }
+            .alert(isPresented: $state.showAlert) {
+                Alert(
+                    title: Text("Unable to Save"),
+                    message: Text(state.saveError!.localizedDescription),
+                    dismissButton: .default(Text("Close"))
+                )
+            }
+            .background(appState.trioBackgroundColor(for: colorScheme))
+            .navigationBarTitleDisplayMode(.automatic)
+            .navigationTitle(therapyType.title)
         }
 
         private var saveButton: some View {
@@ -98,7 +80,8 @@ extension TherapySettingsEditor {
             }
             .disabled(shouldDisableSaveButton)
             .buttonStyle(.glassProminent)
-            .padding(10)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 10)
         }
 
         var legacySaveButton: some View {
@@ -144,33 +127,7 @@ extension TherapySettingsEditor {
         }
 
         private var shouldDisableSaveButton: Bool {
-            state.isSaving || state.therapyItems.isEmpty || !state.hasChanges
+            state.isSaving || state.items.isEmpty || !state.hasChanges
         }
-    }
-}
-
-extension TherapySettingsEditor.RootView where HeaderContent == EmptyView, FooterContent == EmptyView {
-    init(
-        state: State,
-        configureView: @escaping () -> Void,
-        chartColor: Color,
-        chartAccessibilityLabel: String,
-        chartShowsArea: Bool? = nil,
-        chartYScale: ClosedRange<Decimal>? = nil,
-    ) {
-        self.init(
-            state: state,
-            configureView: configureView,
-            chartColor: chartColor,
-            chartAccessibilityLabel: chartAccessibilityLabel,
-            headerContent: {
-                EmptyView()
-            },
-            footerContent: {
-                EmptyView()
-            },
-            chartShowsArea: chartShowsArea,
-            chartYScale: chartYScale,
-        )
     }
 }

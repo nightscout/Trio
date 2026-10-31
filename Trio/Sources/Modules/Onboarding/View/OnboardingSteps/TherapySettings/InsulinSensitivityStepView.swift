@@ -11,7 +11,6 @@ import UIKit
 /// Insulin sensitivity step view for setting insulin sensitivity factor.
 struct InsulinSensitivityStepView: View {
     @Bindable var state: Onboarding.StateModel
-    @State private var therapyItems: [TherapySettingsEditor.Item] = []
     @Namespace private var bottomID
 
     private var numberFormatter: NumberFormatter {
@@ -25,7 +24,8 @@ struct InsulinSensitivityStepView: View {
         ScrollViewReader { proxy in
             LazyVStack(alignment: .leading, spacing: 0) {
                 TherapySettingsEditor.EditingView(
-                    items: $therapyItems,
+                    therapyType: .insulinSensitivity,
+                    items: $state.isfItems,
                     unit: state.units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit,
                     timeOptions: state.isfTimeValues,
                     valueOptions: state.isfRateValues,
@@ -34,9 +34,7 @@ struct InsulinSensitivityStepView: View {
                         withAnimation {
                             proxy.scrollTo(bottomID, anchor: .bottom)
                         }
-                    },
-                    chartColor: Color.cyan,
-                    chartAccessibilityLabel: String(localized: "Insulin sensitivity profile chart, 24 hours")
+                    }
                 )
 
                 // Example calculation based on first ISF
@@ -51,7 +49,7 @@ struct InsulinSensitivityStepView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             // Current glucose is 40 mg/dL or 2.2 mmol/L above target
                             let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
-                            let firstIsfRate: Decimal = state.isfRateValues[state.isfItems.first?.rateIndex ?? 0]
+                            let firstIsfRate: Decimal = state.isfItems.first?.value ?? state.isfRateValues[0]
                             let isfValue = state.units == .mgdL ? firstIsfRate : firstIsfRate.asMmolL
                             let insulinNeeded = aboveTarget / isfValue
 
@@ -101,9 +99,6 @@ struct InsulinSensitivityStepView: View {
                     state.addInitialISF()
                 }
                 state.validateISF()
-                therapyItems = state.getISFTherapyItems()
-            }.onChange(of: therapyItems) { _, newItems in
-                state.updateISF(from: newItems)
             }
         }
     }

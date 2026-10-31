@@ -59293,6 +59293,7 @@
       }
     },
     "Basal profile covers 24 hours. You cannot add more rates. Please remove or adjust existing rates to make space." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -213096,6 +213097,9 @@
         }
       }
     },
+    "No pump is available. Your basal profile was not saved." : {
+
+    },
     "No recent determination." : {
       "localizations" : {
         "bg" : {
@@ -240651,6 +240655,9 @@
         }
       }
     },
+    "Profile covers 24 hours. You cannot add more entries. Please remove or adjust existing entries to make space." : {
+
+    },
     "Profile Override" : {
       "comment" : "Service Section",
       "extractionState" : "manual",
@@ -247218,6 +247225,7 @@
       }
     },
     "Ratio" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -329625,6 +329633,9 @@
           }
         }
       }
+    },
+    "units per day" : {
+      "comment" : "Accessibility: spoken unit"
     },
     "units per hour" : {
       "comment" : "Accessibility: spoken unit",

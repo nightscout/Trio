@@ -2,16 +2,14 @@ import SwiftUI
 
 extension TherapySettingsEditor {
     struct EditingView: View {
+        let therapyType: TherapyType
         @Binding var items: [Item]
         var unit: Unit
         var timeOptions: [TimeInterval]
         var valueOptions: [Decimal]
         var validateOnDelete: (() -> Void)?
         var onItemAdded: (() -> Void)?
-        var chartColor: Color?
-        var chartShowsArea: Bool = true
-        var chartYScale: ClosedRange<Decimal>?
-        var chartAccessibilityLabel: String
+        var total: Decimal?
 
         private let basalFormatter: NumberFormatter = {
             let numberFormatter = NumberFormatter()
@@ -25,13 +23,15 @@ extension TherapySettingsEditor {
 
         var body: some View {
             ScrollViewReader { proxy in
+                if cannotAddMoreEntries {
+                    fullScheduleWarning
+                }
+
                 LazyVStack(spacing: 0) {
                     ChartView(
                         items: $items,
-                        color: chartColor ?? Color.purple,
-                        displayValueSelector: chartDisplayValue,
-                        showsArea: chartShowsArea,
-                        yScale: chartYScale
+                        therapyType: therapyType,
+                        unit: unit
                     )
                     .frame(height: 180)
                     .padding()
@@ -45,7 +45,7 @@ extension TherapySettingsEditor {
                         )
                     )
                     .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(chartAccessibilityLabel))
+                    .accessibilityLabel(Text(therapyType.chartAccessibilityLabel))
 
                     HStack {
                         Text("Entries").bold()
@@ -197,6 +197,10 @@ extension TherapySettingsEditor {
                         validateTherapySettingItems()
                     })
 
+                    if let totalUnit = therapyType.totalUnit, let totalValue = total, items.isNotEmpty {
+                        totalRow(unit: totalUnit, value: totalValue)
+                    }
+
                     HStack {
                         Image(systemName: "hand.draw.fill")
                         Text("Swipe to delete a single entry. Tap on it, to edit its time or value.")
@@ -330,7 +334,8 @@ extension TherapySettingsEditor {
             case .mmolL,
                  .mmolLPerUnit:
                 return decimalValue.formattedAsMmolL
-            case .unitPerHour:
+            case .unitPerDay,
+                 .unitPerHour:
                 return basalFormatter.string(from: decimalValue as NSNumber) ?? ""
             case .gramPerUnit,
                  .mgdL,
@@ -346,22 +351,52 @@ extension TherapySettingsEditor {
                 String(localized: "starts at", comment: "Accessibility: schedule entry start time") + " \(timeString)"
         }
 
-        private func chartDisplayValue(item: Item) -> Decimal {
-            switch unit {
-            case .mmolL,
-                 .mmolLPerUnit:
-                return item.value.asMmolL
-            default:
-                return item.value
-            }
-        }
-
         private func itemHeight() -> CGFloat {
             if #available(iOS 26, *) {
                 return 52
             }
 
             return 45
+        }
+
+        var fullScheduleWarning: some View {
+            VStack {
+                Text(
+                    "Profile covers 24 hours. You cannot add more entries. Please remove or adjust existing entries to make space."
+                ).bold()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.tabBar)
+            .clipShape(
+                .rect(
+                    topLeadingRadius: 10,
+                    bottomLeadingRadius: 10,
+                    bottomTrailingRadius: 10,
+                    topTrailingRadius: 10
+                )
+            )
+        }
+
+        private func totalRow(unit: Unit, value: Decimal) -> some View {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack {
+                    Text("Total")
+                        .bold()
+
+                    Spacer()
+
+                    HStack {
+                        Text(displayText(for: unit, decimalValue: value))
+                        Text(unit.displayName)
+                            .foregroundStyle(Color.secondary)
+                    }
+                }
+            }
+            .padding()
+            .background(Color.chart.opacity(0.65))
+            .cornerRadius(10)
+            .padding(.top)
         }
     }
 
@@ -373,12 +408,12 @@ extension TherapySettingsEditor {
 
         ScrollView {
             EditingView(
+                therapyType: .basalRate,
                 items: $previewItems,
                 unit: .unitPerHour,
                 timeOptions: stride(from: 0.0, to: 1.days.timeInterval, by: 30.minutes.timeInterval).map { $0 },
                 valueOptions: stride(from: 0.0, through: 10.0, by: 0.05).map { Decimal(round(100 * $0) / 100) },
                 onItemAdded: nil,
-                chartAccessibilityLabel: ""
             )
         }
     }

@@ -4,10 +4,8 @@ import SwiftUI
 extension TherapySettingsEditor {
     struct ChartView: View {
         @Binding var items: [Item]
-        var color: Color
-        var displayValueSelector: (Item) -> Decimal
-        var showsArea: Bool = true
-        var yScale: ClosedRange<Decimal>?
+        var therapyType: TherapyType
+        var unit: Unit
 
         @State private var now = Date()
         @State private var refreshUI = UUID()
@@ -15,7 +13,7 @@ extension TherapySettingsEditor {
         var body: some View {
             Chart {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                    let displayValue = displayValueSelector(item)
+                    let displayValue = displayValue(item.value)
 
                     let startDate = Calendar.current
                         .startOfDay(for: now)
@@ -31,7 +29,7 @@ extension TherapySettingsEditor {
 
                     let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
 
-                    if showsArea {
+                    if therapyType.chartShowsArea {
                         RectangleMark(
                             xStart: .value("start", startDate),
                             xEnd: .value("end", endDate),
@@ -40,8 +38,8 @@ extension TherapySettingsEditor {
                         ).foregroundStyle(
                             .linearGradient(
                                 colors: [
-                                    color.opacity(0.6),
-                                    color.opacity(0.1)
+                                    therapyType.chartColor.opacity(0.6),
+                                    therapyType.chartColor.opacity(0.1)
                                 ],
                                 startPoint: .bottom,
                                 endPoint: .top
@@ -50,10 +48,10 @@ extension TherapySettingsEditor {
                     }
 
                     LineMark(x: .value("End Date", startDate), y: .value("Rate", displayValue))
-                        .lineStyle(.init(lineWidth: showsArea ? 1 : 2.5)).foregroundStyle(color)
+                        .lineStyle(.init(lineWidth: therapyType.chartShowsArea ? 1 : 2.5)).foregroundStyle(therapyType.chartColor)
 
                     LineMark(x: .value("Start Date", endDate), y: .value("Rate", displayValue))
-                        .lineStyle(.init(lineWidth: showsArea ? 1 : 2.5)).foregroundStyle(color)
+                        .lineStyle(.init(lineWidth: therapyType.chartShowsArea ? 1 : 2.5)).foregroundStyle(therapyType.chartColor)
                 }
             }
             .id(refreshUI) // Force chart update
@@ -73,7 +71,24 @@ extension TherapySettingsEditor {
                     AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
                 }
             }
-            .applyYScale(yScale)
+            .applyYScale(chartYScale)
+        }
+
+        private func displayValue(_ value: Decimal) -> Decimal {
+            switch unit {
+            case .mmolL,
+                 .mmolLPerUnit:
+                return value.asMmolL
+            default:
+                return value
+            }
+        }
+
+        private var chartYScale: ClosedRange<Decimal>? {
+            if let domain = therapyType.chartYScale {
+                return displayValue(domain.lowerBound) ... displayValue(domain.upperBound)
+            }
+            return nil
         }
     }
 }

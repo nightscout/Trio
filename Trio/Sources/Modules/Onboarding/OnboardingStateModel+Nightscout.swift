@@ -184,43 +184,43 @@ extension Onboarding.StateModel {
 
         // Parse: targetsProfile → targetItems
         targetItems = targetsProfile.targets.map { entry in
-            let timeIndex = targetTimeValues.firstIndex(where: { Int($0) == entry.offset * 60 }) ?? 0
-            let lowIndex = targetRateValues.enumerated().min(by: {
+            let time = targetTimeValues.first(where: { Int($0) == entry.offset * 60 }) ?? targetTimeValues[0]
+            let value = targetRateValues.enumerated().min(by: {
                 abs($0.element - entry.low) < abs($1.element - entry.low)
-            })?.offset ?? 0
+            })?.element ?? targetRateValues[0]
 
-            return TargetsEditor.Item(lowIndex: lowIndex, highIndex: lowIndex, timeIndex: timeIndex)
+            return TherapySettingsEditor.Item(time: time, value: value)
         }
         initialTargetItems = targetItems
 
         // Parse: basals → basalProfileItems
         basalProfileItems = basals.map { entry in
-            let timeIndex = basalProfileTimeValues.firstIndex(where: { Int($0) == entry.minutes * 60 }) ?? 0
-            let rateIndex = basalProfileRateValues.enumerated().min(by: {
+            let time = basalProfileTimeValues.first(where: { Int($0) == entry.minutes * 60 }) ?? basalProfileTimeValues[0]
+            let value = basalProfileRateValues.enumerated().min(by: {
                 abs($0.element - entry.rate) < abs($1.element - entry.rate)
-            })?.offset ?? 0
-            return BasalProfileEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            })?.element ?? basalProfileRateValues[0]
+            return TherapySettingsEditor.Item(time: time, value: value)
         }
         initialBasalProfileItems = basalProfileItems
 
         // Parse: carbratiosProfile → carbRatioItems
         carbRatioItems = carbratiosProfile.schedule.map { entry in
-            let timeIndex = carbRatioTimeValues.firstIndex(where: { Int($0) == entry.offset * 60 }) ?? 0
-            let rateIndex = carbRatioRateValues.enumerated().min(by: {
+            let time = carbRatioTimeValues.first(where: { Int($0) == entry.offset * 60 }) ?? carbRatioTimeValues[0]
+            let value = carbRatioRateValues.enumerated().min(by: {
                 abs($0.element - entry.ratio) < abs($1.element - entry.ratio)
-            })?.offset ?? 0
-            return CarbRatioEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            })?.element ?? carbRatioRateValues[0]
+            return TherapySettingsEditor.Item(time: time, value: value)
         }
         initialCarbRatioItems = carbRatioItems
 
         // Parse: sensitivitiesProfile → isfItems
         isfItems = sensitivitiesProfile.sensitivities.map { entry in
-            let timeIndex = isfTimeValues.firstIndex(where: { Int($0) == entry.offset * 60 }) ?? 0
-            let rateIndex = isfRateValues.enumerated().min(by: {
+            let time = isfTimeValues.first(where: { Int($0) == entry.offset * 60 }) ?? isfTimeValues[0]
+            let value = isfRateValues.enumerated().min(by: {
                 abs($0.element - entry.sensitivity) < abs($1.element - entry.sensitivity)
-            })?.offset ?? 0
+            })?.element ?? isfRateValues[0]
 
-            return ISFEditor.Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            return TherapySettingsEditor.Item(time: time, value: value)
         }
         initialISFItems = isfItems
 
