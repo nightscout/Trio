@@ -336,10 +336,12 @@ extension Treatments {
             }
             .id(FocusedField.bolus)
 
-            HStack {
-                Text("External Insulin")
-                Spacer()
-                Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
+            if state.showExternalInsulin {
+                HStack {
+                    Text("External Insulin")
+                    Spacer()
+                    Toggle("", isOn: $state.externalInsulin).toggleStyle(CheckboxToggleStyle())
+                }
             }
         }
 
@@ -380,55 +382,57 @@ extension Treatments {
                                     }
                                 }
 
-                                // Time
-                                HStack {
-                                    // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
+                                if state.showMealTime {
                                     HStack {
-                                        Text("")
-                                        Image(systemName: "clock").padding(.leading, -7)
-                                    }
-
-                                    Spacer()
-                                    if !pushed {
-                                        Button {
-                                            pushed = true
-                                        } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
-                                            .padding(.trailing, 5)
-                                    } else {
-                                        Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
-                                        label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
-                                            .accessibilityLabel(Text("15 minutes earlier"))
-
-                                        DatePicker(
-                                            "Time",
-                                            selection: $state.date,
-                                            displayedComponents: [.hourAndMinute]
-                                        ).controlSize(.mini)
-                                            .labelsHidden()
-                                            .onChange(of: state.date) { _, _ in
-                                                // Trigger simulation when date changes to update forecasts for backdated carbs
-                                                Task {
-                                                    // `updateForecasts()` does update the `simulatedDetermination` of type `Determination?` var on the main thread, so I can use this to pass its cob value into the bolus calc manager
-                                                    await state.updateForecasts()
-                                                    state.insulinCalculated = await state.calculateInsulin()
-                                                }
-                                            }
-                                        Button {
-                                            state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
+                                        // Semi-hacky workaround to make sure the List renders the horizontal divider properly between the `Time` and `Note` rows within the Section
+                                        HStack {
+                                            Text("")
+                                            Image(systemName: "clock").padding(.leading, -7)
                                         }
-                                        label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
-                                            .accessibilityLabel(Text("15 minutes later"))
+
+                                        Spacer()
+                                        if !pushed {
+                                            Button {
+                                                pushed = true
+                                            } label: { Text("Now") }.buttonStyle(.borderless).foregroundColor(.secondary)
+                                                .padding(.trailing, 5)
+                                        } else {
+                                            Button { state.date = state.date.addingTimeInterval(-15.minutes.timeInterval) }
+                                            label: { Image(systemName: "minus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                                .accessibilityLabel(Text("15 minutes earlier"))
+
+                                            DatePicker(
+                                                "Time",
+                                                selection: $state.date,
+                                                displayedComponents: [.hourAndMinute]
+                                            ).controlSize(.mini)
+                                                .labelsHidden()
+                                                .onChange(of: state.date) { _, _ in
+                                                    // Trigger simulation when date changes to update forecasts for backdated carbs
+                                                    Task {
+                                                        // `updateForecasts()` does update the `simulatedDetermination` of type `Determination?` var on the main thread, so I can use this to pass its cob value into the bolus calc manager
+                                                        await state.updateForecasts()
+                                                        state.insulinCalculated = await state.calculateInsulin()
+                                                    }
+                                                }
+                                            Button {
+                                                state.date = state.date.addingTimeInterval(15.minutes.timeInterval)
+                                            }
+                                            label: { Image(systemName: "plus.circle") }.tint(.blue).buttonStyle(.borderless)
+                                                .accessibilityLabel(Text("15 minutes later"))
+                                        }
                                     }
                                 }
 
-                                // Notes
-                                HStack {
-                                    Image(systemName: "square.and.pencil")
-                                    TextFieldWithToolBarString(
-                                        text: $state.note,
-                                        placeholder: String(localized: "Note..."),
-                                        maxLength: 25
-                                    )
+                                if state.showMealNote {
+                                    HStack {
+                                        Image(systemName: "square.and.pencil")
+                                        TextFieldWithToolBarString(
+                                            text: $state.note,
+                                            placeholder: String(localized: "Note..."),
+                                            maxLength: 25
+                                        )
+                                    }
                                 }
                             }.listRowBackground(Color.chart)
 

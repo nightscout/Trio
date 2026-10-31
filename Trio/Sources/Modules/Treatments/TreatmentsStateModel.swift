@@ -79,6 +79,9 @@ extension Treatments {
         var fattyMealFactor: Decimal = 0
         var useFattyMealCorrectionFactor: Bool = false
         var displayPresets: Bool = true
+        var showMealTime: Bool = true
+        var showMealNote: Bool = true
+        var showExternalInsulin: Bool = true
         var confirmBolus: Bool = false
 
         var currentBasal: Decimal = 0
@@ -352,6 +355,9 @@ extension Treatments {
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
             displayPresets = settings.settings.displayPresets
+            showMealTime = settings.settings.showMealTime
+            showMealNote = settings.settings.showMealNote
+            showExternalInsulin = settings.settings.showExternalInsulin
             confirmBolus = settings.settings.confirmBolus
             forecastDisplayType = settings.settings.forecastDisplayType
             lowGlucose = settingsManager.settings.low

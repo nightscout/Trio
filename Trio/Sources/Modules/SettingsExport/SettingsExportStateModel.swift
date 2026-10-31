@@ -638,6 +638,24 @@ extension SettingsExport {
                 addSetting(
                     category: featuresCategory,
                     subcategory: treatmentsSubcategory,
+                    name: String(localized: "Show Meal Time"),
+                    value: trioSettings.showMealTime ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: treatmentsSubcategory,
+                    name: String(localized: "Show Meal Note"),
+                    value: trioSettings.showMealNote ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: treatmentsSubcategory,
+                    name: String(localized: "Show External Insulin"),
+                    value: trioSettings.showExternalInsulin ? String(localized: "Enabled") : String(localized: "Disabled")
+                )
+                addSetting(
+                    category: featuresCategory,
+                    subcategory: treatmentsSubcategory,
                     name: String(localized: "Recommended Bolus Percentage"),
                     value: String(format: "%.0f", (trioSettings.overrideFactor as NSDecimalNumber).doubleValue * 100),
                     unit: "%"

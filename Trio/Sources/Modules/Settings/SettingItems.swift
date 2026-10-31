@@ -210,6 +210,9 @@ enum SettingItems {
             view: .bolusCalculatorConfig,
             searchContents: [
                 "Display Meal Presets",
+                "Show Meal Time",
+                "Show Meal Note",
+                "Show External Insulin",
                 "Recommended Bolus Percentage",
                 "Enable Reduced Bolus Factor",
                 "Reduced Bolus Factor",

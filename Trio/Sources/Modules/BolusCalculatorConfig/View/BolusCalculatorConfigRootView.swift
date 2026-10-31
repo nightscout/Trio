@@ -55,6 +55,78 @@ extension BolusCalculatorConfig {
                 )
 
                 SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.showMealTime,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Show Meal Time")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Show Meal Time"),
+                    miniHint: String(localized: "Show the time row for meal entries in the bolus calculator."),
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: ON").bold()
+                        Text(
+                            "Shows the time row in the bolus calculator so a meal can be logged at an earlier or later time."
+                        )
+                        Text(
+                            "When turned off, meals are always logged at the time the bolus calculator was opened."
+                        )
+                    }
+                )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.showMealNote,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Show Meal Note")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Show Meal Note"),
+                    miniHint: String(localized: "Show the note field for meal entries in the bolus calculator."),
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: ON").bold()
+                        Text("Shows the note field in the bolus calculator so a short note can be added to a meal entry.")
+                    }
+                )
+
+                SettingInputSection(
+                    decimalValue: $decimalPlaceholder,
+                    booleanValue: $state.showExternalInsulin,
+                    shouldDisplayHint: $shouldDisplayHint,
+                    selectedVerboseHint: Binding(
+                        get: { selectedVerboseHint },
+                        set: {
+                            selectedVerboseHint = $0.map { AnyView($0) }
+                            hintLabel = String(localized: "Show External Insulin")
+                        }
+                    ),
+                    units: state.units,
+                    type: .boolean,
+                    label: String(localized: "Show External Insulin"),
+                    miniHint: String(localized: "Show the External Insulin option in the bolus calculator."),
+                    verboseHint: VStack(alignment: .leading, spacing: 10) {
+                        Text("Default: ON").bold()
+                        Text(
+                            "Shows the External Insulin option in the bolus calculator for logging insulin given outside the pump, for example with a pen or syringe."
+                        )
+                        Text("When turned off, every bolus entered in the bolus calculator is delivered by the pump.")
+                        Text("Keep this on if you log injections given with a pen or syringe.")
+                    }
+                )
+
+                SettingInputSection(
                     decimalValue: $state.overrideFactor,
                     booleanValue: $booleanPlaceholder,
                     shouldDisplayHint: $shouldDisplayHint,

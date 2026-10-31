@@ -282653,6 +282653,36 @@
     "Home Statistics Range" : {
 
     },
+    "Keep this on if you log injections given with a pen or syringe." : {
+
+    },
+    "Show External Insulin" : {
+
+    },
+    "Show Meal Note" : {
+
+    },
+    "Show Meal Time" : {
+
+    },
+    "Show the External Insulin option in the bolus calculator." : {
+
+    },
+    "Show the note field for meal entries in the bolus calculator." : {
+
+    },
+    "Show the time row for meal entries in the bolus calculator." : {
+
+    },
+    "Shows the External Insulin option in the bolus calculator for logging insulin given outside the pump, for example with a pen or syringe." : {
+
+    },
+    "Shows the note field in the bolus calculator so a short note can be added to a meal entry." : {
+
+    },
+    "Shows the time row in the bolus calculator so a meal can be logged at an earlier or later time." : {
+
+    },
     "Stay in open loop (no automated dosing) for a bit to help Trio catch up to keep you safe" : {
       "localizations" : {
         "bg" : {
@@ -345293,6 +345323,12 @@
           }
         }
       }
+    },
+    "When turned off, every bolus entered in the bolus calculator is delivered by the pump." : {
+
+    },
+    "When turned off, meals are always logged at the time the bolus calculator was opened." : {
+
     },
     "When using the Sigmoid Formula, the weighted Total Daily Dose has a much lower impact on the dynamic adjustments to sensitivity." : {
       "localizations" : {
