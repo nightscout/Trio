@@ -505,8 +505,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         guard let liveStatus = apsManager.pumpManager?.status else {
             return await pumpStatusStorage.lastPumpStatus()
         }
-        guard case let .active(deliveryActiveSince) = liveStatus.basalDeliveryState else {
-            return liveStatus.pumpStatus
+        let deliveryState = PumpStatusStored.DeliveryState(liveStatus.basalDeliveryState)
+        let pumpStatus = PumpStatus(deliveryState: deliveryState, bolusing: liveStatus.bolusState != .noBolus, timestamp: Date())
+        // The suspend lookback applies to delivery active since a real date.
+        guard deliveryState == .active, case let .active(deliveryActiveSince) = liveStatus.basalDeliveryState else {
+            return pumpStatus
         }
 
         let context = CoreDataStack.shared.newTaskContext()
@@ -529,7 +532,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
         }
 
-        return liveStatus.pumpStatus.includingSuspend(deliveryActiveSince: deliveryActiveSince, lastPumpEvent: lastEvent)
+        return pumpStatus.includingSuspend(deliveryActiveSince: deliveryActiveSince, lastPumpEvent: lastEvent)
     }
 
     /// Asynchronously uploads the current status to Nightscout, including OpenAPS status, pump status, and uploader details.

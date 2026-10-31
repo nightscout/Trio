@@ -8,7 +8,6 @@ public extension PumpStatusStored {
 
     @NSManaged var basalDeliveryState: String?
     @NSManaged var date: Date?
-    @NSManaged var deliveryIsUncertain: Bool
 }
 
 extension PumpStatusStored: Identifiable {}

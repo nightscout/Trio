@@ -235,7 +235,6 @@
     <entity name="PumpStatusStored" representedClassName="PumpStatusStored" syncable="YES">
         <attribute name="basalDeliveryState" optional="YES" attributeType="String"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="deliveryIsUncertain" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <fetchIndex name="byDate">
             <fetchIndexElement property="date" type="Binary" order="descending"/>
         </fetchIndex>

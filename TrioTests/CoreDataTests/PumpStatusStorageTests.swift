@@ -31,10 +31,7 @@ import Testing
         injectServices(resolver)
     }
 
-    private func status(
-        _ basalDeliveryState: PumpManagerStatus.BasalDeliveryState?,
-        deliveryIsUncertain: Bool = false
-    ) -> PumpManagerStatus {
+    private func status(_ basalDeliveryState: PumpManagerStatus.BasalDeliveryState?) -> PumpManagerStatus {
         PumpManagerStatus(
             timeZone: .current,
             device: HKDevice(
@@ -45,7 +42,7 @@ import Testing
             basalDeliveryState: basalDeliveryState,
             bolusState: .noBolus,
             insulinType: nil,
-            deliveryIsUncertain: deliveryIsUncertain
+            deliveryIsUncertain: false
         )
     }
 
@@ -60,12 +57,12 @@ import Testing
     }
 
     /// Stored rows, oldest first. Runs on the storage's context, after the stores it has queued.
-    private func storedRows() async -> [(state: String?, uncertain: Bool, date: Date?)] {
+    private func storedRows() async -> [(state: String?, date: Date?)] {
         await testContext.perform {
             let request = PumpStatusStored.fetchRequest()
             request.sortDescriptors = [NSSortDescriptor(keyPath: \PumpStatusStored.date, ascending: true)]
             let rows = (try? testContext.fetch(request)) ?? []
-            return rows.map { ($0.basalDeliveryState, $0.deliveryIsUncertain, $0.date) }
+            return rows.map { ($0.basalDeliveryState, $0.date) }
         }
     }
 
@@ -123,30 +120,40 @@ import Testing
         #expect(removed.suspended)
     }
 
-    @Test("Statuses older than 90 days are purged") func testPurge() async throws {
+    @Test("Statuses older than 90 days are purged, keeping the latest") func testPurge() async throws {
+        let old = Date().addingTimeInterval(-91 * 24 * 60 * 60)
         await testContext.perform {
-            let old = PumpStatusStored(context: testContext)
-            old.date = Date().addingTimeInterval(-91 * 24 * 60 * 60)
-            old.basalDeliveryState = PumpStatusStored.DeliveryState.suspended.rawValue
+            for (offset, state) in [(-3600.0, "active"), (0.0, "suspended")] {
+                let stored = PumpStatusStored(context: testContext)
+                stored.date = old.addingTimeInterval(offset)
+                stored.basalDeliveryState = state
+            }
             try? testContext.save()
         }
+
+        await storage.deleteStatuses(olderThan: 90)
+        #expect(await storedRows().map(\.state) == ["suspended"])
+
         storage.storePumpStatus(status(.active(Date())))
-        #expect(await storedRows().count == 2)
-
-        try await coreDataStack.batchDeleteOlderThan(PumpStatusStored.self, dateKey: "date", days: 90)
-
+        await storage.deleteStatuses(olderThan: 90)
         #expect(await storedRows().map(\.state) == ["active"])
     }
 
-    @Test("A change in delivery uncertainty is stored") func testDeliveryUncertainty() async {
-        storage.storePumpStatus(status(tempBasal()))
-        storage.storePumpStatus(status(tempBasal(), deliveryIsUncertain: true))
-        storage.storePumpStatus(status(tempBasal(), deliveryIsUncertain: true))
-        storage.storePumpStatus(status(.active(Date())))
+    @Test("The legacy status file is migrated into a row") func testLegacyMigration() async throws {
+        let fileStorage = try #require(resolver.resolve(FileStorage.self))
+        let legacyDate = Date().addingTimeInterval(-3600)
+        fileStorage.save(
+            PumpStatus(status: .suspended, bolusing: false, suspended: true, timestamp: legacyDate),
+            as: "monitor/status.json"
+        )
+
+        _ = BasePumpStatusStorage(resolver: resolver, contextProvider: { testContext })
 
         let rows = await storedRows()
-        #expect(rows.map(\.state) == ["active", "active", "active"])
-        #expect(rows.map(\.uncertain) == [false, true, false])
+        #expect(rows.map(\.state) == ["suspended"])
+        let date = try #require(rows.first?.date)
+        #expect(abs(date.timeIntervalSince(legacyDate)) < 1)
+        #expect(fileStorage.retrieve("monitor/status.json", as: PumpStatus.self) == nil)
     }
 
     @Test("The last status maps to a pump status") func testLastPumpStatus() async throws {
@@ -155,7 +162,8 @@ import Testing
         #expect(suspended.suspended)
         #expect(suspended.status == .suspended)
         #expect(!suspended.bolusing)
-        #expect(suspended.timestamp != nil)
+        let suspendedDate = await storedRows().last?.date
+        #expect(suspended.timestamp == suspendedDate)
 
         storage.storePumpStatus(status(.resuming))
         let resuming = try #require(await storage.lastPumpStatus())

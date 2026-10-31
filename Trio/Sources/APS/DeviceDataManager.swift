@@ -168,6 +168,10 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 }
             } else {
                 info(.pump, oldValue == nil ? "No pump configured" : "Pump removed")
+                // A stored pump manager that fails to decode at launch counts as removed.
+                if oldValue != nil || rawPumpManager != nil {
+                    pumpStatusStorage.storePumpRemoved()
+                }
                 pumpDisplayState.value = nil
                 pumpExpiresAtDate.send(nil)
                 pumpActivatedAtDate.send(nil)
@@ -538,7 +542,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     func pumpManagerWillDeactivate(_: PumpManager) {
         dispatchPrecondition(condition: .onQueue(processQueue))
         pumpManager = nil
-        pumpStatusStorage.storePumpRemoved()
         broadcaster.notify(PumpDeactivatedObserver.self, on: processQueue) {
             $0.pumpDeactivatedDidChange()
         }

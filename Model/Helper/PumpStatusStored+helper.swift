@@ -25,10 +25,8 @@ extension PumpStatusStored {
         basalDeliveryState.flatMap(DeliveryState.init(rawValue:)) ?? .unknown
     }
 
-    /// Suspended for any state without delivery. Without a pump manager nothing is bolusing, and the
-    /// timestamp is the upload time, as for a status read from the pump manager.
+    /// Without a pump manager nothing is bolusing, and the timestamp is when the stored state began.
     var pumpStatus: PumpStatus {
-        let suspended = [.suspended, .inactive, .unknown].contains(deliveryState)
-        return PumpStatus(status: suspended ? .suspended : .normal, bolusing: false, suspended: suspended, timestamp: Date())
+        PumpStatus(deliveryState: deliveryState, bolusing: false, timestamp: date)
     }
 }
