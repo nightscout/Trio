@@ -155,13 +155,11 @@ extension Adjustments.RootView {
             tempTarget.halfBasalTarget as? Double
                 .RawValue ?? Double(state.settingHalfBasalTarget)
         )
-        let percentage = Int(
-            TempTargetCalculations.computeAdjustedPercentage(
-                halfBasalTarget: tempTargetHalfBasal,
-                target: tempTargetValue,
-                autosensMax: state.autosensMax
-            )
-        )
+        let percentageText = (TempTargetCalculations.computeAdjustedPercentage(
+            halfBasalTarget: tempTargetHalfBasal,
+            target: tempTargetValue,
+            autosensMax: state.autosensMax
+        ) / 100).formatted(.wholePercent)
         let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
 
         let row = ZStack(alignment: .trailing) {
@@ -189,7 +187,7 @@ extension Adjustments.RootView {
                             .foregroundColor(.secondary)
                             .font(.caption)
                         if state.isAdjustSensEnabled(usingTarget: tempTargetValue) {
-                            Text(", \(percentage)%")
+                            Text(", " + percentageText)
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                         }
@@ -220,7 +218,7 @@ extension Adjustments.RootView {
                 + String(localized: "for", comment: "duration connector") + " "
                 + (Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber) ?? "0") + " "
                 + String(localized: "min", comment: "minutes abbreviation")
-                + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", \(percentage)%" : "")
+                + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", " + percentageText : "")
         ))
         // Only tappable rows (presets) are buttons; scheduled rows are read-only, so they get
         // neither the button trait, an activation, nor a hint.
