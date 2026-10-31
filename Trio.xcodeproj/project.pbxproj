@@ -711,6 +711,7 @@
 		36BDB3927CB9ABFB548ED2B0 /* CarbEntryMutationServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19B7FC1E8CD873546B563CB /* CarbEntryMutationServiceTests.swift */; };
 		BD8FC0622D6619E600B95AED /* OverrideStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */; };
 		BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */; };
+		FE9C3A9F2A75014FB09A16B1 /* CoreDataProtectedDataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D2BADBACD9C568C3682721A /* CoreDataProtectedDataTests.swift */; };
 		BD8FC0662D661A0000B95AED /* GlucoseStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */; };
 		BD8FC0712D661B0000B95AED /* TidepoolTherapySettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD8FC0702D661B0000B95AED /* TidepoolTherapySettingsTests.swift */; };
 		CD1235B000000000000000F2 /* TidepoolUploadSerializerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1235A000000000000000F1 /* TidepoolUploadSerializerTests.swift */; };
@@ -1934,6 +1935,7 @@
 		A19B7FC1E8CD873546B563CB /* CarbEntryMutationServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbEntryMutationServiceTests.swift; sourceTree = "<group>"; };
 		BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverrideStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetStorageTests.swift; sourceTree = "<group>"; };
+		2D2BADBACD9C568C3682721A /* CoreDataProtectedDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataProtectedDataTests.swift; sourceTree = "<group>"; };
 		BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseStorageTests.swift; sourceTree = "<group>"; };
 		BD8FC0702D661B0000B95AED /* TidepoolTherapySettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidepoolTherapySettingsTests.swift; sourceTree = "<group>"; };
 		CD1235A000000000000000F1 /* TidepoolUploadSerializerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TidepoolUploadSerializerTests.swift; sourceTree = "<group>"; };
@@ -4341,6 +4343,7 @@
 				A19B7FC1E8CD873546B563CB /* CarbEntryMutationServiceTests.swift */,
 				BD8FC0612D6619E600B95AED /* OverrideStorageTests.swift */,
 				BD8FC0632D6619EF00B95AED /* TempTargetStorageTests.swift */,
+				2D2BADBACD9C568C3682721A /* CoreDataProtectedDataTests.swift */,
 				BD8FC0652D661A0000B95AED /* GlucoseStorageTests.swift */,
 			);
 			path = CoreDataTests;
@@ -6532,6 +6535,7 @@
 				7A11AC0DE00000000000011D /* PumpEventPredicateTests.swift in Sources */,
 				7A11AC0DE000000000000115 /* MultiUsePanelStateTests.swift in Sources */,
 				BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */,
+				FE9C3A9F2A75014FB09A16B1 /* CoreDataProtectedDataTests.swift in Sources */,
 				3BE2F1E82E030E2F009E2900 /* MealCobTests.swift in Sources */,
 				3BBC22632DF5B94100169236 /* AutosensTests.swift in Sources */,
 				BD8FC0542D66186000B95AED /* TestError.swift in Sources */,
