@@ -461,12 +461,13 @@ extension CGMSettings {
         var stickyDeleteButton: some View {
             ZStack {
                 Rectangle()
-                    .frame(width: UIScreen.main.bounds.width, height: 120)
+                    .frame(height: 120)
                     .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
                     .background(.thinMaterial)
                     .opacity(0.8)
                     .clipShape(Rectangle())
                     .padding(.bottom, -55)
+                    .ignoresSafeArea(edges: .horizontal)
 
                 Button(action: {
                     shouldDisplayDeletionConfirmation.toggle()
@@ -475,7 +476,8 @@ extension CGMSettings {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .padding(10)
                 })
-                    .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                    .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
+                    .frame(height: 40)
                     .background(Color(.systemRed))
                     .tint(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
