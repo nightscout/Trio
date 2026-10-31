@@ -87,6 +87,21 @@ import Testing
                 "serial=<cgm-serial-1> bleAddress=<device-1> name=<device-2>"
             ),
             (
+                "TandemPumpManager",
+                [
+                    "pumpState": [
+                        "pumpSerial": 11_223_344,
+                        "pcbSerialNumber": 55_667_788,
+                        "peripheralUuid": "8C1D2E3F-0000-4000-8000-00000000AB12",
+                        "pincode": "SYNPIN123456",
+                        "derivedSecret": Data([0xDE, 0xAD, 0xBE, 0xEF, 0x01, 0x02, 0x03, 0x04]),
+                        "serverNonce": Data([0xFB, 0xFF, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60])
+                    ]
+                ],
+                "pumpSerial: Optional(11223344) pcb 55667788 uuid 8C1D2E3F-0000-4000-8000-00000000AB12 pin SYNPIN123456 derivedSecret: Optional(\"3q2+7wECAwQ=\") serverNonce: Optional(\"+/8QIDBAUGA=\") hex deadbeef01020304",
+                "pumpSerial: Optional(<pump-serial-1>) pcb <pump-serial-2> uuid <device-1> pin <secret-1> derivedSecret: Optional(\"<secret-2>\") serverNonce: Optional(\"<secret-3>\") hex <secret-4>"
+            ),
+            (
                 "SyaiCGMManager",
                 ["sensors": ["activeMAC": "AABBCCDDEE02", "pendingBind": ["mac": "AABBCCDDEE03"]]],
                 "activeMAC: AABBCCDDEE02 pendingBind: AABBCCDDEE03",

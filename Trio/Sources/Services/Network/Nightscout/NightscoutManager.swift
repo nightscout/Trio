@@ -31,6 +31,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var overridesStorage: OverrideStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
+    @Injected() private var pumpStatusStorage: PumpStatusStorage!
     @Injected() private var storage: FileStorage!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
@@ -499,6 +500,41 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
+    /// The pump status at upload time, read from the pump manager, or the last stored status without one.
+    private func pumpStatusForUpload() async -> PumpStatus? {
+        guard let liveStatus = apsManager.pumpManager?.status else {
+            return await pumpStatusStorage.lastPumpStatus()
+        }
+        let deliveryState = PumpStatusStored.DeliveryState(liveStatus.basalDeliveryState)
+        let pumpStatus = PumpStatus(deliveryState: deliveryState, bolusing: liveStatus.bolusState != .noBolus, timestamp: Date())
+        // The suspend lookback applies to delivery active since a real date.
+        guard deliveryState == .active, case let .active(deliveryActiveSince) = liveStatus.basalDeliveryState else {
+            return pumpStatus
+        }
+
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "pumpStatusForUpload"
+        let eventTypes: [PumpEventStored.EventType] = [.pumpSuspend, .pumpResume, .tempBasal, .bolus]
+        let predicate = NSPredicate(
+            format: "timestamp >= %@ AND type IN %@ AND \(NSPredicate.notScheduledBasal) AND (bolus == nil OR bolus.isExternal == NO)",
+            Date.oneDayAgo as NSDate,
+            eventTypes.map(\.rawValue)
+        )
+        let lastEvent: (type: String, date: Date)? = await context.perform {
+            do {
+                let request = PumpEventStored.fetch(predicate, ascending: false, fetchLimit: 1)
+                guard let event = try context.fetch(request).first, let type = event.type, let date = event.timestamp
+                else { return nil }
+                return (type, date)
+            } catch {
+                warning(.storage, "Pump event fetch for the upload status failed", error: error)
+                return nil
+            }
+        }
+
+        return pumpStatus.includingSuspend(deliveryActiveSince: deliveryActiveSince, lastPumpEvent: lastEvent)
+    }
+
     /// Asynchronously uploads the current status to Nightscout, including OpenAPS status, pump status, and uploader details.
     ///
     /// This function gathers and processes various pieces of information such as the "enacted" and "suggested" determinations,
@@ -547,7 +583,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         async let fetchedBattery = fetchBattery()
         async let fetchedReservoir = Decimal(from: storage.retrieveRawAsync(OpenAPS.Monitor.reservoir) ?? "0")
         async let fetchedIOBEntry = storage.retrieveAsync(OpenAPS.Monitor.iob, as: [IOBEntry].self)
-        async let fetchedPumpStatus = storage.retrieveAsync(OpenAPS.Monitor.status, as: PumpStatus.self)
+        async let fetchedPumpStatus = pumpStatusForUpload()
 
         var (fetchedEnactedDetermination, fetchedSuggestedDetermination) = try await (
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(enactedDeterminationID),
@@ -638,7 +674,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             enacted: settingsManager.settings.dosingMode.automation != .off ? enactedToUpload : nil,
             version: Bundle.main.releaseVersionNumber ?? "Unknown",
             recommendedBolus: recommendedBolus,
-            dosingMode: settingsManager.settings.dosingMode.rawValue
+            dosingMode: settingsManager.settings.dosingMode.rawValue,
+            iobForecast: iob.flatMap { $0.count > 1 ? NightscoutIOBForecast($0) : nil }
         )
 
         debug(

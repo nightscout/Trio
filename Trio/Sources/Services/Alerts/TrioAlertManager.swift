@@ -109,8 +109,10 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         // with no reference to this manager, so it routes through the shared
         // bridge. Register here; taps queued before this point are flushed.
         Task { @MainActor [weak self] in
+            // Stopping an AlarmKit alarm is a dismissal like any other, so it
+            // snoozes rather than silencing the alarm for the whole excursion.
             CriticalAlertAcknowledgementBridge.shared.setHandler { identifier in
-                self?.handleAcknowledgement(identifier: identifier)
+                self?.requestSnooze(identifier: identifier, duration: BaseTrioAlertManager.quickSnooze)
             }
         }
 
@@ -161,7 +163,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
                             // The notification is gone from Notification Center —
                             // same gesture as swiping it away, so treat it as a
                             // dismissal: ack (history + device) + 15-min snooze.
-                            self.requestSnooze(identifier: identifier, duration: 15 * 60)
+                            self.requestSnooze(identifier: identifier, duration: Self.quickSnooze)
                             self.modalScheduler.unschedule(identifier: identifier)
                         }
                     }
@@ -380,6 +382,16 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         }
     }
 
+    /// What a dismissal buys when the user didn't name a duration.
+    static let quickSnooze: TimeInterval = NotificationResponseAction.snooze15.duration
+
+    /// How long a notification response snoozes for: the action's own
+    /// duration if the user picked one, the quick 15 minutes for a swipe, a
+    /// tap or OK. Extracted for unit testing.
+    static func snoozeDuration(forActionIdentifier actionIdentifier: String) -> TimeInterval {
+        NotificationResponseAction(rawValue: actionIdentifier)?.duration ?? quickSnooze
+    }
+
     func handleNotificationResponse(_ response: UNNotificationResponse) {
         let userInfo = response.notification.request.content.userInfo
         guard
@@ -388,15 +400,17 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         else { return }
         let identifier = Alert.Identifier(managerIdentifier: managerId, alertIdentifier: alertId)
 
-        // Swipe = 15-min snooze (mirrors the in-app banner's swipe-up).
-        // Tap and action buttons keep the full-ack path.
-        if response.actionIdentifier == UNNotificationDismissActionIdentifier {
-            modalScheduler.snooze(identifier: identifier, duration: 15 * 60)
-            userNotificationScheduler.unschedule(identifier: identifier)
-            return
-        }
-
-        handleAcknowledgement(identifier: identifier)
+        // Clearing an alert is always a snooze, never a permanent dismissal:
+        // the chosen duration if the user picked one, the quick 15 minutes for
+        // a swipe, a tap or the OK button. The in-app banner already works
+        // this way; only the notification didn't, so acknowledging a High
+        // meant never hearing it again for that whole excursion.
+        //
+        // The snooze path acknowledges too, so history and the issuing device
+        // still see the user's response.
+        let duration = Self.snoozeDuration(forActionIdentifier: response.actionIdentifier)
+        modalScheduler.snooze(identifier: identifier, duration: duration)
+        userNotificationScheduler.unschedule(identifier: identifier)
     }
 
     func acknowledgeAllOutstanding() {

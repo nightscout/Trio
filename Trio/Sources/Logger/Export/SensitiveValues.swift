@@ -44,6 +44,14 @@ struct SensitiveValues {
             (["backupSessionToken"], .secret),
             (["peripheralIdentifier"], .device)
         ],
+        "TandemPumpManager": [
+            (["pumpState", "pumpSerial"], .pumpSerial),
+            (["pumpState", "pcbSerialNumber"], .pumpSerial),
+            (["pumpState", "peripheralUuid"], .device),
+            (["pumpState", "pincode"], .secret),
+            (["pumpState", "derivedSecret"], .secret),
+            (["pumpState", "serverNonce"], .secret)
+        ],
         "DexG5Transmitter": [(["transmitterID"], .cgmSerial)],
         "DexG6Transmitter": [(["transmitterID"], .cgmSerial)],
         "G7CGMManager": [
@@ -151,6 +159,11 @@ struct SensitiveValues {
                 // Four digits collide with numbers, so match the code only as debugDescription prints it
                 add("\"pairingCode\": \"\(code)\"", .secret)
             }
+        case "TandemPumpManager":
+            // The pump state's debug description prints the pairing secrets as base64
+            let pump = state["pumpState"] as? [String: Any]
+            add((pump?["derivedSecret"] as? Data)?.base64EncodedString(), .secret)
+            add((pump?["serverNonce"] as? Data)?.base64EncodedString(), .secret)
         case "LibreLoopCGMManager":
             // The sensor advertises its MAC without colons; receiver IDs log as a little-endian UInt32
             add((state["bleAddress"] as? String)?.replacingOccurrences(of: ":", with: "").uppercased(), .device)

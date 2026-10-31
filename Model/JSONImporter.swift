@@ -132,8 +132,8 @@ class JSONImporter {
             try backgroundContext.save()
         }
 
-        try await context.perform {
-            try self.context.save()
+        try await context.perform { [context] in
+            try context.save()
         }
     }
 
@@ -229,8 +229,8 @@ class JSONImporter {
             try backgroundContext.save()
         }
 
-        try await context.perform {
-            try self.context.save()
+        try await context.perform { [context] in
+            try context.save()
         }
     }
 
@@ -277,8 +277,8 @@ class JSONImporter {
             try backgroundContext.save()
         }
 
-        try await context.perform {
-            try self.context.save()
+        try await context.perform { [context] in
+            try context.save()
         }
     }
 
@@ -339,8 +339,8 @@ class JSONImporter {
             try backgroundContext.save()
         }
 
-        try await context.perform {
-            try self.context.save()
+        try await context.perform { [context] in
+            try context.save()
         }
     }
 }
@@ -601,55 +601,55 @@ extension Determination: Codable {
     }
 
     func checkForRequiredFields() throws {
-        guard let deliverAt = deliverAt else {
+        guard deliverAt != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("deliverAt")
         }
-        guard let timestamp = timestamp else {
+        guard timestamp != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("timestamp")
         }
         guard reason.isNotEmpty else {
             throw JSONImporterError.invalidDeterminationReason
         }
-        guard let insulinReq = insulinReq else {
+        guard insulinReq != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("insulinReq")
         }
-        guard let currentTarget = current_target else {
+        guard current_target != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("current_target")
         }
-        guard let reservoir = reservoir else {
+        guard reservoir != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("reservoir")
         }
-        guard let threshold = threshold else {
+        guard threshold != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("threshold")
         }
-        guard let iob = iob else {
+        guard iob != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("IOB")
         }
-        guard let isf = isf else {
+        guard isf != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("ISF")
         }
-        guard let cob = cob else {
+        guard cob != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("COB")
         }
-        guard let tdd = tdd else {
+        guard tdd != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("TDD")
         }
-        guard let bg = bg else {
+        guard bg != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("bg")
         }
-        guard let minDelta = minDelta else {
+        guard minDelta != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("minDelta")
         }
-        guard let eventualBG = eventualBG else {
+        guard eventualBG != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("eventualBG")
         }
-        guard let sensitivityRatio = sensitivityRatio else {
+        guard sensitivityRatio != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("sensitivityRatio")
         }
-        guard let temp = temp else {
+        guard temp != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("temp")
         }
-        guard let expectedDelta = expectedDelta else {
+        guard expectedDelta != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("expectedDelta")
         }
     }
