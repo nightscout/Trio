@@ -50,23 +50,6 @@ extension Formatter {
         return formatter
     }()
 
-    static func glucoseFormatter(for units: GlucoseUnits) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.roundingMode = .halfUp
-
-        switch units {
-        case .mmolL:
-            formatter.locale = .current
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        case .mgdL:
-            formatter.maximumFractionDigits = 0
-        }
-
-        return formatter
-    }
-
     static let bolusFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal

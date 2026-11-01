@@ -176,7 +176,7 @@ extension Adjustments.RootView {
                         }
                     }
                     HStack(spacing: 2) {
-                        Text(formattedGlucose(glucose: target as Decimal))
+                        Text((target as Decimal).formatted(withUnits: state.units))
                             .foregroundColor(.secondary)
                             .font(.caption)
                         Text("for")
@@ -216,7 +216,7 @@ extension Adjustments.RootView {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(tempTarget.name ?? ""))
         .accessibilityValue(Text(
-            formattedGlucose(glucose: target as Decimal) + " "
+            (target as Decimal).formatted(withUnits: state.units) + " "
                 + String(localized: "for", comment: "duration connector") + " "
                 + (Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber) ?? "0") + " "
                 + String(localized: "min", comment: "minutes abbreviation")
