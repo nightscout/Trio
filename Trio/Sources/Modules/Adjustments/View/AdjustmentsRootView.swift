@@ -37,17 +37,6 @@ extension Adjustments {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        func formattedGlucose(glucose: Decimal) -> String {
-            let formattedValue: String
-            if state.units == .mgdL {
-                formattedValue = Formatter.glucoseFormatter(for: state.units)
-                    .string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-            } else {
-                formattedValue = glucose.formattedAsMmolL
-            }
-            return "\(formattedValue) \(state.units.rawValue)"
-        }
-
         var body: some View {
             tempTargetDeleteConfirmation(overrideDeleteConfirmation(mainContent))
         }

@@ -1,5 +1,6 @@
 import CoreData
 import Foundation
+import LoopAlgorithm
 import Swinject
 import Testing
 
@@ -57,6 +58,7 @@ import Testing
                 startDate: date,
                 value: units,
                 unit: .units,
+                decisionId: nil,
                 deliveredUnits: deliveredUnits,
                 description: nil,
                 syncIdentifier: syncIdentifier,
@@ -89,6 +91,7 @@ import Testing
                 endDate: end,
                 value: rate,
                 unit: .unitsPerHour,
+                decisionId: nil,
                 deliveredUnits: deliveredUnits,
                 description: nil,
                 syncIdentifier: syncIdentifier,
@@ -594,6 +597,7 @@ import Testing
                 endDate: start.addingTimeInterval(claimedDuration),
                 value: rate,
                 unit: .unitsPerHour,
+                decisionId: nil,
                 deliveredUnits: nil,
                 description: nil,
                 syncIdentifier: syncIdentifier,

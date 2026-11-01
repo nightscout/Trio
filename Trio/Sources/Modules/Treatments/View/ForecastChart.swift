@@ -102,11 +102,9 @@ struct ForecastChart: View {
 
     @ViewBuilder private func eventualGlucoseBadge(for eventualBG: Int) -> some View {
         HStack {
-            Text(
-                state.units == .mgdL ? Decimal(eventualBG).description : eventualBG.formattedAsMmolL
-            )
-            .font(.footnote)
-            .foregroundStyle(.primary)
+            Text(eventualBG.formatted(for: state.units))
+                .font(.footnote)
+                .foregroundStyle(.primary)
             Text("\(state.units.rawValue)")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -206,7 +204,7 @@ struct ForecastChart: View {
     private var forecastChartAccessibilityLabel: String {
         let unitLabel = state.units == .mgdL ? String(localized: "mg/dL") : String(localized: "mmol/L")
         func format(_ value: Int) -> String {
-            state.units == .mgdL ? Decimal(value).description : Decimal(value).formattedAsMmolL
+            value.formatted(for: state.units)
         }
         var parts = [String(localized: "Glucose and forecast chart", comment: "Accessibility: chart summary")]
         if let latest = state.latestGlucose {
@@ -242,20 +240,17 @@ struct ForecastChart: View {
                     glucoseColorScheme: state.glucoseColorScheme
                 )
                 HStack {
-                    Text("CGM: ") + Text(state.units == .mgdL ? Decimal(sgv).description : Decimal(sgv).formattedAsMmolL)
+                    Text("CGM: ") + Text(Decimal(sgv).formatted(for: state.units))
                         .bold()
-                        + Text(" \(state.units.rawValue)")
+                        + Text(" " + state.units.rawValue)
                 }.foregroundStyle(
                     Color(glucoseColor)
                 ).font(.footnote)
 
                 if state.isSmoothingEnabled, let smoothedGlucose = selectedGlucose?.smoothedGlucose {
-                    let smoothedGlucoseToDisplay: Decimal = state.units == .mgdL
-                        ? smoothedGlucose.decimalValue
-                        : smoothedGlucose.decimalValue.asMmolL
                     HStack {
                         Image(systemName: "sparkles")
-                        Text(smoothedGlucoseToDisplay.description) + Text(" \(state.units.rawValue)")
+                        Text(smoothedGlucose.decimalValue.formatted(withUnits: state.units))
                     }.font(.footnote)
                 }
             }

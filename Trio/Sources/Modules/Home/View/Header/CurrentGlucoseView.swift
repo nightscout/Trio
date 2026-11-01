@@ -199,7 +199,7 @@ struct CurrentGlucoseView: View {
         }
         let valueString = glucoseValue == 400
             ? String(localized: "high", comment: "Accessibility: glucose is at the top of the scale")
-            : (units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue).formattedAsMmolL)
+            : Decimal(glucoseValue).formatted(for: units)
         var parts = [String(localized: "Glucose", comment: "Accessibility: glucose label") + " \(valueString) \(units.rawValue)"]
         parts.append(rangeDescription(for: glucoseValue))
         if let trend = trendDescription { parts.append(trend) }
@@ -218,9 +218,7 @@ struct CurrentGlucoseView: View {
     @ViewBuilder private func bobbleContent() -> some View {
         HStack {
             if let glucoseValue = glucose.last?.glucose, isReadingFresh {
-                let displayGlucose = units == .mgdL
-                    ? Decimal(glucoseValue).description
-                    : Decimal(glucoseValue).formattedAsMmolL
+                let displayGlucose = Decimal(glucoseValue).formatted(for: units)
                 Text(glucoseValue == 400 ? "HIGH" : displayGlucose)
                     .font(.system(size: 40, weight: .bold, design: .rounded))
                     .foregroundStyle(glucoseColor(for: glucoseValue))
