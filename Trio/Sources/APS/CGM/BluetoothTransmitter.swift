@@ -51,7 +51,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
 
         super.init()
 
-        debug(.deviceManager, "in initialize, creating centralManager for peripheral with address \(deviceAddress)")
+        debug(.cgm, "Creating Bluetooth central for heartbeat transmitter")
 
         centralManager = CBCentralManager(
             delegate: self,
@@ -69,8 +69,6 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
     // MARK: - De-initialization
 
     deinit {
-        debug(.deviceManager, "deinit called")
-
         // disconnect the device
         disconnect()
     }
@@ -87,12 +85,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
     /// disconnect the device
     func disconnect() {
         if let peripheral = peripheral {
-            var name = "unknown"
-            if let peripheralName = peripheral.name {
-                name = peripheralName
-            }
-
-            debug(.deviceManager, "disconnecting from peripheral with name \(name)")
+            info(.cgm, "Disconnecting heartbeat transmitter")
 
             centralManager!.cancelPeripheralConnection(peripheral)
         }
@@ -100,7 +93,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
 
     /// stops scanning
     func stopScanning() {
-        debug(.deviceManager, "in stopScanning")
+        debug(.cgm, "Stopped scanning for heartbeat transmitter")
 
         centralManager!.stopScan()
     }
@@ -108,17 +101,11 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
     /// calls setNotifyValue for characteristic with value enabled
     func setNotifyValue(_ enabled: Bool, for characteristic: CBCharacteristic) {
         if let peripheral = peripheral {
-            debug(
-                .deviceManager,
-                "setNotifyValue, for peripheral with name \(peripheral.name ?? "'unknown'"), setting notify for characteristic \(characteristic.uuid.uuidString), to \(enabled.description)"
-            )
+            debug(.cgm, "Heartbeat transmitter notify \(enabled) for characteristic \(characteristic.uuid.uuidString)")
             peripheral.setNotifyValue(enabled, for: characteristic)
 
         } else {
-            debug(
-                .deviceManager,
-                "setNotifyValue, for peripheral with name \(peripheral?.name ?? "'unknown'"), failed to set notify for characteristic \(characteristic.uuid.uuidString), to \(enabled.description)"
-            )
+            debug(.cgm, "Heartbeat transmitter notify not set: no peripheral")
         }
     }
 
@@ -127,12 +114,12 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
     /// start bluetooth scanning for device
     fileprivate func startScanning() {
         if centralManager!.state == .poweredOn {
-            debug(.deviceManager, "in startScanning")
+            debug(.cgm, "Scanning for heartbeat transmitter")
 
             centralManager!.scanForPeripherals(withServices: nil, options: nil)
 
         } else {
-            debug(.deviceManager, "in startScanning. Not started, state is not poweredOn")
+            debug(.cgm, "Heartbeat transmitter scan not started: Bluetooth is not powered on")
         }
     }
 
@@ -145,12 +132,12 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         peripheral.delegate = self
 
         if peripheral.state == .disconnected {
-            debug(.deviceManager, "    trying to connect")
+            debug(.cgm, "Connecting to heartbeat transmitter")
 
             centralManager!.connect(peripheral, options: nil)
 
         } else {
-            debug(.deviceManager, "    calling centralManager(newCentralManager, didConnect: peripheral")
+            debug(.cgm, "Heartbeat transmitter already connected")
 
             centralManager(centralManager!, didConnect: peripheral)
         }
@@ -160,18 +147,16 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
     ///
     /// the result of the attempt to try to find such device, is returned
     fileprivate func retrievePeripherals(_ central: CBCentralManager) -> Bool {
-        debug(.deviceManager, "in retrievePeripherals, deviceaddress is \(deviceAddress)")
+        debug(.cgm, "Looking up known heartbeat transmitter")
 
         if let uuid = UUID(uuidString: deviceAddress) {
-            debug(.deviceManager, "    uuid is not nil")
-
             let peripheralArr = central.retrievePeripherals(withIdentifiers: [uuid])
 
             if !peripheralArr.isEmpty {
                 peripheral = peripheralArr[0]
 
                 if let peripheral = peripheral {
-                    debug(.deviceManager, "    trying to connect")
+                    debug(.cgm, "Known heartbeat transmitter found, connecting")
 
                     peripheral.delegate = self
 
@@ -180,14 +165,14 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
                     return true
 
                 } else {
-                    debug(.deviceManager, "     peripheral is nil")
+                    debug(.cgm, "Known heartbeat transmitter missing")
                 }
             } else {
-                debug(.deviceManager, "    uuid is not nil, but central.retrievePeripherals returns 0 peripherals")
+                debug(.cgm, "Known heartbeat transmitter not available, will scan")
             }
 
         } else {
-            debug(.deviceManager, "    uuid is nil")
+            debug(.cgm, "No stored heartbeat transmitter ID, will scan")
         }
 
         return false
@@ -201,50 +186,28 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         advertisementData _: [String: Any],
         rssi _: NSNumber
     ) {
-        // devicename needed unwrapped for logging
-        var deviceName = "unknown"
-        if let temp = peripheral.name {
-            deviceName = temp
-        }
-
-        debug(.deviceManager, "Did discover peripheral with name: \(deviceName)")
-
         // check if stored address not nil, in which case we already connected before and we expect a full match with the already known device name
         if peripheral.identifier.uuidString == deviceAddress {
-            debug(.deviceManager, "    stored address matches peripheral address, will try to connect")
+            debug(.cgm, "Discovered heartbeat transmitter, connecting")
 
             stopScanAndconnect(to: peripheral)
-
-        } else {
-            debug(.deviceManager, "    stored address does not match peripheral address, ignoring this device")
         }
     }
 
     func centralManager(_: CBCentralManager, didConnect peripheral: CBPeripheral) {
-        debug(.deviceManager, "connected to peripheral with name \(peripheral.name ?? "'unknown'")")
+        info(.cgm, "Heartbeat transmitter connected")
 
         peripheral.discoverServices(servicesCBUUIDs)
     }
 
     func centralManager(_: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        if let error = error {
-            debug(
-                .deviceManager,
-                "failed to connect, for peripheral with name \(peripheral.name ?? "'unknown'"), with error: \(error), will try again"
-            )
-
-        } else {
-            debug(.deviceManager, "failed to connect, for peripheral with name \(peripheral.name ?? "'unknown'"), will try again")
-        }
+        warning(.cgm, "Heartbeat transmitter connection failed, retrying", error: error)
 
         centralManager!.connect(peripheral, options: nil)
     }
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        debug(
-            .deviceManager,
-            "in centralManagerDidUpdateState, for peripheral with name \(peripheral?.name ?? "'unknown'"), new state is \(central.state.rawValue)"
-        )
+        debug(.cgm, "Bluetooth state for heartbeat transmitter: \(central.state.rawValue)")
 
         /// in case status changed to powered on and if device address known then try to retrieveperipherals
         if central.state == .poweredOn {
@@ -253,41 +216,38 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         }
     }
 
-    func centralManager(_: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
-        debug(.deviceManager, "    didDisconnect peripheral with name \(peripheral.name ?? "'unknown'")")
+    func centralManager(_: CBCentralManager, didDisconnectPeripheral _: CBPeripheral, error: Error?) {
+        info(.cgm, "Heartbeat transmitter disconnected")
 
         // call heartbeat, useful for Dexcom transmitters, after a disconnect, then there's probably a new reading available
         heartbeat()
 
         if let error = error {
-            debug(.deviceManager, "    error: \(error)")
+            warning(.cgm, "Heartbeat transmitter disconnect reported an error", error: error)
         }
 
         // if self.peripheral == nil, then a manual disconnect or something like that has occured, no need to reconnect
         // otherwise disconnect occurred because of other (like out of range), so let's try to reconnect
-        if let ownPeripheral = self.peripheral {
-            debug(.deviceManager, "    Will try to reconnect")
+        if let ownPeripheral = peripheral {
+            debug(.cgm, "Reconnecting heartbeat transmitter")
 
             centralManager!.connect(ownPeripheral, options: nil)
 
         } else {
-            debug(.deviceManager, "    peripheral is nil, will not try to reconnect")
+            debug(.cgm, "Not reconnecting heartbeat transmitter: disconnected on purpose")
         }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-        debug(.deviceManager, "didDiscoverServices for peripheral with name \(peripheral.name ?? "'unknown'")")
+        debug(.cgm, "Heartbeat transmitter services discovered")
 
         if let error = error {
-            debug(.deviceManager, "    didDiscoverServices error: \(error)")
+            warning(.cgm, "Heartbeat transmitter service discovery failed", error: error)
         }
 
         if let services = peripheral.services {
             for service in services {
-                debug(
-                    .deviceManager,
-                    "    Call discovercharacteristics for service with uuid \(String(describing: service.uuid))"
-                )
+                debug(.cgm, "Discovering characteristics for service \(service.uuid.uuidString)")
                 peripheral.discoverCharacteristics(nil, for: service)
             }
         } else {
@@ -296,21 +256,16 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-        debug(
-            .deviceManager,
-            "didDiscoverCharacteristicsFor for peripheral with name \(peripheral.name ?? "'unknown'"), for service with uuid \(String(describing: service.uuid))"
-        )
+        debug(.cgm, "Characteristics discovered for service \(service.uuid.uuidString)")
 
         if let error = error {
-            debug(.deviceManager, "    didDiscoverCharacteristicsFor error: \(error)")
+            warning(.cgm, "Heartbeat transmitter characteristic discovery failed", error: error)
         }
 
         if let characteristics = service.characteristics {
             for characteristic in characteristics {
-                debug(.deviceManager, "    characteristic: \(String(describing: characteristic.uuid))")
-
                 if characteristic.uuid == CBUUID(string: CBUUID_ReceiveCharacteristic) {
-                    debug(.deviceManager, "    found receiveCharacteristic")
+                    debug(.cgm, "Heartbeat transmitter receive characteristic found")
 
                     receiveCharacteristic = characteristic
 
@@ -319,21 +274,22 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
             }
 
         } else {
-            debug(.deviceManager, "    Did discover characteristics, but no characteristics listed. There must be some error.")
+            warning(.cgm, "Heartbeat transmitter service has no characteristics")
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+    func peripheral(_: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
-            debug(
-                .deviceManager,
-                "didUpdateNotificationStateFor for peripheral with name \(peripheral.name ?? "'unkonwn'"), characteristic \(String(describing: characteristic.uuid)), error =  \(error)"
+            warning(
+                .cgm,
+                "Heartbeat transmitter notify update failed for characteristic \(characteristic.uuid.uuidString)",
+                error: error
             )
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor _: CBCharacteristic, error _: Error?) {
-        debug(.deviceManager, "didUpdateValueFor for peripheral with name \(peripheral.name ?? "'unknown'")")
+    func peripheral(_: CBPeripheral, didUpdateValueFor _: CBCharacteristic, error _: Error?) {
+        debug(.cgm, "Heartbeat transmitter sent data")
 
         // call heartbeat
         heartbeat()
@@ -347,7 +303,7 @@ class BluetoothTransmitter: NSObject, CBCentralManagerDelegate, CBPeripheralDele
         // even if it's an empty function
         // trace is called here because it allows us to see in the issue reports if there was a restart after app crash or removed from memory - in all other cases (force closed by user) this function is not called
 
-        debug(.deviceManager, "in willRestoreState")
+        debug(.cgm, "Bluetooth state restored for heartbeat transmitter")
     }
 }
 

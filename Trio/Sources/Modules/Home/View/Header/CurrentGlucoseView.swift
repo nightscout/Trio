@@ -34,21 +34,6 @@ struct CurrentGlucoseView: View {
 
     @Environment(\.colorScheme) var colorScheme
 
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        if units == .mmolL {
-            formatter.maximumFractionDigits = 1
-            formatter.minimumFractionDigits = 1
-            formatter.roundingMode = .halfUp
-        } else {
-            formatter.maximumFractionDigits = 0
-        }
-        formatter.positivePrefix = "  +"
-        formatter.negativePrefix = "  -"
-        return formatter
-    }
-
     var body: some View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
@@ -165,14 +150,9 @@ struct CurrentGlucoseView: View {
             return "--"
         }
 
-        var lastGlucose = Decimal(glucose.last?.glucose ?? 0)
-        var secondLastGlucose = Decimal(glucose.first?.glucose ?? 0)
-        if units == .mmolL {
-            lastGlucose = lastGlucose.asMmolL
-            secondLastGlucose = secondLastGlucose.asMmolL
-        }
-        let delta = lastGlucose - secondLastGlucose
-        return deltaFormatter.string(from: delta as NSNumber) ?? "--"
+        let lastGlucose = Decimal(glucose.last?.glucose ?? 0)
+        let secondLastGlucose = Decimal(glucose.first?.glucose ?? 0)
+        return (lastGlucose - secondLastGlucose).formattedDelta(for: units)
     }
 
     /// Spoken trend from the CGM direction arrow (which is otherwise image-only).

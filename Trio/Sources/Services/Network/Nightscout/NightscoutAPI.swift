@@ -100,7 +100,7 @@ extension NightscoutAPI {
                 return reading
             }
         } catch {
-            warning(.nightscout, "Glucose fetching error: \(error)")
+            warning(.nightscout, "Glucose fetch failed", error: error)
             return []
         }
     }
@@ -143,18 +143,13 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
 
-            guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
-                throw URLError(.badServerResponse)
-            }
-            let carbs = try JSONCoding.decoder.decode([CarbsEntry].self, from: data)
-            return carbs
-        } catch {
-            warning(.nightscout, "Carbs fetching error: \(error)")
-            throw error
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
         }
+        let carbs = try JSONCoding.decoder.decode([CarbsEntry].self, from: data)
+        return carbs
     }
 
     func deleteCarbs(withId id: String) async throws {
@@ -280,19 +275,14 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
 
-            guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
-                throw URLError(.badServerResponse)
-            }
-
-            let tempTargets = try JSONCoding.decoder.decode([TempTarget].self, from: data)
-            return tempTargets
-        } catch {
-            warning(.nightscout, "TempTarget fetching error: \(error)")
-            throw error
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
         }
+
+        let tempTargets = try JSONCoding.decoder.decode([TempTarget].self, from: data)
+        return tempTargets
     }
 
     func uploadTreatments(_ treatments: [NightscoutTreatment]) async throws {
@@ -320,7 +310,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload treatments size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error)")
+            debug(.nightscout, "Encoding treatments for upload failed")
             throw error
         }
         request.httpMethod = "POST"
@@ -355,7 +345,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error)")
+            debug(.nightscout, "Encoding glucose for upload failed")
             throw error
         }
         request.httpMethod = "POST"
@@ -391,7 +381,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload status size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error)")
+            debug(.nightscout, "Encoding device status for upload failed")
             throw error
         }
 
@@ -429,7 +419,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload profile upload size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error)")
+            debug(.nightscout, "Encoding profile for upload failed")
             throw error
         }
         request.httpMethod = "POST"
@@ -469,7 +459,7 @@ extension NightscoutAPI {
         if let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) {
         } else {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-            debug(.nightscout, "Failed to delete override with created_at: \(createdAt). HTTP status code: \(statusCode)")
+            debug(.nightscout, "Override deletion failed with HTTP \(statusCode)")
             throw URLError(.badServerResponse)
         }
     }
@@ -494,7 +484,7 @@ extension NightscoutAPI {
 //            debugPrint("Payload glucose size: \(encodedBody.count) bytes")
 //            debugPrint(String(data: encodedBody, encoding: .utf8) ?? "Invalid payload")
         } catch {
-            debugPrint("Error encoding payload: \(error)")
+            debug(.nightscout, "Encoding overrides for upload failed")
             throw error
         }
         request.httpMethod = "POST"
@@ -528,31 +518,26 @@ extension NightscoutAPI {
             request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
         }
 
-        do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
-                throw URLError(.badServerResponse)
-            }
-
-            guard let mimeType = httpResponse.mimeType, mimeType == "application/json" else {
-                throw URLError(.unsupportedURL)
-            }
-
-            let jsonDecoder = JSONCoding.decoder
-            let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
-            guard let fetchedProfile = fetchedProfileStore.first?.store["default"] else {
-                throw NSError(
-                    domain: "ImportError",
-                    code: 1,
-                    userInfo: [NSLocalizedDescriptionKey: "Can't find the default Nightscout Profile."]
-                )
-            }
-
-            return fetchedProfile
-        } catch {
-            warning(.nightscout, "Could not fetch Nightscout Profile! Error: \(error)")
-            throw error
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
         }
+
+        guard let mimeType = httpResponse.mimeType, mimeType == "application/json" else {
+            throw URLError(.unsupportedURL)
+        }
+
+        let jsonDecoder = JSONCoding.decoder
+        let fetchedProfileStore = try jsonDecoder.decode([FetchedNightscoutProfileStore].self, from: data)
+        guard let fetchedProfile = fetchedProfileStore.first?.store["default"] else {
+            throw NSError(
+                domain: "ImportError",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Can't find the default Nightscout Profile."]
+            )
+        }
+
+        return fetchedProfile
     }
 }
 

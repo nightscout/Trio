@@ -31,6 +31,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var overridesStorage: OverrideStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
+    @Injected() private var pumpStatusStorage: PumpStatusStorage!
     @Injected() private var storage: FileStorage!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
@@ -69,7 +70,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         case .glucose: await performUploadGlucose()
         case .deviceStatus:
             do { try await performUploadDeviceStatus() }
-            catch { debug(.nightscout, "deviceStatus upload failed: \(error)") }
+            catch { warning(.nightscout, "Device status upload failed", error: error) }
         }
     }
 
@@ -289,17 +290,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 self.lastEnactedDetermination = await determinationStorage
                     .getOrefDeterminationNotYetUploadedToNightscout(lastEnactedDeterminationID)
             } catch {
-                debug(
-                    .default,
-                    "\(DebuggingIdentifiers.failed) failed to fetch last enacted determination: \(error)"
-                )
+                warning(.storage, "Failed to fetch last enacted determination", error: error)
             }
         }
     }
 
     private func subscribe() {
         _ = reachabilityManager.startListening(onQueue: processQueue) { status in
-            debug(.nightscout, "Network status: \(status)")
+            debug(.nightscout, "Network reachability changed: \(status)")
         }
     }
 
@@ -380,7 +378,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             }
             return glucose
         } catch {
-            print(error.localizedDescription)
+            warning(.nightscout, "Glucose fetch failed", error: error)
             return []
         }
     }
@@ -417,7 +415,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             let carbs = try await nightscout.fetchCarbs(sinceDate: since)
             return carbs
         } catch {
-            debug(.nightscout, "Error fetching carbs: \(error)")
+            warning(.nightscout, "Carbs fetch failed", error: error)
             return []
         }
     }
@@ -432,7 +430,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             let tempTargets = try await nightscout.fetchTempTargets(sinceDate: since)
             return tempTargets
         } catch {
-            debug(.nightscout, "Error fetching temp targets: \(error)")
+            warning(.nightscout, "Temp targets fetch failed", error: error)
             return []
         }
     }
@@ -442,13 +440,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         do {
             try await nightscout.deleteCarbs(withId: id)
-            debug(.nightscout, "Carbs deleted")
+            debug(.nightscout, "Carb entry deleted")
             return true
         } catch {
-            debug(
-                .nightscout,
-                "\(DebuggingIdentifiers.failed) Failed to delete Carbs from Nightscout with error: \(error)"
-            )
+            warning(.nightscout, "Carb entry deletion failed", error: error)
             return false
         }
     }
@@ -458,12 +453,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         do {
             try await nightscout.deleteInsulin(withId: id)
-            debug(.nightscout, "Insulin deleted")
+            debug(.nightscout, "Insulin entry deleted")
         } catch {
-            debug(
-                .nightscout,
-                "\(DebuggingIdentifiers.failed) Failed to delete Insulin from Nightscout with error: \(error)"
-            )
+            warning(.nightscout, "Insulin entry deletion failed", error: error)
         }
     }
 
@@ -472,12 +464,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         do {
             try await nightscout.deleteGlucose(withId: id, withDate: date)
-            debug(.nightscout, "Glucose deleted")
+            debug(.nightscout, "Glucose entry deleted")
         } catch {
-            debug(
-                .nightscout,
-                "\(DebuggingIdentifiers.failed) Failed to delete Glucose from Nightscout with error: \(error)"
-            )
+            warning(.nightscout, "Glucose entry deletion failed", error: error)
         }
     }
 
@@ -494,9 +483,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     let display: Bool? = last.display
 
                     if let status {
-                        debugPrint(
-                            "NightscoutManager: \(#function) \(DebuggingIdentifiers.succeeded) setup battery from core data successfully"
-                        )
                         return Battery(
                             percent: percent,
                             voltage: voltage,
@@ -505,17 +491,48 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                         )
                     }
                 }
-                debugPrint(
-                    "NightscoutManager: \(#function) \(DebuggingIdentifiers.succeeded) successfully fetched; but no battery data available. Returning fallback default."
-                )
+                debug(.storage, "No pump battery data from the last 30 min")
                 return Battery(percent: nil, voltage: nil, string: BatteryState.error, display: nil)
             } catch {
-                debugPrint(
-                    "NightscoutManager: \(#function) \(DebuggingIdentifiers.failed) failed to setup battery from core data"
-                )
+                warning(.storage, "Pump battery fetch failed", error: error)
                 return Battery(percent: nil, voltage: nil, string: BatteryState.error, display: nil)
             }
         }
+    }
+
+    /// The pump status at upload time, read from the pump manager, or the last stored status without one.
+    private func pumpStatusForUpload() async -> PumpStatus? {
+        guard let liveStatus = apsManager.pumpManager?.status else {
+            return await pumpStatusStorage.lastPumpStatus()
+        }
+        let deliveryState = PumpStatusStored.DeliveryState(liveStatus.basalDeliveryState)
+        let pumpStatus = PumpStatus(deliveryState: deliveryState, bolusing: liveStatus.bolusState != .noBolus, timestamp: Date())
+        // The suspend lookback applies to delivery active since a real date.
+        guard deliveryState == .active, case let .active(deliveryActiveSince) = liveStatus.basalDeliveryState else {
+            return pumpStatus
+        }
+
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "pumpStatusForUpload"
+        let eventTypes: [PumpEventStored.EventType] = [.pumpSuspend, .pumpResume, .tempBasal, .bolus]
+        let predicate = NSPredicate(
+            format: "timestamp >= %@ AND type IN %@ AND \(NSPredicate.notScheduledBasal) AND (bolus == nil OR bolus.isExternal == NO)",
+            Date.oneDayAgo as NSDate,
+            eventTypes.map(\.rawValue)
+        )
+        let lastEvent: (type: String, date: Date)? = await context.perform {
+            do {
+                let request = PumpEventStored.fetch(predicate, ascending: false, fetchLimit: 1)
+                guard let event = try context.fetch(request).first, let type = event.type, let date = event.timestamp
+                else { return nil }
+                return (type, date)
+            } catch {
+                warning(.storage, "Pump event fetch for the upload status failed", error: error)
+                return nil
+            }
+        }
+
+        return pumpStatus.includingSuspend(deliveryActiveSince: deliveryActiveSince, lastPumpEvent: lastEvent)
     }
 
     /// Asynchronously uploads the current status to Nightscout, including OpenAPS status, pump status, and uploader details.
@@ -537,7 +554,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     /// - Note: Ensure `nightscoutAPI` is initialized and `isUploadEnabled` is set to `true` before invoking this function.
     private func performUploadDeviceStatus() async throws {
         guard let nightscout = nightscoutAPI, isUploadEnabled else {
-            debug(.nightscout, "NS API not available or upload disabled. Aborting NS Status upload.")
+            debug(.nightscout, "Device status upload skipped: Nightscout not set up or upload disabled")
             return
         }
 
@@ -566,7 +583,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         async let fetchedBattery = fetchBattery()
         async let fetchedReservoir = Decimal(from: storage.retrieveRawAsync(OpenAPS.Monitor.reservoir) ?? "0")
         async let fetchedIOBEntry = storage.retrieveAsync(OpenAPS.Monitor.iob, as: [IOBEntry].self)
-        async let fetchedPumpStatus = storage.retrieveAsync(OpenAPS.Monitor.status, as: PumpStatus.self)
+        async let fetchedPumpStatus = pumpStatusForUpload()
 
         var (fetchedEnactedDetermination, fetchedSuggestedDetermination) = try await (
             determinationStorage.getOrefDeterminationNotYetUploadedToNightscout(enactedDeterminationID),
@@ -575,10 +592,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         // Guard to ensure both determinations are not nil
         guard fetchedEnactedDetermination != nil || fetchedSuggestedDetermination != nil else {
-            debug(
-                .nightscout,
-                "Both fetchedEnactedDetermination and fetchedSuggestedDetermination are nil. Aborting NS Status upload."
-            )
+            debug(.nightscout, "Device status upload skipped: no new determination")
             return
         }
 
@@ -660,10 +674,14 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             enacted: settingsManager.settings.dosingMode.automation != .off ? enactedToUpload : nil,
             version: Bundle.main.releaseVersionNumber ?? "Unknown",
             recommendedBolus: recommendedBolus,
-            dosingMode: settingsManager.settings.dosingMode.rawValue
+            dosingMode: settingsManager.settings.dosingMode.rawValue,
+            iobForecast: iob.flatMap { $0.count > 1 ? NightscoutIOBForecast($0) : nil }
         )
 
-        debug(.nightscout, "To be uploaded openapsStatus: \(openapsStatus)")
+        debug(
+            .nightscout,
+            "Device status ready: enacted \(openapsStatus.enacted != nil), suggested \(openapsStatus.suggested != nil), recommended bolus \(recommendedBolus) U"
+        )
 
         // Gather all relevant data for NS Status
         let battery = await fetchedBattery
@@ -693,16 +711,16 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
         do {
             try await nightscout.uploadDeviceStatus(status)
-            debug(.nightscout, "NSDeviceStatus with Determination uploaded")
+            info(.nightscout, "Device status uploaded")
 
             if let enacted = fetchedEnactedDetermination {
                 await updateOrefDeterminationAsUploaded([enacted])
-                debug(.nightscout, "Flagged last fetched enacted determination as uploaded")
+                debug(.nightscout, "Enacted determination marked as uploaded")
             }
 
             if let suggested = fetchedSuggestedDetermination {
                 await updateOrefDeterminationAsUploaded([suggested])
-                debug(.nightscout, "Flagged last fetched suggested determination as uploaded")
+                debug(.nightscout, "Suggested determination marked as uploaded")
             }
 
             if let lastEnactedDetermination = fetchedEnactedDetermination {
@@ -713,7 +731,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 self.lastSuggestedDetermination = lastSuggestedDetermination
             }
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Device status upload failed", error: error)
         }
     }
 
@@ -734,9 +752,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark determinations as uploaded to Nightscout", error: error)
             }
         }
     }
@@ -748,20 +764,20 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     OpenAPS.Settings.insulinSensitivities,
                     as: InsulinSensitivities.self
                 ) else {
-                    debug(.nightscout, "NightscoutManager uploadProfile: error loading insulinSensitivities")
+                    warning(.nightscout, "Profile upload skipped: insulin sensitivities could not be loaded")
                     return
                 }
                 guard let targets = await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self) else {
-                    debug(.nightscout, "NightscoutManager uploadProfile: error loading bgTargets")
+                    warning(.nightscout, "Profile upload skipped: glucose targets could not be loaded")
                     return
                 }
                 guard let carbRatios = await storage.retrieveAsync(OpenAPS.Settings.carbRatios, as: CarbRatios.self) else {
-                    debug(.nightscout, "NightscoutManager uploadProfile: error loading carbRatios")
+                    warning(.nightscout, "Profile upload skipped: carb ratios could not be loaded")
                     return
                 }
                 guard let basalProfile = await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
                 else {
-                    debug(.nightscout, "NightscoutManager uploadProfile: error loading basalProfile")
+                    warning(.nightscout, "Profile upload skipped: basal profile could not be loaded")
                     return
                 }
 
@@ -863,9 +879,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
                     if !isNetworkReachable {
-                        debug(.nightscout, "Network issues; aborting upload")
+                        debug(.nightscout, "Profile upload skipped: network unreachable")
+                    } else {
+                        debug(.nightscout, "Profile upload skipped: Nightscout not set up")
                     }
-                    debug(.nightscout, "Nightscout API service not available; aborting upload")
                     return
                 }
 
@@ -874,26 +891,26 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 BuildDetails.shared.recordUploadedExpireDate(expireDate: expireDate)
                 BuildDetails.shared.recordUploadedRemoteCommands(remoteCommands)
 
-                debug(.nightscout, "Profile uploaded")
+                info(.nightscout, "Profile uploaded")
             } catch {
-                debug(.nightscout, "NightscoutManager uploadProfile: \(error)")
+                warning(.nightscout, "Profile upload failed", error: error)
                 throw error
             }
         } else {
-            debug(.nightscout, "Upload to NS disabled; aborting profile uploaded")
+            debug(.nightscout, "Profile upload skipped: upload disabled")
         }
     }
 
     func importSettings() async -> ScheduledNightscoutProfile? {
         guard let nightscout = nightscoutAPI else {
-            debug(.nightscout, "NS API not available. Aborting NS Status upload.")
+            debug(.nightscout, "Settings import skipped: Nightscout not set up")
             return nil
         }
 
         do {
             return try await nightscout.importSettings()
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Settings import failed", error: error)
             return nil
         }
     }
@@ -903,10 +920,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             try await uploadGlucose(glucoseStorage.getGlucoseNotYetUploadedToNightscout())
             try await uploadNonCoreDataTreatments(glucoseStorage.getCGMStateNotYetUploadedToNightscout())
         } catch {
-            debug(
-                .nightscout,
-                "\(DebuggingIdentifiers.failed) failed to upload glucose with error: \(error)"
-            )
+            warning(.nightscout, "Failed to load pending glucose for upload", error: error)
         }
     }
 
@@ -914,10 +928,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         do {
             try await uploadPumpHistory(pumpHistoryStorage.getPumpHistoryNotYetUploadedToNightscout())
         } catch {
-            debug(
-                .nightscout,
-                "\(DebuggingIdentifiers.failed) failed to upload pump history with error: \(error)"
-            )
+            warning(.nightscout, "Failed to load pending pump history for upload", error: error)
         }
     }
 
@@ -930,10 +941,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             try await uploadCarbs(carbsStorage.getCarbsNotYetUploadedToNightscout())
             try await uploadCarbs(carbsStorage.getFPUsNotYetUploadedToNightscout())
         } catch {
-            debug(
-                .nightscout,
-                "\(DebuggingIdentifiers.failed) failed to upload carbs with error: \(error)"
-            )
+            warning(.nightscout, "Failed to load pending carbs for upload", error: error)
         }
     }
 
@@ -946,10 +954,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             try await uploadOverrides(overridesStorage.getOverridesNotYetUploadedToNightscout())
             try await uploadOverrideRuns(overridesStorage.getOverrideRunsNotYetUploadedToNightscout())
         } catch {
-            debug(
-                .nightscout,
-                "\(DebuggingIdentifiers.failed) failed to upload overrides with error: \(error)"
-            )
+            warning(.nightscout, "Failed to load pending overrides for upload", error: error)
         }
     }
 
@@ -962,10 +967,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             try await uploadTempTargets(await tempTargetsStorage.getTempTargetsNotYetUploadedToNightscout())
             try await uploadTempTargetRuns(await tempTargetsStorage.getTempTargetRunsNotYetUploadedToNightscout())
         } catch {
-            debug(
-                .nightscout,
-                "\(DebuggingIdentifiers.failed) failed to upload temp targets with error: \(error)"
-            )
+            warning(.nightscout, "Failed to load pending temp targets for upload", error: error)
         }
     }
 
@@ -983,9 +985,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             // If successful, update the isUploadedToNS property of the GlucoseStored objects
             await updateGlucoseAsUploaded(glucose)
 
-            debug(.nightscout, "Glucose uploaded")
+            info(.nightscout, "Uploaded \(glucose.count) glucose values")
         } catch {
-            debug(.nightscout, "Upload of glucose failed: \(error)")
+            warning(.nightscout, "Upload of \(glucose.count) glucose values failed", error: error)
         }
     }
 
@@ -1006,9 +1008,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark glucose as uploaded to Nightscout", error: error)
             }
         }
     }
@@ -1024,10 +1024,10 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 try await nightscout.uploadTreatments(Array(chunk))
             }
 
-            debug(.nightscout, "Treatments uploaded")
+            info(.nightscout, "Uploaded \(treatments.count) treatments")
             return true
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Upload of \(treatments.count) treatments failed", error: error)
             return false
         }
     }
@@ -1044,9 +1044,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             await updatePumpEventStoredsAsUploaded(treatments)
 
-            debug(.nightscout, "Treatments uploaded")
+            info(.nightscout, "Uploaded \(treatments.count) pump events")
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Upload of \(treatments.count) pump events failed", error: error)
         }
     }
 
@@ -1079,9 +1079,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark pump events as uploaded to Nightscout", error: error)
             }
         }
     }
@@ -1091,6 +1089,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         switch event.type {
         case PumpEventStored.EventType.bolus.rawValue:
             return treatment.insulin == event.bolus?.amount as Decimal?
+                && (treatment.isProgrammedByPumpUI ?? false) == (event.bolus?.isProgrammedByPumpUI ?? false)
         case PumpEventStored.EventType.tempBasal.rawValue:
             return treatment.rate == event.tempBasal?.rate as Decimal?
                 && treatment.duration == Int(event.tempBasal?.duration ?? 0)
@@ -1112,9 +1111,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             // If successful, update the isUploadedToNS property of the CarbEntryStored objects
             await updateCarbsAsUploaded(treatments)
 
-            debug(.nightscout, "Treatments uploaded")
+            info(.nightscout, "Uploaded \(treatments.count) carb entries")
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Upload of \(treatments.count) carb entries failed", error: error)
         }
     }
 
@@ -1135,9 +1134,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark carb entries as uploaded to Nightscout", error: error)
             }
         }
     }
@@ -1173,9 +1170,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             // If successful, update the isUploadedToNS property of the OverrideStored objects
             await updateOverridesAsUploaded(processedOverrides)
 
-            debug(.nightscout, "Overrides uploaded")
+            info(.nightscout, "Uploaded \(processedOverrides.count) overrides")
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Upload of \(overrides.count) overrides failed", error: error)
         }
     }
 
@@ -1196,9 +1193,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark overrides as uploaded to Nightscout", error: error)
             }
         }
     }
@@ -1231,9 +1226,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             // If successful, update the isUploadedToNS property of the OverrideRunStored objects
             await updateOverrideRunsAsUploaded(overrideRuns)
 
-            debug(.nightscout, "Overrides uploaded")
+            info(.nightscout, "Uploaded \(processedOverrideRuns.count) override runs")
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Upload of \(overrideRuns.count) override runs failed", error: error)
         }
     }
 
@@ -1254,9 +1249,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark override runs as uploaded to Nightscout", error: error)
             }
         }
     }
@@ -1274,9 +1267,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             // If successful, update the isUploadedToNS property of the TempTargetStored objects
             await updateTempTargetsAsUploaded(tempTargets)
 
-            debug(.nightscout, "Temp Targets uploaded")
+            info(.nightscout, "Uploaded \(tempTargets.count) temp targets")
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Upload of \(tempTargets.count) temp targets failed", error: error)
         }
     }
 
@@ -1297,9 +1290,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS for TempTargetStored: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark temp targets as uploaded to Nightscout", error: error)
             }
         }
     }
@@ -1317,9 +1308,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             // If successful, update the isUploadedToNS property of the TempTargetRunStored objects
             await updateTempTargetRunsAsUploaded(tempTargetRuns)
 
-            debug(.nightscout, "Temp Target Runs uploaded")
+            info(.nightscout, "Uploaded \(tempTargetRuns.count) temp target runs")
         } catch {
-            debug(.nightscout, String(describing: error))
+            warning(.nightscout, "Upload of \(tempTargetRuns.count) temp target runs failed", error: error)
         }
     }
 
@@ -1340,9 +1331,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToNS for TempTargetRunStored: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark temp target runs as uploaded to Nightscout", error: error)
             }
         }
     }

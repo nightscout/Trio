@@ -1,13 +1,10 @@
 import AudioToolbox
 import AVFoundation
 import MediaPlayer
-import os.log
 import UIKit
 
 @MainActor
 final class CriticalAlertAudioPlayer {
-    private let log = OSLog(subsystem: "org.nightscout.Trio", category: "CriticalAlertAudioPlayer")
-
     private var player: AVAudioPlayer?
     private var vibrationTimer: Timer?
 
@@ -37,12 +34,7 @@ final class CriticalAlertAudioPlayer {
         let url = Bundle.main.url(forResource: resource, withExtension: ext)
             ?? Bundle.main.url(forResource: "critical", withExtension: "caf")
         guard let url else {
-            os_log(
-                "Neither %{public}@ nor critical.caf found in main bundle; audio fallback unavailable",
-                log: log,
-                type: .error,
-                soundName
-            )
+            error(.alerts, "Critical alert sound \(soundName) and fallback sound missing, audio fallback unavailable")
             return
         }
 
@@ -65,14 +57,14 @@ final class CriticalAlertAudioPlayer {
             p.volume = 1.0
             p.prepareToPlay()
             guard p.play() else {
-                os_log("AVAudioPlayer.play() returned false for %{public}@", log: log, type: .error, url.lastPathComponent)
+                error(.alerts, "Critical alert audio did not start for \(url.lastPathComponent)")
                 try? session.setActive(false, options: [.notifyOthersOnDeactivation])
                 return
             }
             player = p
-            os_log("Started critical-alert audio playback (duration=%{public}.2fs)", log: log, type: .info, p.duration)
-        } catch {
-            os_log("Failed to start audio playback: %{public}@", log: log, type: .error, String(describing: error))
+            info(.alerts, "Critical alert audio started, sound length \(String(format: "%.2f", p.duration)) s")
+        } catch let playbackError {
+            error(.alerts, "Critical alert audio playback failed", error: playbackError)
         }
     }
 
@@ -92,7 +84,7 @@ final class CriticalAlertAudioPlayer {
         vibrationTimer = nil
         volumeBooster.restore()
         try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-        os_log("Stopped critical-alert audio playback", log: log, type: .info)
+        debug(.alerts, "Critical alert audio stopped")
     }
 }
 

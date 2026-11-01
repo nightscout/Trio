@@ -8,6 +8,7 @@ final class StorageAssembly: Assembly {
         }
         container.register(FileStorage.self) { _ in BaseFileStorage() }
         container.register(PumpHistoryStorage.self) { r in BasePumpHistoryStorage(resolver: r) }
+        container.register(PumpStatusStorage.self) { r in BasePumpStatusStorage(resolver: r) }
         container.register(OverrideStorage.self) { r in BaseOverrideStorage(resolver: r) }
         container.register(DeterminationStorage.self) { r in BaseDeterminationStorage(resolver: r) }
         container.register(TDDStorage.self) { r in BaseTDDStorage(resolver: r) }

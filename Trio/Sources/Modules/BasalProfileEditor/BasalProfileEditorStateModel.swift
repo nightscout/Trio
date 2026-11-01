@@ -111,6 +111,7 @@ extension BasalProfileEditor {
                     self.syncInProgress = false
                     switch completion {
                     case .finished:
+                        info(.settings, "Basal profile saved with \(profile.count) entries")
                         // Successfully saved and synced
                         self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
@@ -122,23 +123,22 @@ extension BasalProfileEditor {
 
                         Task.detached(priority: .low) {
                             do {
-                                debug(.nightscout, "Attempting to upload basal rates to Nightscout")
                                 try await self.nightscout.uploadProfiles()
                             } catch {
-                                debug(.default, "Failed to upload basal rates to Nightscout: \(error)")
+                                warning(.nightscout, "Uploading profile after basal change failed", error: error)
                             }
                         }
 
                         Task.detached(priority: .low) {
                             await self.tidepoolManager.uploadSettings()
                         }
-                    case .failure:
+                    case let .failure(saveError):
+                        error(.settings, "Saving basal profile failed", error: saveError)
                         // Handle the error, show error message
                         self.showAlert = true
                     }
                 } receiveValue: {
                     // Handle any successful value if needed
-                    print("We were successful")
                 }
                 .store(in: &lifetime)
         }

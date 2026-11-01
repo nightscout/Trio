@@ -17,7 +17,7 @@ extension History.StateModel {
                 try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: isFpuOrComplexMeal)
 
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete carbs: \(error)")
+                warning(.treatments, "Deleting meal failed", error: error)
                 await MainActor.run {
                     carbEntryDeleted = false
                     waitForSuggestion = false
@@ -37,9 +37,10 @@ extension History.StateModel {
             _ = try await carbEntryMutationService.deleteMeal(rootObjectID: rootObjectID)
         } catch let error as CarbEntryMutationError {
             // Rows without a resolvable meal root are removed locally only, so they leave COB.
-            debug(.default, "\(DebuggingIdentifiers.failed) Meal root unavailable (\(error)), deleting local rows only")
+            warning(.treatments, "Meal root not found, deleting local entries only", error: error)
             await carbsStorage.deleteCarbsEntryStored(treatmentObjectID)
         }
+        info(.treatments, "Meal deleted")
 
         try await apsManager.determineBasalSync()
     }

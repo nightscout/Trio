@@ -44,6 +44,7 @@ extension CGMSettings {
         @Injected() var broadcaster: Broadcaster!
         @Injected() var nightscoutManager: NightscoutManager!
         @Injected() var bluetoothManager: BluetoothStateManager!
+        @Injected() var logExport: LogExport!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var shouldDisplayCGMSetupSheet: Bool = false
@@ -154,7 +155,7 @@ extension CGMSettings.StateModel: CompletionDelegate {
 extension CGMSettings.StateModel: CGMManagerOnboardingDelegate {
     func cgmManagerOnboarding(didCreateCGMManager manager: LoopKitUI.CGMManagerUI) {
         // cgmCurrent should have been set in addCGM
-        debug(.service, "didCreateCGMManager called \(cgmCurrent)")
+        info(.cgm, "CGM \(cgmCurrent.displayName) added")
         settingsManager.settings.cgm = cgmCurrent.type
         settingsManager.settings.cgmPluginIdentifier = cgmCurrent.id
         fetchGlucoseManager.updateGlucoseSource(

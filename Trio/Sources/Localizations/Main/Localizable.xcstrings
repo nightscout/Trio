@@ -1089,6 +1089,180 @@
         }
       }
     },
+    "%lld of %lld characters" : {
+
+    },
+    "Add Screenshots" : {
+
+    },
+    "Also Sent" : {
+
+    },
+    "Ask on Discord" : {
+
+    },
+    "Ask on Facebook" : {
+
+    },
+    "Attach My Logs" : {
+
+    },
+    "Build" : {
+
+    },
+    "Change Screenshots" : {
+
+    },
+    "Contact" : {
+
+    },
+    "Copy ID" : {
+
+    },
+    "Couldn't Delete Report" : {
+
+    },
+    "Couldn't Send Report" : {
+
+    },
+    "Delete Report" : {
+
+    },
+    "Delete Report?" : {
+
+    },
+    "Deleting" : {
+
+    },
+    "Deleting a report removes it and its files from the Trio team's server." : {
+
+    },
+    "Describe what happened and what you expected" : {
+
+    },
+    "Discord Name" : {
+
+    },
+    "Email" : {
+
+    },
+    "Fill in any of these so the team can follow up with you." : {
+
+    },
+    "Get help from other Trio users." : {
+
+    },
+    "GitHub Username" : {
+
+    },
+    "Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed." : {
+
+    },
+    "iOS Version" : {
+
+    },
+    "iPhone Model" : {
+
+    },
+    "One of the screenshots couldn't be read. Try choosing it again or leave it out." : {
+
+    },
+    "Open a GitHub Issue" : {
+
+    },
+    "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it." : {
+
+    },
+    "Public. Only for bugs you can describe without personal or health data." : {
+
+    },
+    "Report %@ and its files will be deleted from the Trio team's server." : {
+
+    },
+    "Report a Problem" : {
+
+    },
+    "Report Actions" : {
+
+    },
+    "Report Sent" : {
+
+    },
+    "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time." : {
+
+    },
+    "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed." : {
+
+    },
+    "Screenshot %lld" : {
+
+    },
+    "Screenshots" : {
+
+    },
+    "Send to the Trio Team" : {
+
+    },
+    "Sending" : {
+
+    },
+    "Some files didn't reach the Trio team's server. Please try again." : {
+
+    },
+    "Sending Report" : {
+
+    },
+    "Sent Reports" : {
+
+    },
+    "Stay Anonymous" : {
+
+    },
+    "Submit" : {
+
+    },
+    "Thank you. Your report ID is %@. Mention it if you ask about this on Discord or Facebook." : {
+
+    },
+    "The report is too large. Try fewer or smaller screenshots." : {
+
+    },
+    "The report won't include your name or contact details." : {
+
+    },
+    "The Trio team's server couldn't take the report right now (error %lld)." : {
+
+    },
+    "The Trio team's server sent an answer the app doesn't understand." : {
+
+    },
+    "This build of Trio can't send reports. Please share your logs on Discord or Facebook instead." : {
+
+    },
+    "Title (optional)" : {
+
+    },
+    "Trio couldn't confirm with Apple that this copy of the app is genuine. Please try again later." : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Up to %lld screenshots or photos." : {
+
+    },
+    "You've sent several reports today. Please try again tomorrow." : {
+
+    },
+    "Your Logs" : {
+
+    },
+    "Your logs are too large to send. Turn off Attach My Logs and share them on Discord or Facebook instead." : {
+
+    },
+    "Your logs couldn't be prepared. Try again, or turn off Attach My Logs." : {
+
+    },
     "Choose the preferred lower threshold for Time in Range statistics." : {
       "comment" : "Short description of the lower range threshold setting.",
       "localizations" : {
@@ -42199,6 +42373,9 @@
         }
       }
     },
+    "All Logs" : {
+
+    },
     "All Past Days of Data " : {
       "comment" : "Duration displayed in statPanel",
       "extractionState" : "manual",
@@ -76476,6 +76653,9 @@
         }
       }
     },
+    "CGM Logs" : {
+
+    },
     "CGM noise level too high: %lld." : {
       "localizations" : {
         "bg" : {
@@ -90582,6 +90762,9 @@
         }
       }
     },
+    "Could not prepare logs" : {
+
+    },
     "Could not save the change." : {
       "comment" : "Adjustment could not be saved",
       "localizations" : {
@@ -91501,6 +91684,9 @@
           }
         }
       }
+    },
+    "Creates one file you can send when asking for help." : {
+
     },
     "Critical" : {
       "comment" : "Name of the critical alarm sound.",
@@ -163331,6 +163517,9 @@
         }
       }
     },
+    "How far back?" : {
+
+    },
     "How it Works" : {
       "localizations" : {
         "bg" : {
@@ -178247,6 +178436,9 @@
     },
     "Last 24 Hours" : {
       "comment" : "Home stats panel range option"
+    },
+    "Last 3 Days" : {
+
     },
     "last 3 months" : {
       "comment" : "Stats banner scope"
@@ -243694,6 +243886,9 @@
         }
       }
     },
+    "Pump Logs" : {
+
+    },
     "Pump Model" : {
       "localizations" : {
         "bg" : {
@@ -268242,6 +268437,9 @@
         }
       }
     },
+    "Share CGM Logs" : {
+
+    },
     "Share logs" : {
       "comment" : "2 log files to share",
       "extractionState" : "manual",
@@ -268639,6 +268837,12 @@
           }
         }
       }
+    },
+    "Share Pump Logs" : {
+
+    },
+    "Share Trio Logs" : {
+
     },
     "Shared Secret" : {
       "localizations" : {
@@ -285194,136 +285398,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "風格"
-          }
-        }
-      }
-    },
-    "Submit Ticket on GitHub" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Подайте тикет в GitHub"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nahlásit problém na GitHubu"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Indsend billet på GitHub"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ticket an GitHub senden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviar Ticket en GitHub"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer un ticket sur GitHub"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Submit Ticket on GitHub"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invia Ticket su GitHub"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GitHub에 이슈(Ticket) 등록하기"
-          }
-        },
-        "nb-NO" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio GitHub"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ticket verzenden op GitHub"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prześlij zgłoszenie na GitHub"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enviar Ticket no GitHub"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Submit Ticket on GitHub"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Отправить заявку на GitHub"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skapa en ticket på GitHub"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Submit Ticket on GitHub"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Надіслати заявку на GitHub"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tạo yêu cầu trên GitHub"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 GitHub 上提交工单"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 GitHub 提交問題單"
           }
         }
       }
@@ -320536,136 +320610,6 @@
         }
       }
     },
-    "Trio Discord" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Discord – Trio"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio Discord"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio 디스코드"
-          }
-        },
-        "nb-NO" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio Discord"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Трио Discord"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio Discord"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Тріо Discord"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Discord"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio  Discord"
-          }
-        }
-      }
-    },
     "Trio Docs" : {
       "localizations" : {
         "bg" : {
@@ -321052,136 +320996,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trio 沒有足夠的閉環數據來啟用動態 ISF。這個數據收集可能需要長達 7 天。"
-          }
-        }
-      }
-    },
-    "Trio Facebook" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Facebook – Trio"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio Facebook"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio 페이스북"
-          }
-        },
-        "nb-NO" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio Facebook"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Трио Facebook"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio Facebook"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Тріо Facebook"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio Facebook"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio  Facebook"
           }
         }
       }
@@ -350733,6 +350547,9 @@
           }
         }
       }
+    },
+    "Your Nightscout address, passwords and device serial numbers are removed." : {
+
     },
     "Your phone or app is not enabled for NFC communications, which is needed to pair to libre2 sensors" : {
       "extractionState" : "manual",

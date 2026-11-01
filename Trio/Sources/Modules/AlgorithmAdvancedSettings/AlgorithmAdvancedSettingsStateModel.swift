@@ -70,16 +70,13 @@ extension AlgorithmAdvancedSettings {
                     .sink { _ in
                         let settings = self.provider.settings()
                         self.insulinActionCurve = settings.insulinActionCurve
+                        info(.settings, "Duration of insulin action set to \(settings.insulinActionCurve) h")
 
                         Task.detached(priority: .low) {
                             do {
-                                debug(.nightscout, "Attempting to upload DIA to Nightscout")
                                 try await self.nightscout.uploadProfiles()
                             } catch {
-                                debug(
-                                    .default,
-                                    "\(DebuggingIdentifiers.failed) failed to upload DIA to Nightscout: \(error)"
-                                )
+                                warning(.nightscout, "Uploading profile after insulin action change failed", error: error)
                             }
                         }
 

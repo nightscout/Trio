@@ -171,11 +171,12 @@ struct ContactImageDetailView: View {
 
         return ZStack {
             Rectangle()
-                .frame(width: UIScreen.main.bounds.width, height: 65)
+                .frame(height: 65)
                 .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
                 .background(.thinMaterial)
                 .opacity(0.8)
                 .clipShape(Rectangle())
+                .ignoresSafeArea(edges: .horizontal)
 
             Button(action: {
                 saveChanges()
@@ -184,7 +185,7 @@ struct ContactImageDetailView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(10)
             })
-                .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
                 .background(isUnchanged ? Color(.systemGray4) : Color(.systemBlue))
                 .disabled(isUnchanged)
                 .tint(.white)

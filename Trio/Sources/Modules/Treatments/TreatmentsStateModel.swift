@@ -213,13 +213,8 @@ extension Treatments {
                 return
             }
 
-            debug(.bolusState, "subscribe fired")
             setupBolusStateConcurrently()
             subscribeToBolusProgress()
-        }
-
-        deinit {
-            debug(.bolusState, "StateModel deinit called")
         }
 
         private var hasCleanedUp = false
@@ -247,12 +242,9 @@ extension Treatments {
 
             broadcaster?.unregister(DeterminationObserver.self, observer: self)
             broadcaster?.unregister(BolusFailureObserver.self, observer: self)
-
-            debug(.bolusState, "StateModel cleanup() finished")
         }
 
         private func setupBolusStateConcurrently() {
-            debug(.bolusState, "Setting up bolus state concurrently...")
             setupTask = Task {
                 // Load settings and observers first so the determination controller's initial
                 // population (which runs calculateInsulin) sees correct values.
@@ -272,7 +264,7 @@ extension Treatments {
                         try await group.waitForAll()
                     }
                 } catch let error as NSError {
-                    debug(.default, "Failed to setup bolus state concurrently: \(error)")
+                    warning(.bolus, "Setting up bolus screen failed", error: error)
                 }
 
                 // viewContext-bound FRCs: guard and wiring share one main-actor slice.
@@ -394,7 +386,7 @@ extension Treatments {
 
             for (index, entry) in entries.enumerated() {
                 guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
-                    debug(.default, "Invalid entry start time: \(entry.start)")
+                    warning(.bolus, "Skipped therapy setting entry with invalid start time \(entry.start)")
                     continue
                 }
 
@@ -495,7 +487,6 @@ extension Treatments {
 
         func invokeTreatmentsTask() {
             Task {
-                debug(.bolusState, "invokeTreatmentsTask fired")
                 await MainActor.run {
                     self.addButtonPressed = true
                 }
@@ -535,8 +526,6 @@ extension Treatments {
         // MARK: - Insulin
 
         private func handleInsulin(isExternal: Bool) async {
-            debug(.bolusState, "handleInsulin fired")
-
             if !isExternal {
                 await addPumpInsulin()
             } else {
@@ -644,10 +633,11 @@ extension Treatments {
                     await MainActor.run {
                         self.isAwaitingDeterminationResult = true
                     }
+                    info(.bolus, "Bolus of \(maxAmount) U requested")
                     await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
                 }
             } catch {
-                debug(.bolusState, "Authentication error for pump bolus: \(error)")
+                warning(.bolus, "Authentication for bolus failed", error: error)
 
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
@@ -678,11 +668,12 @@ extension Treatments {
                     }
                     // store external dose to pump history
                     await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
+                    info(.bolus, "External insulin of \(amount) U logged")
                     // perform determine basal sync
                     try await apsManager.determineBasalSync()
                 }
             } catch {
-                debug(.bolusState, "authentication error for external insulin: \(error)")
+                warning(.bolus, "Authentication for external insulin failed", error: error)
                 await MainActor.run {
                     self.isAwaitingDeterminationResult = false
                     self.showDeterminationFailureAlert = true
@@ -717,6 +708,7 @@ extension Treatments {
                     fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil
                 )]
                 try await carbsStorage.storeCarbs(carbsToStore, areFetchedFromRemote: false)
+                info(.treatments, "Meal saved: carbs \(carbs) g, fat \(fat) g, protein \(protein) g")
 
                 // only perform determine basal sync if the user doesn't use the pump bolus, otherwise the enact bolus func in the APSManger does a sync
                 if amount <= 0 {
@@ -726,7 +718,7 @@ extension Treatments {
                     try await apsManager.determineBasalSync()
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save carbs: \(error)")
+                warning(.treatments, "Saving meal failed", error: error)
             }
         }
 
@@ -740,7 +732,7 @@ extension Treatments {
                     guard viewContext.hasChanges else { return }
                     try viewContext.save()
                 } catch {
-                    print(error.localizedDescription)
+                    warning(.treatments, "Deleting meal preset failed", error: error)
                 }
                 carbs = 0
                 fat = 0
@@ -774,13 +766,9 @@ extension Treatments {
 
 extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
     func determinationDidUpdate(_: Determination) {
-        guard isActive else {
-            debug(.bolusState, "skipping determinationDidUpdate; view not active")
-            return
-        }
+        guard isActive else { return }
 
         DispatchQueue.main.async {
-            debug(.bolusState, "determinationDidUpdate fired")
             self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
                 self.hideModal()
@@ -792,7 +780,6 @@ extension Treatments.StateModel: DeterminationObserver, BolusFailureObserver {
         DispatchQueue.main.async {
             // A dismissed instance may still observe until dealloc — don't hide an unrelated modal.
             guard self.isActive else { return }
-            debug(.bolusState, "bolusDidFail fired")
             self.isAwaitingDeterminationResult = false
             if self.addButtonPressed {
                 self.hideModal()
@@ -818,7 +805,7 @@ extension Treatments.StateModel {
             try glucoseController.performFetch()
             updateGlucoseFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform glucose fetch: \(error)")
+            warning(.bolus, "Fetching glucose for bolus screen failed", error: error)
         }
     }
 
@@ -868,7 +855,7 @@ extension Treatments.StateModel {
             updateDeterminationFromController()
             scheduleInsulinAndForecastUpdate()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform determination fetch: \(error)")
+            warning(.bolus, "Fetching determination for bolus screen failed", error: error)
         }
     }
 
@@ -939,19 +926,14 @@ extension Treatments.StateModel {
 
 extension Treatments.StateModel {
     @MainActor func updateForecasts(with forecastData: Determination? = nil) async {
-        guard isActive else {
-            return
-                debug(.bolusState, "updateForecasts not fired")
-        }
+        guard isActive else { return }
 
-        debug(.bolusState, "updateForecasts fired")
         if let forecastData = forecastData {
             simulatedDetermination = forecastData
-            debugPrint("\(DebuggingIdentifiers.failed) minPredBG: \(minPredBG)")
+            debug(.bolus, "Forecast taken from latest determination, min predicted BG \(minPredBG) mg/dL")
         } else {
             let simulated = await Task { [self] in
-                debug(.bolusState, "calling simulateDetermineBasal to get forecast data")
-                return await apsManager.simulateDetermineBasal(
+                await apsManager.simulateDetermineBasal(
                     simulatedCarbsAmount: carbs,
                     simulatedBolusAmount: amount,
                     simulatedCarbsDate: date
@@ -966,7 +948,7 @@ extension Treatments.StateModel {
             if let simDetermination = simulated {
                 evBG = Decimal(simDetermination.eventualBG ?? 0)
                 minPredBG = simDetermination.minPredBGFromReason ?? 0
-                debugPrint("\(DebuggingIdentifiers.inProgress) minPredBG: \(minPredBG)")
+                debug(.bolus, "Forecast simulated, min predicted BG \(minPredBG) mg/dL")
             }
         }
 
@@ -1036,7 +1018,7 @@ extension Treatments.StateModel {
             try lastBolusController.performFetch()
             updateLastBolusFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform last bolus fetch: \(error)")
+            warning(.bolus, "Fetching last bolus for bolus screen failed", error: error)
         }
     }
 

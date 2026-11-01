@@ -17,7 +17,7 @@ extension ConfigEditor {
             }
 
             guard let data = value.data(using: .utf8), (try? JSONSerialization.jsonObject(with: data, options: [])) != nil else {
-                warning(.service, "Invalid JSON")
+                warning(.settings, "Config file \(file) not saved, invalid JSON")
                 return
             }
             storage.save(value, as: file)

@@ -59,7 +59,7 @@ class RemoteNotificationResponseManager {
         guard let returnInfo = returnInfo,
               !returnInfo.deviceToken.isEmpty
         else {
-            debug(.remoteControl, "No return notification info provided, skipping response")
+            debug(.remote, "Response notification skipped: no return info")
             return
         }
 
@@ -95,13 +95,12 @@ class RemoteNotificationResponseManager {
             teamId: returnInfo.teamId,
             apnsKey: returnInfo.apnsKey
         ) else {
-            debug(.remoteControl, "Failed to generate JWT for response notification")
             return
         }
 
         let host = returnInfo.productionEnvironment ? "api.push.apple.com" : "api.sandbox.push.apple.com"
         guard let url = URL(string: "https://\(host)/3/device/\(deviceToken)") else {
-            debug(.remoteControl, "Failed to construct APNs URL")
+            warning(.remote, "Response notification skipped: invalid push URL")
             return
         }
 
@@ -122,13 +121,13 @@ class RemoteNotificationResponseManager {
 
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
-                    debug(.remoteControl, "Response notification sent successfully")
+                    debug(.remote, "Response notification sent")
                 } else {
-                    debug(.remoteControl, "Failed to send response notification: \(httpResponse.statusCode)")
+                    warning(.remote, "Response notification failed with HTTP \(httpResponse.statusCode)")
                 }
             }
         } catch {
-            debug(.remoteControl, "Error sending response notification: \(error.localizedDescription)")
+            warning(.remote, "Response notification failed", error: error)
         }
     }
 }

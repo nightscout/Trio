@@ -81,11 +81,13 @@ final class BaseCarbEntryMutationService: CarbEntryMutationService, Injectable {
     private func snapshotRoot(_ objectID: NSManagedObjectID) async throws -> MealSnapshot {
         let context = makeContext()
         context.name = "snapshotMealRoot"
-        // A fetch reads the store, so rows removed by a batch delete are not served from the row cache.
-        let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
-        request.predicate = NSPredicate(format: "SELF == %@", objectID)
-        request.fetchLimit = 1
+
         return try await context.perform {
+            // A fetch reads the store, so rows removed by a batch delete are not served from the row cache.
+            let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+            request.predicate = NSPredicate(format: "SELF == %@", objectID)
+            request.fetchLimit = 1
+
             guard let row = try? context.fetch(request).first,
                   let id = row.id, let date = row.date
             else {

@@ -233,8 +233,20 @@ extension Decimal {
         units == .mgdL ? description : formattedAsMmolL
     }
 
+    func formattedDelta(for units: GlucoseUnits) -> String {
+        let value = units == .mgdL ? self : self * GlucoseUnits.exchangeRate
+        return value.formatted(Self.glucoseStyle(for: units).sign(strategy: .always(includingZero: true)))
+    }
+
     func formatted(withUnits units: GlucoseUnits) -> String {
         formatted(for: units) + " \(units.rawValue)"
+    }
+
+    private static func glucoseStyle(for units: GlucoseUnits) -> Decimal.FormatStyle {
+        .number
+            .precision(.fractionLength(units == .mgdL ? 0 : 1))
+            .grouping(.never)
+            .rounded(rule: .toNearestOrAwayFromZero)
     }
 }
 

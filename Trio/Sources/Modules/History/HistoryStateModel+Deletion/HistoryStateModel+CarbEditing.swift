@@ -36,12 +36,13 @@ extension History.StateModel {
                 )
 
                 _ = try await carbEntryMutationService.replaceMeal(rootObjectID: treatmentObjectID, with: newEntry)
+                info(.treatments, "Meal edited: carbs \(newCarbs) g, fat \(newFat) g, protein \(newProtein) g")
 
                 // Perform a determine basal sync to update cob
                 try await apsManager.determineBasalSync()
 
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to update entry: \(error)")
+                warning(.treatments, "Editing meal failed", error: error)
             }
         }
     }
@@ -70,7 +71,7 @@ extension History.StateModel {
                     date: entryDate
                 )
             } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to load entry: \(error)")
+                warning(.treatments, "Loading meal for editing failed", error: error)
                 return nil
             }
         }
@@ -134,11 +135,11 @@ extension History.StateModel {
                 request.fetchLimit = 1
 
                 let originalEntry = try context.fetch(request).first
-                debugPrint("FPU fetch result: \(originalEntry != nil ? "Entry found" : "No entry found")")
+                debug(.treatments, "Original meal for fat and protein entry \(originalEntry != nil ? "found" : "not found")")
                 return originalEntry?.objectID
 
             } catch let error as NSError {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to fetch original FPU entry: \(error.userInfo)")
+                warning(.treatments, "Fetching original meal for fat and protein entry failed", error: error)
                 return nil
             }
         }
@@ -171,13 +172,11 @@ extension History.StateModel {
                 request.fetchLimit = 1
 
                 let correspondingCarbEntry = try context.fetch(request).first
-                debugPrint(
-                    "Corresponding carb entry fetch result: \(correspondingCarbEntry != nil ? "Entry found" : "No entry found")"
-                )
+                debug(.treatments, "Matching carb entry \(correspondingCarbEntry != nil ? "found" : "not found")")
                 return correspondingCarbEntry?.objectID
 
             } catch let error as NSError {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to fetch corresponding carb entry: \(error.userInfo)")
+                warning(.treatments, "Fetching matching carb entry failed", error: error)
                 return nil
             }
         }

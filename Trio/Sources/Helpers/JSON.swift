@@ -19,7 +19,7 @@ extension JSON {
             let object = try JSONCoding.decoder.decode(Self.self, from: data)
             self = object
         } catch {
-            warning(.service, "Cannot decode JSON", error: error)
+            warning(.storage, "Decoding \(Self.self) from JSON failed", error: error)
             return nil
         }
     }

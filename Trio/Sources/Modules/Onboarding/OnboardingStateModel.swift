@@ -49,7 +49,7 @@ extension Onboarding {
 
                 // Expect exactly 2 entries: "logs" and the preferences file
                 guard contents.count == 2 else {
-                    debug(.default, "Trio install is not fresh; returning user.")
+                    debug(.settings, "Existing install")
                     return false
                 }
 
@@ -58,12 +58,12 @@ extension Onboarding {
                 let actualSet = Set(contents)
 
                 let isFreshInstall = expectedSet == actualSet
-                debug(.default, "Trio install is fresh; new user.")
+                debug(.settings, isFreshInstall ? "Fresh install" : "Existing install")
 
                 return isFreshInstall
 
             } catch {
-                debug(.default, "Cannot determine Initial Build State. Failed to read documents directory: \(error)")
+                warning(.settings, "Reading documents directory to detect a fresh install failed", error: error)
                 return false
             }
         }
@@ -314,7 +314,7 @@ extension Onboarding {
                 let newTimeIndex = closestIndex(for: originalTime, in: basalProfileTimeValues)
 
                 if safeRateIndex != item.rateIndex {
-                    debug(.default, "⚠️ rateIndex \(item.rateIndex) out of bounds; clamped to \(safeRateIndex)")
+                    warning(.settings, "Basal rate index \(item.rateIndex) out of range, clamped to \(safeRateIndex)")
                 }
 
                 return BasalProfileEditor.Item(rateIndex: newRateIndex, timeIndex: newTimeIndex)

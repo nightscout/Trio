@@ -68,10 +68,7 @@ class TrioRemoteControl: Injectable {
             return
         }
 
-        debug(
-            .remoteControl,
-            "Command successfully decrypted and authenticated. Time difference: \(Int(timeDifference)) seconds."
-        )
+        debug(.remote, "Command authenticated, sent \(Int(timeDifference)) s ago")
 
         switch commandPayload.commandType {
         case .bolus:

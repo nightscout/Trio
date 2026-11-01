@@ -161,15 +161,15 @@ import Testing
 
     @Test("Application ID derives from build team and bundle IDs") func derivesApplicationID() {
         #expect(
-            TelemetryAttestor.appID(teamID: " ABC123 ", bundleID: "org.nightscout.user.trio") ==
+            AppAttestClient.appID(teamID: " ABC123 ", bundleID: "org.nightscout.user.trio") ==
                 "ABC123.org.nightscout.user.trio"
         )
         #expect(
-            TelemetryAttestor.appID(teamID: "ABC123", bundleID: "com.example.custom-fork") ==
+            AppAttestClient.appID(teamID: "ABC123", bundleID: "com.example.custom-fork") ==
                 "ABC123.com.example.custom-fork"
         )
-        #expect(TelemetryAttestor.appID(teamID: "$(DEVELOPMENT_TEAM)", bundleID: "org.example.trio") == nil)
-        #expect(TelemetryAttestor.appID(teamID: "ABC123", bundleID: "com..example") == nil)
+        #expect(AppAttestClient.appID(teamID: "$(DEVELOPMENT_TEAM)", bundleID: "org.example.trio") == nil)
+        #expect(AppAttestClient.appID(teamID: "ABC123", bundleID: "com..example") == nil)
     }
 
     @Test("Provisioning profile returns the first valid application ID") func parsesProvisioningApplicationID() throws {
@@ -185,7 +185,7 @@ import Testing
         cmsEnvelope.append(Data([0xFE, 0x00]))
 
         #expect(
-            TelemetryAttestor.appID(
+            AppAttestClient.appID(
                 fromProvisioningProfile: cmsEnvelope,
                 bundleID: "org.nightscout.fallback.trio"
             ) == "ABC123.org.nightscout.user.trio"
@@ -200,7 +200,7 @@ import Testing
         let plist = try PropertyListSerialization.data(fromPropertyList: profile, format: .binary, options: 0)
 
         #expect(
-            TelemetryAttestor.appID(
+            AppAttestClient.appID(
                 fromProvisioningProfile: plist,
                 bundleID: "org.nightscout.owner.trio"
             ) == "TEAM123.org.nightscout.owner.trio"
@@ -212,7 +212,7 @@ import Testing
 
         for data in malformedInputs {
             #expect(
-                TelemetryAttestor.appID(
+                AppAttestClient.appID(
                     fromProvisioningProfile: data,
                     bundleID: "org.nightscout.owner.trio"
                 ) == nil

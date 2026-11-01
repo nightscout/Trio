@@ -114,10 +114,10 @@ class BuildDetails: Injectable {
         let remoteCommands = TrioRemoteControl.CommandType.supported.map(\.rawValue)
 
         if previousExpireDate != expireDate {
-            debug(.nightscout, "New build expire date detected, uploading profile")
+            info(.nightscout, "Build expiration date changed, uploading profile")
             try await nightscoutManager.uploadProfiles()
         } else if previousRemoteCommands != remoteCommands {
-            debug(.nightscout, "Supported remote commands changed, uploading profile")
+            info(.nightscout, "Supported remote commands changed, uploading profile")
             try await nightscoutManager.uploadProfiles()
         }
     }
