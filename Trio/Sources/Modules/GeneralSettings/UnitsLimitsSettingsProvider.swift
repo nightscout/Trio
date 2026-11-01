@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import HealthKit
+import LoopAlgorithm
 import LoopKit
 import LoopKitUI
 
@@ -34,8 +34,8 @@ extension UnitsLimitsSettings {
                 return Just(()).setFailureType(to: Error.self).eraseToAnyPublisher()
             }
             let limits = DeliveryLimits(
-                maximumBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(settings.maxBasal)),
-                maximumBolus: HKQuantity(unit: .internationalUnit(), doubleValue: Double(settings.maxBolus))
+                maximumBasalRate: LoopQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(settings.maxBasal)),
+                maximumBolus: LoopQuantity(unit: .internationalUnit, doubleValue: Double(settings.maxBolus))
             )
             return Future { promise in
                 self.processQueue.async {
@@ -49,7 +49,7 @@ extension UnitsLimitsSettings {
                                 insulinActionCurve: settings.insulinActionCurve,
                                 maxBolus: Decimal(
                                     actual.maximumBolus?
-                                        .doubleValue(for: .internationalUnit()) ?? Double(settings.maxBolus)
+                                        .doubleValue(for: .internationalUnit) ?? Double(settings.maxBolus)
                                 ),
                                 maxBasal: Decimal(
                                     actual.maximumBasalRate?
