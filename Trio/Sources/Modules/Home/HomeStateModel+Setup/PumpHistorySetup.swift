@@ -18,7 +18,7 @@ extension Home.StateModel {
             try insulinController.performFetch()
             updateInsulinFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform insulin fetch: \(error)")
+            warning(.ui, "Fetching insulin for home screen failed", error: error)
         }
     }
 
@@ -50,7 +50,7 @@ extension Home.StateModel {
             try lastBolusController.performFetch()
             updateLastBolusFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform last bolus fetch: \(error)")
+            warning(.ui, "Fetching last bolus for home screen failed", error: error)
         }
     }
 

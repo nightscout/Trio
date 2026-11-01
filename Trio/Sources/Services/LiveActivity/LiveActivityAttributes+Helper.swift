@@ -19,6 +19,12 @@ extension UserDefaults {
     }
 }
 
+extension LiveActivityAttributes.SimpleViewStyle {
+    init(settings: TrioSettings) {
+        self.init(fontSize: settings.liveActivitySimpleFontSize)
+    }
+}
+
 extension LiveActivityAttributes.ContentState {
     static func formatGlucose(_ value: Int, units: GlucoseUnits, forceSign: Bool) -> String {
         let formatter = NumberFormatter()
@@ -133,6 +139,7 @@ extension LiveActivityAttributes.ContentState {
         self.init(
             unit: settings.units.rawValue,
             bg: formattedBG,
+            glucose: Decimal(glucose),
             direction: trendString,
             change: change,
             date: determination?.date ?? nil,
@@ -142,6 +149,7 @@ extension LiveActivityAttributes.ContentState {
             glucoseColorScheme: settings.glucoseColorScheme.rawValue,
             useDetailedViewIOS: settings.lockScreenView == .detailed,
             useDetailedViewWatchOS: settings.smartStackView == .detailed,
+            simpleViewStyle: LiveActivityAttributes.SimpleViewStyle(settings: settings),
             detailedViewState: detailedState,
             isInitialState: false
         )

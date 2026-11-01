@@ -30,7 +30,7 @@ struct DeviceAlertSeverityConfig: Codable, Equatable, Identifiable {
         self.severity = severity
         isEnabled = true
         soundFilename = severity.defaultSoundFilename
-        playsSound = true
+        playsSound = severity.defaultPlaysSound
         overridesSilenceAndDND = severity.defaultOverridesSilenceAndDND
         self.activeOption = activeOption
     }
@@ -53,7 +53,7 @@ struct DeviceAlertSeverityConfig: Codable, Equatable, Identifiable {
         severity = try container.decode(DeviceAlertSeverity.self, forKey: .severity)
         isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
         soundFilename = try container.decodeIfPresent(String.self, forKey: .soundFilename) ?? severity.defaultSoundFilename
-        playsSound = try container.decodeIfPresent(Bool.self, forKey: .playsSound) ?? true
+        playsSound = try container.decodeIfPresent(Bool.self, forKey: .playsSound) ?? severity.defaultPlaysSound
         overridesSilenceAndDND = try container.decodeIfPresent(
             Bool.self,
             forKey: .overridesSilenceAndDND

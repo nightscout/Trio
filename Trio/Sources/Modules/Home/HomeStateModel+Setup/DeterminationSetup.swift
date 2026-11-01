@@ -20,7 +20,7 @@ extension Home.StateModel {
                 await self.updateForecastData()
             }
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform enacted determination fetch: \(error)")
+            warning(.ui, "Fetching enacted determinations for home screen failed", error: error)
         }
     }
 
@@ -53,7 +53,7 @@ extension Home.StateModel {
             try determinationController.performFetch()
             updateDeterminationsFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform determination fetch: \(error)")
+            warning(.ui, "Fetching determinations for home screen failed", error: error)
         }
     }
 

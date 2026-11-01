@@ -49,7 +49,7 @@ class APNSJWTManager {
 
             return signedJWT
         } catch {
-            debug(.remoteControl, "Failed to sign JWT: \(error.localizedDescription)")
+            warning(.remote, "Failed to sign push response token", error: error)
             return nil
         }
     }

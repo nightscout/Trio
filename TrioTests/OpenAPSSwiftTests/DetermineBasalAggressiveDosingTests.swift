@@ -1029,7 +1029,13 @@ import Testing
         #expect(result.determination.duration == 60)
     }
 
-    @Test("should set low temp if durationReq < 30") func testSetLowTemp() throws {
+    @Test("should set low temp if durationReq < 30", arguments: [
+        (Decimal(95.85), Decimal(83) / 100), // durationRequired = 5m, rate = 1.0 * (30 - 5) / 30 = 0.83
+        (Decimal(91.65), Decimal(67) / 100), // durationRequired = 10m, rate = 1.0 * (30 - 10) / 30 = 0.67
+        (Decimal(87.5), Decimal(50) / 100), // durationRequired = 15m, rate = 1.0 * (30 - 15) / 30 = 0.50
+        (Decimal(79.15), Decimal(17) / 100), // durationRequired = 25m, rate = 1.0 * (30 - 25) / 30 = 0.17
+        (Decimal(75.85), Decimal(3) / 100) // durationRequired = 29m, rate = 1.0 * (30 - 29) / 30 = 0.03
+    ]) func testSetLowTemp(avgGlucose: Decimal, expectedRate: Decimal) throws {
         var profile = Profile()
         profile.currentBasal = 1.0
         profile.maxSMBBasalMinutes = 30
@@ -1060,22 +1066,17 @@ import Testing
             lastTemp: nil
         )]
 
-        // worstCaseInsulinReq needs to result in durationReq = 15
-        // 15 = 60 * worst / 1.0 => worst = 0.25
-        // worst = (100 - avg)/50 => avg = 87.5
-
         let result = try callDetermineSMBDelivery(
             insulinRequired: 1.0,
             profile: profile,
             iobData: iobData,
             basal: 1.0,
-            naiveEventualGlucose: 87.5,
-            minIOBForecastedGlucose: 87.5
+            naiveEventualGlucose: avgGlucose,
+            minIOBForecastedGlucose: avgGlucose
         )
 
-        // Rate = basal * 15/30 = 1.0 * 0.5 = 0.5
         #expect(result.shouldSetTempBasal == true)
-        #expect(result.determination.rate == 0.5)
+        #expect(result.determination.rate == expectedRate)
         #expect(result.determination.duration == 30)
     }
 

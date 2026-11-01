@@ -34,14 +34,16 @@ extension View {
         message: Text? = nil,
         isPresented: Binding<Bool>,
         actions: [GlassSheetAction],
-        onCancel: (() -> Void)? = nil
+        onCancel: (() -> Void)? = nil,
+        onDismiss: (() -> Void)? = nil
     ) -> some View {
         modifier(GlassActionSheetModifier(
             isPresented: isPresented,
             title: title.map { Text($0) },
             message: message,
             actions: actions,
-            onCancel: onCancel
+            onCancel: onCancel,
+            onDismiss: onDismiss
         ))
     }
 
@@ -51,14 +53,16 @@ extension View {
         message: Text? = nil,
         isPresented: Binding<Bool>,
         actions: [GlassSheetAction],
-        onCancel: (() -> Void)? = nil
+        onCancel: (() -> Void)? = nil,
+        onDismiss: (() -> Void)? = nil
     ) -> some View {
         modifier(GlassActionSheetModifier(
             isPresented: isPresented,
             title: title,
             message: message,
             actions: actions,
-            onCancel: onCancel
+            onCancel: onCancel,
+            onDismiss: onDismiss
         ))
     }
 }
@@ -69,6 +73,7 @@ private struct GlassActionSheetModifier: ViewModifier {
     let message: Text?
     let actions: [GlassSheetAction]
     let onCancel: (() -> Void)?
+    let onDismiss: (() -> Void)?
 
     // Shadow state so the cover is always presented/dismissed without its own
     // slide animation; the sheet animates internally.
@@ -89,7 +94,7 @@ private struct GlassActionSheetModifier: ViewModifier {
                     withTransaction(transaction) { coverShown = false }
                 }
             }
-            .fullScreenCover(isPresented: $coverShown) {
+            .fullScreenCover(isPresented: $coverShown, onDismiss: onDismiss) {
                 GlassActionSheetView(
                     title: title,
                     message: message,

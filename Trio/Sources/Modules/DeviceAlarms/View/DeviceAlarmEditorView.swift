@@ -57,7 +57,8 @@ struct DeviceAlarmEditorView: View {
                 AlarmActiveSection(activeOption: $working.activeOption)
                 AlarmAudioSection(
                     playsSound: $working.playsSound,
-                    soundFilename: $working.soundFilename
+                    soundFilename: $working.soundFilename,
+                    scope: .deviceTier(working.severity)
                 )
 
                 Section(header: Text("Applies To (Cannot be changed)")) {

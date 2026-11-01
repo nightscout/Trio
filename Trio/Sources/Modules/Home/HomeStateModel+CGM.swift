@@ -41,7 +41,7 @@ import LoopKitUI
 extension Home.StateModel: CompletionDelegate {
     /// This completion handler is called by both the CGM and the pump
     func completionNotifyingDidComplete(_ notifying: CompletionNotifying) {
-        debug(.service, "Completion fired by: \(type(of: notifying))")
+        debug(.ui, "Device setup finished by \(type(of: notifying))")
         Task {
             // this sleep is because this event and cgmManagerWantsDeletion
             // are called in parallel.

@@ -34,7 +34,7 @@ extension Stat.StateModel {
                 // Initially calculate and cache per-day totals
                 await calculateAndCacheDailyTotals()
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch meal stats: \(error)")
+                warning(.ui, "Fetching meal statistics failed", error: error)
             }
         }
     }

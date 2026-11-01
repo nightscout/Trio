@@ -85,7 +85,7 @@ extension TherapySettingsEditor {
                     .background(Color.chart.opacity(0.65))
 
                     List {
-                        ForEach($items) { $item in
+                        ForEach(items) { item in
                             VStack(spacing: 0) {
                                 Button {
                                     selectedItemID = selectedItemID == item.id ? nil : item.id
@@ -123,16 +123,12 @@ extension TherapySettingsEditor {
                                     comment: "Accessibility hint for a schedule entry"
                                 ))
                                 .accessibilityAction(named: Text("Delete")) {
-                                    if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
-                                        items.remove(at: index)
-                                        selectedItemID = nil
-                                        validateTherapySettingItems()
-                                    }
+                                    deleteItem(with: item.id)
                                 }
 
-                                if selectedItemID == item.id {
+                                if selectedItemID == item.id, let itemBinding = binding(for: item.id) {
                                     timeValuePickerRow(
-                                        item: $item,
+                                        item: itemBinding,
                                         timeOptions: timeOptions,
                                         valueOptions: valueOptions,
                                         unit: unit
@@ -151,11 +147,9 @@ extension TherapySettingsEditor {
                             )
                             .listRowSeparator(item == items.last ? .hidden : .visible)
                             .contextMenu {
-                                if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
+                                if items.count > 1 {
                                     Button(role: .destructive) {
-                                        items.remove(at: index)
-                                        selectedItemID = nil
-                                        validateTherapySettingItems()
+                                        deleteItem(with: item.id)
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -163,11 +157,9 @@ extension TherapySettingsEditor {
                                 }
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                if let index = items.firstIndex(where: { $0.id == item.id }), items.count > 1 {
+                                if items.count > 1 {
                                     Button(role: .destructive) {
-                                        items.remove(at: index)
-                                        selectedItemID = nil
-                                        validateTherapySettingItems()
+                                        deleteItem(with: item.id)
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -212,6 +204,27 @@ extension TherapySettingsEditor {
                     .padding(.horizontal, 10)
                 }
             }
+        }
+
+        /// Binding to the entry with `id`, resolved on every access so a removed entry cannot trap on a stale index.
+        private func binding(for id: UUID) -> Binding<Item>? {
+            guard items.contains(where: { $0.id == id }) else { return nil }
+
+            return Binding(
+                get: { items.first(where: { $0.id == id }) ?? Item(time: 0, value: 0) },
+                set: { newItem in
+                    guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+                    items[index] = newItem
+                }
+            )
+        }
+
+        /// Removes the entry with `id`, resolving its index at call time; the last remaining entry is kept.
+        private func deleteItem(with id: UUID) {
+            guard items.count > 1, let index = items.firstIndex(where: { $0.id == id }) else { return }
+            items.remove(at: index)
+            selectedItemID = nil
+            validateTherapySettingItems()
         }
 
         @ViewBuilder private func timeValuePickerRow(
@@ -310,12 +323,12 @@ extension TherapySettingsEditor {
                 newItems[0] = first
             }
 
-            // force ALL items to have new UUIDs (to enforce binding update)
-            items = newItems.map { Item(copying: $0, newID: true) }
+            // keep IDs stable so in-flight row actions cannot reference a removed entry
+            items = newItems
 
-            // Restore selection by finding the item with the same time value
-            if let selectedTime = selectedTime {
-                selectedItemID = items.first(where: { $0.time == selectedTime })?.id
+            // Restore selection by time value, if the selected item is gone
+            if !items.contains(where: { $0.id == selectedItemID }) {
+                selectedItemID = selectedTime.flatMap { time in items.first(where: { $0.time == time })?.id }
             }
 
             // validates underlying "raw" therapy setting (i.e. item of type basal, target, isf, carb ratio)

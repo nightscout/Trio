@@ -520,8 +520,6 @@ struct EditOverrideForm: View {
                             guard moc.hasChanges else { return }
                             try moc.save()
 
-                            try await state.nightscoutManager.uploadProfiles()
-
                             // Disable previous active Override
                             if let currentActiveOverride = state.currentActiveOverride {
                                 Task {
@@ -536,8 +534,15 @@ struct EditOverrideForm: View {
 
                             hasChanges = false
                             presentationMode.wrappedValue.dismiss()
+
+                            // Upload after dismiss, so a Nightscout error does not keep the form open
+                            do {
+                                try await state.nightscoutManager.uploadProfiles()
+                            } catch {
+                                warning(.nightscout, "Uploading profile after override edit failed", error: error)
+                            }
                         } catch {
-                            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
+                            warning(.treatments, "Saving edited override failed", error: error)
                         }
                     }
                 }, label: {

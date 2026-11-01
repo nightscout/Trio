@@ -20,6 +20,7 @@ extension TherapySettingsEditor.StateModel {
         )
 
         provider.saveBloodGlucoseTargetProfile(profile)
+        info(.settings, "Glucose target schedule saved with \(items.count) entries")
 
         broadcaster.notify(BGTargetsObserver.self, on: .main) {
             $0.bgTargetsDidChange(profile)

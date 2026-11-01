@@ -68,10 +68,10 @@ import Testing
 
     // MARK: - Group A.5: type metadata
 
-    @Test("carbsRequired defaults: threshold 10 g, bloop.caf, no override") func carbsRequiredDefaults() {
+    @Test("carbsRequired defaults: threshold 10 g, themed tone, no override") func carbsRequiredDefaults() {
         let a = GlucoseAlert(type: .carbsRequired)
         #expect(a.thresholdMgDL == 10)
-        #expect(a.soundFilename == "bloop.caf")
+        #expect(a.soundFilename == "acoustic_cr_medium.caf")
         #expect(a.overridesSilenceAndDND == false)
     }
 

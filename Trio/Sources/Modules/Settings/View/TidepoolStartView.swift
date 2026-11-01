@@ -21,10 +21,10 @@ struct TidepoolStartView: BaseView {
                 content:
                 {
                     VStack {
-                        if let serviceUIType = state.serviceUIType,
-                           let pluginHost = state.provider.tidepoolManager.getTidepoolPluginHost()
+                        if state.serviceUIType != nil,
+                           state.provider.tidepoolManager.getTidepoolPluginHost() != nil
                         {
-                            if let serviceUI = state.provider.tidepoolManager.getTidepoolServiceUI()
+                            if state.provider.tidepoolManager.getTidepoolServiceUI() != nil
                             {
                                 Button {
                                     state.setupTidepool.toggle()
@@ -58,6 +58,8 @@ struct TidepoolStartView: BaseView {
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                                 .lineLimit(nil)
+                                .multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
                             Spacer()
                             Button(
                                 action: {

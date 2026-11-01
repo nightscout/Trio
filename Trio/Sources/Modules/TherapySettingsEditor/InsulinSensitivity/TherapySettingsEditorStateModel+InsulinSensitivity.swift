@@ -20,6 +20,7 @@ extension TherapySettingsEditor.StateModel {
         )
 
         provider.saveInsulinSensitivityProfile(profile)
+        info(.settings, "Insulin sensitivity schedule saved with \(items.count) entries")
 
         broadcaster.notify(InsulinSensitivitiesObserver.self, on: .main) {
             $0.insulinSensitivitiesDidChange(profile)

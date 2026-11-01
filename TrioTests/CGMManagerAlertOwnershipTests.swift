@@ -45,6 +45,12 @@ import Testing
         #expect(app?.deepLink == URL(string: "dexcomg7://"))
     }
 
+    @Test("G7CGMManager paired directly owns no alerting app") func g7DirectMapping() {
+        let manager = G7CGMManager(sessionMode: .direct)
+        #expect(CGMManagerAlertOwnership.owningApp(manager: manager, sourceType: .plugin) == nil)
+        #expect(!CGMManagerAlertOwnership.providesOwnGlucoseAlerts(manager: manager, sourceType: .plugin))
+    }
+
     @Test("G5CGMManager → Dexcom G5, no known deep link") func g5Mapping() {
         let manager = G5CGMManager(state: TransmitterManagerState(transmitterID: "TEST5A"))
         let app = CGMManagerAlertOwnership.owningApp(manager: manager, sourceType: .plugin)

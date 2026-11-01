@@ -13,6 +13,7 @@ extension UserDefaults: Cache {
             return decoded.v
         } catch {
             if reportError {
+                warning(.storage, "Decoding cached value '\(key)' failed", error: error)
                 assertionFailure("Failed to get persisted value for key: \(key), error: \(error.localizedDescription)")
             }
         }
@@ -32,6 +33,7 @@ extension UserDefaults: Cache {
                 set(encoded, forKey: key)
             } catch {
                 if reportError {
+                    warning(.storage, "Encoding cached value '\(key)' failed", error: error)
                     assertionFailure("Failed to set persisted value.for key: \(key), error: \(error.localizedDescription)")
                 }
             }

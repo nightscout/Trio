@@ -91,9 +91,9 @@ extension TherapySettingsEditor {
                     uploadToNightscout()
                     uploadToTidepool()
                     updateInitialItems()
-                } catch {
-                    debug(.default, "\(DebuggingIdentifiers.failed) Failed to save items: \(error)")
-                    saveError = error
+                } catch let saveError {
+                    self.saveError = saveError
+                    error(.settings, "Saving \(self.therapyType.title) profile failed", error: saveError)
                 }
             }
         }
@@ -110,10 +110,9 @@ extension TherapySettingsEditor {
         private func uploadToNightscout() {
             Task.detached(priority: .low) {
                 do {
-                    debug(.nightscout, "Attempting to upload profiles to Nightscout")
                     try await self.nightscout.uploadProfiles()
                 } catch {
-                    debug(.default, "\(DebuggingIdentifiers.failed) Failed to upload profiles to Nightscout: \(error)")
+                    warning(.nightscout, "Uploading profile after \(self.therapyType.title) change failed", error: error)
                 }
             }
         }

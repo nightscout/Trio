@@ -69,6 +69,25 @@ extension NumberFormatter {
     }()
 }
 
+extension LiveActivityAttributes.ContentState {
+    /// Color for the current glucose reading; reading, thresholds and target are all compared in mg/dL.
+    var glucoseColor: Color {
+        let hasStaticColorScheme = glucoseColorScheme == "staticColor"
+
+        // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
+        let hardCodedLow = Decimal(55)
+        let hardCodedHigh = Decimal(220)
+
+        return Color.getDynamicGlucoseColor(
+            glucoseValue: glucose ?? 100,
+            highGlucoseColorValue: hasStaticColorScheme ? highGlucose : hardCodedHigh,
+            lowGlucoseColorValue: hasStaticColorScheme ? lowGlucose : hardCodedLow,
+            targetGlucose: target,
+            glucoseColorScheme: glucoseColorScheme
+        )
+    }
+}
+
 extension Color {
     // Static Glucose Color Scheme band colors — needs to be kept in sync with DynamicGlucoseColor.swift
     static let staticLow = Color(hue: 0.0 / 360.0, saturation: 0.6, brightness: 0.9)
@@ -227,17 +246,20 @@ extension View {
         }
     }
 
-    @ViewBuilder func addLiveActivityModifiers(isWatchOS: Bool) -> some View {
-        modifier(LiveActivityModifiers(isWatchOS: isWatchOS))
+    @ViewBuilder func addLiveActivityModifiers(isWatchOS: Bool, verticalPadding: CGFloat? = nil) -> some View {
+        modifier(LiveActivityModifiers(isWatchOS: isWatchOS, verticalPadding: verticalPadding))
     }
 }
 
 struct LiveActivityModifiers: ViewModifier {
     let isWatchOS: Bool
+    var verticalPadding: CGFloat? = nil
 
     func body(content: Content) -> some View {
+        let defaultPadding: CGFloat = isWatchOS ? 10 : 14
         content
-            .padding(.all, isWatchOS ? 10 : 14)
+            .padding(.horizontal, defaultPadding)
+            .padding(.vertical, verticalPadding ?? defaultPadding)
             .frame(minHeight: 0, maxHeight: .infinity)
             .privacySensitive()
             // Semantic BackgroundStyle and Color values work here. They adapt to the given interface style (light mode, dark

@@ -22,7 +22,7 @@ import Foundation
         do {
             try await request.performRestart()
         } catch {
-            debug(.default, "Error restarting Live Activity: \(error)")
+            warning(.liveActivity, "Restarting Live Activity from shortcut failed", error: error)
         }
         return .result(value: String(localized: "Trio Live Activity restarted successfully."))
     }

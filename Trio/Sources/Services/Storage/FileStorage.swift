@@ -30,7 +30,7 @@ final class BaseFileStorage: FileStorage {
                     try Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
                 }
             } catch {
-                debug(.storage, "Failed to save file '\(name)': \(error)")
+                warning(.storage, "Saving file '\(name)' failed", error: error)
             }
         }
     }
@@ -45,7 +45,7 @@ final class BaseFileStorage: FileStorage {
                         try Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
                     }
                 } catch {
-                    debug(.storage, "Failed to save file '\(name)': \(error)")
+                    warning(.storage, "Saving file '\(name)' failed", error: error)
                 }
                 continuation.resume()
             }
@@ -57,7 +57,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 return try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
             } catch {
-                debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+                logFailure("Reading file '\(name)' failed", error: error)
                 return nil
             }
         }
@@ -70,7 +70,7 @@ final class BaseFileStorage: FileStorage {
                     let result = try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
                     continuation.resume(returning: result)
                 } catch {
-                    debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+                    logFailure("Reading file '\(name)' failed", error: error)
                     continuation.resume(returning: nil)
                 }
             }
@@ -82,12 +82,12 @@ final class BaseFileStorage: FileStorage {
             do {
                 let data = try Disk.retrieve(name, from: .documents, as: Data.self)
                 guard let string = String(data: data, encoding: .utf8) else {
-                    debug(.storage, "Failed to decode data as UTF-8 string for file '\(name)'")
+                    warning(.storage, "File '\(name)' is not valid UTF-8")
                     return nil
                 }
                 return string
             } catch {
-                debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+                logFailure("Reading file '\(name)' failed", error: error)
                 return nil
             }
         }
@@ -99,13 +99,13 @@ final class BaseFileStorage: FileStorage {
                 do {
                     let data = try Disk.retrieve(name, from: .documents, as: Data.self)
                     guard let string = String(data: data, encoding: .utf8) else {
-                        debug(.storage, "Failed to decode data as UTF-8 string for file '\(name)'")
+                        warning(.storage, "File '\(name)' is not valid UTF-8")
                         continuation.resume(returning: nil)
                         return
                     }
                     continuation.resume(returning: string)
                 } catch {
-                    debug(.storage, "Failed to retrieve file '\(name)': \(error)")
+                    logFailure("Reading file '\(name)' failed", error: error)
                     continuation.resume(returning: nil)
                 }
             }
@@ -117,7 +117,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 try Disk.append(newValue, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
             } catch {
-                debug(.storage, "Failed to append to file '\(name)': \(error)")
+                warning(.storage, "Appending to file '\(name)' failed", error: error)
             }
         }
     }
@@ -127,7 +127,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 try Disk.append(newValues, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
             } catch {
-                debug(.storage, "Failed to append to file '\(name)': \(error)")
+                warning(.storage, "Appending to file '\(name)' failed", error: error)
             }
         }
     }
@@ -173,7 +173,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 try Disk.remove(name, from: .documents)
             } catch {
-                debug(.storage, "Failed to remove file '\(name)': \(error)")
+                logFailure("Removing file '\(name)' failed", error: error)
             }
         }
     }
@@ -183,7 +183,7 @@ final class BaseFileStorage: FileStorage {
             do {
                 try Disk.rename(name, in: .documents, to: newName)
             } catch {
-                debug(.storage, "Failed to rename file '\(name)' to '\(newName)': \(error)")
+                warning(.storage, "Renaming file '\(name)' to '\(newName)' failed", error: error)
             }
         }
     }
@@ -198,8 +198,18 @@ final class BaseFileStorage: FileStorage {
         do {
             return try Disk.url(for: file, in: .documents)
         } catch {
-            debug(.storage, "Failed to get URL for file '\(file)': \(error)")
+            warning(.storage, "Resolving URL for file '\(file)' failed", error: error)
             return nil
+        }
+    }
+
+    // Missing files are expected here, so they only log at debug
+    private func logFailure(_ message: String, error: Error) {
+        let nsError = error as NSError
+        if nsError.domain == Disk.errorDomain, nsError.code == Disk.ErrorCode.noFileFound.rawValue {
+            debug(.storage, message)
+        } else {
+            warning(.storage, message, error: error)
         }
     }
 }
@@ -216,7 +226,6 @@ extension FileStorage {
     /// Parses mmol/L settings stored on file to mg/dL if necessary and updates the preferences, settings,  insulin sensitivities, and glucose targets.
     /// - Returns: A boolean indicating whether any settings were parsed and updated.
     func parseOnFileSettingsToMgdL() -> Bool {
-        debug(.businessLogic, "Check for mmol/L settings stored on file.")
         var wasParsed = false
 
         // Retrieve and parse preferences (Preferences struct)
@@ -233,11 +242,11 @@ extension FileStorage {
                 preferences.enableSMB_high_bg_target != initialSMBTarget ||
                 preferences.halfBasalExerciseTarget != initialExerciseTarget
             {
-                debug(.businessLogic, "Preferences found in mmol/L. Parsing to mg/dL.")
+                info(.storage, "Converting stored preferences from mmol/L to mg/dL")
                 save(preferences, as: OpenAPS.Settings.preferences)
                 wasParsed = true
             } else {
-                debug(.businessLogic, "Preferences stored in mg/dL; no parsing required.")
+                debug(.storage, "Stored preferences already in mg/dL")
             }
         }
 
@@ -250,11 +259,11 @@ extension FileStorage {
             settings.low = parseSettingIfMmolL(value: settings.low)
 
             if settings.high != initialHigh || settings.low != initialLow {
-                debug(.businessLogic, "TrioSettings found in mmol/L. Parsing to mg/dL.")
+                info(.storage, "Converting stored Trio settings from mmol/L to mg/dL")
                 save(settings, as: OpenAPS.Settings.settings)
                 wasParsed = true
             } else {
-                debug(.businessLogic, "TrioSettings stored in mg/dL; no parsing required.")
+                debug(.storage, "Stored Trio settings already in mg/dL")
             }
         }
 
@@ -262,7 +271,7 @@ extension FileStorage {
         if var sensitivities = retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self),
            sensitivities.units == .mmolL || sensitivities.userPreferredUnits == .mmolL
         {
-            debug(.businessLogic, "Insulin sensitivities found in mmol/L. Parsing to mg/dL.")
+            info(.storage, "Converting stored insulin sensitivities from mmol/L to mg/dL")
 
             sensitivities.sensitivities = sensitivities.sensitivities.map { isf in
                 InsulinSensitivityEntry(
@@ -277,14 +286,14 @@ extension FileStorage {
             save(sensitivities, as: OpenAPS.Settings.insulinSensitivities)
             wasParsed = true
         } else {
-            debug(.businessLogic, "Insulin sensitivities stored in mg/dL; no parsing required.")
+            debug(.storage, "Stored insulin sensitivities already in mg/dL")
         }
 
         // Retrieve and parse glucose targets
         if var glucoseTargets = retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self),
            glucoseTargets.units == .mmolL || glucoseTargets.userPreferredUnits == .mmolL
         {
-            debug(.businessLogic, "Glucose target profile found in mmol/L. Parsing to mg/dL.")
+            info(.storage, "Converting stored glucose targets from mmol/L to mg/dL")
 
             glucoseTargets.targets = glucoseTargets.targets.map { target in
                 BGTargetEntry(
@@ -300,7 +309,7 @@ extension FileStorage {
             save(glucoseTargets, as: OpenAPS.Settings.bgTargets)
             wasParsed = true
         } else {
-            debug(.businessLogic, "Glucose target profile stored in mg/dL; no parsing required.")
+            debug(.storage, "Stored glucose targets already in mg/dL")
         }
 
         return wasParsed

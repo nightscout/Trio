@@ -40,6 +40,7 @@ extension AutotuneConfig {
                                 promise(.success(true))
 
                             } catch {
+                                warning(.settings, "Rebuilding profiles after Autotune change failed", error: error)
                                 promise(.success(false))
                             }
                         }
@@ -59,7 +60,7 @@ extension AutotuneConfig {
                         lastAutotuneDate = Date()
                     }
                 } catch {
-                    debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to run Autotune")
+                    warning(.settings, "Running Autotune failed", error: error)
                 }
             }
         }
@@ -70,6 +71,7 @@ extension AutotuneConfig {
             do {
                 _ = try await apsManager.makeProfiles()
             } catch {
+                warning(.settings, "Rebuilding profiles after deleting Autotune failed", error: error)
                 return
             }
         }
@@ -86,7 +88,7 @@ extension AutotuneConfig {
                     }
                 guard let pump = apsManager.pumpManager else {
                     storage.save(basals, as: OpenAPS.Settings.basalProfile)
-                    debug(.service, "Basals have been replaced with Autotuned Basals by user.")
+                    info(.settings, "Basal profile replaced with Autotune basals")
                     return
                 }
                 let syncValues = basals.map {
@@ -96,9 +98,9 @@ extension AutotuneConfig {
                     switch result {
                     case .success:
                         self.storage.save(basals, as: OpenAPS.Settings.basalProfile)
-                        debug(.service, "Basals saved to pump!")
-                    case .failure:
-                        debug(.service, "Basals couldn't be save to pump")
+                        info(.settings, "Basal profile replaced with Autotune basals and saved to pump")
+                    case let .failure(syncError):
+                        error(.settings, "Saving Autotune basals to pump failed", error: syncError)
                     }
                 }
             }

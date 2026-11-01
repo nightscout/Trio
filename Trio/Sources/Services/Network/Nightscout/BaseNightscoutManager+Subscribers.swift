@@ -71,7 +71,7 @@ extension BaseNightscoutManager {
                 try self.carbEntryUploadController.performFetch()
                 try self.glucoseUploadController.performFetch()
             } catch {
-                debug(.nightscout, "\(DebuggingIdentifiers.failed) Failed to set up Nightscout upload controllers: \(error)")
+                warning(.nightscout, "Failed to set up upload controllers", error: error)
             }
         }
     }

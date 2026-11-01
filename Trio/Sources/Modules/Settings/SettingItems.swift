@@ -289,9 +289,13 @@ enum SettingItems {
                 "Dark Scheme",
                 "Light Scheme",
                 "Glucose Color Scheme",
+                "TIR Lower Threshold",
+                "Standard Lower Threshold",
+                "Extended Lower Threshold",
                 "Time in Range Type",
                 "Time in Tight Range (TITR)",
                 "Time in Normoglycemia (TING)",
+                "Home Statistics Range",
                 "X-Axis Interval Step",
                 "Require Adjustments Confirmation"
             ],
@@ -302,8 +306,11 @@ enum SettingItems {
                 "Lines": "Forecast Display Type",
                 "Dark Mode": "Appearance",
                 "Light Mode": "Appearance",
-                "Time in Tight Range (TITR)": "Time in Range Type",
-                "Time in Normoglycemia (TING)": "Time in Range Type",
+                "Standard Lower Threshold": "TIR Lower Threshold",
+                "Extended Lower Threshold": "TIR Lower Threshold",
+                "Time in Range Type": "TIR Lower Threshold",
+                "Time in Tight Range (TITR)": "TIR Lower Threshold",
+                "Time in Normoglycemia (TING)": "TIR Lower Threshold",
                 "Dark Scheme": "Appearance",
                 "Light Scheme": "Appearance",
                 "X-Axis Interval Step": "Show X-Axis Grid Lines",
@@ -377,7 +384,8 @@ enum SettingItems {
             view: .liveActivitySettings,
             searchContents: [
                 "Enable Live Activity",
-                "Lock Screen Widget Style"
+                "Lock Screen Widget Style",
+                "Widget Configuration"
             ],
             path: ["Notifications", "Live Activity"]
         ),
@@ -409,7 +417,8 @@ enum SettingItems {
             view: .nighscoutConfig,
             searchContents: [
                 "Allow Uploading to Nightscout",
-                "Upload Glucose"
+                "Upload Glucose",
+                "Upload CGM Sensor States"
             ],
             path: ["Services", "Nightscout", "Upload"]
         ),

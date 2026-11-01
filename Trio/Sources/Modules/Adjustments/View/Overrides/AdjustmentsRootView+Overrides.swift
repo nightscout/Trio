@@ -15,7 +15,9 @@ extension Adjustments.RootView {
 
     var overridePresets: some View {
         Section {
-            ForEach(state.overridePresets) { preset in
+            // objectID instead of the optional `id` field, which can be nil/duplicated and
+            // crashes SwiftUI's ForEach.
+            ForEach(state.overridePresets, id: \.objectID) { preset in
                 overridesView(for: preset, showCheckMark: showOverrideCheckmark) {
                     requestOverridePresetActivation(preset)
                 }
@@ -151,7 +153,14 @@ extension Adjustments.RootView {
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
 
-        let durationString = indefinite ? "" : "\(state.formatHoursAndMinutes(Int(duration)))"
+        // Int(_: Decimal) traps on NaN/out-of-range values, so a corrupted preset would crash
+        // this screen on every open. Guard via Double instead.
+        let durationString: String = {
+            guard !indefinite else { return "" }
+            let durationMinutes = NSDecimalNumber(decimal: duration).doubleValue
+            guard durationMinutes.isFinite, durationMinutes.magnitude <= Double(Int.max) else { return "" }
+            return state.formatHoursAndMinutes(Int(durationMinutes))
+        }()
 
         let scheduledSMBString: String = {
             guard preset.smbIsScheduledOff, preset.start != preset.end else { return "" }
@@ -189,7 +198,12 @@ extension Adjustments.RootView {
             }
         }()
 
-        let percentageString = percentage != 100 ? "\(Int(percentage))%\(isfAndCrString)" : ""
+        // Same trap risk as duration above.
+        let percentageString: String = {
+            guard percentage != 100 else { return "" }
+            guard percentage.isFinite, percentage.magnitude <= Double(Int.max) else { return "" }
+            return "\(Int(percentage))%\(isfAndCrString)"
+        }()
 
         // Combine all labels into a single array, filtering out empty strings
         let labels: [String] = [

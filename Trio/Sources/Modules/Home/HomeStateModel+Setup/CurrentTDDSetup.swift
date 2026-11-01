@@ -13,7 +13,7 @@ extension Home.StateModel {
             try tddController.performFetch()
             updateTDDFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform TDD fetch: \(error)")
+            warning(.ui, "Fetching total daily dose for home screen failed", error: error)
         }
     }
 

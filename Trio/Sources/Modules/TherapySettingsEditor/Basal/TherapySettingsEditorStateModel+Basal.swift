@@ -14,6 +14,7 @@ extension TherapySettingsEditor.StateModel {
         let profile = items.map { $0.asBasalProfileEntry() }
 
         try await provider.saveBasalProfile(profile)
+        info(.settings, "Basal profile saved with \(items.count) entries")
 
         broadcaster.notify(BasalProfileObserver.self, on: .main) {
             $0.basalProfileDidChange(profile)

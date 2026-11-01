@@ -20,7 +20,7 @@ extension TherapySettingsEditor.Provider {
 
     func saveBasalProfile(_ profile: [BasalProfileEntry]) async throws {
         guard let pump = deviceManager?.pumpManager else {
-            debugPrint("\(DebuggingIdentifiers.failed) No pump found; cannot save basal profile!")
+            warning(.settings, "Basal profile not saved, no pump connected")
             throw TherapySettingsEditor.BasalSaveError.noPumpAvailable
         }
 

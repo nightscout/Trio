@@ -171,7 +171,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                     try context.save()
                 }
             } catch let error as NSError {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to save new temp target with error: \(error.userInfo)")
+                warning(.storage, "Saving new temp target failed", error: error)
                 throw error
             }
 
@@ -213,7 +213,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                 let results = try context.fetch(fetchRequest)
                 return !results.isEmpty
             } catch let error as NSError {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to check for existing Temp Target: \(error)")
+                warning(.storage, "Checking for an existing temp target failed", error: error)
                 return false
             }
         }
@@ -238,9 +238,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                 guard self.viewContext.hasChanges else { return }
                 try self.viewContext.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to copy Temp Target with error: \(error.userInfo)"
-                )
+                warning(.storage, "Saving copied temp target failed", error: error)
             }
         }
 
@@ -255,7 +253,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
             do {
                 let result = try context.existingObject(with: objectID) as? TempTargetStored
                 guard let tempTarget = result else {
-                    debug(.default, "\(DebuggingIdentifiers.failed) Temp Target for batch delete not found.")
+                    warning(.storage, "Temp target preset to delete not found")
                     return
                 }
 
@@ -264,7 +262,7 @@ final class BaseTempTargetsStorage: TempTargetsStorage, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete Temp Target: \(error)")
+                warning(.storage, "Deleting temp target preset failed", error: error)
             }
         }
     }

@@ -109,8 +109,10 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         // with no reference to this manager, so it routes through the shared
         // bridge. Register here; taps queued before this point are flushed.
         Task { @MainActor [weak self] in
+            // Stopping an AlarmKit alarm is a dismissal like any other, so it
+            // snoozes rather than silencing the alarm for the whole excursion.
             CriticalAlertAcknowledgementBridge.shared.setHandler { identifier in
-                self?.handleAcknowledgement(identifier: identifier)
+                self?.requestSnooze(identifier: identifier, duration: BaseTrioAlertManager.quickSnooze)
             }
         }
 
@@ -161,7 +163,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
                             // The notification is gone from Notification Center —
                             // same gesture as swiping it away, so treat it as a
                             // dismissal: ack (history + device) + 15-min snooze.
-                            self.requestSnooze(identifier: identifier, duration: 15 * 60)
+                            self.requestSnooze(identifier: identifier, duration: Self.quickSnooze)
                             self.modalScheduler.unschedule(identifier: identifier)
                         }
                     }
@@ -204,12 +206,15 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     // MARK: - Issue / Retract
 
     func issueAlert(_ alert: Alert) {
-        debug(
-            .service,
-            "TrioAlertManager.issueAlert \(alert.identifier.value) level=\(alert.interruptionLevel)"
-        )
+        info(.alerts, "Alert \(alert.identifier.value) issued, level \(alert.interruptionLevel)")
 
         let now = Date()
+        let fireDate: Date
+        switch alert.trigger {
+        case .immediate: fireDate = now
+        case let .delayed(interval),
+             let .repeating(interval): fireDate = now.addingTimeInterval(interval)
+        }
 
         // Catalog-known alerts (pump, CGM lifecycle, Trio algorithm) get the
         // user's Device Alarms tier config applied — tone, Play Sound,
@@ -224,17 +229,14 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             guard let tier = DeviceAlertSeverity(level: entry.interruptionLevel) else { return }
 
             // Per-tier snooze. Critical tier ignores snooze.
-            if tier != .critical, DeviceAlertsStore.shared.isTierSnoozed(tier, at: now) {
-                debug(.service, "TrioAlertManager dropped \(alert.identifier.value): tier \(tier) snoozed")
+            if tier != .critical, DeviceAlertsStore.shared.isTierSnoozed(tier, at: fireDate) {
+                debug(.alerts, "Alert \(alert.identifier.value) dropped, tier \(tier) snoozed")
                 return
             }
             // nil = every variant in the tier disabled, user opted out.
             let isNight = GlucoseAlertsStore.shared.configuration.isNight(at: now)
             guard let config = DeviceAlertsStore.shared.config(for: tier, at: now, isNight: isNight) else {
-                debug(
-                    .service,
-                    "TrioAlertManager dropped \(alert.identifier.value): all variants in tier \(tier) disabled"
-                )
+                debug(.alerts, "Alert \(alert.identifier.value) dropped, all variants in tier \(tier) disabled")
                 return
             }
             effective = Self.applyDeviceSeverityConfig(config, entry: entry, to: alert)
@@ -245,12 +247,12 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         // Critical alerts pierce the snooze/mute window. Everything else is
         // suppressed entirely while muted (no modal, no UN sound, no critical
         // audio fallback).
-        if effective.interruptionLevel != .critical, muter.shouldMute(at: now) {
-            debug(.service, "TrioAlertManager muted \(effective.identifier.value) (snooze window active)")
+        if effective.interruptionLevel != .critical, muter.shouldMute(at: fireDate) {
+            debug(.alerts, "Alert \(effective.identifier.value) muted, snooze window active")
             return
         }
         guard throttler.shouldDeliver(effective) else {
-            debug(.service, "TrioAlertManager throttled \(effective.identifier.value)")
+            debug(.alerts, "Alert \(effective.identifier.value) throttled")
             return
         }
         queue.async {
@@ -334,7 +336,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
                 isMuted: muted
             ) {
             case let .replay(alert):
-                debug(.service, "TrioAlertManager replaying \(alert.identifier.value)")
+                debug(.alerts, "Alert \(alert.identifier.value) replayed after launch")
                 queue.async { self.liveAlerts[alert.identifier] = alert }
                 modalScheduler.schedule(alert)
             case .acknowledgeSilently:
@@ -375,9 +377,19 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         else { return }
         responder.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier) { error in
             if let error = error {
-                debug(.service, "AlertManager ack failed for \(identifier.value): \(error)")
+                warning(.alerts, "Acknowledging alert \(identifier.value) on device failed", error: error)
             }
         }
+    }
+
+    /// What a dismissal buys when the user didn't name a duration.
+    static let quickSnooze: TimeInterval = NotificationResponseAction.snooze15.duration
+
+    /// How long a notification response snoozes for: the action's own
+    /// duration if the user picked one, the quick 15 minutes for a swipe, a
+    /// tap or OK. Extracted for unit testing.
+    static func snoozeDuration(forActionIdentifier actionIdentifier: String) -> TimeInterval {
+        NotificationResponseAction(rawValue: actionIdentifier)?.duration ?? quickSnooze
     }
 
     func handleNotificationResponse(_ response: UNNotificationResponse) {
@@ -388,15 +400,17 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         else { return }
         let identifier = Alert.Identifier(managerIdentifier: managerId, alertIdentifier: alertId)
 
-        // Swipe = 15-min snooze (mirrors the in-app banner's swipe-up).
-        // Tap and action buttons keep the full-ack path.
-        if response.actionIdentifier == UNNotificationDismissActionIdentifier {
-            modalScheduler.snooze(identifier: identifier, duration: 15 * 60)
-            userNotificationScheduler.unschedule(identifier: identifier)
-            return
-        }
-
-        handleAcknowledgement(identifier: identifier)
+        // Clearing an alert is always a snooze, never a permanent dismissal:
+        // the chosen duration if the user picked one, the quick 15 minutes for
+        // a swipe, a tap or the OK button. The in-app banner already works
+        // this way; only the notification didn't, so acknowledging a High
+        // meant never hearing it again for that whole excursion.
+        //
+        // The snooze path acknowledges too, so history and the issuing device
+        // still see the user's response.
+        let duration = Self.snoozeDuration(forActionIdentifier: response.actionIdentifier)
+        modalScheduler.snooze(identifier: identifier, duration: duration)
+        userNotificationScheduler.unschedule(identifier: identifier)
     }
 
     func acknowledgeAllOutstanding() {
@@ -407,6 +421,25 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
                 alertIdentifier: entry.alertIdentifier
             )
             handleAcknowledgement(identifier: identifier)
+        }
+    }
+
+    private func clearPendingNonCriticalNotificationsAndWait() async {
+        await withCheckedContinuation { continuation in
+            let center = UNUserNotificationCenter.current()
+            center.getPendingNotificationRequests { requests in
+                let ids = requests
+                    .filter { $0.content.interruptionLevel != .critical }
+                    .map(\.identifier)
+                if !ids.isEmpty { center.removePendingNotificationRequests(withIdentifiers: ids) }
+                center.getDeliveredNotifications { delivered in
+                    let ids = delivered
+                        .filter { $0.request.content.interruptionLevel != .critical }
+                        .map(\.request.identifier)
+                    if !ids.isEmpty { center.removeDeliveredNotifications(withIdentifiers: ids) }
+                    continuation.resume()
+                }
+            }
         }
     }
 
@@ -446,7 +479,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
 
         if duration > 0 {
             muter.mute(for: duration)
-            clearPendingNonCriticalNotifications()
+            await clearPendingNonCriticalNotificationsAndWait()
             modalScheduler.clearNonCriticalBanners()
         } else {
             muter.unmute()
@@ -513,6 +546,7 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
                   let tier = DeviceAlertSeverity(level: entry.interruptionLevel),
                   tier != .critical
         {
+            guard !entry.concept.isEscalationStep else { return }
             DeviceAlertsStore.shared.snoozeTier(tier, until: untilDate)
             dismissAlertsInTier(tier, excluding: identifier)
         } else {
@@ -530,6 +564,7 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
             liveAlerts.compactMap { id, _ in
                 guard id != excluding,
                       let entry = AlertCatalogRegistry.lookup(id),
+                      !entry.concept.isEscalationStep,
                       DeviceAlertSeverity(level: entry.interruptionLevel) == tier
                 else { return nil }
                 return id
@@ -578,13 +613,6 @@ enum AlertUserInfoKey: String {
 final class AlertMuter: ObservableObject {
     @Published private(set) var startDate: Date?
     @Published private(set) var duration: TimeInterval = 0
-
-    static let allowedDurations: [TimeInterval] = [
-        30 * 60,
-        60 * 60,
-        2 * 60 * 60,
-        4 * 60 * 60
-    ]
 
     func mute(for duration: TimeInterval, from start: Date = Date()) {
         startDate = start

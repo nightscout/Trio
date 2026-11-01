@@ -14,6 +14,7 @@ extension TherapySettingsEditor.StateModel {
         let profile = CarbRatios(units: .grams, schedule: items.map { $0.asCarbRatioEntry() })
 
         provider.saveCarbRatioProfile(profile)
+        info(.settings, "Carb ratio schedule saved with \(items.count) entries")
 
         broadcaster.notify(CarbRatiosObserver.self, on: .main) {
             $0.carbRatiosDidChange(profile)

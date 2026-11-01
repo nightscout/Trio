@@ -58,12 +58,19 @@ enum DeviceAlertSeverity: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// Acoustic, Medium — the set the sound designer recommends as default
+    /// after hallway testing.
     var defaultSoundFilename: String {
-        switch self {
-        case .critical: return "alarm.caf"
-        case .timeSensitive: return "chime.caf"
-        case .normal: return "bloop.caf"
-        }
+        AlarmSoundCatalog.defaultFilename(for: .deviceTier(self)) ?? "alarm.caf"
+    }
+
+    /// Only the Critical tier makes noise out of the box. Device alarms are
+    /// mostly informational (reservoir low, pod expiring, time change) and a
+    /// sound for every one of them is what users described as constant
+    /// sirens. The lower tiers still deliver a banner and can be given a
+    /// sound per tier in Device Alarms.
+    var defaultPlaysSound: Bool {
+        self == .critical
     }
 
     /// Default for the per-tier override toggle when seeded. Tier names are
