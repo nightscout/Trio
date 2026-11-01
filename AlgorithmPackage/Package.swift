@@ -61,6 +61,7 @@ let package = Package(
         .target(
             name: "Trio",
             path: "Sources",
+            exclude: ["Localizations"],
             sources: [
                 "APS/OpenAPSSwift",
                 "APS/Extensions/DecimalExtensions.swift"
