@@ -41,6 +41,7 @@ import UIKit
             "MinimedPumpManager": "Minimed500",
             "MedtrumPumpManager": "Medtrum",
             "DanaKitPumpManager": "Dana",
+            "TandemPumpManager": "TandemPumpManager",
             "MockPumpManager": "MockPumpManager"
         ]
         for entry in DeviceCatalog.pumps {
