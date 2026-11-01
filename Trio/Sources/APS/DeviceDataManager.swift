@@ -54,6 +54,12 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     private var resolver: Resolver?
     // serializes event batches: a PM may report again before the prior store finished
     private var pumpEventsTask: Task<Void, Never>?
+    // one context for all battery stores, so each sees the row the one before it wrote
+    private let batteryContext: NSManagedObjectContext = {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "storeBatteryStatus"
+        return context
+    }()
 
     @Persisted(key: "BaseDeviceDataManager.lastEventDate") var lastEventDate: Date? = nil
     @SyncAccess(lock: accessLock) @Persisted(key: "BaseDeviceDataManager.lastHeartBeatTime") var lastHeartBeatTime: Date =
@@ -411,8 +417,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
         let display = status.pumpBatteryChargeRemaining != nil
 
-        let context = CoreDataStack.shared.newTaskContext()
-        context.name = "storeBatteryStatus"
+        let context = batteryContext
         context.perform {
             let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
