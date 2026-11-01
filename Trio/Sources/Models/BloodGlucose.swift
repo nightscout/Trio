@@ -221,23 +221,32 @@ extension Decimal {
         Trio.rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 
-    func formatted(for units: GlucoseUnits) -> String {
-        let value = units == .mgdL ? self : self * GlucoseUnits.exchangeRate
-        return value.formatted(Self.glucoseStyle(for: units))
+    func formatted(for units: GlucoseUnits, locale: Locale = .autoupdatingCurrent) -> String {
+        converted(to: units).formatted(Self.glucoseStyle(for: units).locale(locale))
     }
 
-    func formattedDelta(for units: GlucoseUnits) -> String {
-        let value = units == .mgdL ? self : self * GlucoseUnits.exchangeRate
-        return value.formatted(Self.glucoseStyle(for: units).sign(strategy: .always(includingZero: true)))
+    func formattedDelta(for units: GlucoseUnits, locale: Locale = .autoupdatingCurrent) -> String {
+        converted(to: units).formatted(Self.glucoseStyle(for: units).locale(locale).sign(strategy: .always(includingZero: true)))
+    }
+
+    func formattedISF(for units: GlucoseUnits, locale: Locale = .autoupdatingCurrent) -> String {
+        converted(to: units).formatted(Self.glucoseStyle(for: units, mgdLFractionLength: 0 ... 1).locale(locale))
     }
 
     func formatted(withUnits units: GlucoseUnits) -> String {
         formatted(for: units) + " \(units.rawValue)"
     }
 
-    private static func glucoseStyle(for units: GlucoseUnits) -> Decimal.FormatStyle {
+    private func converted(to units: GlucoseUnits) -> Decimal {
+        units == .mgdL ? self : self * GlucoseUnits.exchangeRate
+    }
+
+    private static func glucoseStyle(
+        for units: GlucoseUnits,
+        mgdLFractionLength: ClosedRange<Int> = 0 ... 0
+    ) -> Decimal.FormatStyle {
         .number
-            .precision(.fractionLength(units == .mgdL ? 0 : 1))
+            .precision(.fractionLength(units == .mgdL ? mgdLFractionLength : 1 ... 1))
             .grouping(.never)
             .rounded(rule: .toNearestOrAwayFromZero)
     }

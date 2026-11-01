@@ -88,7 +88,7 @@ extension AutosensSettings {
                         Spacer()
                         Text(
                             (!state.settingsManager.preferences.useNewFormula ? newISF! : dynamicISF?.decimalValue ?? 0)
-                                .formatted(for: state.units)
+                                .formattedISF(for: state.units)
                         )
                         Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                     }

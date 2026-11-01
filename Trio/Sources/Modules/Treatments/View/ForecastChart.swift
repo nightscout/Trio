@@ -248,12 +248,9 @@ struct ForecastChart: View {
                 ).font(.footnote)
 
                 if state.isSmoothingEnabled, let smoothedGlucose = selectedGlucose?.smoothedGlucose {
-                    let smoothedGlucoseToDisplay: Decimal = state.units == .mgdL
-                        ? smoothedGlucose.decimalValue
-                        : smoothedGlucose.decimalValue.asMmolL
                     HStack {
                         Image(systemName: "sparkles")
-                        Text(smoothedGlucoseToDisplay.description) + Text(" \(state.units.rawValue)")
+                        Text(smoothedGlucose.decimalValue.formatted(withUnits: state.units))
                     }.font(.footnote)
                 }
             }

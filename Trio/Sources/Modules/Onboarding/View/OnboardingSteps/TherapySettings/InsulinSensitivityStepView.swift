@@ -85,7 +85,7 @@ struct InsulinSensitivityStepView: View {
                                 let aboveTargetText = aboveTarget.formatted(for: state.units)
                                 let firstIsfRate: Decimal = state.isfRateValues[state.isfItems.first?.rateIndex ?? 0]
                                 let isfValueText = firstIsfRate.formatted(for: state.units)
-                                let insulinNeeded = aboveTarget / firstIsfRate
+                                let insulinNeeded = aboveTarget.asUnit(state.units) / firstIsfRate.asUnit(state.units)
 
                                 Text(
                                     "If you are \(aboveTargetText) \(state.units.rawValue) above target:"
@@ -94,7 +94,7 @@ struct InsulinSensitivityStepView: View {
                                 .padding(.horizontal)
 
                                 Text(
-                                    "\(aboveTargetText) \(state.units.rawValue) / \(isfValueText) \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(String(format: "%.1f", Double(insulinNeeded))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
+                                    "\(aboveTargetText) \(state.units.rawValue) / \(isfValueText) \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(insulinNeeded.formatted(.number.precision(.fractionLength(1)))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
                                 )
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundColor(.cyan)

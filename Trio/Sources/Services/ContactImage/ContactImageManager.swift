@@ -37,14 +37,11 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
-    private var units: GlucoseUnits = .mgdL
-
     weak var delegate: ContactImageManagerDelegate?
 
     init(resolver: Resolver) {
         super.init()
         injectServices(resolver)
-        units = settingsManager.settings.units
         coreDataPublisher =
             CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
@@ -185,6 +182,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     /// - Important: This function must be called on the main actor to ensure thread safety. Otherwise, we would need to ensure thread safety by either using an actor or a perform closure
     @MainActor func updateContactImageState() async {
         do {
+            let units = settingsManager.settings.units
             // Get NSManagedObjectIDs on backgroundContext
             let glucoseValuesIds = try await fetchGlucose()
             let determinationIds = try await fetchlastDetermination()
@@ -197,11 +195,11 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             let lastDetermination = determinationObjects.last
 
             if let firstGlucoseValue = glucoseObjects.first {
-                let value = settingsManager.settings.units == .mgdL
+                let value = units == .mgdL
                     ? Decimal(firstGlucoseValue.glucose)
                     : Decimal(firstGlucoseValue.glucose).asMmolL
 
-                state.glucose = Decimal(firstGlucoseValue.glucose).formatted(for: settingsManager.settings.units)
+                state.glucose = Decimal(firstGlucoseValue.glucose).formatted(for: units)
                 state.glucoseValue = value
                 state.trend = firstGlucoseValue.directionEnum?.symbol
                 state.direction = firstGlucoseValue.directionEnum
@@ -209,7 +207,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
                 if glucoseObjects.count >= 2 {
                     let delta = Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects[1].glucose)
-                    state.delta = delta.formattedDelta(for: settingsManager.settings.units)
+                    state.delta = delta.formattedDelta(for: units)
                 } else {
                     state.delta = nil
                 }
@@ -240,7 +238,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             }
 
             if let eventualBG = lastDetermination?.eventualBG {
-                state.eventualBG = "⇢ " + eventualBG.decimalValue.formatted(for: settingsManager.settings.units)
+                state.eventualBG = "⇢ " + eventualBG.decimalValue.formatted(for: units)
             }
 
             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
