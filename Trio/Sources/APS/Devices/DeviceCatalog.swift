@@ -461,6 +461,7 @@ extension DeviceCatalog {
         ),
         PumpCatalogEntry(
             TandemPumpManager.self,
+            id: "TandemPumpManager",
             manufacturer: .tandem,
             name: "Tandem",
             supportedModels: ["Mobi"],
