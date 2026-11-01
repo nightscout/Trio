@@ -1,11 +1,10 @@
 import Foundation
 import LoopKit
 
-/// Plugin-side declaration of every alert a device manager may issue.
-/// Mirrors LoopKit's `AlertSoundVendor` pattern (static, boot-time, no
-/// side effects). Trio uses the union catalog to drive per-alert severity,
-/// the Settings UI, and per-alert mute. When upstream LoopKit adopts this,
-/// Trio's bridge extensions move into the plugin repos verbatim.
+/// Trio's declaration of every alert a device manager may issue. Modeled on
+/// LoopKit's `AlertSoundVendor` pattern (static, boot-time, no side effects),
+/// but defined in Trio only; LoopKit has no counterpart. Trio uses the union
+/// catalog to drive per-alert severity, the Settings UI, and per-alert mute.
 protocol AlertCatalogVendor {
     var alertCatalog: [Alert.CatalogEntry] { get }
 }
