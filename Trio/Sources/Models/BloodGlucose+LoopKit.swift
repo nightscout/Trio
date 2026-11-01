@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import LoopAlgorithm
 import LoopKit
 
 // LoopKit/HealthKit adapter for `BloodGlucose`.
@@ -12,7 +13,7 @@ extension BloodGlucose {
         StoredGlucoseSample(
             syncIdentifier: id,
             startDate: dateString.date,
-            quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose!)),
+            quantity: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose!)),
             wasUserEntered: isManualGlucose,
             device: HKDevice.local()
         )

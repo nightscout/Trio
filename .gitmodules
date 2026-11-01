@@ -13,7 +13,7 @@
 [submodule "G7SensorKit"]
 	path = G7SensorKit
 	url = https://github.com/loopandlearn/G7SensorKit.git
-	branch = feat/trio-g7-direct
+	branch = trio-next-dev
 [submodule "MinimedKit"]
 	path = MinimedKit
 	url = https://github.com/loopandlearn/MinimedKit.git
@@ -45,7 +45,7 @@
 [submodule "LibreLoop"]
 	path = LibreLoop
 	url = https://github.com/loopandlearn/LibreLoop.git
-	branch = legacy-loopkit-compat
+	branch = trio-next-dev
 [submodule "LoopAlgorithm"]
 	path = LoopAlgorithm
 	url = https://github.com/loopandlearn/LoopAlgorithm.git
