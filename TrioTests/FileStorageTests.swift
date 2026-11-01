@@ -4,7 +4,7 @@ import Testing
 @testable import Trio
 
 @Suite("File Storage Tests", .serialized) struct FileStorageTests {
-    let storage = BaseFileStorage()
+    let storage = BaseFileStorage(directory: .temporary)
 
     struct DummyObject: JSON, Equatable {
         let id: String
