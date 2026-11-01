@@ -5,6 +5,7 @@ import HealthKit
 import LoopKit
 import LoopKitUI
 import MedtrumKit
+import MinimedKit
 import MockKit
 import MockKitUI
 import OmnipodKit
@@ -349,6 +350,16 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 // MARK: - PumpManagerDelegate
 
 extension BaseDeviceDataManager: PumpManagerDelegate {
+    /// Drops Minimed TBRs above max basal, which come from buggy history decoding.
+    static func storablePumpEvents(_ events: [NewPumpEvent], maxBasal: Decimal, isMinimed: Bool) -> [NewPumpEvent] {
+        guard isMinimed else { return events }
+        return events.filter {
+            // type is optional...
+            guard let type = $0.type, type == .tempBasal else { return true }
+            return $0.dose?.unitsPerHour ?? 0 <= Double(maxBasal)
+        }
+    }
+
     var automaticDosingEnabled: Bool {
         settingsManager.settings.dosingMode.automation != .off // Trio may command the pump
     }
@@ -556,23 +567,23 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     }
 
     func pumpManager(
-        _: PumpManager,
+        _ pumpManager: PumpManager,
         hasNewPumpEvents events: [NewPumpEvent],
         lastReconciliation _: Date?,
         replacePendingEvents: Bool,
         completion: @escaping (_ error: Error?) -> Void
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
+        let isMinimed = pumpManager is MinimedPumpManager
 
         pumpEventsTask = Task { [previousBatch = pumpEventsTask] in
             await previousBatch?.value
             do {
-                // filter buggy TBRs > maxBasal from MDT
-                let events = events.filter {
-                    // type is optional...
-                    guard let type = $0.type, type == .tempBasal else { return true }
-                    return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
-                }
+                let events = Self.storablePumpEvents(
+                    events,
+                    maxBasal: settingsManager.pumpSettings.maxBasal,
+                    isMinimed: isMinimed
+                )
                 debug(.pump, "Storing \(events.count) new pump events")
                 let purgedUploadedIds = try await pumpHistoryStorage.storePumpEvents(
                     events,

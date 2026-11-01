@@ -963,4 +963,56 @@ import Testing
             )))
         }
     }
+
+    // MARK: - Max basal filter
+
+    @Test("A below-schedule temp above max basal is stored for non-Minimed pumps") func testTempAboveMaxBasalStoredForNonMinimed(
+    ) async throws {
+        // oref's SMB low temp isn't capped at max basal: 2.45 * (30 - 2) / 30 = 2.29 U/h
+        let start = Date().addingTimeInterval(-10.minutes.timeInterval)
+        let events = BaseDeviceDataManager.storablePumpEvents(
+            [tempBasalEvent(
+                start: start,
+                end: start.addingTimeInterval(30.minutes.timeInterval),
+                rate: 2.29,
+                syncIdentifier: "tbr-above-max",
+                isMutable: false
+            )],
+            maxBasal: 2,
+            isMinimed: false
+        )
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
+
+        let stored = try await fetchAllEvents()
+        #expect(stored.count == 1, "The enacted temp must reach pump history")
+        #expect(stored.first?.tempBasal?.rate as? Decimal == Decimal(2.29))
+    }
+
+    @Test("Minimed temps above max basal are still dropped") func testMinimedTempAboveMaxBasalDropped() {
+        let start = Date()
+        let events = BaseDeviceDataManager.storablePumpEvents(
+            [
+                tempBasalEvent(
+                    start: start,
+                    end: start.addingTimeInterval(30.minutes.timeInterval),
+                    rate: 2.29,
+                    syncIdentifier: "mdt-bogus",
+                    isMutable: false
+                ),
+                tempBasalEvent(
+                    start: start.addingTimeInterval(30.minutes.timeInterval),
+                    end: start.addingTimeInterval(60.minutes.timeInterval),
+                    rate: 2,
+                    syncIdentifier: "mdt-at-max",
+                    isMutable: false
+                ),
+                bolusEvent(date: start, units: 3, syncIdentifier: "mdt-bolus", isMutable: false)
+            ],
+            maxBasal: 2,
+            isMinimed: true
+        )
+
+        #expect(events.count == 2, "Only the TBR above max basal is dropped")
+        #expect(!events.contains { $0.dose?.syncIdentifier == self.storedIdentifier("mdt-bogus") })
+    }
 }
