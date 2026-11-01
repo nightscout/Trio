@@ -50,8 +50,10 @@ struct GlucoseAlertEditorView: View {
                 switch working.type {
                 case .urgentLow: urgentLowBody
                 case .low: lowBody
+                case .fallingFast: fallingFastBody
                 case .forecastedLow: forecastedLowBody
                 case .high: highBody
+                case .risingFast: risingFastBody
                 case .carbsRequired: carbsRequiredBody
                 }
 
@@ -147,6 +149,31 @@ struct GlucoseAlertEditorView: View {
             units: units,
             valueMgDL: $working.thresholdMgDL
         )
+    }
+
+    private var fallingFastBody: some View {
+        rateSection(
+            header: String(localized: "Fall Rate"),
+            footer: String(localized: "Fires when glucose drops at least this fast, measured over the last 15 minutes.")
+        )
+    }
+
+    private var risingFastBody: some View {
+        rateSection(
+            header: String(localized: "Rise Rate"),
+            footer: String(localized: "Fires when glucose rises at least this fast, measured over the last 15 minutes.")
+        )
+    }
+
+    private func rateSection(header: String, footer: String) -> some View {
+        Section(header: Text(header), footer: Text(footer)) {
+            Picker(String(localized: "Rate"), selection: $working.thresholdMgDL) {
+                ForEach(GlucoseAlertType.rateThresholds, id: \.self) { rate in
+                    Text(GlucoseAlertType.formattedRate(rate, units: units)).tag(rate)
+                }
+            }
+            .pickerStyle(.segmented)
+        }.listRowBackground(Color.chart)
     }
 
     private var forecastedLowBody: some View {

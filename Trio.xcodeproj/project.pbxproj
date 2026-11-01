@@ -555,6 +555,22 @@
 		CAF50000000000000000007B /* Trio/Resources/Sounds/voice_lgs_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000007A /* Trio/Resources/Sounds/voice_lgs_bryce.caf */; };
 		CAF50000000000000000007D /* Trio/Resources/Sounds/voice_ulg_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000007C /* Trio/Resources/Sounds/voice_ulg_amy.caf */; };
 		CAF50000000000000000007F /* Trio/Resources/Sounds/voice_ulg_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF50000000000000000007E /* Trio/Resources/Sounds/voice_ulg_bryce.caf */; };
+		CAF700000000000000000001 /* Trio/Resources/Sounds/acoustic_ff_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000000 /* Trio/Resources/Sounds/acoustic_ff_mild.caf */; };
+		CAF700000000000000000003 /* Trio/Resources/Sounds/acoustic_ff_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000002 /* Trio/Resources/Sounds/acoustic_ff_medium.caf */; };
+		CAF700000000000000000005 /* Trio/Resources/Sounds/acoustic_ff_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000004 /* Trio/Resources/Sounds/acoustic_ff_harsh.caf */; };
+		CAF700000000000000000007 /* Trio/Resources/Sounds/acoustic_fr_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000006 /* Trio/Resources/Sounds/acoustic_fr_mild.caf */; };
+		CAF700000000000000000009 /* Trio/Resources/Sounds/acoustic_fr_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000008 /* Trio/Resources/Sounds/acoustic_fr_medium.caf */; };
+		CAF70000000000000000000B /* Trio/Resources/Sounds/acoustic_fr_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF70000000000000000000A /* Trio/Resources/Sounds/acoustic_fr_harsh.caf */; };
+		CAF70000000000000000000D /* Trio/Resources/Sounds/electronic_ff_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF70000000000000000000C /* Trio/Resources/Sounds/electronic_ff_mild.caf */; };
+		CAF70000000000000000000F /* Trio/Resources/Sounds/electronic_ff_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF70000000000000000000E /* Trio/Resources/Sounds/electronic_ff_medium.caf */; };
+		CAF700000000000000000011 /* Trio/Resources/Sounds/electronic_ff_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000010 /* Trio/Resources/Sounds/electronic_ff_harsh.caf */; };
+		CAF700000000000000000013 /* Trio/Resources/Sounds/electronic_fr_mild.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000012 /* Trio/Resources/Sounds/electronic_fr_mild.caf */; };
+		CAF700000000000000000015 /* Trio/Resources/Sounds/electronic_fr_medium.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000014 /* Trio/Resources/Sounds/electronic_fr_medium.caf */; };
+		CAF700000000000000000017 /* Trio/Resources/Sounds/electronic_fr_harsh.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000016 /* Trio/Resources/Sounds/electronic_fr_harsh.caf */; };
+		CAF700000000000000000019 /* Trio/Resources/Sounds/voice_ff_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF700000000000000000018 /* Trio/Resources/Sounds/voice_ff_amy.caf */; };
+		CAF70000000000000000001B /* Trio/Resources/Sounds/voice_ff_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF70000000000000000001A /* Trio/Resources/Sounds/voice_ff_bryce.caf */; };
+		CAF70000000000000000001D /* Trio/Resources/Sounds/voice_fr_amy.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF70000000000000000001C /* Trio/Resources/Sounds/voice_fr_amy.caf */; };
+		CAF70000000000000000001F /* Trio/Resources/Sounds/voice_fr_bryce.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF70000000000000000001E /* Trio/Resources/Sounds/voice_fr_bryce.caf */; };
 		CAF200000000000000000001 /* Trio/Resources/Sounds/bloom.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000001 /* Trio/Resources/Sounds/bloom.caf */; };
 		CAF200000000000000000002 /* Trio/Resources/Sounds/bloop.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000002 /* Trio/Resources/Sounds/bloop.caf */; };
 		CAF200000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF100000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf */; };
@@ -1786,6 +1802,22 @@
 		CAF50000000000000000007A /* Trio/Resources/Sounds/voice_lgs_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_lgs_bryce.caf; sourceTree = SOURCE_ROOT; };
 		CAF50000000000000000007C /* Trio/Resources/Sounds/voice_ulg_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_ulg_amy.caf; sourceTree = SOURCE_ROOT; };
 		CAF50000000000000000007E /* Trio/Resources/Sounds/voice_ulg_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_ulg_bryce.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000000 /* Trio/Resources/Sounds/acoustic_ff_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_ff_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000002 /* Trio/Resources/Sounds/acoustic_ff_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_ff_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000004 /* Trio/Resources/Sounds/acoustic_ff_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_ff_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000006 /* Trio/Resources/Sounds/acoustic_fr_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_fr_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000008 /* Trio/Resources/Sounds/acoustic_fr_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_fr_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF70000000000000000000A /* Trio/Resources/Sounds/acoustic_fr_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/acoustic_fr_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF70000000000000000000C /* Trio/Resources/Sounds/electronic_ff_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_ff_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF70000000000000000000E /* Trio/Resources/Sounds/electronic_ff_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_ff_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000010 /* Trio/Resources/Sounds/electronic_ff_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_ff_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000012 /* Trio/Resources/Sounds/electronic_fr_mild.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_fr_mild.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000014 /* Trio/Resources/Sounds/electronic_fr_medium.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_fr_medium.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000016 /* Trio/Resources/Sounds/electronic_fr_harsh.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/electronic_fr_harsh.caf; sourceTree = SOURCE_ROOT; };
+		CAF700000000000000000018 /* Trio/Resources/Sounds/voice_ff_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_ff_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF70000000000000000001A /* Trio/Resources/Sounds/voice_ff_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_ff_bryce.caf; sourceTree = SOURCE_ROOT; };
+		CAF70000000000000000001C /* Trio/Resources/Sounds/voice_fr_amy.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_fr_amy.caf; sourceTree = SOURCE_ROOT; };
+		CAF70000000000000000001E /* Trio/Resources/Sounds/voice_fr_bryce.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/voice_fr_bryce.caf; sourceTree = SOURCE_ROOT; };
 		CAF100000000000000000001 /* Trio/Resources/Sounds/bloom.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bloom.caf; sourceTree = SOURCE_ROOT; };
 		CAF100000000000000000002 /* Trio/Resources/Sounds/bloop.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bloop.caf; sourceTree = SOURCE_ROOT; };
 		CAF100000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Trio/Resources/Sounds/bright_alarm.caf; sourceTree = SOURCE_ROOT; };
@@ -3031,6 +3063,22 @@
 				CAF50000000000000000007A /* Trio/Resources/Sounds/voice_lgs_bryce.caf */,
 				CAF50000000000000000007C /* Trio/Resources/Sounds/voice_ulg_amy.caf */,
 				CAF50000000000000000007E /* Trio/Resources/Sounds/voice_ulg_bryce.caf */,
+				CAF700000000000000000000 /* Trio/Resources/Sounds/acoustic_ff_mild.caf */,
+				CAF700000000000000000002 /* Trio/Resources/Sounds/acoustic_ff_medium.caf */,
+				CAF700000000000000000004 /* Trio/Resources/Sounds/acoustic_ff_harsh.caf */,
+				CAF700000000000000000006 /* Trio/Resources/Sounds/acoustic_fr_mild.caf */,
+				CAF700000000000000000008 /* Trio/Resources/Sounds/acoustic_fr_medium.caf */,
+				CAF70000000000000000000A /* Trio/Resources/Sounds/acoustic_fr_harsh.caf */,
+				CAF70000000000000000000C /* Trio/Resources/Sounds/electronic_ff_mild.caf */,
+				CAF70000000000000000000E /* Trio/Resources/Sounds/electronic_ff_medium.caf */,
+				CAF700000000000000000010 /* Trio/Resources/Sounds/electronic_ff_harsh.caf */,
+				CAF700000000000000000012 /* Trio/Resources/Sounds/electronic_fr_mild.caf */,
+				CAF700000000000000000014 /* Trio/Resources/Sounds/electronic_fr_medium.caf */,
+				CAF700000000000000000016 /* Trio/Resources/Sounds/electronic_fr_harsh.caf */,
+				CAF700000000000000000018 /* Trio/Resources/Sounds/voice_ff_amy.caf */,
+				CAF70000000000000000001A /* Trio/Resources/Sounds/voice_ff_bryce.caf */,
+				CAF70000000000000000001C /* Trio/Resources/Sounds/voice_fr_amy.caf */,
+				CAF70000000000000000001E /* Trio/Resources/Sounds/voice_fr_bryce.caf */,
 				CAF100000000000000000001 /* Trio/Resources/Sounds/bloom.caf */,
 				CAF100000000000000000002 /* Trio/Resources/Sounds/bloop.caf */,
 				CAF100000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf */,
@@ -5582,6 +5630,22 @@
 				CAF50000000000000000007B /* Trio/Resources/Sounds/voice_lgs_bryce.caf in Resources */,
 				CAF50000000000000000007D /* Trio/Resources/Sounds/voice_ulg_amy.caf in Resources */,
 				CAF50000000000000000007F /* Trio/Resources/Sounds/voice_ulg_bryce.caf in Resources */,
+				CAF700000000000000000001 /* Trio/Resources/Sounds/acoustic_ff_mild.caf in Resources */,
+				CAF700000000000000000003 /* Trio/Resources/Sounds/acoustic_ff_medium.caf in Resources */,
+				CAF700000000000000000005 /* Trio/Resources/Sounds/acoustic_ff_harsh.caf in Resources */,
+				CAF700000000000000000007 /* Trio/Resources/Sounds/acoustic_fr_mild.caf in Resources */,
+				CAF700000000000000000009 /* Trio/Resources/Sounds/acoustic_fr_medium.caf in Resources */,
+				CAF70000000000000000000B /* Trio/Resources/Sounds/acoustic_fr_harsh.caf in Resources */,
+				CAF70000000000000000000D /* Trio/Resources/Sounds/electronic_ff_mild.caf in Resources */,
+				CAF70000000000000000000F /* Trio/Resources/Sounds/electronic_ff_medium.caf in Resources */,
+				CAF700000000000000000011 /* Trio/Resources/Sounds/electronic_ff_harsh.caf in Resources */,
+				CAF700000000000000000013 /* Trio/Resources/Sounds/electronic_fr_mild.caf in Resources */,
+				CAF700000000000000000015 /* Trio/Resources/Sounds/electronic_fr_medium.caf in Resources */,
+				CAF700000000000000000017 /* Trio/Resources/Sounds/electronic_fr_harsh.caf in Resources */,
+				CAF700000000000000000019 /* Trio/Resources/Sounds/voice_ff_amy.caf in Resources */,
+				CAF70000000000000000001B /* Trio/Resources/Sounds/voice_ff_bryce.caf in Resources */,
+				CAF70000000000000000001D /* Trio/Resources/Sounds/voice_fr_amy.caf in Resources */,
+				CAF70000000000000000001F /* Trio/Resources/Sounds/voice_fr_bryce.caf in Resources */,
 				CAF200000000000000000001 /* Trio/Resources/Sounds/bloom.caf in Resources */,
 				CAF200000000000000000002 /* Trio/Resources/Sounds/bloop.caf in Resources */,
 				CAF200000000000000000003 /* Trio/Resources/Sounds/bright_alarm.caf in Resources */,
