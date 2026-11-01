@@ -138,4 +138,37 @@ import Testing
         let parsed = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)
         #expect(parsed?.threshold_setting == 100) // default mg/dL value
     }
+
+    @Test("IOB written before the first temp basal reads back") func testIOBWithoutTempBasalReadsBack() {
+        // Given
+        let now = Date()
+        var iob = IobResult(
+            iob: 1.5,
+            activity: 0.01,
+            basaliob: 0,
+            bolusiob: 1.5,
+            netbasalinsulin: 0,
+            bolusinsulin: 1.5,
+            time: now,
+            iobWithZeroTemp: IobResult.IobWithZeroTemp(
+                iob: 1.5,
+                activity: 0.01,
+                basaliob: 0,
+                bolusiob: 1.5,
+                netbasalinsulin: 0,
+                bolusinsulin: 1.5,
+                time: now
+            )
+        )
+        iob.lastTemp = IobResult.LastTemp()
+
+        // When
+        storage.save([iob], as: "iob_no_temp")
+        let retrieved = storage.retrieve("iob_no_temp", as: [IOBEntry].self)
+
+        // Then
+        #expect(retrieved?.first?.iob == 1.5)
+        #expect(retrieved?.first?.lastTemp?.date == 0)
+        #expect(retrieved?.first?.lastTemp?.rate == nil)
+    }
 }
