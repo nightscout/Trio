@@ -74,3 +74,27 @@ import Testing
         #expect(calibrationService.intercept <= 100, "Intercept should not be more than maximum")
     }
 }
+
+@Suite("Calibration Service Concurrency Tests") struct CalibrationConcurrencyTests {
+    let resolver = TrioApp().resolver
+
+    @Test("Concurrent calibrate and remove all do not race") func testConcurrentCalibrateAndRemoveAll() {
+        let service = BaseCalibrationService(resolver: resolver)
+        service.removeAllCalibrations()
+
+        DispatchQueue.concurrentPerform(iterations: 200) { index in
+            switch index % 3 {
+            case 0:
+                service.addCalibration(Calibration(x: 100.0, y: 110.0))
+            case 1:
+                service.removeAllCalibrations()
+            default:
+                let value = service.calibrate(value: 120)
+                #expect(value >= 0 && value <= 500)
+            }
+        }
+
+        service.removeAllCalibrations()
+        #expect(service.calibrations.isEmpty)
+    }
+}
