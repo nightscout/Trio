@@ -1,5 +1,6 @@
 import Foundation
 import LoopKit
+import TandemKit
 import Testing
 
 @testable import Trio
@@ -12,7 +13,7 @@ import Testing
 /// and every pump alarm lived only in TandemKit's in-app "Pump notifications"
 /// list. The vendored TandemKit closed that gap —
 /// `TandemPumpManager.reconcileLoopKitAlerts()` now issues and retracts
-/// LoopKit Alerts under `managerIdentifier` "Tandem" on every notification
+/// LoopKit Alerts under its plugin identifier on every notification
 /// fetch, with `PumpNotificationSeverity` picking the interruption level.
 ///
 /// Identifiers are `NotificationItem.stableIdentifier`:
@@ -26,10 +27,9 @@ import Testing
 /// glucose alarms, and they have no device concept to collapse onto. They are
 /// delivered at the level TandemKit set, without Device Alarms tier config.
 @Suite("Trio Alert Emission: TandemKit") struct TandemKitAlertEmissionTests {
-    /// `TandemPumpManager.managerIdentifier` — the string TandemKit stamps on
-    /// every alert it issues. Note it is not the plugin identifier
-    /// ("TandemPumpManager"), which is what `DeviceCatalog` keys on.
-    private static let managerIdentifier = "Tandem"
+    /// TandemKit issues every alert under its plugin identifier, which is what
+    /// Trio registers the pump's alert responder under.
+    private static let managerIdentifier = TandemPumpManager.pluginIdentifier
 
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
