@@ -5,6 +5,7 @@ import HealthKit
 import LoopKit
 import LoopKitUI
 import MedtrumKit
+import MinimedKit
 import MockKit
 import MockKitUI
 import OmnipodKit
@@ -53,6 +54,12 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     private var resolver: Resolver?
     // serializes event batches: a PM may report again before the prior store finished
     private var pumpEventsTask: Task<Void, Never>?
+    // one context for all battery stores, so each sees the row the one before it wrote
+    private let batteryContext: NSManagedObjectContext = {
+        let context = CoreDataStack.shared.newTaskContext()
+        context.name = "storeBatteryStatus"
+        return context
+    }()
 
     @Persisted(key: "BaseDeviceDataManager.lastEventDate") var lastEventDate: Date? = nil
     @SyncAccess(lock: accessLock) @Persisted(key: "BaseDeviceDataManager.lastHeartBeatTime") var lastHeartBeatTime: Date =
@@ -349,6 +356,16 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 // MARK: - PumpManagerDelegate
 
 extension BaseDeviceDataManager: PumpManagerDelegate {
+    /// Drops Minimed TBRs above max basal, which come from buggy history decoding.
+    static func storablePumpEvents(_ events: [NewPumpEvent], maxBasal: Decimal, isMinimed: Bool) -> [NewPumpEvent] {
+        guard isMinimed else { return events }
+        return events.filter {
+            // type is optional...
+            guard let type = $0.type, type == .tempBasal else { return true }
+            return $0.dose?.unitsPerHour ?? 0 <= Double(maxBasal)
+        }
+    }
+
     var automaticDosingEnabled: Bool {
         settingsManager.settings.dosingMode.automation != .off // Trio may command the pump
     }
@@ -400,8 +417,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         let percent = Int((status.pumpBatteryChargeRemaining ?? 1) * 100)
         let display = status.pumpBatteryChargeRemaining != nil
 
-        let context = CoreDataStack.shared.newTaskContext()
-        context.name = "storeBatteryStatus"
+        let context = batteryContext
         context.perform {
             let fetchRequest: NSFetchRequest<OpenAPS_Battery> = OpenAPS_Battery.fetchRequest()
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
@@ -556,23 +572,23 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     }
 
     func pumpManager(
-        _: PumpManager,
+        _ pumpManager: PumpManager,
         hasNewPumpEvents events: [NewPumpEvent],
         lastReconciliation _: Date?,
         replacePendingEvents: Bool,
         completion: @escaping (_ error: Error?) -> Void
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
+        let isMinimed = pumpManager is MinimedPumpManager
 
         pumpEventsTask = Task { [previousBatch = pumpEventsTask] in
             await previousBatch?.value
             do {
-                // filter buggy TBRs > maxBasal from MDT
-                let events = events.filter {
-                    // type is optional...
-                    guard let type = $0.type, type == .tempBasal else { return true }
-                    return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
-                }
+                let events = Self.storablePumpEvents(
+                    events,
+                    maxBasal: settingsManager.pumpSettings.maxBasal,
+                    isMinimed: isMinimed
+                )
                 debug(.pump, "Storing \(events.count) new pump events")
                 let purgedUploadedIds = try await pumpHistoryStorage.storePumpEvents(
                     events,

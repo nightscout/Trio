@@ -10,12 +10,12 @@ import Testing
 /// You can reset the simulator from the menu: **Device > Erase All Content and Settings**
 /// or by launching with `-com.apple.CoreData.SQLDebug 1` for more insight into the issue.
 ///
-@Suite("Bolus Calculator Tests") struct BolusCalculatorTests: Injectable {
+@Suite("Bolus Calculator Tests") @MainActor struct BolusCalculatorTests: Injectable {
     @Injected() var calculator: BolusCalculationManager!
     @Injected() var settingsManager: SettingsManager!
     @Injected() var fileStorage: FileStorage!
     @Injected() var apsManager: APSManager!
-    let resolver = TrioApp().resolver
+    let resolver = TrioApp.resolver
 
     init() {
         injectServices(resolver)
