@@ -4,10 +4,10 @@ import Testing
 
 @testable import Trio
 
-@Suite("Calibration Service Tests", .serialized) struct CalibrationTests: Injectable {
+@Suite("Calibration Service Tests", .serialized) @MainActor struct CalibrationTests: Injectable {
     let fileStorage = BaseFileStorage()
     @Injected() var calibrationService: CalibrationService!
-    let resolver = TrioApp().resolver
+    let resolver = TrioApp.resolver
 
     init() {
         injectServices(resolver)

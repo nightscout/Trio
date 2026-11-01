@@ -3,7 +3,7 @@ import SwiftUI
 import Testing
 @testable import Trio
 
-@Suite("Loop Indicator") struct LoopIndicatorTests {
+@Suite("Loop Indicator") @MainActor struct LoopIndicatorTests {
     private func color(
         _ automation: AutomationLevel,
         deviceIssue: Bool = false,
