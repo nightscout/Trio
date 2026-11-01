@@ -298,6 +298,8 @@ extension GlucoseAlerts {
                 switch alarm.type {
                 case .high: return String(localized: "above")
                 case .carbsRequired: return String(localized: "at least")
+                case .fallingFast: return String(localized: "falling")
+                case .risingFast: return String(localized: "rising")
                 default: return String(localized: "below")
                 }
             }()
@@ -306,6 +308,9 @@ extension GlucoseAlerts {
                 // mg/dL ↔ mmol/L conversion and a fixed "g" unit label.
                 if alarm.type == .carbsRequired {
                     return "\(alarm.thresholdMgDL) \(String(localized: "g", comment: "gram of carbs"))"
+                }
+                if alarm.type.isRateDriven {
+                    return GlucoseAlertType.formattedRate(alarm.thresholdMgDL, units: state.units)
                 }
                 return "\(alarm.thresholdMgDL.formatted(for: state.units)) \(state.units.rawValue)"
             }()

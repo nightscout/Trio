@@ -94,6 +94,8 @@ enum AlarmSoundCatalog {
         ("lg", [.glucose(.low)]),
         ("lgs", [.glucose(.forecastedLow)]),
         ("hg", [.glucose(.high)]),
+        ("ff", [.glucose(.fallingFast)]),
+        ("fr", [.glucose(.risingFast)]),
         ("cr", [.glucose(.carbsRequired)]),
         ("dcr", [.deviceTier(.critical)]),
         // No set was written for the Normal tier, so it shares the

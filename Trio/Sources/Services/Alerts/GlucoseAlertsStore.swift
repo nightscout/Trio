@@ -33,7 +33,7 @@ final class GlucoseAlertsStore: ObservableObject {
             var migrated = loaded
             let presentTypes = Set(loaded.map(\.type))
             for type in GlucoseAlertType.allCases where !presentTypes.contains(type) {
-                migrated.append(GlucoseAlert(type: type))
+                migrated.append(Self.seeded(type))
             }
             alerts = migrated
         }
@@ -45,20 +45,21 @@ final class GlucoseAlertsStore: ObservableObject {
         bind()
     }
 
-    /// Seed every glucose alarm enabled. Users running a stock CGM app for
+    /// Seed every glucose alarm enabled except the rate alarms (see
+    /// `isEnabledWhenSeeded`). Users running a stock CGM app for
     /// low/high notifications can disable the duplicates per-alarm; the
     /// safer default is to have Trio alert until the user opts out.
     /// `urgentLow` cannot be disabled from the editor regardless — it's the
     /// safety floor — but the stored flag is kept honest so the UI binding
     /// stays simple.
     private static func defaultAlerts() -> [GlucoseAlert] {
-        [
-            GlucoseAlert(type: .urgentLow),
-            GlucoseAlert(type: .low),
-            GlucoseAlert(type: .forecastedLow),
-            GlucoseAlert(type: .high),
-            GlucoseAlert(type: .carbsRequired)
-        ]
+        GlucoseAlertType.allCases.map(seeded)
+    }
+
+    private static func seeded(_ type: GlucoseAlertType) -> GlucoseAlert {
+        var alert = GlucoseAlert(type: type)
+        alert.isEnabled = type.isEnabledWhenSeeded
+        return alert
     }
 
     private func bind() {
