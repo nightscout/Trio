@@ -293,7 +293,7 @@ struct GlucoseSectorChart: View {
                     ),
                     (String(localized: "Average"), average.formatted(for: units)),
                     (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                    (String(localized: "SD"), standardDeviation.formatted(for: units))
                 ]
             )
 
@@ -322,7 +322,7 @@ struct GlucoseSectorChart: View {
                     ),
                     (String(localized: "Average"), average.formatted(for: units)),
                     (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                    (String(localized: "SD"), standardDeviation.formatted(for: units))
                 ]
             )
 
@@ -350,7 +350,7 @@ struct GlucoseSectorChart: View {
                     ),
                     (String(localized: "Average"), average.formatted(for: units)),
                     (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                    (String(localized: "SD"), standardDeviation.formatted(for: units))
                 ]
             )
         }
@@ -386,15 +386,6 @@ struct GlucoseSectorChart: View {
 
         let standardDeviation = sqrt(sumOfSquares / Double(values.count))
         return (average, median, standardDeviation)
-    }
-
-    /// Formats the standard deviation value based on glucose units.
-    /// - Parameter sd: The standard deviation as a Double.
-    /// - Returns: A formatted string representing the standard deviation.
-    private func formatSD(_ sd: Double) -> String {
-        units == .mgdL ? sd.formatted(
-            .number.grouping(.never).rounded().precision(.fractionLength(0))
-        ) : sd.formattedAsMmolL
     }
 }
 

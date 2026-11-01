@@ -150,7 +150,7 @@ extension Adjustments.RootView {
 
         let target: String = {
             guard let targetValue = preset.target, targetValue != 0 else { return "" }
-            return state.units == .mgdL ? targetValue.description : targetValue.decimalValue.formattedAsMmolL
+            return targetValue.decimalValue.formatted(for: state.units)
         }()
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"

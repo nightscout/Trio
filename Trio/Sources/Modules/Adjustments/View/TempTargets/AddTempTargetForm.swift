@@ -331,16 +331,6 @@ struct AddTempTargetForm: View {
         return Formatter.integerFormatter.string(from: percentageNumber) ?? "\(value)"
     }
 
-    private func formattedGlucose(glucose: Decimal) -> String {
-        let formattedValue: String
-        if state.units == .mgdL {
-            formattedValue = Formatter.glucoseFormatter(for: state.units).string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-        } else {
-            formattedValue = glucose.formattedAsMmolL
-        }
-        return "\(formattedValue) \(state.units.rawValue)"
-    }
-
     private func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
         // Convert target and step to NSDecimalNumber
         guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
