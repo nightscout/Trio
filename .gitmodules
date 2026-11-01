@@ -52,3 +52,7 @@
 [submodule "SyaiKit"]
 	path = SyaiKit
 	url = https://github.com/nightscout/SyaiKit
+[submodule "TandemKit"]
+	path = TandemKit
+	url = https://github.com/jwoglom/TandemKit.git
+	branch = dev

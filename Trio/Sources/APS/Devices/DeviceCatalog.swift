@@ -24,6 +24,7 @@ import ObjectiveC
 import OmnipodKit
 import SyaiKit
 import SyaiKitUI
+import TandemKit
 import UIKit
 
 /// Single source of truth for every CGM and pump Trio can pair with.
@@ -48,6 +49,7 @@ enum DeviceManufacturer: CaseIterable {
     case senseonics
     case sooil
     case syai
+    case tandem
     case otherSources
     case simulator
 
@@ -63,6 +65,7 @@ enum DeviceManufacturer: CaseIterable {
         case .senseonics: return "Senseonics"
         case .sooil: return "SOOIL"
         case .syai: return "Syai"
+        case .tandem: return "Tandem"
         case .otherSources: return String(localized: "Other Sources", comment: "Device picker section for data relays")
         case .simulator: return String(localized: "Simulator", comment: "Device picker section for simulated devices")
         }
@@ -446,6 +449,15 @@ extension DeviceCatalog {
             supportedModels: ["DanaRS", "Dana-i"],
             icon: .managerBundle(asset: "danars"),
             basalCapability: BasalRateCapability(supportedRates: DanaKitPumpManager.onboardingSupportedBasalRates),
+            reportsRewindEvents: true
+        ),
+        PumpCatalogEntry(
+            TandemPumpManager.self,
+            manufacturer: .tandem,
+            name: "Tandem",
+            supportedModels: ["Mobi"],
+            icon: .managerBundle(asset: "tandem_mobi"),
+            basalCapability: BasalRateCapability(supportedRates: TandemPumpManager.onboardingSupportedBasalRates),
             reportsRewindEvents: true
         ),
         PumpCatalogEntry(
