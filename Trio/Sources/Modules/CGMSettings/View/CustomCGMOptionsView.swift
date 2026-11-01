@@ -453,7 +453,7 @@ extension CGMSettings {
                     })
                         .frame(maxWidth: .infinity, alignment: .center)
                         .tint(.white)
-                }.listRowBackground(Color.accentColor)
+                }.listRowBackground(Color(.systemBlue))
 
             }.listSectionSpacing(sectionSpacing)
         }
