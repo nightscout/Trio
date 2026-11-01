@@ -116,6 +116,7 @@ final class TelemetryClient: Injectable {
     @Injected() private var tidepoolManager: TidepoolManager!
     @Injected() private var healthKitManager: HealthKitManager!
     @Injected() private var keychain: Keychain!
+    @Injected() private var attestor: TelemetryAttestor!
 
     private let lock = NSRecursiveLock()
     private let sendGate = TelemetrySendGate()
@@ -455,7 +456,6 @@ final class TelemetryClient: Injectable {
             return failed("server_url_not_configured")
         }
 
-        let attestor = TelemetryAttestor.shared
         guard attestor.isSupported else {
             debug(.telemetry, "Send skipped: App Attest unsupported on this device")
             return failed("app_attest_unsupported")
