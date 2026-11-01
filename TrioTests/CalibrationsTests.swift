@@ -73,10 +73,6 @@ import Testing
         #expect(calibrationService.intercept >= -100, "Intercept should not be less than minimum")
         #expect(calibrationService.intercept <= 100, "Intercept should not be more than maximum")
     }
-}
-
-@Suite("Calibration Service Concurrency Tests") struct CalibrationConcurrencyTests {
-    let resolver = TrioApp().resolver
 
     @Test("Concurrent calibrate and remove all do not race") func testConcurrentCalibrateAndRemoveAll() {
         let service = BaseCalibrationService(resolver: resolver)
