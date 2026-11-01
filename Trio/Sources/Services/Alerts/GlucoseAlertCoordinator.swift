@@ -14,6 +14,7 @@ import Swinject
 ///      For each enabled alarm matching the current day/night window:
 ///        - urgentLow / low: latest ≤ threshold (+ optional persistence)
 ///        - high: latest ≥ threshold (+ optional persistence)
+///        - fallingFast / risingFast: rate over the last 15 min ≥ threshold mg/dL/min
 ///   2. Determination update → blend forecast at the alarm's predictive horizon
 ///      (forecastedLow: fixed 20 min) and compare to threshold.
 ///
@@ -49,7 +50,9 @@ final class GlucoseAlertCoordinator: Injectable {
             return latestMgDL <= thresholdMgDL
         case .high:
             return latestMgDL >= thresholdMgDL
-        case .carbsRequired:
+        case .carbsRequired,
+             .fallingFast,
+             .risingFast:
             return false
         }
     }
@@ -70,8 +73,60 @@ final class GlucoseAlertCoordinator: Injectable {
             return latestMgDL >= thresholdMgDL + recoveryMarginMgDL
         case .high:
             return latestMgDL <= thresholdMgDL - recoveryMarginMgDL
-        case .carbsRequired:
+        case .carbsRequired,
+             .fallingFast,
+             .risingFast:
             return false
+        }
+    }
+
+    /// Window the rate is measured over, ending at the latest reading.
+    static let rateWindow: TimeInterval = 15 * 60
+    /// Shortest span the rate is computed over. Rejects single-reading jumps.
+    static let minimumRateSpan: TimeInterval = 10 * 60
+    /// 1 mg/dL/min recovery margin before a fired rate alert retracts.
+    static let rateRecoveryMarginMgDLPerMinute: Decimal = 1
+
+    /// Glucose rate of change in mg/dL/min (negative = falling) between the
+    /// newest reading and the oldest one within `rateWindow` of it. Nil with
+    /// fewer than 3 readings, a span under `minimumRateSpan`, or when the
+    /// latest reading no longer moves in the rate's direction. `readings` is
+    /// newest first.
+    static func rateMgDLPerMinute(readings: [(date: Date, glucose: Decimal)]) -> Decimal? {
+        guard let newest = readings.first else { return nil }
+        let windowed = readings.filter { newest.date.timeIntervalSince($0.date) <= rateWindow }
+        guard windowed.count >= 3, let oldest = windowed.last else { return nil }
+        let span = newest.date.timeIntervalSince(oldest.date)
+        guard span >= minimumRateSpan else { return nil }
+        let rate = (newest.glucose - oldest.glucose) / Decimal(span / 60)
+        let latestDelta = windowed[0].glucose - windowed[1].glucose
+        guard rate != 0, latestDelta != 0, (rate > 0) == (latestDelta > 0) else { return nil }
+        return rate
+    }
+
+    /// Falling Fast breaches at or below -threshold, Rising Fast at or above
+    /// threshold. Level-driven types never breach here.
+    static func rateBreached(type: GlucoseAlertType, rateMgDLPerMinute: Decimal?, thresholdMgDLPerMinute: Decimal) -> Bool {
+        guard let rateMgDLPerMinute else { return false }
+        switch type {
+        case .fallingFast: return rateMgDLPerMinute <= -thresholdMgDLPerMinute
+        case .risingFast: return rateMgDLPerMinute >= thresholdMgDLPerMinute
+        default: return false
+        }
+    }
+
+    /// Retracts once the rate slows by the margin, or can no longer be
+    /// computed.
+    static func rateShouldRetract(
+        type: GlucoseAlertType,
+        rateMgDLPerMinute: Decimal?,
+        thresholdMgDLPerMinute: Decimal
+    ) -> Bool {
+        guard let rateMgDLPerMinute else { return true }
+        switch type {
+        case .fallingFast: return rateMgDLPerMinute > -thresholdMgDLPerMinute + rateRecoveryMarginMgDLPerMinute
+        case .risingFast: return rateMgDLPerMinute < thresholdMgDLPerMinute - rateRecoveryMarginMgDLPerMinute
+        default: return false
         }
     }
 
@@ -137,13 +192,20 @@ final class GlucoseAlertCoordinator: Injectable {
             retractReadingDrivenFiringAlarms()
             return
         }
-        guard let latestValue = await fetchLatestReadingMgDL() else { return }
+        let readings = await fetchRecentReadings()
+        guard let latest = readings.first,
+              Date().timeIntervalSince(latest.date) <= Self.readingFreshnessWindow
+        else { return }
+        let rate = Self.rateMgDLPerMinute(
+            readings: readings.filter { !$0.isManual }.map { (date: $0.date, glucose: $0.glucose) }
+        )
         let snapshot = alertsSnapshot
         let configuration = configurationSnapshot
         let now = Date()
         evaluationQueue.async { [weak self] in
             self?.applyReadingBasedEvaluation(
-                latestValue: latestValue,
+                latestValue: latest.glucose,
+                rateMgDLPerMinute: rate,
                 snapshot: snapshot,
                 configuration: configuration,
                 now: now
@@ -153,6 +215,7 @@ final class GlucoseAlertCoordinator: Injectable {
 
     private func applyReadingBasedEvaluation(
         latestValue: Decimal,
+        rateMgDLPerMinute: Decimal?,
         snapshot: [GlucoseAlert],
         configuration: GlucoseAlertConfiguration,
         now: Date
@@ -161,17 +224,41 @@ final class GlucoseAlertCoordinator: Injectable {
         // Iterate in type priority order so we can suppress lesser low-family
         // alarms when a more severe one is firing (urgent low > low). Without
         // this, glucose=60 with both urgent-low (54) AND low (70) configured
-        // would surface two in-app alerts for the same low event.
+        // would surface two in-app alerts for the same low event. Falling
+        // Fast is likewise suppressed while either low alarm is firing, and
+        // Rising Fast while High is.
         let sorted = snapshot.sorted { $0.type.priority < $1.type.priority }
         var urgentLowFiring = false
+        var lowFiring = false
+        var highFiring = false
         for alarm in sorted where alarm.type.isReadingDriven {
             if alarm.type == .low, urgentLowFiring {
                 retractIfFiring(alarm)
                 continue
             }
-            evaluateReadingBased(alarm, latestMgDL: latestValue, now: now, configuration: configuration)
+            if alarm.type == .fallingFast, urgentLowFiring || lowFiring {
+                retractIfFiring(alarm)
+                continue
+            }
+            if alarm.type == .risingFast, highFiring {
+                retractIfFiring(alarm)
+                continue
+            }
+            evaluateReadingBased(
+                alarm,
+                latestMgDL: latestValue,
+                rateMgDLPerMinute: rateMgDLPerMinute,
+                now: now,
+                configuration: configuration
+            )
             if alarm.type == .urgentLow, firingAlertIDs.contains(alarm.id) {
                 urgentLowFiring = true
+            }
+            if alarm.type == .low, firingAlertIDs.contains(alarm.id) {
+                lowFiring = true
+            }
+            if alarm.type == .high, firingAlertIDs.contains(alarm.id) {
+                highFiring = true
             }
         }
     }
@@ -179,6 +266,7 @@ final class GlucoseAlertCoordinator: Injectable {
     private func evaluateReadingBased(
         _ alarm: GlucoseAlert,
         latestMgDL: Decimal,
+        rateMgDLPerMinute: Decimal?,
         now: Date,
         configuration: GlucoseAlertConfiguration
     ) {
@@ -191,6 +279,24 @@ final class GlucoseAlertCoordinator: Injectable {
 
         if alarm.type == .forecastedLow {
             return // handled via determinationDidUpdate
+        }
+        if alarm.type.isRateDriven {
+            if Self.rateBreached(
+                type: alarm.type,
+                rateMgDLPerMinute: rateMgDLPerMinute,
+                thresholdMgDLPerMinute: alarm.thresholdMgDL
+            ) {
+                fireIfNeeded(alarm, valueMgDL: latestMgDL)
+            } else if firingAlertIDs.contains(alarm.id),
+                      Self.rateShouldRetract(
+                          type: alarm.type,
+                          rateMgDLPerMinute: rateMgDLPerMinute,
+                          thresholdMgDLPerMinute: alarm.thresholdMgDL
+                      )
+            {
+                retractIfFiring(alarm)
+            }
+            return
         }
         let breached = Self.breached(
             type: alarm.type,
@@ -349,8 +455,10 @@ final class GlucoseAlertCoordinator: Injectable {
         switch alarm.type {
         case .urgentLow: typeSlug = "urgentLow"
         case .low: typeSlug = "low"
+        case .fallingFast: typeSlug = "fallingFast"
         case .forecastedLow: typeSlug = "forecastedLow"
         case .high: typeSlug = "high"
+        case .risingFast: typeSlug = "risingFast"
         case .carbsRequired: typeSlug = "carbsRequired"
         }
         return Alert.Identifier(
@@ -380,6 +488,16 @@ final class GlucoseAlertCoordinator: Injectable {
                 format: String(localized: "Glucose %1$@."),
                 valueString, limitString
             )
+        case .fallingFast:
+            return String(
+                format: String(localized: "Glucose %@, falling fast."),
+                valueString
+            )
+        case .risingFast:
+            return String(
+                format: String(localized: "Glucose %@, rising fast."),
+                valueString
+            )
         case .carbsRequired:
             return String(
                 format: String(localized: "To prevent LOW required %d g of carbs"),
@@ -403,31 +521,34 @@ final class GlucoseAlertCoordinator: Injectable {
         }
     }
 
+    /// Readings from the last `readingFreshnessWindow + rateWindow`, newest
+    /// first, enough for the latest-reading gate and the fall rate.
     /// Async fetch matching Trio's standard Core Data pattern — never blocks
     /// the caller's thread, never lets a `GlucoseStored` managed object cross
     /// queue boundaries (would otherwise trip
     /// `_PFAssertSafeMultiThreadedAccess_impl`).
-    private func fetchLatestReadingMgDL() async -> Decimal? {
-        let cutoff = Date().addingTimeInterval(-Self.readingFreshnessWindow)
+    private func fetchRecentReadings() async -> [(date: Date, glucose: Decimal, isManual: Bool)] {
+        let cutoff = Date().addingTimeInterval(-(Self.readingFreshnessWindow + Self.rateWindow))
         let predicate = NSPredicate(format: "date >= %@", cutoff as NSDate)
         let context = CoreDataStack.shared.newTaskContext()
-        context.name = "GlucoseAlertCoordinator.fetchLatestReading"
+        context.name = "GlucoseAlertCoordinator.fetchRecentReadings"
         do {
             let results = try await CoreDataStack.shared.fetchEntitiesAsync(
                 ofType: GlucoseStored.self,
                 onContext: context,
                 predicate: predicate,
                 key: "date",
-                ascending: false,
-                fetchLimit: 1
+                ascending: false
             )
             return await context.perform {
-                guard let latest = (results as? [GlucoseStored])?.first else { return nil }
-                return Decimal(latest.glucose)
+                ((results as? [GlucoseStored]) ?? []).compactMap { reading in
+                    guard let date = reading.date else { return nil }
+                    return (date: date, glucose: Decimal(reading.glucose), isManual: reading.isManual)
+                }
             }
         } catch {
-            warning(.alerts, "Fetching latest glucose for glucose alerts failed", error: error)
-            return nil
+            warning(.alerts, "Fetching recent glucose for glucose alerts failed", error: error)
+            return []
         }
     }
 }
