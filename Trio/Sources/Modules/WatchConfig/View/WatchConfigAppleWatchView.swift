@@ -20,6 +20,21 @@ struct WatchConfigAppleWatchView: BaseView {
         state.deleteGarminDevice()
     }
 
+    private var previewState: ComplicationState {
+        ComplicationState.sample(
+            units: state.units.rawValue,
+            settings: ComplicationSlotSettings(
+                cornerValue: state.complicationCornerValue,
+                secondaryValue: state.complicationSecondaryValue,
+                staleMinutes: state.complicationStaleMinutes
+            )
+        )
+    }
+
+    private func previewSlots(for kind: ComplicationKind) -> [ComplicationSlot] {
+        kind.slots.filter { $0 != .inline }
+    }
+
     var body: some View {
         List {
             SettingInputSection(
@@ -63,6 +78,63 @@ struct WatchConfigAppleWatchView: BaseView {
                 ),
                 headerText: String(localized: "Apple Watch Configuration")
             )
+
+            Section(
+                header: Text("Complication Settings"),
+                footer: Text(
+                    "Grey Out After applies to every complication: older readings are greyed and show their age, and IOB and COB grey when the loop has not run within that time. Corner Label is the curved text on Trio Glucose corner slots. Small Line is the text under the glucose on Trio Glucose circular slots, beside the ring on Trio Gauge rectangular slots, and the second line of Trio Chart. Trio IOB has a fixed layout."
+                ),
+                content: {
+                    Picker("Corner Label", selection: $state.complicationCornerValue) {
+                        ForEach(WatchComplicationValue.allCases) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+                    Picker("Small Line", selection: $state.complicationSecondaryValue) {
+                        ForEach(WatchComplicationValue.allCases) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }
+                    Stepper(
+                        value: $state.complicationStaleMinutes,
+                        in: WatchComplicationDefaults.staleMinutesRange,
+                        step: 5
+                    ) {
+                        HStack {
+                            Text("Grey Out After")
+                            Spacer()
+                            Text("\(state.complicationStaleMinutes) min").foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            ).listRowBackground(Color.chart)
+
+            Section(
+                header: Text("Available Complications"),
+                footer: Text(
+                    "Previews use sample data in your units and follow the settings above. Add them from the watch face editor under Trio. Corner slots curve the label round the face."
+                ),
+                content: {
+                    let preview = previewState
+                    ForEach(ComplicationKind.allCases) { kind in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(kind.displayName).font(.headline)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    ForEach(previewSlots(for: kind), id: \.self) { slot in
+                                        ComplicationPreview(kind: kind, slot: slot, state: preview)
+                                    }
+                                }
+                                .padding(.vertical, 2)
+                            }
+                            Text(kind.summary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            ).listRowBackground(Color.chart)
 
             Section(
                 header: Text("Contact Image"),
