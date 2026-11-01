@@ -38,14 +38,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
         return formatter
     }
 
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "+"
-        return formatter
-    }
-
     private var iobFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -118,16 +110,14 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                     if #available(iOS 17.0, *) {
                         EKEventStore().requestFullAccessToEvents { granted, error in
                             if let error = error {
-                                print("Calendar access not granted: \(error)")
-                                warning(.service, "Calendar access not granted", error: error)
+                                warning(.ui, "Calendar access not granted", error: error)
                             }
                             continuation.resume(returning: granted)
                         }
                     } else {
                         EKEventStore().requestAccess(to: .event) { granted, error in
                             if let error = error {
-                                print("Calendar access not granted: \(error)")
-                                warning(.service, "Calendar access not granted", error: error)
+                                warning(.ui, "Calendar access not granted", error: error)
                             }
                             continuation.resume(returning: granted)
                         }
@@ -135,8 +125,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                 #else
                     EKEventStore().requestAccess(to: .event) { granted, error in
                         if let error = error {
-                            print("Calendar access not granted: \(error)")
-                            warning(.service, "Calendar access not granted", error: error)
+                            warning(.ui, "Calendar access not granted", error: error)
                         }
                         continuation.resume(returning: granted)
                     }
@@ -155,8 +144,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                     return await withCheckedContinuation { continuation in
                         EKEventStore().requestFullAccessToEvents { granted, error in
                             if let error = error {
-                                print("Calendar access not upgraded: \(error)")
-                                warning(.service, "Calendar access not upgraded", error: error)
+                                warning(.ui, "Calendar access not upgraded to full access", error: error)
                             }
                             continuation.resume(returning: granted)
                         }
@@ -166,7 +154,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                 }
         #endif
         @unknown default:
-            warning(.service, "Unknown calendar access status")
+            warning(.ui, "Unknown calendar access status")
             return false
         }
     }
@@ -274,8 +262,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
             let directionText = lastGlucoseObject.directionEnum?.symbol ?? "↔︎"
 
-            let deltaValue = settingsManager.settings.units == .mmolL ? delta.asMmolL : delta
-            let deltaText = deltaFormatter.string(from: deltaValue as NSNumber) ?? "--"
+            let deltaText = delta.formattedDelta(for: settingsManager.settings.units)
 
             let iobText = iobFormatter.string(from: (iobService.currentIOB ?? 0) as NSNumber) ?? ""
             let cobText = cobFormatter.string(from: determinationObject.cob as NSNumber) ?? ""
@@ -310,9 +297,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             previousDeterminationId = determinationId
 
         } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to create calendar event: \(error)"
-            )
+            warning(.ui, "Creating calendar event failed", error: error)
         }
     }
 
@@ -335,7 +320,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
             do {
                 try eventStore.remove(event, span: .thisEvent)
             } catch {
-                warning(.service, "Cannot remove calendar events", error: error)
+                warning(.ui, "Removing calendar event failed", error: error)
             }
         }
     }

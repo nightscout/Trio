@@ -20,7 +20,14 @@ struct CommandPayload: Decodable, Sendable {
     var fat: Int?
     var overrideName: String?
     var scheduledTime: TimeInterval?
+    var commandId: String?
+    var mealId: String?
     var returnNotification: ReturnNotificationInfo?
+
+    /// Nightscout `id` of the meal root or of one of its carb equivalents.
+    var mealHandle: UUID? {
+        mealId.flatMap(UUID.init(uuidString:))
+    }
 
     struct ReturnNotificationInfo: Decodable, Sendable {
         let productionEnvironment: Bool
@@ -52,6 +59,8 @@ struct CommandPayload: Decodable, Sendable {
         case commandType = "command_type"
         case bolusAmount = "bolus_amount"
         case scheduledTime = "scheduled_time"
+        case commandId = "command_id"
+        case mealId = "meal_id"
         case returnNotification = "return_notification"
     }
 
@@ -80,6 +89,13 @@ struct CommandPayload: Decodable, Sendable {
             let fatDesc = fat != nil ? "\(fat!)g fat" : "unknown fat"
             let proteinDesc = protein != nil ? "\(protein!)g protein" : "unknown protein"
             description += "Meal with \(carbsDesc), \(fatDesc), \(proteinDesc)."
+        case .deleteMeal:
+            description += "Delete meal \(mealId ?? "unknown")."
+        case .editMeal:
+            let carbsDesc = carbs != nil ? "\(carbs!)g carbs" : "unknown carbs"
+            let fatDesc = fat != nil ? "\(fat!)g fat" : "unknown fat"
+            let proteinDesc = protein != nil ? "\(protein!)g protein" : "unknown protein"
+            description += "Edit meal \(mealId ?? "unknown") to \(carbsDesc), \(fatDesc), \(proteinDesc)."
         case .startOverride:
             if let override = overrideName {
                 description += "Start Override: \(override)."
@@ -88,6 +104,8 @@ struct CommandPayload: Decodable, Sendable {
             }
         case .cancelOverride:
             description += "Cancel Override command."
+        case .unknown:
+            description += "Unknown command."
         }
 
         if let scheduledTime = scheduledTime {
@@ -104,13 +122,25 @@ struct CommandPayload: Decodable, Sendable {
 }
 
 extension TrioRemoteControl {
-    enum CommandType: String, Codable {
+    enum CommandType: String, CaseIterable, Codable {
         case bolus
         case tempTarget = "temp_target"
         case cancelTempTarget = "cancel_temp_target"
         case meal
         case startOverride = "start_override"
         case cancelOverride = "cancel_override"
+        case deleteMeal = "delete_meal"
+        case editMeal = "edit_meal"
+        /// Command types from newer senders decode to this case and are rejected with an ack.
+        case unknown
+
+        /// Every command type this build can execute.
+        static var supported: [CommandType] { allCases.filter { $0 != .unknown } }
+
+        init(from decoder: Decoder) throws {
+            let rawValue = try decoder.singleValueContainer().decode(String.self)
+            self = CommandType(rawValue: rawValue) ?? .unknown
+        }
 
         var description: String {
             switch self {
@@ -126,6 +156,12 @@ extension TrioRemoteControl {
                 return "Start Override"
             case .cancelOverride:
                 return "Cancel Override"
+            case .deleteMeal:
+                return "Delete Meal"
+            case .editMeal:
+                return "Edit Meal"
+            case .unknown:
+                return "Unknown"
             }
         }
     }

@@ -103,7 +103,6 @@ enum MealTotal {
     ) throws -> ComputedCarbs? {
         // Re-assign to a var, so it can be sorted
         var _treatments = treatments
-        var profile = profile
 
         // Define defaults
         var carbs = Decimal(0)

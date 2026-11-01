@@ -80,6 +80,17 @@ extension PumpConfig {
                         }
                     }
                 ).listRowBackground(Color.chart)
+
+                if state.pumpState != nil, state.provider?.apsManager?.pumpManager != nil {
+                    Section {
+                        LogShareRow(
+                            title: "Share Pump Logs",
+                            footnote: "Creates one file you can send when asking for help.",
+                            kinds: [.pump],
+                            logExport: state.logExport
+                        )
+                    }.listRowBackground(Color.chart)
+                }
             }
             .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
             .onAppear(perform: configureView)

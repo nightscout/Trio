@@ -9,7 +9,7 @@ extension History.StateModel {
             do {
                 try await invokeInsulinDeletion(treatmentObjectID)
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to delete insulin entry: \(error)")
+                warning(.treatments, "Insulin deletion task failed", error: error)
             }
         }
     }
@@ -19,7 +19,7 @@ extension History.StateModel {
             let authenticated = try await unlockmanager.unlock()
 
             guard authenticated else {
-                debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Authentication Error")
+                debug(.treatments, "Insulin deletion not authenticated")
                 return
             }
 
@@ -42,9 +42,7 @@ extension History.StateModel {
             // Perform a determine basal sync to update iob
             try await apsManager.determineBasalSync()
         } catch {
-            debugPrint(
-                "\(DebuggingIdentifiers.failed) \(#file) \(#function) Error while Insulin Deletion Task: \(error)"
-            )
+            warning(.treatments, "Deleting insulin entry failed", error: error)
             await MainActor.run {
                 insulinEntryDeleted = false
                 waitForSuggestion = false
@@ -61,7 +59,7 @@ extension History.StateModel {
             do {
                 guard let treatmentToDelete = try taskContext.existingObject(with: treatmentObjectID) as? PumpEventStored
                 else {
-                    debug(.default, "Could not cast the object to PumpEventStored")
+                    warning(.treatments, "Insulin entry to delete not found")
                     return
                 }
 
@@ -76,9 +74,9 @@ extension History.StateModel {
                 taskContext.delete(treatmentToDelete)
                 try taskContext.save()
 
-                debug(.default, "Successfully deleted the treatment object.")
+                info(.treatments, "Insulin entry deleted")
             } catch {
-                debug(.default, "Failed to delete the treatment object: \(error)")
+                warning(.treatments, "Deleting insulin entry from storage failed", error: error)
             }
         }
     }

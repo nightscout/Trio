@@ -3,6 +3,7 @@
     <entity name="BolusStored" representedClassName="BolusStored" syncable="YES">
         <attribute name="amount" optional="YES" attributeType="Decimal" defaultValueString="0"/>
         <attribute name="isExternal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isProgrammedByPumpUI" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isSMB" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="programmedAmount" optional="YES" attributeType="Decimal"/>
         <relationship name="pumpEvent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PumpEventStored" inverseName="bolus" inverseEntity="PumpEventStored"/>
@@ -230,6 +231,13 @@
                 <constraint value="syncIdentifier"/>
             </uniquenessConstraint>
         </uniquenessConstraints>
+    </entity>
+    <entity name="PumpStatusStored" representedClassName="PumpStatusStored" syncable="YES">
+        <attribute name="basalDeliveryState" optional="YES" attributeType="String"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <fetchIndex name="byDate">
+            <fetchIndexElement property="date" type="Binary" order="descending"/>
+        </fetchIndex>
     </entity>
     <entity name="StatsData" representedClassName="StatsData" syncable="YES">
         <attribute name="lastrun" attributeType="Date" defaultDateTimeInterval="704497620" usesScalarValueType="NO"/>

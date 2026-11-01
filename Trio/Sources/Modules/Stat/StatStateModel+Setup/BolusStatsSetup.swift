@@ -34,7 +34,7 @@ extension Stat.StateModel {
                 // Initially calculate and cache daily averages
                 await calculateAndCacheBolusAveragesAndTotals()
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to setup bolus stats: \(error)")
+                warning(.ui, "Fetching bolus statistics failed", error: error)
             }
         }
     }

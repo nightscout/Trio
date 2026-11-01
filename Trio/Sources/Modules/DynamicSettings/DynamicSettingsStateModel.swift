@@ -63,7 +63,7 @@ extension DynamicSettings {
                         self.hasValidTDD = hasValidTDD
                     }
                 } catch {
-                    debug(.coreData, "Error when fetching TDD for validity checking: \(error)")
+                    warning(.settings, "Checking total daily dose history for dynamic ISF failed", error: error)
                     await MainActor.run {
                         hasValidTDD = false
                     }

@@ -34,6 +34,8 @@ struct AddTempTargetForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
+            // iOS's default on iPhone; iPhone Duo defaults to 0, which put the first row under the sheet's bar
+            .contentMargins(.top, 35, for: .scrollContent)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden)
@@ -280,7 +282,7 @@ struct AddTempTargetForm: View {
 
                                 try await state.invokeSaveOfCustomTempTargets()
                             } catch {
-                                debug(.default, "\(DebuggingIdentifiers.failed) failed to save custom temp target: \(error)")
+                                warning(.treatments, "Saving temp target failed", error: error)
                             }
                         }
                     }, label: {
@@ -301,7 +303,7 @@ struct AddTempTargetForm: View {
                             try await state.saveTempTargetPreset()
                             dismiss()
                         } catch {
-                            debug(.default, "\(DebuggingIdentifiers.failed) failed to save temp target preset: \(error)")
+                            warning(.treatments, "Saving temp target preset failed", error: error)
                         }
                     }
                 }, label: {
@@ -344,7 +346,7 @@ struct AddTempTargetForm: View {
         guard let targetValue = NSDecimalNumber(decimal: target).doubleValue as Double?,
               let stepValue = NSDecimalNumber(decimal: step).doubleValue as Double?
         else {
-            print("Failed to unwrap target or step as NSDecimalNumber")
+            warning(.treatments, "Rounding temp target to step failed")
             return target
         }
 

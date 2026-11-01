@@ -1,7 +1,9 @@
+import AccuChekKit
 import CGMBLEKit
 import CGMBLEKitUI
 import Combine
 import CoreData
+import EversenseKit
 import Foundation
 import G7SensorKit
 import LibreLoop
@@ -11,6 +13,7 @@ import LoopKitUI
 import Observation
 import SwiftDate
 import SwiftUI
+import SyaiKit
 
 extension Home {
     @Observable final class StateModel: BaseStateModel<Provider> {
@@ -48,6 +51,8 @@ extension Home {
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
         var targetProfiles: [TargetProfile] = []
         var timerDate = Date()
+        var alarmsSnoozeUntil: Date = UserDefaults.standard
+            .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date ?? .distantPast
         var dosingMode: DosingMode = .open
         var isLooping = false
         var statusTitle = ""
@@ -101,6 +106,10 @@ extension Home {
         var determinationsFromPersistence: [OrefDetermination] = []
         var enactedAndNonEnactedDeterminations: [OrefDetermination] = []
         var fetchedTDDs: [TDD] = []
+        var homeStatsPanelRange: HomeStatsPanelRange = .today
+        /// Stats panel figures for ranges longer than the chart's glucose window, tagged with
+        /// the range they were computed for; see `refreshExtendedStatsPanel(force:)`.
+        var extendedStatsPanel: (range: HomeStatsPanelRange, stats: HomeStatsPanelStats)?
         var insulinFromPersistence: [PumpEventStored] = []
         var tempBasals: [PumpEventStored] = []
         var suspendAndResumeEvents: [PumpEventStored] = []
@@ -445,7 +454,7 @@ extension Home {
                 try controller.performFetch()
                 republish()
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) Failed to re-anchor fetch window for \(T.self): \(error)")
+                warning(.ui, "Moving home fetch window for \(T.self) failed", error: error)
             }
         }
 
@@ -454,6 +463,10 @@ extension Home {
         /// Debounces the forecast recompute — the most expensive `onContentChange` callback,
         /// which a manual re-determine fires twice in quick succession.
         @ObservationIgnored var forecastUpdateTask: Task<Void, Never>?
+
+        /// In-flight fetch for `extendedStatsPanel`; a newer refresh cancels it so results land in order.
+        @ObservationIgnored var extendedStatsPanelTask: Task<Void, Never>?
+        @ObservationIgnored var extendedStatsPanelRefreshedAt: Date?
 
         typealias PumpEvent = PumpEventStored.EventType
 
@@ -541,8 +554,9 @@ extension Home {
             broadcaster.register(BGTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
+            broadcaster.register(SnoozeObserver.self, observer: self)
 
-            timer.eventHandler = {
+            timer.eventHandler = { [weak self] in
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.timerDate = Date()
@@ -587,8 +601,7 @@ extension Home {
                     self.cgmDisplayState = displayState
                     self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
                         manager: manager,
-                        glucoseSource: source,
-                        lifecycle: progress
+                        glucoseSource: source
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(manager: manager)
                 }
@@ -614,8 +627,7 @@ extension Home {
                     self.cgmProgressHighlight = progress
                     self.cgmSensorExpiresAt = Self.resolveSensorExpiresAt(
                         manager: self.fetchGlucoseManager.cgmManager,
-                        glucoseSource: self.fetchGlucoseManager.glucoseSource,
-                        lifecycle: progress
+                        glucoseSource: self.fetchGlucoseManager.glucoseSource
                     )
                     self.cgmWarmupEndsAt = Self.resolveWarmupEndsAt(
                         manager: self.fetchGlucoseManager.cgmManager
@@ -652,9 +664,6 @@ extension Home {
                 .receive(on: DispatchQueue.main)
                 .map { [weak self] error in
                     self?.errorDate = error == nil ? nil : Date()
-                    if let error = error {
-                        debug(.default, "APSManager lastError: \(String(describing: error))")
-                    }
                     return error?.localizedDescription
                 }
                 .weakAssign(to: \.errorMessage, on: self)
@@ -717,6 +726,7 @@ extension Home {
             lowTTlowersSens = settingsManager.preferences.lowTemptargetLowersSensitivity
             settingHalfBasalTarget = settingsManager.preferences.halfBasalExerciseTarget
             maxIOB = settingsManager.preferences.maxIOB
+            homeStatsPanelRange = settingsManager.settings.homeStatsPanelRange
         }
 
         @MainActor private func setupCGMSettings() async {
@@ -883,75 +893,100 @@ extension Home {
         /// `activatedAt` must be session start, not transmitter activation.
         private static func resolveSensorExpiresAt(
             manager: CGMManagerUI?,
-            glucoseSource: GlucoseSource?,
-            lifecycle: DeviceLifecycleProgress?
+            glucoseSource: GlucoseSource?
         ) -> Date? {
             if let sim = glucoseSource as? GlucoseSimulatorSource {
                 return sim.simulatedSensorExpiresAt
             }
-            guard let manager else { return nil }
-            // Once a G7 enters grace period, `sensorExpiresAt` is in the past
-            // and would collapse the bobble countdown to "<1m" while the arc
-            // (driven by lifecycle.percentComplete against `sensorEndsAt`) is
-            // still mid-progress. Fall back to `sensorEndsAt` so bobble and
-            // arc agree, and the user sees grace-period time remaining.
-            if let g7 = manager as? G7CGMManager {
-                let now = Date()
-                if let exp = g7.sensorExpiresAt, exp > now { return exp }
-                return g7.sensorEndsAt ?? g7.sensorExpiresAt
-            }
-            if let g6 = manager as? G6CGMManager, let exp = g6.latestReading?.sessionExpDate { return exp }
-            if let g5 = manager as? G5CGMManager, let exp = g5.latestReading?.sessionExpDate { return exp }
 
-            if let libreLoop = manager as? LibreLoopCGMManager {
+            switch manager {
+            case let g7 as G7CGMManager:
+                // Once a G7 enters grace period, `sensorExpiresAt` is in the past
+                // and would collapse the bobble countdown to "<1m" while the arc
+                // (driven by lifecycle.percentComplete against `sensorEndsAt`) is
+                // still mid-progress. Fall back to `sensorEndsAt` so bobble and
+                // arc agree, and the user sees grace-period time remaining.
+                if let exp = g7.sensorExpiresAt, exp > Date.now {
+                    return exp
+                }
+                return g7.sensorEndsAt ?? g7.sensorExpiresAt
+
+            case let g6 as G6CGMManager:
+                return g6.latestReading?.sessionExpDate
+
+            case let g5 as G5CGMManager:
+                return g5.latestReading?.sessionExpDate
+
+            case let libreTransmitter as LibreTransmitterManagerV3:
+                return libreTransmitter.sensorInfoObservable.expiresAt
+
+            case let libreLoop as LibreLoopCGMManager:
                 if case let .active(remaining, _) = libreLoop.sensorLifecycle, remaining > 0 {
                     return Date().addingTimeInterval(remaining)
                 }
-                // Warmup / initializing / expired — no meaningful expiry yet.
+                // Warmup / initializing / expired: no meaningful expiry yet.
+                return nil
+
+            case let eversense as EversenseCGMManager:
+                return eversense.state.expiresAt
+
+            case let accuChek as AccuChekCgmManager:
+                return accuChek.state.cgmEndTime
+
+            case let syai as SyaiCGMManager:
+                return syai.sensorExpirationDate
+
+            default:
                 return nil
             }
-
-            let activatedAt: Date?
-            if let g7 = manager as? G7CGMManager {
-                activatedAt = g7.sensorActivatedAt
-            } else if let libre = manager as? LibreTransmitterManagerV3 {
-                activatedAt = libre.sensorInfoObservable.activatedAt
-            } else {
-                activatedAt = nil
-            }
-
-            guard let activatedAt,
-                  let lifecycle,
-                  lifecycle.percentComplete > 0.001
-            else { return nil }
-            let elapsed = Date().timeIntervalSince(activatedAt)
-            guard elapsed > 0 else { return nil }
-            return activatedAt.addingTimeInterval(elapsed / lifecycle.percentComplete)
         }
 
         /// Wall-clock end of the sensor's warmup window; `nil` when not warming up.
+        /// Note: Libre 2 & Eversense do not emit/have warming up periods
         private static func resolveWarmupEndsAt(manager: CGMManagerUI?) -> Date? {
-            guard let manager else { return nil }
-            if let g7 = manager as? G7CGMManager {
-                guard let ends = g7.sensorFinishesWarmupAt, ends > Date() else { return nil }
+            switch manager {
+            case let g7 as G7CGMManager:
+                guard let ends = g7.sensorFinishesWarmupAt, ends > Date.now else {
+                    return nil
+                }
+
                 return ends
-            }
-            if let g6 = manager as? G6CGMManager, let start = g6.latestReading?.sessionStartDate {
+
+            case let g6 as G6CGMManager:
+                guard let start = g6.latestReading?.sessionStartDate else {
+                    return nil
+                }
+
                 let window: TimeInterval = g6.isAnubis ? 50 * 60 : 2 * 60 * 60
                 let ends = start.addingTimeInterval(window)
-                return ends > Date() ? ends : nil
-            }
-            if let g5 = manager as? G5CGMManager, let start = g5.latestReading?.sessionStartDate {
+                return ends > Date.now ? ends : nil
+
+            case let g5 as G5CGMManager:
+                guard let start = g5.latestReading?.sessionStartDate else {
+                    return nil
+                }
+
                 let ends = start.addingTimeInterval(2 * 60 * 60)
-                return ends > Date() ? ends : nil
-            }
-            if let libreLoop = manager as? LibreLoopCGMManager {
+                return ends > Date.now ? ends : nil
+
+            case let libreLoop as LibreLoopCGMManager:
                 if case let .warmup(_, remaining) = libreLoop.sensorLifecycle, remaining > 0 {
-                    return Date().addingTimeInterval(remaining)
+                    return Date.now.addingTimeInterval(remaining)
                 }
                 return nil
+
+            case let accuChek as AccuChekCgmManager:
+                if accuChek.state.calibrationPhase != .done, let warmupCompleted = accuChek.state.cgmWarmupCompleted {
+                    return warmupCompleted
+                }
+                return nil
+
+            case let syai as SyaiCGMManager:
+                return syai.sensorWarmupEndDate
+
+            default:
+                return nil
             }
-            return nil
         }
     }
 }
@@ -964,8 +999,13 @@ extension Home.StateModel:
     BasalProfileObserver,
     BGTargetsObserver,
     PumpReservoirObserver,
-    PumpDeactivatedObserver
+    PumpDeactivatedObserver,
+    SnoozeObserver
 {
+    @MainActor func snoozeDidChange(_ untilDate: Date) {
+        alarmsSnoozeUntil = untilDate
+    }
+
     func determinationDidUpdate(_: Determination) {
         waitForSuggestion = false
     }
@@ -989,6 +1029,11 @@ extension Home.StateModel:
         showCarbsRequiredBadge = settingsManager.settings.showCarbsRequiredBadge
         enableQuickPickTreatments = settingsManager.settings.enableQuickPickTreatments
         forecastDisplayType = settingsManager.settings.forecastDisplayType
+        homeStatsPanelRange = settingsManager.settings.homeStatsPanelRange
+        // range, face or time-in-range type may have changed
+        Task { @MainActor in
+            refreshExtendedStatsPanel(force: true)
+        }
         cgmAvailable = (fetchGlucoseManager.cgmGlucoseSourceType != CGMType.none)
         displayPumpStatusHighlightMessage()
         displayPumpStatusBadge()

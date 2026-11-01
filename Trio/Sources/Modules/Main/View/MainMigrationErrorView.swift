@@ -102,7 +102,8 @@ extension Main {
 
                 Button(action: onConfirm) {
                     Text("I understand! Proceed")
-                        .frame(width: UIScreen.main.bounds.width - 60, height: 50)
+                        .containerRelativeFrame(.horizontal) { width, _ in width - 60 }
+                        .frame(height: 50)
                         .background(
                             Capsule()
                                 .fill(Color.blue)
@@ -124,7 +125,7 @@ struct MainMigrationErrorView_Previews: PreviewProvider {
                     "Failed to import carb history.",
                     "Failed to import algorithm data."
                 ],
-                onConfirm: { print("Proceed") }
+                onConfirm: { debug(.ui, "Migration error preview confirmed") }
             )
         }
     }

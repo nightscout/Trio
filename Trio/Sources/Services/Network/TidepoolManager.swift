@@ -166,7 +166,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
                 try self.carbsUploadController.performFetch()
                 try self.insulinUploadController.performFetch()
             } catch {
-                debug(.service, "\(DebuggingIdentifiers.failed) Failed to set up Tidepool upload controllers: \(error)")
+                warning(.tidepool, "Failed to set up Tidepool upload controllers", error: error)
             }
         }
 
@@ -277,7 +277,7 @@ extension BaseTidepoolManager {
         do {
             carbs = try await carbsStorage.getCarbsNotYetUploadedToTidepool()
         } catch {
-            debug(.service, "\(DebuggingIdentifiers.failed) Failed to fetch carbs for upload: \(error)")
+            warning(.tidepool, "Failed to load pending carbs for Tidepool upload", error: error)
             return
         }
         guard !carbs.isEmpty else { return }
@@ -293,11 +293,11 @@ extension BaseTidepoolManager {
 
             switch result {
             case .success:
-                debug(.service, "Success synchronizing carbs data. Upload to Tidepool complete.")
+                info(.tidepool, "Uploaded \(chunk.count) carb entries to Tidepool")
                 // After successful upload, update the isUploadedToTidepool flag in Core Data
                 await updateCarbsAsUploaded(Array(chunk))
             case let .failure(error):
-                debug(.service, "Error synchronizing carbs data with Tidepool: \(String(describing: error))")
+                warning(.tidepool, "Tidepool upload of \(chunk.count) carb entries failed", error: error)
             }
         }
     }
@@ -319,9 +319,7 @@ extension BaseTidepoolManager {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToTidepool: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark carb entries as uploaded to Tidepool", error: error)
             }
         }
     }
@@ -354,9 +352,9 @@ extension BaseTidepoolManager {
                 }
                 switch result {
                 case .success:
-                    debug(.service, "Success synchronizing carbs delete data. Upload to Tidepool complete.")
+                    debug(.tidepool, "Carb entry deletion synced to Tidepool")
                 case let .failure(error):
-                    debug(.service, "Error synchronizing carbs delete data with Tidepool: \(String(describing: error))")
+                    warning(.tidepool, "Tidepool carb entry deletion failed", error: error)
                 }
             }
         }
@@ -381,7 +379,7 @@ extension BaseTidepoolManager {
         do {
             events = try await pumpHistoryStorage.getPumpHistoryNotYetUploadedToTidepool()
         } catch {
-            debug(.service, "Error fetching pump history: \(error)")
+            warning(.tidepool, "Failed to load pending pump history for Tidepool upload", error: error)
             return
         }
         guard !events.isEmpty else { return }
@@ -442,7 +440,7 @@ extension BaseTidepoolManager {
                         return result
                     }
 
-                    debug(.service, "Uploading \(insulinDoseEvents.count) dose entries to Tidepool")
+                    debug(.tidepool, "Uploading \(insulinDoseEvents.count) dose entries to Tidepool")
 
                     let pumpEvents: [PersistedPumpEvent] = events.compactMap { event -> PersistedPumpEvent? in
                         if let pumpEventType = event.type.mapEventTypeToPumpEventType() {
@@ -478,13 +476,13 @@ extension BaseTidepoolManager {
             }
             switch doseResult {
             case .success:
-                debug(.service, "Success synchronizing dose data. Upload to Tidepool complete.")
+                info(.tidepool, "Uploaded \(insulinDoseEvents.count) dose entries to Tidepool")
                 let insulinEvents = events.filter {
                     $0.type == .tempBasal || $0.type == .tempBasalDuration || $0.type == .bolus
                 }
                 await updateInsulinAsUploaded(insulinEvents)
             case let .failure(error):
-                debug(.service, "Error synchronizing dose data with Tidepool: \(String(describing: error))")
+                warning(.tidepool, "Tidepool upload of \(insulinDoseEvents.count) dose entries failed", error: error)
             }
 
             guard await uploadSerializer.isCurrent(generation) else { return }
@@ -494,14 +492,14 @@ extension BaseTidepoolManager {
             }
             switch pumpResult {
             case .success:
-                debug(.service, "Success synchronizing pump events data. Upload to Tidepool complete.")
+                info(.tidepool, "Uploaded \(pumpEvents.count) pump events to Tidepool")
                 let pumpEventsToMark = events.filter { $0.type.mapEventTypeToPumpEventType() != nil }
                 await updateInsulinAsUploaded(pumpEventsToMark)
             case let .failure(error):
-                debug(.service, "Error synchronizing pump events data: \(String(describing: error))")
+                warning(.tidepool, "Tidepool upload of \(pumpEvents.count) pump events failed", error: error)
             }
         } catch {
-            debug(.service, "Error fetching temp basal entries: \(error)")
+            warning(.tidepool, "Failed to prepare dose entries for Tidepool upload", error: error)
         }
     }
 
@@ -522,9 +520,7 @@ extension BaseTidepoolManager {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToTidepool: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark pump events as uploaded to Tidepool", error: error)
             }
         }
     }
@@ -548,9 +544,9 @@ extension BaseTidepoolManager {
                 }
                 switch result {
                 case .success:
-                    debug(.service, "Success synchronizing Dose delete data")
+                    debug(.tidepool, "Dose deletion synced to Tidepool")
                 case let .failure(error):
-                    debug(.service, "Error synchronizing Dose delete data: \(String(describing: error))")
+                    warning(.tidepool, "Tidepool dose deletion failed", error: error)
                 }
             }
         }
@@ -671,7 +667,7 @@ extension BaseTidepoolManager {
 
         for (index, entry) in basalEntries.enumerated() {
             guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
-                debug(.default, "Invalid entry start time: \(entry.start)")
+                warning(.settings, "Basal profile entry has invalid start time \(entry.start)")
                 continue
             }
 
@@ -727,7 +723,7 @@ extension BaseTidepoolManager {
             let manualGlucose = try await glucoseStorage.getManualGlucoseNotYetUploadedToTidepool()
             glucose = cgmGlucose + manualGlucose
         } catch {
-            debug(.service, "Error fetching glucose data: \(error)")
+            warning(.tidepool, "Failed to load pending glucose for Tidepool upload", error: error)
             return
         }
         guard !glucose.isEmpty else { return }
@@ -741,11 +737,11 @@ extension BaseTidepoolManager {
 
             switch result {
             case .success:
-                debug(.service, "Success synchronizing glucose data")
+                info(.tidepool, "Uploaded \(chunk.count) glucose values to Tidepool")
                 // After successful upload, update the isUploadedToTidepool flag in Core Data
                 await updateGlucoseAsUploaded(Array(chunk))
             case let .failure(error):
-                debug(.service, "Error synchronizing glucose data: \(String(describing: error))")
+                warning(.tidepool, "Tidepool upload of \(chunk.count) glucose values failed", error: error)
             }
         }
     }
@@ -767,9 +763,7 @@ extension BaseTidepoolManager {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToTidepool: \(error.userInfo)"
-                )
+                warning(.storage, "Failed to mark glucose as uploaded to Tidepool", error: error)
             }
         }
     }
@@ -826,9 +820,9 @@ extension BaseTidepoolManager {
         }
         switch result {
         case .success:
-            debug(.service, "Settings uploaded to Tidepool (syncId: \(settings.syncIdentifier))")
+            info(.tidepool, "Settings uploaded to Tidepool")
         case let .failure(error):
-            debug(.service, "Failed to upload settings to Tidepool: \(error)")
+            warning(.tidepool, "Tidepool settings upload failed", error: error)
         }
     }
 }
@@ -879,7 +873,7 @@ extension BaseTidepoolManager {
             ),
             let bgTargets: BGTargets = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
         else {
-            debug(.service, "Failed to load Trio therapy settings for Tidepool upload")
+            warning(.tidepool, "Tidepool settings upload skipped: therapy settings could not be loaded")
             return nil
         }
 

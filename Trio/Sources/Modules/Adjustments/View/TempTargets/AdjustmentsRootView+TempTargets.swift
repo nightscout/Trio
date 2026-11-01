@@ -119,11 +119,12 @@ extension Adjustments.RootView {
     var stickyStopTempTargetButton: some View {
         ZStack {
             Rectangle()
-                .frame(width: UIScreen.main.bounds.width, height: 65)
+                .frame(height: 65)
                 .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
                 .background(.thinMaterial)
                 .opacity(0.8)
                 .clipShape(Rectangle())
+                .ignoresSafeArea(edges: .horizontal)
 
             Button(action: {
                 showCancelTempTargetConfirmDialog = true
@@ -132,7 +133,8 @@ extension Adjustments.RootView {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(10)
             })
-                .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
+                .frame(height: 40)
                 .disabled(!state.isTempTargetEnabled)
                 .background(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
                 .tint(.white)

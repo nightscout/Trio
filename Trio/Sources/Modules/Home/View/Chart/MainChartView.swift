@@ -825,7 +825,9 @@ struct MainChartCanvas: View {
     var glucoseYDomain: ClosedRange<Decimal>
 
     @State var basalProfiles: [BasalProfile] = []
-    @State var preparedTempBasals: [(start: Date, end: Date, rate: Double, isScheduled: Bool)] = []
+    @State var preparedTempBasals: [PreparedTempBasal] = []
+    /// Cached, not computed: Swift Charts reads this once per mark, so rescanning both series per read is quadratic.
+    @State var basalDomainMax: Double = 0.1
 
     // Computed (not stored) on purpose: stored properties participate in SwiftUI's
     // change detection, and a stored reference initialized per-init could mark this view

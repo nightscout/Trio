@@ -15,6 +15,21 @@ struct OpenAPSStatus: JSON {
     let recommendedBolus: Decimal?
     /// Raw value, not the localized name: followers parse this.
     let dosingMode: String
+    /// The IOB projection whose first value is `iob`.
+    var iobForecast: NightscoutIOBForecast? = nil
+}
+
+/// IOB and insulin activity every five minutes from `iob.time`, for the
+/// insulin already delivered and the running temp basal until it ends.
+struct NightscoutIOBForecast: JSON {
+    let iob: [Decimal]
+    /// U/min, like `IOBEntry.activity`.
+    let activity: [Decimal]
+
+    init(_ entries: [IOBEntry]) {
+        iob = entries.map { $0.iob.rounded(toPlaces: 3) }
+        activity = entries.map { $0.activity.rounded(toPlaces: 5) }
+    }
 }
 
 struct NSPumpStatus: JSON {
@@ -63,6 +78,8 @@ struct NightscoutProfileStore: JSON {
     let overridePresets: [NightscoutPresetOverride]?
     let teamID: String
     let expirationDate: Date?
+    /// Remote command types this build accepts; followers hide unsupported actions.
+    let remoteCommands: [String]?
 }
 
 struct NightscoutPresetOverride: JSON {

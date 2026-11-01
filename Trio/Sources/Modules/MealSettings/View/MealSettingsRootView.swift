@@ -20,26 +20,6 @@ extension MealSettings {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var conversionFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
-
-            return formatter
-        }
-
-        private var intFormater: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.allowsFloats = false
-            return formatter
-        }
-
-        private var formatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            return formatter
-        }
-
         var body: some View {
             List {
                 Section(

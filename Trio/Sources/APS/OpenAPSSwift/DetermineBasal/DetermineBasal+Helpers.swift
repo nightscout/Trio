@@ -147,7 +147,7 @@ extension DeterminationGenerator {
             ratio = autosens.ratio
         }
 
-        if let autosens = autosens {
+        if autosens != nil {
             // Increase the dynamic ratio when using a low temp target
             if profile.temptargetSet == true, targetGlucose < normalTarget, let dynamicIsfResult = dynamicIsfResult,
                currentGlucose >= targetGlucose

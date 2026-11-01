@@ -132,8 +132,8 @@ class JSONImporter {
             try backgroundContext.save()
         }
 
-        try await context.perform {
-            try self.context.save()
+        try await context.perform { [context] in
+            try context.save()
         }
     }
 
@@ -229,8 +229,8 @@ class JSONImporter {
             try backgroundContext.save()
         }
 
-        try await context.perform {
-            try self.context.save()
+        try await context.perform { [context] in
+            try context.save()
         }
     }
 
@@ -277,8 +277,8 @@ class JSONImporter {
             try backgroundContext.save()
         }
 
-        try await context.perform {
-            try self.context.save()
+        try await context.perform { [context] in
+            try context.save()
         }
     }
 
@@ -339,8 +339,8 @@ class JSONImporter {
             try backgroundContext.save()
         }
 
-        try await context.perform {
-            try self.context.save()
+        try await context.perform { [context] in
+            try context.save()
         }
     }
 }
@@ -601,55 +601,55 @@ extension Determination: Codable {
     }
 
     func checkForRequiredFields() throws {
-        guard let deliverAt = deliverAt else {
+        guard deliverAt != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("deliverAt")
         }
-        guard let timestamp = timestamp else {
+        guard timestamp != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("timestamp")
         }
         guard reason.isNotEmpty else {
             throw JSONImporterError.invalidDeterminationReason
         }
-        guard let insulinReq = insulinReq else {
+        guard insulinReq != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("insulinReq")
         }
-        guard let currentTarget = current_target else {
+        guard current_target != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("current_target")
         }
-        guard let reservoir = reservoir else {
+        guard reservoir != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("reservoir")
         }
-        guard let threshold = threshold else {
+        guard threshold != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("threshold")
         }
-        guard let iob = iob else {
+        guard iob != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("IOB")
         }
-        guard let isf = isf else {
+        guard isf != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("ISF")
         }
-        guard let cob = cob else {
+        guard cob != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("COB")
         }
-        guard let tdd = tdd else {
+        guard tdd != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("TDD")
         }
-        guard let bg = bg else {
+        guard bg != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("bg")
         }
-        guard let minDelta = minDelta else {
+        guard minDelta != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("minDelta")
         }
-        guard let eventualBG = eventualBG else {
+        guard eventualBG != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("eventualBG")
         }
-        guard let sensitivityRatio = sensitivityRatio else {
+        guard sensitivityRatio != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("sensitivityRatio")
         }
-        guard let temp = temp else {
+        guard temp != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("temp")
         }
-        guard let expectedDelta = expectedDelta else {
+        guard expectedDelta != nil else {
             throw JSONImporterError.missingRequiredPropertyInDetermination("expectedDelta")
         }
     }
@@ -717,83 +717,63 @@ extension JSONImporter {
     }
 
     func importGlucoseHistoryIfNeeded() async throws {
-        debug(.coreData, "Checking for glucose history JSON file...")
-
         let url = openAPSFileURL(OpenAPS.Monitor.glucose)
         let suffix = "migrated.json"
 
         guard FileManager.default.fileExists(atPath: url.path) else {
-            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            debug(.storage, "No legacy glucose history to import")
             return
         }
 
-        debug(.coreData, "Glucose history JSON file found, proceeding with import of glucose history...")
-
         try await importGlucoseHistory(url: url, now: Date())
-
-        debug(.coreData, "Glucose history JSON file imported successfully, moving to \(suffix)")
 
         try FileManager.default.moveItem(
             at: url,
             to: url.deletingPathExtension().appendingPathExtension(suffix)
         )
 
-        debug(.coreData, "Import of glucose history completed successfully.")
+        info(.storage, "Imported legacy glucose history")
     }
 
     func importPumpHistoryIfNeeded() async throws {
-        debug(.coreData, "Checking for pump history JSON file...")
-
         let url = openAPSFileURL(OpenAPS.Monitor.pumpHistory)
         let suffix = "migrated.json"
 
         guard FileManager.default.fileExists(atPath: url.path) else {
-            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            debug(.storage, "No legacy pump history to import")
             return
         }
 
-        debug(.coreData, "Pump history JSON file found, proceeding with import of glucose history...")
-
         try await importPumpHistory(url: url, now: Date())
-
-        debug(.coreData, "Pump history JSON file imported successfully, moving to \(suffix)")
 
         try FileManager.default.moveItem(
             at: url,
             to: url.deletingPathExtension().appendingPathExtension(suffix)
         )
 
-        debug(.coreData, "Import of pump history completed successfully.")
+        info(.storage, "Imported legacy pump history")
     }
 
     func importCarbHistoryIfNeeded() async throws {
-        debug(.coreData, "Checking for carb history JSON file...")
-
         let url = openAPSFileURL(OpenAPS.Monitor.carbHistory)
         let suffix = "migrated.json"
 
         guard FileManager.default.fileExists(atPath: url.path) else {
-            debug(.coreData, "❌ No JSON file to import at \(url.path)")
+            debug(.storage, "No legacy carb history to import")
             return
         }
 
-        debug(.coreData, "Carb history JSON file found, proceeding with import of glucose history...")
-
         try await importCarbHistory(url: url, now: Date())
-
-        debug(.coreData, "Carb history JSON file imported successfully, moving to \(suffix)")
 
         try FileManager.default.moveItem(
             at: url,
             to: url.deletingPathExtension().appendingPathExtension(suffix)
         )
 
-        debug(.coreData, "Import of carb history completed successfully.")
+        info(.storage, "Imported legacy carb history")
     }
 
     func importDeterminationIfNeeded() async throws {
-        debug(.coreData, "Checking for determination JSON files...")
-
         let enactedPath = OpenAPS.Enact.enacted // "enact/enacted.json"
         let suggestedPath = OpenAPS.Enact.suggested // "enact/suggested.json"
         let suffix = "migrated.json"
@@ -804,15 +784,11 @@ extension JSONImporter {
         guard FileManager.default.fileExists(atPath: enactedURL.path),
               FileManager.default.fileExists(atPath: suggestedURL.path)
         else {
-            debug(.coreData, "❌ No JSON file to import at \(enactedURL.path) and/or \(suggestedURL.path)")
+            debug(.storage, "No legacy determination files to import")
             return
         }
 
-        debug(.coreData, "Determination JSON files found, proceeding with import...")
-
         try await importOrefDetermination(enactedUrl: enactedURL, suggestedUrl: suggestedURL, now: Date())
-
-        debug(.coreData, "Determination JSON file(s) imported successfully, moving to \(suffix)")
 
         try FileManager.default.moveItem(at: enactedURL, to: enactedURL.deletingPathExtension().appendingPathExtension(suffix))
         try FileManager.default.moveItem(
@@ -820,6 +796,6 @@ extension JSONImporter {
             to: suggestedURL.deletingPathExtension().appendingPathExtension(suffix)
         )
 
-        debug(.coreData, "Import of determination data completed successfully.")
+        info(.storage, "Imported legacy determinations")
     }
 }

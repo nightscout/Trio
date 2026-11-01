@@ -65,7 +65,7 @@ extension ContactImage {
                         // Contact was deleted in iOS, remove from Core Data
                         if let objectID = entry.managedObjectID {
                             await contactImageStorage.deleteContactImageEntry(objectID)
-                            debugPrint("Removed orphaned contact entry: \(entry.name)")
+                            debug(.ui, "Removed contact image entry whose contact was deleted")
                         }
                     }
                 }
@@ -82,13 +82,13 @@ extension ContactImage {
             // 1. Check for contact access permissions.
             let hasAccess = await contactImageManager.requestAccess()
             guard hasAccess else {
-                debugPrint("\(DebuggingIdentifiers.failed) No access to contacts.")
+                warning(.ui, "Contact image not created, no access to contacts")
                 return
             }
 
             // 2. Create the contact and retrieve its `identifier`.
             guard let contactId = await contactImageManager.createContact(name: name) else {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to create contact.")
+                warning(.ui, "Creating contact for contact image failed")
                 return
             }
 
@@ -116,16 +116,16 @@ extension ContactImage {
         /// - Parameter entry: The ContactImageEntry representing the contact to be deleted.
         func deleteContact(entry: ContactImageEntry) async {
             guard let contactId = entry.contactId else {
-                debugPrint("\(DebuggingIdentifiers.failed) Contact does not have a valid ID.")
+                warning(.ui, "Contact image entry has no contact ID")
                 return
             }
 
             // 1. Attempt to delete the contact from Apple Contacts.
             let contactDeleted = await contactImageManager.deleteContact(withIdentifier: contactId)
             if contactDeleted {
-                debugPrint("\(DebuggingIdentifiers.succeeded) Contact successfully deleted from Apple Contacts: \(contactId)")
+                debug(.ui, "Contact for contact image deleted")
             } else {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to delete contact from Apple Contacts. Check if it exists.")
+                warning(.ui, "Deleting contact for contact image failed")
             }
 
             // 2. Delete the entry from Core Data.
@@ -146,7 +146,7 @@ extension ContactImage {
         ///   - entry: The ContactImageEntry to be updated.
         func updateContact(with entry: ContactImageEntry) async {
             guard let contactId = entry.contactId else {
-                debugPrint("\(DebuggingIdentifiers.failed) Contact does not have a valid ID.")
+                warning(.ui, "Contact image entry has no contact ID")
                 return
             }
 
@@ -160,7 +160,7 @@ extension ContactImage {
                 .updateContact(withIdentifier: contactId, newName: entry.name) // TODO: - Probably not needed anymore
 
             guard contactUpdated else {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to update contact.")
+                warning(.ui, "Updating contact for contact image failed")
                 return
             }
 

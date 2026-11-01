@@ -58,12 +58,10 @@ enum DeviceAlertSeverity: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// Acoustic, Medium — the set the sound designer recommends as default
+    /// after hallway testing.
     var defaultSoundFilename: String {
-        switch self {
-        case .critical: return "high_chimes.caf"
-        case .timeSensitive: return "chime.caf"
-        case .normal: return "bloop.caf"
-        }
+        AlarmSoundCatalog.defaultFilename(for: .deviceTier(self)) ?? "alarm.caf"
     }
 
     /// Only the Critical tier makes noise out of the box. Device alarms are

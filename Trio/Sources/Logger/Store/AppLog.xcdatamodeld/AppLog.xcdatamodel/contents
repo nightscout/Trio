@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24837" systemVersion="25D125" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="AppLogEntry" representedClassName="AppLogEntry" syncable="YES" codeGenerationType="class">
+        <attribute name="category" attributeType="String" defaultValueString=""/>
+        <attribute name="file" attributeType="String" defaultValueString=""/>
+        <attribute name="function" attributeType="String" defaultValueString=""/>
+        <attribute name="launchID" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="level" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="line" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="message" attributeType="String" defaultValueString=""/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <fetchIndex name="byTimestamp">
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byTimestampLevel">
+            <fetchIndexElement property="timestamp" type="Binary" order="ascending"/>
+            <fetchIndexElement property="level" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byCategory">
+            <fetchIndexElement property="category" type="Binary" order="ascending"/>
+        </fetchIndex>
+    </entity>
+</model>

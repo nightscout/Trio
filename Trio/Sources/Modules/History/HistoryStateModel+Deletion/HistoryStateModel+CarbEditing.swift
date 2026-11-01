@@ -4,9 +4,9 @@ import Foundation
 extension History.StateModel {
     // MARK: - Entry Management
 
-    /// Updates a carb/FPU entry with new values and handles the necessary cleanup and recreation of FPU entries
+    /// Replaces a meal (root entry plus carb equivalents) with new values.
     /// - Parameters:
-    ///   - treatmentObjectID: The ID of the entry to update
+    ///   - treatmentObjectID: The ID of the meal root entry
     ///   - newCarbs: The new carbs value
     ///   - newFat: The new fat value
     ///   - newProtein: The new protein value
@@ -22,134 +22,29 @@ extension History.StateModel {
     ) {
         Task {
             do {
-                // Get original date from entry to re-create the entry later with the updated values and the same date
-                guard let originalEntry = await getOriginalEntryValues(treatmentObjectID) else { return }
-
-                // Deletion logic for carb and FPU entries
-                try await deleteOldEntries(
-                    treatmentObjectID,
-                    originalEntry: originalEntry,
-                    newCarbs: newCarbs,
-                    newFat: newFat,
-                    newProtein: newProtein,
-                    newNote: newNote
+                let newEntry = CarbsEntry(
+                    id: UUID().uuidString,
+                    createdAt: Date(),
+                    actualDate: newDate,
+                    carbs: newCarbs,
+                    fat: newFat,
+                    protein: newProtein,
+                    note: newNote,
+                    enteredBy: CarbsEntry.local,
+                    isFPU: false,
+                    fpuID: newFat > 0 || newProtein > 0 ? UUID().uuidString : nil
                 )
 
-                try await createNewEntries(
-                    originalDate: newDate,
-                    newCarbs: newCarbs,
-                    newFat: newFat,
-                    newProtein: newProtein,
-                    newNote: newNote
-                )
-
-                await syncWithServices()
+                _ = try await carbEntryMutationService.replaceMeal(rootObjectID: treatmentObjectID, with: newEntry)
+                info(.treatments, "Meal edited: carbs \(newCarbs) g, fat \(newFat) g, protein \(newProtein) g")
 
                 // Perform a determine basal sync to update cob
                 try await apsManager.determineBasalSync()
 
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to update entry: \(error)")
+                warning(.treatments, "Editing meal failed", error: error)
             }
         }
-    }
-
-    private func createNewEntries(
-        originalDate: Date,
-        newCarbs: Decimal,
-        newFat: Decimal,
-        newProtein: Decimal,
-        newNote: String
-    ) async throws {
-        let newEntry = CarbsEntry(
-            id: UUID().uuidString,
-            createdAt: Date(),
-            actualDate: originalDate,
-            carbs: newCarbs,
-            fat: newFat,
-            protein: newProtein,
-            note: newNote,
-            enteredBy: CarbsEntry.local,
-            isFPU: false,
-            fpuID: newFat > 0 || newProtein > 0 ? UUID().uuidString : nil
-        )
-
-        // Handles internally whether to create fake carbs or not based on whether fat > 0 or protein > 0
-        try await carbsStorage.storeCarbs([newEntry], areFetchedFromRemote: false)
-    }
-
-    /// Deletes the old carb/ FPU entries and creates new ones with updated values
-    /// - Parameters:
-    ///   - treatmentObjectID: The ID of the entry to delete
-    ///   - originalDate: The original date to preserve
-    ///   - newCarbs: The new carbs value
-    ///   - newFat: The new fat value
-    ///   - newProtein: The new protein value
-    ///   - newNote: The new note text
-    private func deleteOldEntries(
-        _ treatmentObjectID: NSManagedObjectID,
-        originalEntry: (
-            entryValues: (date: Date, carbs: Double, fat: Double, protein: Double)?,
-            entryId: NSManagedObjectID
-        ),
-        newCarbs _: Decimal,
-        newFat _: Decimal,
-        newProtein _: Decimal,
-        newNote _: String
-    ) async throws {
-        if ((originalEntry.entryValues?.carbs ?? 0) == 0 && (originalEntry.entryValues?.fat ?? 0) > 0) ||
-            ((originalEntry.entryValues?.carbs ?? 0) == 0 && (originalEntry.entryValues?.protein ?? 0) > 0)
-        {
-            // Delete the zero-carb-entry and all its carb equivalents connected by the same fpuID from remote services and Core Data
-            // Use fpuID
-            try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
-        } else if ((originalEntry.entryValues?.carbs ?? 0) > 0 && (originalEntry.entryValues?.fat ?? 0) > 0) ||
-            ((originalEntry.entryValues?.carbs ?? 0) > 0 && (originalEntry.entryValues?.protein ?? 0) > 0)
-        {
-            // Delete carb entry and carb equivalents that are all connected by the same fpuID from remote services and Core Data
-            // Use fpuID
-            try await deleteCarbs(treatmentObjectID, isFpuOrComplexMeal: true)
-
-        } else {
-            // Delete just the carb entry since there are no carb equivalents
-            // Use NSManagedObjectID
-            try await deleteCarbs(treatmentObjectID)
-        }
-    }
-
-    /// Retrieves the original entry values
-    /// - Parameter objectID: The ID of the entry
-    /// - Returns: A tuple of the old entry values and its original date and the objectID or nil
-    private func getOriginalEntryValues(_ objectID: NSManagedObjectID) async
-        -> (entryValues: (date: Date, carbs: Double, fat: Double, protein: Double)?, entryId: NSManagedObjectID)?
-    {
-        let context = CoreDataStack.shared.newTaskContext()
-        context.name = "updateContext"
-        context.transactionAuthor = "updateEntry"
-
-        return await context.perform {
-            do {
-                guard let entry = try context.existingObject(with: objectID) as? CarbEntryStored, let entryDate = entry.date
-                else { return nil }
-
-                return (
-                    entryValues: (date: entryDate, carbs: entry.carbs, fat: entry.fat, protein: entry.protein),
-                    entryId: entry.objectID
-                )
-            } catch let error as NSError {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to get original date with error: \(error.userInfo)")
-                return nil
-            }
-        }
-    }
-
-    /// Synchronizes the FPU/ Carb entry with all remote services in parallel
-    private func syncWithServices() async {
-        async let nightscoutUpload: () = provider.nightscoutManager.uploadCarbs()
-        async let healthKitUpload: () = provider.healthkitManager.uploadCarbs()
-        async let tidepoolUpload: () = provider.tidepoolManager.uploadCarbs()
-
-        _ = await [nightscoutUpload, healthKitUpload, tidepoolUpload]
     }
 
     // MARK: - Entry Loading
@@ -176,7 +71,7 @@ extension History.StateModel {
                     date: entryDate
                 )
             } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to load entry: \(error)")
+                warning(.treatments, "Loading meal for editing failed", error: error)
                 return nil
             }
         }
@@ -240,11 +135,11 @@ extension History.StateModel {
                 request.fetchLimit = 1
 
                 let originalEntry = try context.fetch(request).first
-                debugPrint("FPU fetch result: \(originalEntry != nil ? "Entry found" : "No entry found")")
+                debug(.treatments, "Original meal for fat and protein entry \(originalEntry != nil ? "found" : "not found")")
                 return originalEntry?.objectID
 
             } catch let error as NSError {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to fetch original FPU entry: \(error.userInfo)")
+                warning(.treatments, "Fetching original meal for fat and protein entry failed", error: error)
                 return nil
             }
         }
@@ -277,13 +172,11 @@ extension History.StateModel {
                 request.fetchLimit = 1
 
                 let correspondingCarbEntry = try context.fetch(request).first
-                debugPrint(
-                    "Corresponding carb entry fetch result: \(correspondingCarbEntry != nil ? "Entry found" : "No entry found")"
-                )
+                debug(.treatments, "Matching carb entry \(correspondingCarbEntry != nil ? "found" : "not found")")
                 return correspondingCarbEntry?.objectID
 
             } catch let error as NSError {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to fetch corresponding carb entry: \(error.userInfo)")
+                warning(.treatments, "Fetching matching carb entry failed", error: error)
                 return nil
             }
         }

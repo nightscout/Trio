@@ -8,7 +8,7 @@ on:
 jobs:
   add-to-project:
     name: Add issue to project
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: github.repository_owner == 'nightscout'
     steps:
       - uses: actions/add-to-project@v1.0.2

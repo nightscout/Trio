@@ -12,6 +12,8 @@ class TrioRemoteControl: Injectable {
     @Injected() internal var adjustmentManager: AdjustmentManager!
     @Injected() internal var settings: SettingsManager!
     @Injected() internal var bolusSafetyValidator: BolusSafetyValidator!
+    @Injected() internal var carbEntryMutationService: CarbEntryMutationService!
+    @Injected() internal var apsManager: APSManager!
 
     private let timeWindow: TimeInterval = 600
 
@@ -53,21 +55,20 @@ class TrioRemoteControl: Injectable {
         if timeDifference > timeWindow {
             await logError(
                 "Command rejected: the message is too old (sent \(Int(timeDifference)) seconds ago).",
-                payload: commandPayload
+                payload: commandPayload,
+                ack: RemoteCommandAck(commandId: commandPayload.commandId, mealId: commandPayload.mealId, result: .rejected)
             )
             return
         } else if timeDifference < -timeWindow {
             await logError(
                 "Command rejected: the message has an invalid future timestamp.",
-                payload: commandPayload
+                payload: commandPayload,
+                ack: RemoteCommandAck(commandId: commandPayload.commandId, mealId: commandPayload.mealId, result: .rejected)
             )
             return
         }
 
-        debug(
-            .remoteControl,
-            "Command successfully decrypted and authenticated. Time difference: \(Int(timeDifference)) seconds."
-        )
+        debug(.remote, "Command authenticated, sent \(Int(timeDifference)) s ago")
 
         switch commandPayload.commandType {
         case .bolus:
@@ -82,6 +83,16 @@ class TrioRemoteControl: Injectable {
             await handleStartOverrideCommand(commandPayload)
         case .cancelOverride:
             await handleCancelOverrideCommand(commandPayload)
+        case .deleteMeal:
+            try await handleDeleteMealCommand(commandPayload)
+        case .editMeal:
+            try await handleEditMealCommand(commandPayload)
+        case .unknown:
+            await logError(
+                "Command rejected: unsupported command type.",
+                payload: commandPayload,
+                ack: RemoteCommandAck(commandId: commandPayload.commandId, mealId: commandPayload.mealId, result: .rejected)
+            )
         }
     }
 }

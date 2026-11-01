@@ -83,18 +83,10 @@ final class StateIntentRequest: BaseIntentsRequest {
 
             let directionAsString = lastValue.direction ?? String(localized: "none")
 
-            let deltaAsString = delta
-                .map {
-                    self.deltaFormatter
-                        .string(from: Double(
-                            units == .mmolL ? Decimal($0)
-                                .asMmolL : Decimal($0)
-                        ) as NSNumber)!
-                } ?? "--"
-            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.succeeded) fetched latest 2 glucose values")
+            let deltaAsString = delta.map { Decimal($0).formattedDelta(for: units) } ?? "--"
             return (lastValue.date ?? Date(), glucoseAsString, directionAsString, deltaAsString)
         } catch {
-            debugPrint("StateIntentRequest: \(#function) \(DebuggingIdentifiers.failed) failed to fetch latest 2 glucose values")
+            warning(.storage, "Fetching latest glucose for shortcut failed", error: error)
             return (Date(), "", "", "")
         }
     }
@@ -124,14 +116,6 @@ final class StateIntentRequest: BaseIntentsRequest {
             formatter.maximumFractionDigits = 1
         }
         formatter.roundingMode = .halfUp
-        return formatter
-    }
-
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "+"
         return formatter
     }
 }

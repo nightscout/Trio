@@ -15,6 +15,13 @@ struct BasalProfile: Hashable {
     }
 }
 
+struct PreparedTempBasal: Equatable {
+    let start: Date
+    let end: Date
+    let rate: Double
+    let isScheduled: Bool
+}
+
 extension MainChartCanvas {
     var basalChart: some View {
         VStack {
@@ -42,15 +49,21 @@ extension MainChartCanvas {
     /// (drawn at `basalDomainMax - rate`), so the tallest rate spans the full strip height —
     /// matching the old rendering, which achieved the same look by rotating and mirroring
     /// the plot content.
-    var basalDomainMax: Double {
-        let tempMax = preparedTempBasals.map(\.rate).max() ?? 0
-        let profileMax = basalProfiles.map(\.amount).max() ?? 0
-        return max(tempMax, profileMax, 0.1)
+    @MainActor func recomputeBasalDomainMax() {
+        let tempMax = preparedTempBasals.lazy.map(\.rate).max() ?? 0
+        let profileMax = basalProfiles.lazy.map(\.amount).max() ?? 0
+        basalDomainMax = max(tempMax, profileMax, 0.1)
     }
 
     /// Converts a basal rate to its top-anchored y value.
     private func invertedY(_ rate: Double) -> Double {
         basalDomainMax - rate
+    }
+
+    /// To be used instead of "now" for basal calculations so we can skip
+    /// redundant updates happening within the same second.
+    static func secondAnchoredNow() -> Date {
+        Date(timeIntervalSince1970: Date().timeIntervalSince1970.rounded(.down))
     }
 }
 
@@ -149,7 +162,7 @@ extension MainChartCanvas {
 
 extension MainChartCanvas {
     @MainActor func calculateTempBasals() {
-        let now = Date()
+        let now = Self.secondAnchoredNow()
         let suspensionTimes = state.suspendAndResumeEvents.compactMap(\.timestamp)
 
         // Snapshot the managed-object fields once; plain values from here on.
@@ -169,7 +182,7 @@ extension MainChartCanvas {
         // paints what no temp basal covered.
         let deliveryEvents = events.filter { !$0.isScheduled }
 
-        var prepared = [(start: Date, end: Date, rate: Double, isScheduled: Bool)]()
+        var prepared = [PreparedTempBasal]()
         prepared.reserveCapacity(deliveryEvents.count)
 
         for (index, event) in deliveryEvents.enumerated() {
@@ -192,7 +205,7 @@ extension MainChartCanvas {
             let isInsulinSuspended = suspensionTimes.contains { $0 >= timestamp && $0 <= barEnd }
             let rate = Double(truncating: event.rate ?? 0) * (isInsulinSuspended ? 0 : 1)
 
-            prepared.append((timestamp, barEnd, rate, false))
+            prepared.append(PreparedTempBasal(start: timestamp, end: barEnd, rate: rate, isScheduled: false))
         }
 
         // gaps no event covers ran the pump's schedule; inferred in memory, drawn dimmed
@@ -210,14 +223,25 @@ extension MainChartCanvas {
             return ScheduledBasalInference.TimelineEvent(start: timestamp, kind: isSuspend ? .suspend : .resume)
         }
         for segment in ScheduledBasalInference.segments(events: timeline, profile: state.basalProfile, now: now) {
-            prepared.append((segment.start, segment.end, Double(truncating: segment.rate as NSNumber), true))
+            prepared.append(PreparedTempBasal(
+                start: segment.start,
+                end: segment.end,
+                rate: Double(truncating: segment.rate as NSNumber),
+                isScheduled: true
+            ))
         }
 
         // One line series strokes the whole outline: out-of-order bars backtrack across it,
         // and a zero-length bar leaves a stray point it then connects diagonally.
-        preparedTempBasals = prepared
+        let updated = prepared
             .filter { $0.end > $0.start }
             .sorted { $0.start < $1.start }
+
+        // Reassigning an identical value would invalidate the body and re-enter this method.
+        guard updated != preparedTempBasals else { return }
+
+        preparedTempBasals = updated
+        recomputeBasalDomainMax()
     }
 
     func findRegularBasalPoints(
@@ -268,7 +292,7 @@ extension MainChartCanvas {
 
     func calculateBasals() {
         Task {
-            let dayAgoTime = Date().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
+            let dayAgoTime = Self.secondAnchoredNow().addingTimeInterval(-1.days.timeInterval).timeIntervalSince1970
 
             async let getRegularBasalPoints = findRegularBasalPoints(
                 timeBegin: dayAgoTime,
@@ -323,7 +347,11 @@ extension MainChartCanvas {
             }
 
             await MainActor.run {
+                // Reassigning an identical value would invalidate the body and re-enter this method.
+                guard basals != basalProfiles else { return }
+
                 basalProfiles = basals
+                recomputeBasalDomainMax()
             }
         }
     }
