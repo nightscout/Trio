@@ -40,7 +40,7 @@ extension History {
             case let .insulin(pumpEvent):
                 var text = Formatter.dateFormatter.string(from: pumpEvent.timestamp ?? Date())
                     + ", "
-                    + (Formatter.decimalFormatterWithThreeFractionDigits.string(from: pumpEvent.bolus?.amount ?? 0) ?? "0")
+                    + (pumpEvent.bolus?.amount?.decimalValue ?? 0).formatted(.insulin)
                     + String(localized: " U", comment: "Insulin unit")
                 if let bolus = pumpEvent.bolus, bolus.isSMB {
                     text += String(localized: " SMB", comment: "Super Micro Bolus indicator in delete alert")

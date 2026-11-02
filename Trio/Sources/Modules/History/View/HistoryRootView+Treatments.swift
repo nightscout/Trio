@@ -55,7 +55,7 @@ extension History.RootView {
                     .accessibilityHidden(true)
                 Text(bolus.isSMB ? "SMB" : item.type ?? "Bolus")
                 Text(
-                    (Formatter.decimalFormatterWithThreeFractionDigits.string(from: amount) ?? "0") +
+                    amount.decimalValue.formatted(.insulin) +
                         String(localized: " U", comment: "Insulin unit")
                 )
                 .foregroundColor(.secondary)
@@ -87,7 +87,7 @@ extension History.RootView {
                 )
                 .accessibilityHidden(true)
                 Text(
-                    (Formatter.decimalFormatterWithThreeFractionDigits.string(from: rate) ?? "0") +
+                    rate.decimalValue.formatted(.insulin) +
                         String(localized: " U/hr", comment: "Unit insulin per hour")
                 )
                 .foregroundColor(.secondary)
