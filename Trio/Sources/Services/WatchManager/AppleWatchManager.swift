@@ -630,7 +630,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         if isTransferDue {
             session.transferCurrentComplicationUserInfo([WatchMessageKeys.watchState: message])
             lastComplicationTransferDate = date
-            debug(.watch, "📤 Transferred new WatchState snapshot for the complication")
+            info(.watch, "📤 Transferred new WatchState snapshot for the complication")
         } else {
             session.transferUserInfo([WatchMessageKeys.watchState: message])
             debug(.watch, "📤 Transferred new WatchState snapshot via userInfo")

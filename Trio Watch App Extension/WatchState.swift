@@ -602,6 +602,8 @@ import WidgetKit
             try ComplicationStore.save(snapshot)
             lastSavedComplicationState = snapshot
             reloadInstalledComplications()
+            let readingAge = Int(Date().timeIntervalSince(latestReading.date) / 60)
+            WatchLogger.shared.info(.data, "Complication snapshot saved, reading \(readingAge) min old")
         } catch {
             WatchLogger.shared.warning(.data, "Complication snapshot not saved", error: error)
         }

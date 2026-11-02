@@ -48,6 +48,7 @@ import WatchKit
     }
 
     static func refresh(_ state: WatchState) async {
+        WatchLogger.shared.info(.lifecycle, "Background refresh ran")
         schedule()
         await settle(state)
         state.ingestReceivedApplicationContext()
