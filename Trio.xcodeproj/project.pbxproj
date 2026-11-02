@@ -5482,7 +5482,6 @@
 				3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
 				3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */,
-				5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */,
 				5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */,
 			);
 			productRefGroup = 388E595925AD948C0019842D /* Products */;
@@ -7324,10 +7323,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		5E12FE112EBC0000000000A0 /* XCLocalSwiftPackageReference "LoopAlgorithm" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = LoopAlgorithm;
-		};
 		5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = RoundWhiteDiscKit;

@@ -1,5 +1,4 @@
 import Foundation
-import LoopAlgorithm
 import LoopKit
 import Testing
 

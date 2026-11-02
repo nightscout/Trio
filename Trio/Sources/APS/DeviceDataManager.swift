@@ -1,7 +1,6 @@
 import Combine
 import CoreData
 import Foundation
-import LoopAlgorithm
 import LoopKit
 import LoopKitUI
 import MedtrumKit
