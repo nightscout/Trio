@@ -1,5 +1,5 @@
 import Foundation
-import HealthKit
+import LoopAlgorithm
 import LoopKit
 import Testing
 
@@ -11,8 +11,8 @@ import Testing
 /// expression in `DeviceDataManager.swift` so a regression that re-introduces
 /// the default-collapse bug breaks here too.
 @Suite("Delivery Limits Sync Tests") struct DeliveryLimitsSyncTests {
-    private let basalUnit = HKUnit.internationalUnitsPerHour
-    private let bolusUnit = HKUnit.internationalUnit()
+    private let basalUnit = LoopUnit.internationalUnitsPerHour
+    private let bolusUnit = LoopUnit.internationalUnit
 
     private func makeSettings(maxBasal: Decimal, maxBolus: Decimal) -> PumpSettings {
         PumpSettings(insulinActionCurve: 6, maxBolus: maxBolus, maxBasal: maxBasal)
@@ -20,8 +20,8 @@ import Testing
 
     private func deliveryLimits(from settings: PumpSettings) -> DeliveryLimits {
         DeliveryLimits(
-            maximumBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(settings.maxBasal)),
-            maximumBolus: HKQuantity(unit: .internationalUnit(), doubleValue: Double(settings.maxBolus))
+            maximumBasalRate: LoopQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(settings.maxBasal)),
+            maximumBolus: LoopQuantity(unit: .internationalUnit, doubleValue: Double(settings.maxBolus))
         )
     }
 

@@ -1,11 +1,9 @@
 import LoopKit
 
-/// Trio-side bridge of the upstream `AlertCatalogVendor` protocol. Pump
-/// plugins don't currently set `interruptionLevel` on the alerts they issue
-/// — every emission lands at LoopKit's default (`.timeSensitive`). Trio
-/// overrides the level by looking up the alert's identifier in this
-/// registry. As plugins adopt `AlertCatalogVendor` upstream, their entries
-/// move out of here and into the plugin repo.
+/// Trio's own catalog of the alerts device plugins issue. Pump plugins don't
+/// currently set `interruptionLevel` on the alerts they issue — every
+/// emission lands at LoopKit's default (`.timeSensitive`). Trio overrides the
+/// level by looking up the alert's identifier in this registry.
 ///
 /// Scope covers pump + CGM-issued alerts (LibreLoop sensor expiry / attention
 /// / reconnect, G7 sensor lifecycle). G5/G6/One don't go through `issueAlert`
