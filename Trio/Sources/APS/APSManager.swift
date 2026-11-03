@@ -356,12 +356,12 @@ final class BaseAPSManager: APSManager, Injectable {
             )
 
             do {
-                try await executeLoop(loopStatRecord: &loopStatRecord)
+                let enacted = try await executeLoop(loopStatRecord: &loopStatRecord)
                 requestNightscoutUpload(
                     [.carbs, .pumpHistory, .overrides, .tempTargets],
                     source: "APSManager"
                 )
-                await finalizeLoop(loopStatRecord: loopStatRecord)
+                await finalizeLoop(enacted: enacted, loopStatRecord: loopStatRecord)
             } catch {
                 let endDate = Date()
                 loopStatRecord.end = endDate
@@ -378,18 +378,21 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func executeLoop(loopStatRecord: inout LoopStats) async throws {
+    /// Returns whether the determination was enacted.
+    private func executeLoop(loopStatRecord: inout LoopStats) async throws -> Bool {
         try await determineBasal()
 
         // Closed loop: also enact the determination.
+        var enacted = false
         if settings.dosingMode.automation != .off {
-            try await enactDetermination()
+            enacted = try await enactDetermination()
         }
 
         let endDate = Date()
         loopStatRecord.end = endDate
         loopStatRecord.duration = roundDouble((endDate - loopStatRecord.start).timeInterval / 60, 2)
         loopStatRecord.loopStatus = "Success"
+        return enacted
     }
 
     private func calculateLoopInterval(loopStartDate: Date) async -> Double? {
@@ -419,7 +422,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     /// Single exit point for loop — replaces the old `loopCompleted()`.
-    private func finalizeLoop(error: Error? = nil, loopStatRecord: LoopStats) async {
+    private func finalizeLoop(error: Error? = nil, enacted: Bool = false, loopStatRecord: LoopStats) async {
         await loopGuard.finish()
         isLooping.send(false)
 
@@ -437,7 +440,7 @@ final class BaseAPSManager: APSManager, Injectable {
         loopStats(loopStatRecord: loopStatRecord)
 
         if settings.dosingMode.automation != .off {
-            await reportEnacted(wasEnacted: error == nil)
+            await reportEnacted(wasEnacted: error == nil && enacted)
         }
     }
 
@@ -453,11 +456,6 @@ final class BaseAPSManager: APSManager, Injectable {
 
         guard !status.suspended else {
             return APSError.invalidPumpState(message: String(localized: "Pump suspended"))
-        }
-
-        let reservoir = storage.retrieve(OpenAPS.Monitor.reservoir, as: Decimal.self) ?? 100
-        guard reservoir >= 0 else {
-            return APSError.invalidPumpState(message: String(localized: "Reservoir is empty"))
         }
 
         return nil
@@ -771,7 +769,8 @@ final class BaseAPSManager: APSManager, Injectable {
         guard let state = pumpManager?.status.basalDeliveryState else { return fetchedTempBasal }
 
         switch state {
-        case .active:
+        case .active,
+             .pumpInoperable:
             return TempBasal(duration: 0, rate: 0, temp: .absolute, timestamp: date)
         case let .tempBasal(dose):
             let rate = Decimal(dose.unitsPerHour)
@@ -782,7 +781,8 @@ final class BaseAPSManager: APSManager, Injectable {
         }
     }
 
-    private func enactDetermination() async throws {
+    /// Returns false when the determination is skipped because the pump is suspended.
+    private func enactDetermination() async throws -> Bool {
         guard let determinationID = try await determinationStorage
             .fetchLastDeterminationObjectID(predicate: NSPredicate.predicateFor30MinAgoForDetermination).first
         else {
@@ -795,7 +795,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
         if pump.status.pumpStatus.suspended {
             info(.loop, "Determination not enacted: pump suspended")
-            return
+            return false
         }
 
         // Unable to do temp basal during manual temp basal 😁
@@ -815,6 +815,7 @@ final class BaseAPSManager: APSManager, Injectable {
             try await performBolus(pump: pump, smbToDeliver: smb)
             info(.loop, "SMB enacted: \(smb) U")
         }
+        return true
     }
 
     private func setValues(determinationID: NSManagedObjectID) async throws
@@ -1458,7 +1459,7 @@ final class BaseAPSManager: APSManager, Injectable {
 private extension PumpManager {
     func enactTempBasal(unitsPerHour: Double, for duration: TimeInterval) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            self.enactTempBasal(unitsPerHour: unitsPerHour, for: duration) { error in
+            self.enactTempBasal(decisionId: nil, unitsPerHour: unitsPerHour, for: duration) { error in
                 if let error = error {
                     debug(.pump, "Temp basal command failed: \(unitsPerHour) U/h for \(Int(duration / 60)) min")
                     continuation.resume(throwing: error)
@@ -1473,7 +1474,7 @@ private extension PumpManager {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let automaticValue = automatic ? BolusActivationType.automatic : BolusActivationType.manualRecommendationAccepted
 
-            self.enactBolus(units: units, activationType: automaticValue) { error in
+            self.enactBolus(decisionId: nil, units: units, activationType: automaticValue) { error in
                 if let error = error {
                     debug(.pump, "Bolus command failed: \(units) U")
                     continuation.resume(throwing: error)
@@ -1588,8 +1589,6 @@ extension BaseAPSManager: PumpManagerStatusObserver {
                 warning(.storage, "Saving pump battery status failed", error: error)
             }
         }
-        // TODO: - remove this after ensuring that NS still gets the same infos from Core Data
-        storage.save(status.pumpStatus, as: OpenAPS.Monitor.status)
     }
 }
 
@@ -1611,7 +1610,8 @@ extension BaseAPSManager: DoseProgressObserver {
 extension PumpManagerStatus {
     var pumpStatus: PumpStatus {
         let bolusing = bolusState != .noBolus
-        let suspended = basalDeliveryState?.isSuspended ?? true
+        // A halted patch or faulted pod reports .pumpInoperable; never loop against it.
+        let suspended = basalDeliveryState.map { $0.isSuspended || $0 == .pumpInoperable } ?? true
         let type = suspended ? StatusType.suspended : (bolusing ? .bolusing : .normal)
         return PumpStatus(status: type, bolusing: bolusing, suspended: suspended, timestamp: Date())
     }

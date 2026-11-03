@@ -175,4 +175,22 @@ extension TidepoolUploadSerializer {
             }
         }
     }
+
+    /// Async variant for uploads that throw instead of calling back; keeps the same timeout.
+    static func awaitUpload(
+        _ label: String,
+        timeout: TimeInterval = 120,
+        _ operation: @escaping @Sendable() async throws -> Void
+    ) async -> Result<Bool, Error> {
+        await awaitUpload(label, timeout: timeout) { completion in
+            Task {
+                do {
+                    try await operation()
+                    completion(.success(true))
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
 }

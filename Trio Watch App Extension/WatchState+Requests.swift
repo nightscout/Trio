@@ -199,4 +199,12 @@ extension WatchState {
             WatchLogger.shared.debug(.connectivity, "Phone unreachable, state update not requested")
         }
     }
+
+    /// Snoozes all alarms on the iPhone for the given duration. A duration of 0 ends the snooze.
+    func sendSnoozeRequest(minutes: Int) {
+        WatchLogger.shared.debug(.connectivity, "Sending snooze request: \(minutes) min")
+
+        snoozeUntilDate = minutes > 0 ? Date().addingTimeInterval(TimeInterval(minutes * 60)) : .distantPast
+        WatchNotificationHandler.shared.sendSnoozeRequest(minutes: minutes)
+    }
 }

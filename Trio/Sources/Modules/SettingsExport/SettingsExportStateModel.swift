@@ -999,15 +999,11 @@ extension SettingsExport {
                                 let presetName = preset.name ?? "Unknown Temp Target"
 
                                 if let target = preset.target {
-                                    let targetValue = trioSettings.units == .mgdL
-                                        ? target.description
-                                        : target.decimalValue.formattedAsMmolL
-
                                     processedTempTargetPresets.append(.init(
                                         category: category,
                                         subcategory: presetName,
                                         name: "Target",
-                                        value: targetValue,
+                                        value: String(describing: target.decimalValue.asUnit(trioSettings.units)),
                                         unit: trioSettings.units.rawValue
                                     ))
                                 }
@@ -1023,10 +1019,10 @@ extension SettingsExport {
                                 }
 
                                 if let halfBasalTarget = preset.halfBasalTarget {
-                                    let halfBasalValue = trioSettings.units == .mgdL
-                                        ? halfBasalTarget.description
-                                        : halfBasalTarget.decimalValue.formattedAsMmolL
-
+                                    let halfBasalValue = String(
+                                        describing: halfBasalTarget.decimalValue
+                                            .asUnit(trioSettings.units)
+                                    )
                                     processedTempTargetPresets.append(.init(
                                         category: category,
                                         subcategory: presetName,
@@ -1094,9 +1090,7 @@ extension SettingsExport {
                                         category: category,
                                         subcategory: presetName,
                                         name: "Target",
-                                        value: trioSettings.units == .mgdL
-                                            ? target.description
-                                            : target.decimalValue.formattedAsMmolL,
+                                        value: String(describing: target.decimalValue.asUnit(trioSettings.units)),
                                         unit: trioSettings.units.rawValue
                                     ))
                                 }

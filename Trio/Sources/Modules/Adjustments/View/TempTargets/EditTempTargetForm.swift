@@ -63,6 +63,8 @@ struct EditTempTargetForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
+            // iOS's default on iPhone; iPhone Duo defaults to 0, which put the first row under the sheet's bar
+            .contentMargins(.top, 35, for: .scrollContent)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden)
@@ -418,30 +420,8 @@ struct EditTempTargetForm: View {
         return formatter
     }
 
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        } else {
-            formatter.maximumFractionDigits = 0
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
     private func formattedPercentage(_ value: Double) -> String {
         let percentageNumber = NSNumber(value: value)
         return formatter.string(from: percentageNumber) ?? "\(value)"
-    }
-
-    private func formattedGlucose(glucose: Decimal) -> String {
-        let formattedValue: String
-        if state.units == .mgdL {
-            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-        } else {
-            formattedValue = glucose.formattedAsMmolL
-        }
-        return "\(formattedValue) \(state.units.rawValue)"
     }
 }

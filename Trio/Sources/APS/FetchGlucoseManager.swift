@@ -1,7 +1,6 @@
 import Combine
 import CoreData
 import Foundation
-import HealthKit
 import LoopKit
 import LoopKitUI
 import SwiftDate
@@ -231,8 +230,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private func updateManagerUnits(_ manager: CGMManagerUI?) {
         let units = settingsManager.settings.units
         let managerName = cgmManager.map { "\(type(of: $0))" } ?? "nil"
-        let loopkitUnits: HKUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
-        debug(.cgm, "\(managerName) units set to \(loopkitUnits.description)")
+        let loopkitUnits: LoopUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+        debug(.cgm, "\(managerName) units set to \(loopkitUnits.unitString)")
         manager?.unitDidChange(to: loopkitUnits)
     }
 
@@ -335,6 +334,12 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         filteredByDate = newGlucose.filter { $0.dateString > syncDate }
         filtered = glucoseStorage.filterTooFrequentGlucose(filteredByDate, at: syncDate)
+        if filtered.count < filteredByDate.count {
+            debug(
+                .cgm,
+                "Skipped \(filteredByDate.count - filtered.count) glucose readings too close to last CGM reading at \(syncDate)"
+            )
+        }
 
         guard filtered.isNotEmpty else {
             endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
@@ -445,7 +450,7 @@ extension BaseFetchGlucoseManager {
     func fetchGlucose(context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
         // Compound predicate: time window + non-manual + valid date
         let timePredicate = NSPredicate.predicateForOneDayAgoInMinutes
-        let manualPredicate = NSPredicate(format: "isManual == NO")
+        let manualPredicate = NSPredicate.cgmGlucose
         let datePredicate = NSPredicate(format: "date != nil")
 
         let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [

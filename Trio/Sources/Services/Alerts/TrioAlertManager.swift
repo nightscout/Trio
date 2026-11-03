@@ -56,6 +56,9 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     /// is `@MainActor` (its `MPVolumeView` + `Timer` members require main),
     /// but `BaseTrioAlertManager.init` runs on the Swinject resolve thread.
     @MainActor private var criticalAudioPlayer: CriticalAlertAudioPlayer?
+    /// The alert `criticalAudioPlayer` is sounding for. Retracting or
+    /// acknowledging any other alert must leave the audio running.
+    @MainActor private var criticalAudioOwner: Alert.Identifier?
     /// Preferred audible channel on iOS 26+. Falls back to `criticalAudioPlayer`
     /// when AlarmKit is unavailable or the user hasn't authorized it.
     @MainActor private var alarmScheduler: CriticalAlertAlarmScheduler?
@@ -190,17 +193,24 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             // AlarmKit pierces silent/Focus and survives app suspension.
             if alarmScheduler == nil { alarmScheduler = CriticalAlertAlarmScheduler() }
             let scheduled = alarmScheduler?.scheduleAlarm(for: alert) { [weak self] in
-                Task { @MainActor in self?.playAudioFallback(soundNamed: soundName) }
+                Task { @MainActor in self?.playAudioFallback(soundNamed: soundName, for: alert.identifier) }
             } ?? false
             guard !scheduled else { return }
             // Fallback: in-process audio. Only sounds while Trio is running.
-            playAudioFallback(soundNamed: soundName)
+            playAudioFallback(soundNamed: soundName, for: alert.identifier)
         }
     }
 
-    @MainActor private func playAudioFallback(soundNamed soundName: String) {
+    @MainActor private func playAudioFallback(soundNamed soundName: String, for identifier: Alert.Identifier) {
         if criticalAudioPlayer == nil { criticalAudioPlayer = CriticalAlertAudioPlayer() }
+        criticalAudioOwner = identifier
         criticalAudioPlayer?.play(soundNamed: soundName)
+    }
+
+    @MainActor private func stopCriticalAudio(for identifier: Alert.Identifier) {
+        guard criticalAudioOwner == identifier else { return }
+        criticalAudioOwner = nil
+        criticalAudioPlayer?.stop()
     }
 
     // MARK: - Issue / Retract
@@ -316,7 +326,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         userNotificationScheduler.unschedule(identifier: identifier)
         throttler.reset(identifier: identifier)
         Task { @MainActor in
-            criticalAudioPlayer?.stop()
+            stopCriticalAudio(for: identifier)
             alarmScheduler?.cancelAlarm(for: identifier)
         }
         alertHistoryStorage.removeAlert(identifier: identifier.alertIdentifier)
@@ -357,7 +367,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         modalScheduler.unschedule(identifier: identifier)
         userNotificationScheduler.unschedule(identifier: identifier)
         Task { @MainActor in
-            criticalAudioPlayer?.stop()
+            stopCriticalAudio(for: identifier)
             alarmScheduler?.cancelAlarm(for: identifier)
         }
         // All matching entries — replay + a genuine re-issue can coexist.
@@ -379,8 +389,10 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     private func acknowledgeOnDevice(identifier: Alert.Identifier) {
         guard let responder = queue.sync(execute: { responders[identifier.managerIdentifier]?.ref as? AlertResponder })
         else { return }
-        responder.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier) { error in
-            if let error = error {
+        Task {
+            do {
+                try await responder.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier)
+            } catch {
                 warning(.alerts, "Acknowledging alert \(identifier.value) on device failed", error: error)
             }
         }
