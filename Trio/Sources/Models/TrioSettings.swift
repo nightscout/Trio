@@ -57,7 +57,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var maxProtein: Decimal = 250
     var confirmBolusFaster: Bool = false
     var showForecastWatch: Bool = false
-    var allowWatchTreatments: Bool = true
+    var watchUsageMode: WatchUsageMode = .companion
     var overrideFactor: Decimal = 0.8
     var fattyMeals: Bool = false
     var fattyMealFactor: Decimal = 0.7
@@ -321,8 +321,8 @@ extension TrioSettings: Decodable {
             settings.showForecastWatch = showForecastWatch
         }
 
-        if let allowWatchTreatments = try? container.decode(Bool.self, forKey: .allowWatchTreatments) {
-            settings.allowWatchTreatments = allowWatchTreatments
+        if let watchUsageMode = try? container.decode(WatchUsageMode.self, forKey: .watchUsageMode) {
+            settings.watchUsageMode = watchUsageMode
         }
 
         if let displayPresets = try? container.decode(Bool.self, forKey: .displayPresets) {

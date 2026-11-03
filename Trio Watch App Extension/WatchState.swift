@@ -45,7 +45,14 @@ import WatchConnectivity
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
-    var allowWatchTreatments: Bool = true
+
+    /// Persisted so a relaunched watch app does not show restricted actions before the phone sends fresh state
+    var watchUsageMode: WatchUsageMode = WatchState.loadWatchUsageMode()
+    private static let watchUsageModeKey = "WatchState.watchUsageMode"
+
+    private static func loadWatchUsageMode() -> WatchUsageMode {
+        WatchUsageMode(rawValue: UserDefaults.standard.string(forKey: watchUsageModeKey) ?? "") ?? .companion
+    }
 
     // Forecast options
     var showForecast: Bool = false
@@ -509,8 +516,11 @@ import WatchConnectivity
             }
         }
 
-        if let allowWatchTreatments = message[WatchMessageKeys.allowWatchTreatments] as? Bool {
-            self.allowWatchTreatments = allowWatchTreatments
+        if let rawValue = message[WatchMessageKeys.watchUsageMode] as? String,
+           let watchUsageMode = WatchUsageMode(rawValue: rawValue)
+        {
+            self.watchUsageMode = watchUsageMode
+            UserDefaults.standard.set(rawValue, forKey: Self.watchUsageModeKey)
         }
 
         if let showForecast = message[WatchMessageKeys.showForecastWatch] as? Bool {
