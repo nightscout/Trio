@@ -2,7 +2,6 @@ import Combine
 import CoreData
 import DanaKit
 import Foundation
-import LoopAlgorithm
 import LoopKit
 import LoopKitUI
 import MedtrumKit
