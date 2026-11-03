@@ -558,3 +558,65 @@ private extension StoredSettings {
         )
     }
 }
+
+// MARK: - Dose annotation (RemoteDataServiceDelegate contract)
+
+/// `TidepoolService.uploadDoseData` annotates doses through `BaseTidepoolManager`'s `RemoteDataServiceDelegate`.
+/// These pin down what the delegate's "no basal history" answer does to doses built the way Trio builds them.
+@Suite("Tidepool dose annotation Tests") struct TidepoolDoseAnnotationTests {
+    private static let start = Date(timeIntervalSince1970: 1_800_000_000)
+
+    /// Same shape as the temp basal `BaseTidepoolManager.processTempBasalEvent` creates.
+    private static func trioTempBasal(automatic: Bool?) -> DoseEntry {
+        DoseEntry(
+            type: .tempBasal,
+            startDate: start,
+            endDate: start.addingTimeInterval(30 * 60),
+            value: 0.5,
+            unit: .units,
+            decisionId: nil,
+            deliveredUnits: 0.5,
+            syncIdentifier: "temp-1",
+            scheduledBasalRate: LoopQuantity(unit: .internationalUnitsPerHour, doubleValue: 0.8),
+            insulinType: nil,
+            automatic: automatic,
+            manuallyEntered: false,
+            isMutable: false
+        )
+    }
+
+    @Test("Empty basal history leaves a Trio temp basal untouched") func emptyBasalHistoryKeepsDose() {
+        let dose = Self.trioTempBasal(automatic: true)
+
+        let annotated = [dose].annotated(with: [])
+
+        #expect(annotated.count == 1)
+        #expect(annotated[0].syncIdentifier == "temp-1")
+        #expect(annotated[0].startDate == dose.startDate)
+        #expect(annotated[0].endDate == dose.endDate)
+        #expect(annotated[0].deliveredUnits == 0.5)
+        #expect(annotated[0].scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour) == 0.8)
+    }
+
+    @Test("Automation history keeps an explicit automatic flag") func automationKeepsExplicitFlag() {
+        let dose = Self.trioTempBasal(automatic: true)
+        let history = [AbsoluteScheduleValue(startDate: dose.startDate, endDate: dose.endDate, value: false)]
+
+        let overlaid = [dose].overlayAutomationHistory(history)
+
+        #expect(overlaid.count == 1)
+        #expect(overlaid[0].automatic == true)
+        #expect(overlaid[0].syncIdentifier == "temp-1")
+    }
+
+    @Test("A single period over the whole range does not split a dose") func singlePeriodDoesNotSplit() {
+        let dose = Self.trioTempBasal(automatic: nil)
+        let history = [AbsoluteScheduleValue(startDate: dose.startDate, endDate: dose.endDate, value: true)]
+
+        let overlaid = [dose].overlayAutomationHistory(history)
+
+        #expect(overlaid.count == 1)
+        #expect(overlaid[0].automatic == true)
+        #expect(overlaid[0].deliveredUnits == 0.5)
+    }
+}

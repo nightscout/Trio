@@ -59,6 +59,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     private var tidepoolService: RemoteDataService? {
         didSet {
             if let tidepoolService = tidepoolService {
+                // `TidepoolService.uploadDoseData` throws `.configuration` without this delegate. It is set
+                // here, where every created or restored service passes through, so no path can miss it.
+                tidepoolService.remoteDataServiceDelegate = self
                 rawTidepoolManager = tidepoolService.rawValue
             } else {
                 rawTidepoolManager = nil
@@ -222,6 +225,34 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             await uploadGlucose()
             await uploadSettings()
         }
+    }
+}
+
+/// TidepoolService asks its `RemoteDataServiceDelegate` for context while annotating doses before an upload,
+/// and for device logs. Without a delegate every dose upload fails with `TidepoolServiceError.configuration`.
+extension BaseTidepoolManager: RemoteDataServiceDelegate {
+    /// Trio has no device log to offer; an empty result makes the uploader skip the interval.
+    func fetchDeviceLogs(startDate _: Date, endDate _: Date) async throws -> [StoredDeviceLogEntry] {
+        []
+    }
+
+    /// Deliberately empty. With a non-empty history, TidepoolService's `annotated(with:)` hits
+    /// `preconditionFailure("temp basal without rate unsupported")` for any temp basal whose unit is `.units`,
+    /// and Trio builds its temp basal doses that way (see `processTempBasalEvent`). Empty makes
+    /// TidepoolService leave every dose as Trio built it, including the `scheduledBasalRate` Trio already sets,
+    /// which is how the TidepoolService pinned on `main` (no annotation step) uploads them.
+    func getBasalHistory(startDate _: Date, endDate _: Date) async throws -> [AbsoluteScheduleValue<Double>] {
+        []
+    }
+
+    /// Whether the doses in the range were automated.
+    ///
+    /// Approximation: Trio doesn't record when the dosing mode changed, so the current mode is applied to
+    /// the whole range. It only matters for doses without an explicit `automatic` flag, and Trio sets that
+    /// flag on every dose it uploads (`overlayAutomationHistory` skips those).
+    func automationHistory(from start: Date, to end: Date) async throws -> [AbsoluteScheduleValue<Bool>] {
+        let isAutomated = settingsManager.settings.dosingMode == .closed
+        return [AbsoluteScheduleValue(startDate: start, endDate: end, value: isAutomated)]
     }
 }
 
