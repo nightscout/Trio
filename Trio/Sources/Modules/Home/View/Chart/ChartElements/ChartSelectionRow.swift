@@ -121,8 +121,7 @@ struct ChartSelectionRow: View {
             // Both stay in the row when the scrub lands where oref produced no determination
             // — a gap in the data, or a loop that never ran — and show a dash instead.
             let iobUnit = Text(String(localized: " U", comment: "Insulin unit")).fontWeight(.regular)
-            let iobString = determination?.iob
-                .flatMap { Formatter.decimalFormatterWithTwoFractionDigits.string(from: $0) }
+            let iobString = determination?.iob?.decimalValue.formattedIOB()
             item(
                 icon: "syringe.fill",
                 tint: Color.insulin,
