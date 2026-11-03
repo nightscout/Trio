@@ -11,6 +11,18 @@ import Testing
 import UIKit
 
 @Suite("Device Catalog Tests") struct DeviceCatalogTests {
+    /// Persisted `pluginIdentifier` per CGM manager type; LoopKit only exposes it per instance.
+    private static let cgmPluginIdentifiers = [
+        "LibreTransmitterManagerV3": "LibreTransmitterManagerV3",
+        "LibreLoopCGMManager": "LibreLoopCGMManager",
+        "G5CGMManager": "DexG5Transmitter",
+        "G6CGMManager": "DexG6Transmitter",
+        "G7CGMManager": "G7CGMManager",
+        "AccuChekCgmManager": "AccuChek",
+        "EversenseCGMManager": "EversenseKit",
+        "SyaiCGMManager": "SyaiCGMManager"
+    ]
+
     // MARK: - Integrity
 
     @Test("Catalog identifiers are unique") func testIdentifiersAreUnique() {
@@ -21,12 +33,18 @@ import UIKit
         #expect(Set(pumpIDs).count == pumpIDs.count, "Duplicate pump identifier in catalog: \(pumpIDs)")
     }
 
-    @Test("Pump entry ids match their manager's plugin identifier") func testPumpIdentifiersMatchManagers() {
+    /// LoopKit only exposes `pluginIdentifier` per instance, so the catalog states it; these are persisted values.
+    @Test("Pump entry ids are their manager's persisted plugin identifier") func testPumpIdentifiersMatchManagers() {
+        let expected = [
+            "OmniPumpManager": "Omni",
+            "MinimedPumpManager": "Minimed500",
+            "MedtrumPumpManager": "Medtrum",
+            "DanaKitPumpManager": "Dana",
+            "MockPumpManager": "MockPumpManager"
+        ]
         for entry in DeviceCatalog.pumps {
-            #expect(
-                entry.id == entry.manager.pluginIdentifier,
-                "\(entry.name) id \(entry.id) != \(entry.manager.pluginIdentifier)"
-            )
+            let manager = String(describing: entry.manager)
+            #expect(entry.id == expected[manager], "\(manager) id \(entry.id) != \(expected[manager] ?? "nil")")
         }
     }
 
@@ -65,7 +83,7 @@ import UIKit
         for entry in DeviceCatalog.cgms {
             if entry.managerType != nil {
                 #expect(entry.cgmType == .plugin, "\(entry.name) is manager-backed so it must persist as .plugin")
-                #expect(entry.id == entry.managerType?.pluginIdentifier)
+                #expect(entry.id == entry.managerType.flatMap { Self.cgmPluginIdentifiers[String(describing: $0)] })
             } else {
                 #expect(entry.cgmType.rawValue == entry.id, "\(entry.name) id must be its CGMType raw value")
             }

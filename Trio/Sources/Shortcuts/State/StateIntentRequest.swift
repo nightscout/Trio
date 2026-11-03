@@ -76,10 +76,7 @@ final class StateIntentRequest: BaseIntentsRequest {
             let delta = results.count > 1 ? (lastGlucose - (secondLastGlucose ?? 0)) : nil
             /// formatting
             let units = settingsManager.settings.units
-            let glucoseAsString = glucoseFormatter.string(from: Double(
-                units == .mmolL ? Decimal(lastGlucose)
-                    .asMmolL : Decimal(lastGlucose)
-            ) as NSNumber)!
+            let glucoseAsString = Decimal(lastGlucose).formatted(for: units)
 
             let directionAsString = lastValue.direction ?? String(localized: "none")
 
@@ -105,17 +102,5 @@ final class StateIntentRequest: BaseIntentsRequest {
         let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
 
         return (iobAsDouble, cobAsDouble)
-    }
-
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if settingsManager.settings.units == .mmolL {
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
     }
 }

@@ -216,7 +216,7 @@ struct TherapySettingEditorView: View {
                     }
                 )) {
                     ForEach(valueOptions, id: \.self) { value in
-                        Text("\(displayText(for: unit, decimalValue: value)) \(unit.displayName)").tag(Double(value))
+                        Text(displayText(for: unit, decimalValue: value) + " " + unit.displayName).tag(Double(value))
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -311,12 +311,13 @@ struct TherapySettingEditorView: View {
         switch unit {
         case .mmolL,
              .mmolLPerUnit:
-            return decimalValue.formattedAsMmolL
+            return decimalValue.formatted(for: .mmolL)
+        case .mgdL,
+             .mgdLPerUnit:
+            return decimalValue.formatted(for: .mgdL)
         case .unitPerHour:
             return basalFormatter.string(from: decimalValue as NSNumber) ?? ""
-        case .gramPerUnit,
-             .mgdL,
-             .mgdLPerUnit:
+        case .gramPerUnit:
             return decimalValue.description
         }
     }

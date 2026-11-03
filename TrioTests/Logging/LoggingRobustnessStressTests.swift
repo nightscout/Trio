@@ -75,18 +75,18 @@ private extension Duration {
     }
 
     private class StubManager: DeviceManager {
-        class var pluginIdentifier: String { "com.example.pump" }
+        var pluginIdentifier: String { "com.example.pump" }
         var localizedTitle: String { "Example Pump" }
         var debugDescription: String { "## StubManager\nserial: SYN-DEV-0042" }
         var rawState: RawStateValue { [:] }
         var isOnboarded: Bool { true }
+        var inSignalLoss: Bool { false }
+        var isInoperable: Bool { false }
 
         init() {}
         required init?(rawState _: RawStateValue) {}
 
-        func acknowledgeAlert(alertIdentifier _: Alert.AlertIdentifier, completion: @escaping (Error?) -> Void) {
-            completion(nil)
-        }
+        func acknowledgeAlert(alertIdentifier _: Alert.AlertIdentifier) async throws {}
 
         func getSoundBaseURL() -> URL? { nil }
         func getSounds() -> [Alert.Sound] { [] }
@@ -94,7 +94,7 @@ private extension Duration {
     }
 
     private final class StubCGMManager: StubManager {
-        override class var pluginIdentifier: String { "com.example.cgm" }
+        override var pluginIdentifier: String { "com.example.cgm" }
         override var localizedTitle: String { "Example CGM" }
     }
 

@@ -25,6 +25,7 @@ extension ChartColorPalette {
             axisLine: .axisLineColor,
             axisLabel: .axisLabelColor,
             grid: .gridColor,
+            presetTint: .systemIndigo,
             glucoseTint: .glucoseTintColor,
             insulinTint: .insulinTintColor,
             carbTint: .carbTintColor
