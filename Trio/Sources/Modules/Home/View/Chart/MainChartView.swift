@@ -966,7 +966,9 @@ extension MainChartCanvas {
                 units: state.units,
                 maxValue: state.maxYAxisValue,
                 forecastDisplayType: state.forecastDisplayType,
-                lastDeterminationDate: state.determinationsFromPersistence.first?.deliverAt ?? .distantPast
+                // Same determination the forecast values are read from (see `preprocessForecastData`),
+                // so the curve starts at its own time even when that determination was not enacted.
+                lastDeterminationDate: state.enactedAndNonEnactedDeterminations.first?.deliverAt ?? .distantPast
             )
 
             GlucoseChartView(
