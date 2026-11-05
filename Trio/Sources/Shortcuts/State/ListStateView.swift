@@ -33,37 +33,25 @@ struct ListStateView: View {
         }
     }
 
-    /// Same layout as the in-app adjustment panel, so the snippet reads like the app.
+    /// Rows stack instead of sitting side by side, because half the snippet width is too narrow for the details.
     @ViewBuilder private var adjustmentsRow: some View {
         let overrideLabel = state.overrideName.flatMap { name in
-            state.overrideDetails.map { AdjustmentLabel.forOverride(name: name, details: $0) }
+            state.overrideDetails.map { AdjustmentLabel.forOverride(name: name, details: $0, style: .compact) }
         }
         let tempTargetLabel = state.tempTargetName.flatMap { name in
-            state.tempTargetDetails.map { AdjustmentLabel.forTempTarget(name: name, details: $0) }
+            state.tempTargetDetails.map { AdjustmentLabel.forTempTarget(name: name, details: $0, style: .compact) }
         }
 
-        if let overrideLabel, let tempTargetLabel {
-            HStack(spacing: 0) {
-                HStack {
+        if overrideLabel != nil || tempTargetLabel != nil {
+            VStack(alignment: .leading, spacing: 4) {
+                if let overrideLabel {
                     overrideLabel
-                    Spacer(minLength: 0)
                 }
-                .frame(maxWidth: .infinity)
-
-                HStack {
+                if let tempTargetLabel {
                     tempTargetLabel
-                    Spacer(minLength: 0)
                 }
-                .padding(.leading, 8)
-                .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, 10)
-            .padding(.bottom, 6)
-        } else if let adjustmentLabel = overrideLabel ?? tempTargetLabel {
-            HStack {
-                adjustmentLabel
-                Spacer()
-            }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 10)
             .padding(.bottom, 6)
         }
