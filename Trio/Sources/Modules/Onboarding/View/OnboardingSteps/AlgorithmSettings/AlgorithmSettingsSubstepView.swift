@@ -308,7 +308,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
         case .autosensMax,
              .autosensMin,
              .maxDeltaGlucoseThreshold:
-            return "\(decimalValue * 100) \(String(localized: "%"))"
+            return decimalValue.formatted(.wholePercent)
         case .enableSMBWithHighGlucoseTarget,
              .halfBasalTarget:
             return decimalValue.formatted(withUnits: units)
@@ -329,7 +329,7 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
         case .autosensMax,
              .autosensMin,
              .maxDeltaGlucoseThreshold:
-            return "\(decimalValue * 100) \(UnitSpelling.spoken("%"))"
+            return decimalValue.formatted(.wholePercent)
         case .enableSMBWithHighGlucoseTarget,
              .halfBasalTarget:
             return decimalValue.formatted(for: units) + " " + units.spokenValue

@@ -16,13 +16,6 @@ extension AutosensSettings {
         @EnvironmentObject var appIcons: Icons
         @Environment(AppState.self) var appState
 
-        private var rateFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 2
-            return formatter
-        }
-
         var autosensVerboseHint: some View {
             VStack(alignment: .leading, spacing: 15) {
                 Text(
@@ -75,13 +68,11 @@ extension AutosensSettings {
                     let newISF = state.autosensISF
                     let decimalValue = !state.settingsManager.preferences.useNewFormula ? state
                         .autosensRatio as NSDecimalNumber : dynamicRatio ?? 1
-                    let decimalValueText = rateFormatter
-                        .string(from: ((decimalValue as Decimal) * Decimal(100)) as NSNumber) ?? "100"
 
                     HStack {
                         Text("Sensitivity Ratio")
                         Spacer()
-                        Text("\(decimalValueText) \(String(localized: "%", comment: "Percentage symbol"))")
+                        Text((decimalValue as Decimal).formatted(.upToOneDecimalPercent))
                     }.padding(.vertical)
                     HStack {
                         Text("Calculated Sensitivity")
