@@ -3,8 +3,19 @@ import SwiftUI
 
 struct LoopBarChartView: View {
     let loopStatRecords: [LoopStatRecord]
-    let selectedInterval: Stat.StateModel.StatsTimeIntervalWithToday
+    let selectedInterval: Stat.StateModel.StatsTimeIntervalWithCustom
     let statsData: [LoopStatsProcessedData]
+    let spansMultipleDays: Bool
+
+    private var showsPerDayAverages: Bool {
+        switch selectedInterval {
+        case .day: return false
+        case .custom: return spansMultipleDays
+        case .month,
+             .total,
+             .week: return true
+        }
+    }
 
     var body: some View {
         VStack(spacing: 20) {
@@ -36,7 +47,7 @@ struct LoopBarChartView: View {
             .chartXAxis {
                 AxisMarks(preset: .aligned, position: .bottom) { value in
                     if let percentage = value.as(Double.self) {
-                        if selectedInterval != .today {
+                        if selectedInterval != .custom || spansMultipleDays {
                             AxisValueLabel(anchor: .top) {
                                 Text("\(Int(percentage))%")
                                     .font(.footnote)
@@ -56,26 +67,16 @@ struct LoopBarChartView: View {
 
     private func annotationText(for data: LoopStatsProcessedData) -> String {
         if data.category == .successfulLoop {
-            switch selectedInterval {
-            case .day,
-                 .today:
-                return "\(data.count) " + String(localized: "Loops")
-            case .month,
-                 .total,
-                 .week:
-                return "\(data.count) " + String(localized: "Loops per Day")
-            }
-        } else {
-            // For Glucose Count, show different text based on duration
-            switch selectedInterval {
-            case .day,
-                 .today:
-                return "\(data.count) " + String(localized: "Readings")
-            case .month,
-                 .total,
-                 .week:
-                return "\(data.count) " + String(localized: "Readings per Day")
-            }
+            return "\(data.count) " + (
+                showsPerDayAverages
+                    ? String(localized: "Loops per Day")
+                    : String(localized: "Loops")
+            )
         }
+        return "\(data.count) " + (
+            showsPerDayAverages
+                ? String(localized: "Readings per Day")
+                : String(localized: "Readings")
+        )
     }
 }
