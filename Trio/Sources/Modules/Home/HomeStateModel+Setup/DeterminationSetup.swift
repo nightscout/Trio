@@ -46,6 +46,8 @@ extension Home.StateModel {
         determinationControllerDelegate.onContentChange = { [weak self] in
             Task { @MainActor in
                 self?.updateDeterminationsFromController()
+                // Non-enacted determinations (manual temp basal, open loop) carry a fresh forecast too.
+                self?.scheduleForecastUpdate()
             }
         }
 
