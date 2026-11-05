@@ -27,6 +27,49 @@ struct ListStateView: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            stateRow
+            adjustmentsRow
+        }
+    }
+
+    /// Same layout as the in-app adjustment panel, so the snippet reads like the app.
+    @ViewBuilder private var adjustmentsRow: some View {
+        let overrideLabel = state.overrideName.flatMap { name in
+            state.overrideDetails.map { AdjustmentLabel.forOverride(name: name, details: $0) }
+        }
+        let tempTargetLabel = state.tempTargetName.flatMap { name in
+            state.tempTargetDetails.map { AdjustmentLabel.forTempTarget(name: name, details: $0) }
+        }
+
+        if let overrideLabel, let tempTargetLabel {
+            HStack(spacing: 0) {
+                HStack {
+                    overrideLabel
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity)
+
+                HStack {
+                    tempTargetLabel
+                    Spacer(minLength: 0)
+                }
+                .padding(.leading, 8)
+                .frame(maxWidth: .infinity)
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 6)
+        } else if let adjustmentLabel = overrideLabel ?? tempTargetLabel {
+            HStack {
+                adjustmentLabel
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 6)
+        }
+    }
+
+    private var stateRow: some View {
         HStack(alignment: .center) {
             Spacer()
 

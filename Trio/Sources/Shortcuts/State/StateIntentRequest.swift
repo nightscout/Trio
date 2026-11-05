@@ -8,6 +8,11 @@ enum StateIntentError: Error {
     case NoIOBCOB
 }
 
+struct ActiveAdjustment {
+    let name: String
+    let details: String
+}
+
 struct StateResults: AppEntity {
     static var defaultQuery = StateBGQuery()
 
@@ -32,7 +37,25 @@ struct StateResults: AppEntity {
 
     @Property(title: "unit") var unit: String?
 
-    init(glucose: String, trend: String, delta: String, date: Date, iob: Double, cob: Double, unit: GlucoseUnits) {
+    @Property(title: "Override") var overrideName: String?
+
+    @Property(title: "Override Details") var overrideDetails: String?
+
+    @Property(title: "Temp Target") var tempTargetName: String?
+
+    @Property(title: "Temp Target Details") var tempTargetDetails: String?
+
+    init(
+        glucose: String,
+        trend: String,
+        delta: String,
+        date: Date,
+        iob: Double,
+        cob: Double,
+        unit: GlucoseUnits,
+        override: ActiveAdjustment?,
+        tempTarget: ActiveAdjustment?
+    ) {
         id = UUID()
         self.glucose = glucose
         self.trend = trend
@@ -41,6 +64,10 @@ struct StateResults: AppEntity {
         self.iob = iob
         self.cob = cob
         self.unit = unit.rawValue
+        overrideName = override?.name
+        overrideDetails = override?.details
+        tempTargetName = tempTarget?.name
+        tempTargetDetails = tempTarget?.details
     }
 }
 
@@ -102,5 +129,49 @@ final class StateIntentRequest: BaseIntentsRequest {
         let cobAsDouble = Double(truncating: (results.first?.cob ?? 0) as NSNumber)
 
         return (iobAsDouble, cobAsDouble)
+    }
+
+    /// Leaves out an expired adjustment, because the app ends it as soon as it notices, and one with nothing to show.
+    func getActiveAdjustments(onContext: NSManagedObjectContext) -> (override: ActiveAdjustment?, tempTarget: ActiveAdjustment?) {
+        do {
+            let overrides = try CoreDataStack.shared.fetchEntities(
+                ofType: OverrideStored.self,
+                onContext: onContext,
+                predicate: NSPredicate.lastActiveOverride,
+                key: "date",
+                ascending: false,
+                fetchLimit: 1
+            ) as? [OverrideStored] ?? []
+
+            let tempTargets = try CoreDataStack.shared.fetchEntities(
+                ofType: TempTargetStored.self,
+                onContext: onContext,
+                predicate: NSPredicate.lastActiveTempTarget,
+                key: "date",
+                ascending: false,
+                fetchLimit: 1
+            ) as? [TempTargetStored] ?? []
+
+            let describer = AdjustmentDescriber(units: settingsManager.settings.units, preferences: settingsManager.preferences)
+
+            var tempTargetAdjustment: ActiveAdjustment?
+            if let tempTarget = tempTargets.first, !AdjustmentDescriber.isExpired(tempTarget),
+               let details = describer.tempTargetDetails(tempTarget)
+            {
+                tempTargetAdjustment = ActiveAdjustment(name: AdjustmentDescriber.name(of: tempTarget), details: details)
+            }
+
+            var overrideAdjustment: ActiveAdjustment?
+            if let override = overrides.first, !AdjustmentDescriber.isExpired(override),
+               let details = describer.overrideDetails(override, showsTarget: tempTargetAdjustment == nil)
+            {
+                overrideAdjustment = ActiveAdjustment(name: AdjustmentDescriber.name(of: override), details: details)
+            }
+
+            return (overrideAdjustment, tempTargetAdjustment)
+        } catch {
+            warning(.storage, "Fetching active adjustments for shortcut failed", error: error)
+            return (nil, nil)
+        }
     }
 }
