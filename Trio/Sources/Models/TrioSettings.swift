@@ -16,6 +16,9 @@ enum BolusShortcutLimit: String, JSON, CaseIterable, Identifiable {
 }
 
 struct TrioSettings: JSON, Equatable, Encodable {
+    /// Maximum number of meal-time reminder preset buttons offered in the bolus calculator.
+    static let mealTimeReminderPresetLimit = 3
+
     var units: GlucoseUnits = .mgdL
     var dosingMode: DosingMode = .open
     var isUploadEnabled: Bool = false
@@ -62,6 +65,8 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var fattyMealFactor: Decimal = 0.7
     var sweetMeals: Bool = false
     var sweetMealFactor: Decimal = 1
+    var mealTimeReminderEnabled: Bool = false
+    var mealTimeReminderPresets: [Decimal] = [15, 30]
     var displayPresets: Bool = true
     var confirmBolus: Bool = false
     var enableQuickPickTreatments: Bool = false
@@ -222,6 +227,15 @@ extension TrioSettings: Decodable {
 
         if let sweetMealFactor = try? container.decode(Decimal.self, forKey: .sweetMealFactor) {
             settings.sweetMealFactor = sweetMealFactor
+        }
+
+        if let mealTimeReminderEnabled = try? container.decode(Bool.self, forKey: .mealTimeReminderEnabled) {
+            settings.mealTimeReminderEnabled = mealTimeReminderEnabled
+        }
+
+        if let mealTimeReminderPresets = try? container.decode([Decimal].self, forKey: .mealTimeReminderPresets) {
+            let normalized = Array(Set(mealTimeReminderPresets.filter { $0 > 0 })).sorted()
+            settings.mealTimeReminderPresets = Array(normalized.prefix(TrioSettings.mealTimeReminderPresetLimit))
         }
 
         if let overrideFactor = try? container.decode(Decimal.self, forKey: .overrideFactor) {

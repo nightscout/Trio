@@ -6,6 +6,7 @@ enum MultiUsePanelState: Equatable {
     case pumpTimeMismatch
     case cgmStale
     case maxIOBZero
+    case mealTimeReminderCountdown(PendingMealTimeReminder)
     case whatsNew
     case dosingModeLimited(DosingMode)
     case stats
@@ -18,6 +19,7 @@ enum MultiUsePanelState: Equatable {
         pumpTimeMismatch: Bool,
         lastGlucoseDate: Date?,
         maxIOB: Decimal,
+        pendingMealTimeReminder: PendingMealTimeReminder?,
         hasUnacknowledgedReleaseNotes: Bool,
         dosingMode: DosingMode,
         now: Date
@@ -25,6 +27,9 @@ enum MultiUsePanelState: Equatable {
         if notificationsDisabled { return .notificationsDisabled }
         if pumpTimeMismatch { return .pumpTimeMismatch }
         if now.timeIntervalSince(lastGlucoseDate ?? .distantPast) > cgmStaleAfter { return .cgmStale }
+        // A pending meal-time reminder is time-sensitive, so it outranks the deliberate, persistent states
+        // below but still yields to the "something is broken right now" warnings above.
+        if let pendingMealTimeReminder { return .mealTimeReminderCountdown(pendingMealTimeReminder) }
         // constrained modes clamp Max IOB to 0 without touching the stored value
         if dosingMode.automation == .reductionsOnly || dosingMode.automation == .hypoSuspendOnly {
             return .dosingModeLimited(dosingMode)

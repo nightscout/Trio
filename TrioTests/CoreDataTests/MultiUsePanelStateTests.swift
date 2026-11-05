@@ -13,6 +13,7 @@ import Testing
         pumpTimeMismatch: Bool = false,
         lastGlucoseDate: Date?,
         maxIOB: Decimal = 10,
+        pendingMealTimeReminder: PendingMealTimeReminder? = nil,
         hasUnacknowledgedReleaseNotes: Bool = false,
         dosingMode: DosingMode = .closed
     ) -> MultiUsePanelState {
@@ -21,6 +22,7 @@ import Testing
             pumpTimeMismatch: pumpTimeMismatch,
             lastGlucoseDate: lastGlucoseDate,
             maxIOB: maxIOB,
+            pendingMealTimeReminder: pendingMealTimeReminder,
             hasUnacknowledgedReleaseNotes: hasUnacknowledgedReleaseNotes,
             dosingMode: dosingMode,
             now: now
@@ -102,5 +104,46 @@ import Testing
 
     @Test("Acknowledged release notes fall back to stats") func testAcknowledgedShowsStats() {
         #expect(resolve(lastGlucoseDate: fresh, hasUnacknowledgedReleaseNotes: false) == .stats)
+    }
+
+    private var mealTimeReminder: PendingMealTimeReminder {
+        PendingMealTimeReminder(fireDate: now.addingTimeInterval(10 * 60), carbs: 45, bolusAmount: 2.5)
+    }
+
+    @Test(
+        "A pending meal-time reminder displaces the persistent and informational states"
+    ) func testMealTimeReminderOverLowerPriority() {
+        #expect(
+            resolve(lastGlucoseDate: fresh, pendingMealTimeReminder: mealTimeReminder) ==
+                .mealTimeReminderCountdown(mealTimeReminder)
+        )
+        #expect(resolve(
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder,
+            hasUnacknowledgedReleaseNotes: true
+        ) == .mealTimeReminderCountdown(mealTimeReminder))
+        #expect(
+            resolve(lastGlucoseDate: fresh, maxIOB: 0, pendingMealTimeReminder: mealTimeReminder) ==
+                .mealTimeReminderCountdown(mealTimeReminder)
+        )
+        #expect(resolve(
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder,
+            dosingMode: .lowGlucoseSuspend
+        ) == .mealTimeReminderCountdown(mealTimeReminder))
+    }
+
+    @Test("The broken-right-now warnings outrank a pending meal-time reminder") func testMealTimeReminderYieldsToWarnings() {
+        #expect(resolve(
+            notificationsDisabled: true,
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder
+        ) == .notificationsDisabled)
+        #expect(resolve(
+            pumpTimeMismatch: true,
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder
+        ) == .pumpTimeMismatch)
+        #expect(resolve(lastGlucoseDate: stale, pendingMealTimeReminder: mealTimeReminder) == .cgmStale)
     }
 }
