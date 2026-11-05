@@ -43,6 +43,62 @@ struct WatchConfigAppleWatchView: BaseView {
                 headerText: String(localized: "Apple Watch Configuration")
             )
 
+            Section {
+                VStack {
+                    Picker(
+                        selection: $state.watchUsageMode,
+                        label: Text("Watch Usage Mode")
+                    ) {
+                        ForEach(WatchUsageMode.allCases) { selection in
+                            Text(selection.displayName).tag(selection)
+                        }
+                    }.padding(.top)
+
+                    HStack(alignment: .center) {
+                        Text(
+                            "Choose which actions can be started from the Apple Watch. See hint for more details."
+                        )
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .lineLimit(nil)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Button(
+                            action: {
+                                hintLabel = String(localized: "Watch Usage Mode")
+                                selectedVerboseHint =
+                                    AnyView(
+                                        VStack(alignment: .leading, spacing: 10) {
+                                            Text(
+                                                "Choose which actions can be started from the Apple Watch. Actions the selected mode does not allow are hidden on the watch and rejected by Trio."
+                                            )
+                                            VStack(alignment: .leading, spacing: 5) {
+                                                Text("Companion (Default):").bold()
+                                                Text("Bolus, carb and meal entries, overrides and temp targets.")
+                                            }
+                                            VStack(alignment: .leading, spacing: 5) {
+                                                Text("Adjustments:").bold()
+                                                Text("Overrides and temp targets only. No bolus, carb or meal entries.")
+                                            }
+                                            VStack(alignment: .leading, spacing: 5) {
+                                                Text("View:").bold()
+                                                Text("Read-only. No treatments, overrides or temp targets.")
+                                            }
+                                        }
+                                    )
+                                shouldDisplayHint.toggle()
+                            },
+                            label: {
+                                HStack {
+                                    Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
+                                }
+                            }
+                        ).buttonStyle(BorderlessButtonStyle())
+                    }.padding(.top)
+                }.padding(.bottom)
+            }.settingsSearchTarget(label: String(localized: "Watch Usage Mode"))
+
             SettingInputSection(
                 decimalValue: $decimalPlaceholder,
                 booleanValue: $state.showForecastWatch,
