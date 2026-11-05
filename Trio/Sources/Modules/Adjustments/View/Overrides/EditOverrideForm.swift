@@ -85,6 +85,8 @@ struct EditOverrideForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
+            // iOS's default on iPhone; iPhone Duo defaults to 0, which put the first row under the sheet's bar
+            .contentMargins(.top, 35, for: .scrollContent)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden)
@@ -520,8 +522,6 @@ struct EditOverrideForm: View {
                             guard moc.hasChanges else { return }
                             try moc.save()
 
-                            try await state.nightscoutManager.uploadProfiles()
-
                             // Disable previous active Override
                             if let currentActiveOverride = state.currentActiveOverride {
                                 Task {
@@ -536,8 +536,15 @@ struct EditOverrideForm: View {
 
                             hasChanges = false
                             presentationMode.wrappedValue.dismiss()
+
+                            // Upload after dismiss, so a Nightscout error does not keep the form open
+                            do {
+                                try await state.nightscoutManager.uploadProfiles()
+                            } catch {
+                                warning(.nightscout, "Uploading profile after override edit failed", error: error)
+                            }
                         } catch {
-                            debugPrint("\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to edit Override")
+                            warning(.treatments, "Saving edited override failed", error: error)
                         }
                     }
                 }, label: {

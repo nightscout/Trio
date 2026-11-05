@@ -37,23 +37,11 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
 
-    private var units: GlucoseUnits = .mgdL
-
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = settingsManager.settings.units == .mmolL ? 1 : 0
-        formatter.positivePrefix = "+"
-        formatter.negativePrefix = "-"
-        return formatter
-    }
-
     weak var delegate: ContactImageManagerDelegate?
 
     init(resolver: Resolver) {
         super.init()
         injectServices(resolver)
-        units = settingsManager.settings.units
         coreDataPublisher =
             CoreDataStack.shared.entityChangePublisher
                 .receive(on: queue)
@@ -153,7 +141,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
         for (index, entry) in entries.enumerated() {
             guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
-                debug(.default, "Invalid entry start time: \(entry.start)")
+                warning(.ui, "Skipped glucose target with invalid start time \(entry.start)")
                 continue
             }
 
@@ -194,6 +182,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     /// - Important: This function must be called on the main actor to ensure thread safety. Otherwise, we would need to ensure thread safety by either using an actor or a perform closure
     @MainActor func updateContactImageState() async {
         do {
+            let units = settingsManager.settings.units
             // Get NSManagedObjectIDs on backgroundContext
             let glucoseValuesIds = try await fetchGlucose()
             let determinationIds = try await fetchlastDetermination()
@@ -206,23 +195,26 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             let lastDetermination = determinationObjects.last
 
             if let firstGlucoseValue = glucoseObjects.first {
-                let value = settingsManager.settings.units == .mgdL
+                let value = units == .mgdL
                     ? Decimal(firstGlucoseValue.glucose)
                     : Decimal(firstGlucoseValue.glucose).asMmolL
 
-                state.glucose = Formatter.glucoseFormatter(for: units).string(from: value as NSNumber)
+                state.glucose = Decimal(firstGlucoseValue.glucose).formatted(for: units)
+                state.glucoseValue = value
                 state.trend = firstGlucoseValue.directionEnum?.symbol
                 state.direction = firstGlucoseValue.directionEnum
                 state.glucoseDate = firstGlucoseValue.date
 
-                let delta = glucoseObjects.count >= 2
-                    ? Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects.dropFirst().first?.glucose ?? 0)
-                    : 0
-                let deltaConverted = settingsManager.settings.units == .mgdL ? delta : delta.asMmolL
-                state.delta = deltaFormatter.string(from: deltaConverted as NSNumber)
+                if glucoseObjects.count >= 2 {
+                    let delta = Decimal(firstGlucoseValue.glucose) - Decimal(glucoseObjects[1].glucose)
+                    state.delta = delta.formattedDelta(for: units)
+                } else {
+                    state.delta = nil
+                }
             } else {
                 // fetchGlucose() only looks back 20 minutes, so an empty result means dropout.
                 state.glucose = nil
+                state.glucoseValue = nil
                 state.trend = nil
                 state.direction = nil
                 state.glucoseDate = nil
@@ -245,12 +237,8 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
                 state.cobText = "0"
             }
 
-            if let eventualBG = settingsManager.settings.units == .mgdL ? lastDetermination?
-                .eventualBG : lastDetermination?
-                .eventualBG?.decimalValue.asMmolL as NSDecimalNumber?
-            {
-                let eventualBGAsString = Formatter.decimalFormatterWithOneFractionDigit.string(from: eventualBG)
-                state.eventualBG = eventualBGAsString.map { "⇢ " + $0 }
+            if let eventualBG = lastDetermination?.eventualBG {
+                state.eventualBG = "⇢ " + eventualBG.decimalValue.formatted(for: units)
             }
 
             // TODO: workaround for now: set low value to 55, to have dynamic color shades between 55 and user-set low (approx. 70); same for high glucose
@@ -271,6 +259,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
                 delegate?.contactImageManagerDidUpdateState(state)
             }
         } catch {
+            warning(.ui, "Updating contact image state failed", error: error)
             // Still notify delegate with current state, even if there was an error
             delegate?.contactImageManagerDidUpdateState(state)
         }
@@ -295,7 +284,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     func setImageForContact(contactId: String) async {
         guard let contactEntry = await contactImageStorage.fetchContactImageEntries().first(where: { $0.contactId == contactId })
         else {
-            debugPrint("\(DebuggingIdentifiers.failed) No matching ContactImageEntry found for contact ID: \(contactId)")
+            warning(.ui, "No contact image entry found for contact")
             return
         }
 
@@ -313,7 +302,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             )
 
             guard let contact = contacts.first else {
-                debugPrint("\(DebuggingIdentifiers.failed) Contact with ID \(contactId) not found.")
+                warning(.ui, "Contact for contact image not found")
                 return
             }
 
@@ -325,9 +314,9 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
             try contactStore.execute(saveRequest)
 
-            debugPrint("\(DebuggingIdentifiers.succeeded) Image successfully set for contact ID: \(contactId)")
+            debug(.ui, "Contact image set")
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) Failed to set image for contact ID \(contactId): \(error)")
+            warning(.ui, "Setting contact image failed", error: error)
         }
     }
 
@@ -357,9 +346,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
                 // Ensure the contact exists in the CNContactStore
                 guard let contact = contacts.first else {
-                    debugPrint(
-                        "\(DebuggingIdentifiers.failed) Contact with ID \(contactId) and name \(contactEntry.name) not found."
-                    )
+                    warning(.ui, "Contact for contact image not found")
                     continue
                 }
 
@@ -374,9 +361,9 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
                 // Execute the save request to persist the changes
                 try contactStore.execute(saveRequest)
 
-                debugPrint("\(DebuggingIdentifiers.succeeded) Updated contact image for \(contactId)")
+                debug(.ui, "Contact image updated")
             } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) Failed to update contact image for \(contactId): \(error)")
+                warning(.ui, "Updating contact image failed", error: error)
             }
         }
     }
@@ -398,7 +385,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
             // If contact exists, return its identifier
             if let existingContact = existingContacts.first {
-                debugPrint("Found existing contact with name: \(name)")
+                debug(.ui, "Reusing existing contact with the same name")
                 return existingContact.identifier
             }
 
@@ -418,13 +405,13 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             )
 
             guard let createdContact = newContacts.first else {
-                debugPrint("\(DebuggingIdentifiers.failed) Contact creation failed: No contact found after save.")
+                warning(.ui, "Contact not found after creating it")
                 return nil
             }
 
             return createdContact.identifier
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) Error creating/finding contact: \(error)")
+            warning(.ui, "Creating contact failed", error: error)
             return nil
         }
     }
@@ -439,7 +426,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             let contacts = try store.unifiedContacts(matching: predicate, keysToFetch: keys)
             return !contacts.isEmpty
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) Error validating contact: \(error)")
+            warning(.ui, "Checking whether contact exists failed", error: error)
             return false
         }
     }
@@ -457,7 +444,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             )
 
             guard let contact = contacts.first else {
-                debugPrint("\(DebuggingIdentifiers.failed) Contact with ID \(identifier) not found.")
+                debug(.ui, "Contact to delete not found")
                 return false
             }
 
@@ -467,10 +454,10 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             deleteRequest.delete(mutableContact)
 
             try contactStore.execute(deleteRequest)
-            debugPrint("\(DebuggingIdentifiers.succeeded) Contact successfully deleted: \(identifier)")
+            debug(.ui, "Contact deleted")
             return true
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) Error deleting contact: \(error)")
+            warning(.ui, "Deleting contact failed", error: error)
             return false
         }
     }
@@ -494,7 +481,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             )
 
             guard let contact = contacts.first else {
-                debugPrint("\(DebuggingIdentifiers.failed) Contact with ID \(identifier) not found.")
+                warning(.ui, "Contact to update not found")
                 return false
             }
 
@@ -506,10 +493,10 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
             updateRequest.update(mutableContact)
 
             try contactStore.execute(updateRequest)
-            debugPrint("\(DebuggingIdentifiers.succeeded) Contact successfully updated: \(identifier)")
+            debug(.ui, "Contact updated")
             return true
         } catch {
-            debugPrint("\(DebuggingIdentifiers.failed) Error updating contact: \(error)")
+            warning(.ui, "Updating contact failed", error: error)
             return false
         }
     }

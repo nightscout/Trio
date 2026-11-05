@@ -15,7 +15,7 @@ struct Basal {
 
         func rate(at timestamp: Date) throws -> Decimal? {
             guard lastRateIsValid else {
-                warning(.openAPS, "Warning: bad basal schedule \(basalProfile)")
+                warning(.algorithm, "Basal schedule invalid: last of \(basalProfile.count) rates is 0")
                 return nil
             }
             guard basalProfile.count > 1 else {
@@ -40,7 +40,7 @@ struct Basal {
         let basalProfileData = basalProfile
 
         guard let lastBasalRate = basalProfileData.last?.rate, lastBasalRate != 0 else {
-            warning(.openAPS, "Warning: bad basal schedule \(basalProfile)")
+            warning(.algorithm, "Basal schedule invalid: last of \(basalProfile.count) rates is 0 or missing")
             return nil
         }
 

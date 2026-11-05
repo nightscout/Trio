@@ -34,9 +34,7 @@ extension History {
         func message(units: GlucoseUnits) -> String? {
             switch self {
             case let .glucose(glucose):
-                let glucoseToDisplay = units == .mgdL
-                    ? glucose.glucose.description
-                    : Int(glucose.glucose).formattedAsMmolL
+                let glucoseToDisplay = Decimal(glucose.glucose).formatted(for: units)
                 return Formatter.dateFormatter.string(from: glucose.date ?? Date())
                     + ", " + glucoseToDisplay + " " + units.rawValue
             case let .insulin(pumpEvent):

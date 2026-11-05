@@ -40,7 +40,7 @@ extension PumpConfig {
                 setupViewControllerUI.completionDelegate = completionDelegate
                 return setupViewControllerUI
             case let .createdAndOnboarded(pumpManagerUI):
-                debug(.default, "Pump manager  created and onboarded")
+                debug(.pump, "Pump setup finished")
                 setupDelegate?.pumpManagerOnboarding(didCreatePumpManager: pumpManagerUI)
                 var vc = pumpManagerUI.settingsViewController(
                     bluetoothProvider: bluetoothManager,

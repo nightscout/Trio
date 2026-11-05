@@ -18,7 +18,6 @@ extension Settings {
         let resolver: Resolver
         @StateObject var state = StateModel()
 
-        @State private var showShareSheet = false
         @State private var searchText: String = ""
         @State var hintDetent = PresentationDetent.large
         @State private var hintPayload: HintPayload?
@@ -281,70 +280,14 @@ extension Settings {
                     .listRowBackground(Color.chart)
 
                     Section(
-                        header: Text("Support & Community"),
                         content: {
-                            Button {
-                                showShareSheet.toggle()
-                            } label: {
-                                HStack {
-                                    Text("Share Logs")
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
-                                        .font(.footnote)
-                                }
+                            NavigationLink(destination: ReportProblemView(state: state)) {
+                                Text("Report a Problem")
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Button {
-                                if let url = URL(string: "https://github.com/nightscout/Trio/issues/new/choose") {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                HStack {
-                                    Text("Submit Ticket on GitHub")
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
-                                        .font(.footnote)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Button {
-                                if let url = URL(string: "https://discord.triodocs.org") {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                HStack {
-                                    Text("Trio Discord")
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
-                                        .font(.footnote)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Button {
-                                if let url = URL(string: "https://facebook.triodocs.org") {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                HStack {
-                                    Text("Trio Facebook")
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundColor(.secondary)
-                                        .font(.footnote)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
+                            ReportLinkRow(title: "Ask on Discord", url: "https://discord.triodocs.org")
+                            ReportLinkRow(title: "Ask on Facebook", url: "https://facebook.triodocs.org")
+                        },
+                        header: { Text("Support & Community") }
                     ).listRowBackground(Color.chart)
 
                     if !releaseNotesService.releases.isEmpty {
@@ -450,9 +393,6 @@ extension Settings {
                     hintText: payload.content,
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
-            }
-            .sheet(isPresented: $showShareSheet) {
-                ShareSheet(activityItems: state.logItems())
             }
             .onAppear(perform: configureView)
             .task {

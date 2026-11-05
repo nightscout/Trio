@@ -78,14 +78,11 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
     }
 
     /// Default bundled sound filename. See `Trio/Resources/Sounds/`.
+    /// Acoustic, Medium — the set the sound designer recommends as default
+    /// after hallway testing. Falls back to the old generic tone only if the
+    /// themed set is ever missing.
     var defaultSoundFilename: String {
-        switch self {
-        case .urgentLow: return "urgent_low.caf"
-        case .low: return "trill.caf"
-        case .forecastedLow: return "bloom.caf"
-        case .high: return "chime.caf"
-        case .carbsRequired: return "bloop.caf"
-        }
+        AlarmSoundCatalog.defaultFilename(for: .glucose(self)) ?? "alarm.caf"
     }
 
     /// Default for `GlucoseAlert.overridesSilenceAndDND` when adding a new

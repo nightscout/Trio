@@ -37,17 +37,6 @@ extension Adjustments {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        func formattedGlucose(glucose: Decimal) -> String {
-            let formattedValue: String
-            if state.units == .mgdL {
-                formattedValue = Formatter.glucoseFormatter(for: state.units)
-                    .string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-            } else {
-                formattedValue = glucose.formattedAsMmolL
-            }
-            return "\(formattedValue) \(state.units.rawValue)"
-        }
-
         var body: some View {
             tempTargetDeleteConfirmation(overrideDeleteConfirmation(mainContent))
         }
@@ -160,6 +149,7 @@ extension Adjustments {
                             Task {
                                 // Save cancelled Override in OverrideRunStored Entity
                                 // Cancel ALL active Override
+                                info(.treatments, "Override stopped")
                                 await state.disableAllActiveOverrides(createOverrideRunEntry: true)
                             }
                         }
@@ -174,6 +164,7 @@ extension Adjustments {
                             Task {
                                 // Save cancelled Temp Targets in TempTargetRunStored Entity
                                 // Cancel ALL active Temp Targets
+                                info(.treatments, "Temp target stopped")
                                 await state.disableAllActiveTempTargets(createTempTargetRunEntry: true)
                                 // Update View
                                 state.updateLatestTempTargetConfiguration()

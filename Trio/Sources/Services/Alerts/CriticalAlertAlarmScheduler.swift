@@ -1,6 +1,6 @@
+import CryptoKit
 import Foundation
 import LoopKit
-import os.log
 
 #if canImport(AlarmKit)
     import ActivityKit
@@ -22,11 +22,17 @@ import os.log
 /// Ported from Loop's `CriticalAlertAlarmScheduler`.
 @MainActor
 final class CriticalAlertAlarmScheduler {
-    private let log = OSLog(subsystem: "org.nightscout.trio", category: "CriticalAlertAlarmScheduler")
-
-    /// Maps an issued alert to the AlarmKit alarm scheduled for it, so the
-    /// alarm can be cancelled when the alert is acknowledged or retracted.
-    private var alarmsByAlert: [Alert.Identifier: UUID] = [:]
+    /// The AlarmKit alarm ID for an alert, derived from the alert identifier so
+    /// a relaunched app can still stop an alarm scheduled by an earlier process.
+    static func alarmID(for identifier: Alert.Identifier) -> UUID {
+        var bytes = Array(SHA256.hash(data: Data(identifier.value.utf8)).prefix(16))
+        bytes[6] = (bytes[6] & 0x0F) | 0x50
+        bytes[8] = (bytes[8] & 0x3F) | 0x80
+        return UUID(uuid: (
+            bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]
+        ))
+    }
 
     /// True only if AlarmKit is available (iOS 26+) AND the user authorized it.
     /// When false, callers should use the `CriticalAlertAudioPlayer` fallback.
@@ -47,13 +53,8 @@ final class CriticalAlertAlarmScheduler {
             guard AlarmManager.shared.authorizationState == .notDetermined else { return }
             do {
                 _ = try await AlarmManager.shared.requestAuthorization()
-            } catch {
-                os_log(
-                    "AlarmKit authorization request failed: %{public}@",
-                    log: OSLog(subsystem: "org.nightscout.trio", category: "CriticalAlertAlarmScheduler"),
-                    type: .error,
-                    String(describing: error)
-                )
+            } catch let authorizationError {
+                warning(.alerts, "AlarmKit authorization request failed", error: authorizationError)
             }
         #endif
     }
@@ -97,23 +98,25 @@ final class CriticalAlertAlarmScheduler {
                 sound: sound
             )
 
-            let id = UUID()
-            alarmsByAlert[alert.identifier] = id
-            let log = self.log
+            let id = Self.alarmID(for: alert.identifier)
             let identifier = alert.identifier
-            Task { [weak self] in
+            // AlarmKit rings until stopped, so end it after the same burst the
+            // in-app player would play. Best-effort: if iOS suspends Trio, it
+            // stops on Trio's next wake (the next CGM reading at the latest).
+            let burst = alert.sound?.filename
+                .map(CriticalAlertAudioPlayer.burstDuration(forSoundNamed:)) ?? CriticalAlertAudioPlayer.minBurstDuration
+            Task {
                 do {
                     _ = try await AlarmManager.shared.schedule(id: id, configuration: configuration)
-                    os_log(
-                        "Scheduled AlarmKit alarm %{public}@ for %{public}@",
-                        log: log, type: .info, id.uuidString, identifier.value
+                    info(.alerts, "AlarmKit alarm scheduled for \(identifier.value)")
+                    try? await Task.sleep(for: .seconds(Self.immediateFireDelay + burst))
+                    stopIfAlerting(id: id, identifier: identifier)
+                } catch let scheduleError {
+                    warning(
+                        .alerts,
+                        "Scheduling AlarmKit alarm for \(identifier.value) failed, falling back to audio",
+                        error: scheduleError
                     )
-                } catch {
-                    os_log(
-                        "Failed to schedule AlarmKit alarm for %{public}@: %{public}@ — falling back to audio",
-                        log: log, type: .error, identifier.value, String(describing: error)
-                    )
-                    self?.alarmsByAlert.removeValue(forKey: identifier)
                     onScheduleFailure()
                 }
             }
@@ -123,18 +126,33 @@ final class CriticalAlertAlarmScheduler {
         #endif
     }
 
+    @available(iOS 26, *) private func stopIfAlerting(id: UUID, identifier: Alert.Identifier) {
+        #if canImport(AlarmKit)
+            guard let alarm = try? AlarmManager.shared.alarms.first(where: { $0.id == id }),
+                  alarm.state == .alerting
+            else { return }
+            try? AlarmManager.shared.stop(id: id)
+            debug(.alerts, "AlarmKit alarm for \(identifier.value) stopped after its burst")
+        #endif
+    }
+
     /// Cancel/stop the AlarmKit alarm scheduled for the given alert, if any.
     func cancelAlarm(for identifier: Alert.Identifier) {
         guard #available(iOS 26, *) else { return }
         #if canImport(AlarmKit)
-            guard let id = alarmsByAlert.removeValue(forKey: identifier) else { return }
-            // The alarm may be ringing or merely scheduled; try both and ignore errors.
-            try? AlarmManager.shared.stop(id: id)
-            try? AlarmManager.shared.cancel(id: id)
-            os_log(
-                "Cancelled AlarmKit alarm %{public}@ for %{public}@",
-                log: log, type: .info, id.uuidString, identifier.value
-            )
+            let id = Self.alarmID(for: identifier)
+            do {
+                guard let alarm = try AlarmManager.shared.alarms.first(where: { $0.id == id }) else { return }
+                // stop() ends a ringing alarm; cancel() removes a scheduled one
+                if alarm.state == .alerting {
+                    try AlarmManager.shared.stop(id: id)
+                } else {
+                    try AlarmManager.shared.cancel(id: id)
+                }
+                debug(.alerts, "AlarmKit alarm cancelled for \(identifier.value)")
+            } catch let cancelError {
+                warning(.alerts, "Cancelling AlarmKit alarm for \(identifier.value) failed", error: cancelError)
+            }
         #endif
     }
 }

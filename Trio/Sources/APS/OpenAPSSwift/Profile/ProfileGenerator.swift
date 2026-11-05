@@ -87,7 +87,7 @@ enum ProfileGenerator {
         ) {
             preferences.insulinPeakTime = Decimal(peak)
         } else {
-            debug(.openAPS, "don't modify insulin peak time")
+            debug(.algorithm, "Insulin peak time left unchanged")
         }
 
         return try generateProfile(
@@ -195,7 +195,7 @@ enum ProfileGenerator {
         // Error check: profile.sens < 5 in Javascript
         if let sens = profile.sens {
             guard sens >= 5 else {
-                debug(.openAPS, "ISF of \(String(describing: profile.sens)) is not supported")
+                debug(.algorithm, "ISF \(sens) mg/dL/U is below the minimum of 5")
                 throw ProfileError.invalidISF(value: profile.sens)
             }
         }

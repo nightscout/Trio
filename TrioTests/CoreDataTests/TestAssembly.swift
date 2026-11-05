@@ -16,6 +16,10 @@ class TestAssembly: Assembly {
             BasePumpHistoryStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
+        container.register(PumpStatusStorage.self) { r in
+            BasePumpStatusStorage(resolver: r, contextProvider: { self.testContext })
+        }.inObjectScope(.container)
+
         // Override DeterminationStorage registration for tests
         container.register(DeterminationStorage.self) { r in
             BaseDeterminationStorage(resolver: r, contextProvider: { self.testContext })
@@ -39,6 +43,10 @@ class TestAssembly: Assembly {
         // Override OverrideStorage registration for tests
         container.register(OverrideStorage.self) { r in
             BaseOverrideStorage(resolver: r, contextProvider: { self.testContext })
+        }.inObjectScope(.container)
+
+        container.register(CarbEntryMutationService.self) { r in
+            BaseCarbEntryMutationService(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
         // Override AdjustmentManager registration for tests

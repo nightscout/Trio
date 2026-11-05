@@ -61,7 +61,8 @@ struct GlucoseAlertEditorView: View {
                 )
                 AlarmAudioSection(
                     playsSound: $working.playsSound,
-                    soundFilename: $working.soundFilename
+                    soundFilename: $working.soundFilename,
+                    scope: .glucose(working.type)
                 )
 
                 if !isNew, store.canDelete(working) {

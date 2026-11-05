@@ -15,7 +15,7 @@ extension Home.StateModel {
             try carbsController.performFetch()
             updateCarbsFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform carbs fetch: \(error)")
+            warning(.ui, "Fetching carbs for home screen failed", error: error)
         }
     }
 
@@ -37,7 +37,7 @@ extension Home.StateModel {
             try fpuController.performFetch()
             updateFPUsFromController()
         } catch {
-            debug(.default, "\(DebuggingIdentifiers.failed) Failed to perform FPU fetch: \(error)")
+            warning(.ui, "Fetching fat and protein entries for home screen failed", error: error)
         }
     }
 

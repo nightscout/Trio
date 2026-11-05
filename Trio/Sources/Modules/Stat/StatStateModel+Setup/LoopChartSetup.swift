@@ -70,7 +70,7 @@ extension Stat.StateModel {
                     self.loopStats = stats
                 }
             } catch {
-                debug(.default, "\(DebuggingIdentifiers.failed) failed to fetch loop stats: \(error)")
+                warning(.ui, "Fetching loop statistics failed", error: error)
             }
         }
     }
@@ -138,7 +138,7 @@ extension Stat.StateModel {
             do {
                 return try viewContext.existingObject(with: id) as? LoopStatRecord
             } catch {
-                debugPrint("\(DebuggingIdentifiers.failed) Error fetching loop stat: \(error)")
+                warning(.ui, "Loading loop statistic failed", error: error)
                 return nil
             }
         }

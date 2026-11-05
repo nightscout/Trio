@@ -36,6 +36,7 @@ import Testing
         #expect(resolver.resolve(PluginManager.self) != nil)
         #expect(resolver.resolve(AlertPermissionsChecker.self) != nil)
         #expect(resolver.resolve(IOBService.self) != nil)
+        #expect(resolver.resolve(CarbEntryMutationService.self) != nil)
         #expect(resolver.resolve(GlucoseAlertCoordinator.self) != nil)
         #expect(resolver.resolve(NotLoopingMonitor.self) != nil)
         #expect(resolver.resolve(TrioAlertManager.self) != nil)
@@ -54,5 +55,9 @@ import Testing
         // Container scope must return the same instance on every resolve
         #expect(resolver.resolve(TrioRemoteControl.self) === resolver.resolve(TrioRemoteControl.self))
         #expect(resolver.resolve(TelemetryClient.self) === resolver.resolve(TelemetryClient.self))
+        #expect(
+            resolver.resolve(CarbEntryMutationService.self) as AnyObject ===
+                resolver.resolve(CarbEntryMutationService.self) as AnyObject
+        )
     }
 }

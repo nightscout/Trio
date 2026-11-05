@@ -13,23 +13,17 @@ extension CarbRatioEditor {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var formatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
-            return formatter
-        }
-
         var saveButton: some View {
             ZStack {
                 let shouldDisableButton = state.shouldDisplaySaving || state.items.isEmpty || !state.hasChanges
 
                 Rectangle()
-                    .frame(width: UIScreen.main.bounds.width, height: 65)
+                    .frame(height: 65)
                     .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
                     .background(.thinMaterial)
                     .opacity(0.8)
                     .clipShape(Rectangle())
+                    .ignoresSafeArea(edges: .horizontal)
 
                 Group {
                     HStack {
@@ -50,11 +44,11 @@ extension CarbRatioEditor {
                                     }
                                     Text(state.shouldDisplaySaving ? "Saving..." : "Save")
                                 }
-                                .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                                .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
                                 .padding(10)
                             }
                         }
-                        .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                        .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
                         .disabled(shouldDisableButton)
                         .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
                         .tint(.white)

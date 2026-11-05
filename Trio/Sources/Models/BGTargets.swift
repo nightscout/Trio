@@ -31,7 +31,7 @@ extension BGTargets {
 
         for (index, entry) in targets.enumerated() {
             guard let entryTime = TherapySettingsUtil.parseTime(entry.start) else {
-                debug(.default, "Invalid BG target entry start time: \(entry.start)")
+                warning(.settings, "Skipping glucose target with invalid start time \(entry.start)")
                 continue
             }
             let components = calendar.dateComponents([.hour, .minute, .second], from: entryTime)

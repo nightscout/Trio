@@ -56,9 +56,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                 let forecasts = Array(forecastSet)
                 return forecasts.map(\.objectID) as [NSManagedObjectID]
             } catch {
-                debugPrint(
-                    "Failed \(DebuggingIdentifiers.failed) to fetch Forecast IDs for OrefDetermination with ID \(determinationID): \(error)"
-                )
+                warning(.storage, "Fetching forecast IDs for determination failed", error: error)
                 return []
             }
         }
@@ -75,9 +73,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                 let forecastValues = forecastValueSet.sorted(by: { $0.index < $1.index })
                 return forecastValues.map(\.objectID)
             } catch {
-                debugPrint(
-                    "Failed \(DebuggingIdentifiers.failed) to fetch Forecast Value IDs with ID \(forecastID): \(error)"
-                )
+                warning(.storage, "Fetching forecast value IDs failed", error: error)
                 return []
             }
         }
@@ -103,9 +99,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                     }
                 }
             } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast Values with error: \(error)"
-                )
+                warning(.storage, "Fetching forecast values failed", error: error)
             }
             return (data.id, forecast, forecastValues)
         }
@@ -136,9 +130,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                 let values = forecast.forecastValuesArray.map { Int($0.value) }
                 return values.isEmpty ? nil : values
             } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch forecast of type \(type): \(error)"
-                )
+                warning(.storage, "Fetching \(type) forecast failed", error: error)
                 return nil
             }
         }
@@ -196,9 +188,7 @@ final class BaseDeterminationStorage: DeterminationStorage, Injectable {
                     )
                 }
             } catch {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to fetch managed object with error: \(error)"
-                )
+                warning(.storage, "Fetching determination for Nightscout upload failed", error: error)
             }
 
             return result

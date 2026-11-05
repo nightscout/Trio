@@ -1,7 +1,6 @@
 import Combine
 import CoreData
 import Foundation
-import HealthKit
 import LoopKit
 import LoopKitUI
 import SwiftDate
@@ -13,6 +12,10 @@ protocol FetchGlucoseManager: SourceInfoProvider {
     func deleteGlucoseSource() async
     func removeCalibrations()
     func newGlucoseFromCgmManager(newGlucose: [BloodGlucose])
+    /// Notes to Nightscout a sensor state without reliable glucose, once per
+    /// state; see `CGMSensorStateLog`. Call on every reading.
+    func reportCGMSensorObservation(_ observation: CGMSensorObservation)
+    func startCGMSensorSession(startedAt: Date)
     var glucoseSource: GlucoseSource? { get }
     var cgmManager: CGMManagerUI? { get }
     var cgmGlucoseSourceType: CGMType { get set }
@@ -45,6 +48,11 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     @Injected() var pluginCGMManager: PluginManager!
     @Injected() var calibrationService: CalibrationService!
     @Injected() var trioAlertManager: TrioAlertManager!
+    @Injected() private var deviceLogStore: DeviceLogStore!
+
+    /// Guarded by `sensorStateLock`.
+    @Persisted(key: "cgmSensorStateLog") private var sensorStateLog = CGMSensorStateLog()
+    private let sensorStateLock = NSRecursiveLock()
 
     private var lifetime = Lifetime()
     private let timer = DispatchTimer(timeInterval: 1.minutes.timeInterval)
@@ -92,7 +100,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         timer.publisher
             .receive(on: processQueue)
             .flatMap { [self] _ -> AnyPublisher<[BloodGlucose], Never> in
-                debug(.nightscout, "FetchGlucoseManager timer heartbeat")
                 if let glucoseSource = self.glucoseSource {
                     return glucoseSource.fetch(self.timer).eraseToAnyPublisher()
                 } else {
@@ -100,7 +107,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                 }
             }
             .sink { glucose in
-                debug(.nightscout, "FetchGlucoseManager callback sensor")
+                debug(.cgm, "Glucose source returned \(glucose.count) readings")
                 Publishers.CombineLatest(
                     Just(glucose),
                     Just(self.glucoseStorage.syncDate())
@@ -115,7 +122,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                                 glucose: newGlucose
                             )
                         } catch {
-                            debug(.deviceManager, "Failed to store glucose: \(error)")
+                            warning(.cgm, "Storing glucose failed", error: error)
                         }
                         self.glucoseStoreAndHeartLock.signal()
                     }
@@ -145,7 +152,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
                     glucose: newGlucose
                 )
             } catch {
-                debug(.deviceManager, "Failed to store glucose from CGM manager: \(error)")
+                warning(.cgm, "Storing glucose from the CGM failed", error: error)
             }
             glucoseStoreAndHeartLock.signal()
         }
@@ -177,6 +184,27 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         calibrationService.removeAllCalibrations()
     }
 
+    func reportCGMSensorObservation(_ observation: CGMSensorObservation) {
+        let settings = settingsManager.settings
+        guard settings.isUploadEnabled, settings.uploadCGMSensorStates else { return }
+        let pending = sensorStateLock.perform { sensorStateLog.observe(observation) }
+        guard let pending else { return }
+
+        Task {
+            let note = "CGM: " + pending
+            if await nightscoutManager.uploadNoteTreatment(note: note) {
+                debug(.nightscout, "CGM sensor state uploaded: \(note)")
+            } else {
+                self.sensorStateLock.perform { self.sensorStateLog.uploadFailed(pending) }
+                warning(.nightscout, "CGM sensor state upload failed, will retry: \(note)")
+            }
+        }
+    }
+
+    func startCGMSensorSession(startedAt: Date) {
+        sensorStateLock.perform { sensorStateLog.startSensor(startedAt: startedAt) }
+    }
+
     @MainActor func deleteGlucoseSource() async {
         cgmManager = nil
         glucoseSource = nil
@@ -202,14 +230,18 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private func updateManagerUnits(_ manager: CGMManagerUI?) {
         let units = settingsManager.settings.units
         let managerName = cgmManager.map { "\(type(of: $0))" } ?? "nil"
-        let loopkitUnits: HKUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
-        print("manager: \(managerName) is changing units to: \(loopkitUnits.description) ")
+        let loopkitUnits: LoopUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+        debug(.cgm, "\(managerName) units set to \(loopkitUnits.unitString)")
         manager?.unitDidChange(to: loopkitUnits)
     }
 
     func updateGlucoseSource(cgmGlucoseSourceType: CGMType, cgmGlucosePluginId: String, newManager: CGMManagerUI?) {
         // if changed, remove all calibrations
         if self.cgmGlucoseSourceType != cgmGlucoseSourceType || self.cgmGlucosePluginId != cgmGlucosePluginId {
+            info(
+                .cgm,
+                "Glucose source changed to \(cgmGlucoseSourceType.rawValue)\(cgmGlucosePluginId.isEmpty ? "" : ", \(cgmGlucosePluginId)")"
+            )
             removeCalibrations()
             cgmManager = nil
             glucoseSource = nil
@@ -222,8 +254,6 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         // if plugin, if the same pluginID, no change required because the manager is available
         // if plugin, if not the same pluginID, need to reset the cgmManager
         // if plugin and newManager provides, update cgmManager
-        debug(.apsManager, "plugin : \(String(describing: cgmManager?.pluginIdentifier))")
-
         if let manager = newManager {
             cgmManager = manager
             removeCalibrations()
@@ -246,7 +276,11 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             case .simulator:
                 glucoseSource = simulatorSource
             case .plugin:
-                glucoseSource = PluginSource(glucoseStorage: glucoseStorage, glucoseManager: self)
+                glucoseSource = PluginSource(
+                    glucoseStorage: glucoseStorage,
+                    glucoseManager: self,
+                    deviceLogStore: deviceLogStore
+                )
             }
         }
 
@@ -267,7 +301,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private func glucoseStoreAndHeartDecision(syncDate: Date, glucose: [BloodGlucose]) async throws {
         // calibration add if required only for sensor
-        let newGlucose = overcalibrate(entries: glucose)
+        let newGlucose = overcalibrate(entries: glucose.filter { $0.sgv != nil })
 
         var filteredByDate: [BloodGlucose] = []
         var filtered: [BloodGlucose] = []
@@ -276,6 +310,13 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
         backgroundTaskID = startBackgroundTask(withName: "Glucose Store and Heartbeat Decision")
 
+        // Check if sensor emitted calibrations
+        let calibrations = glucose.filter { $0.mbg != nil }
+        if calibrations.isNotEmpty {
+            debug(.cgm, "Storing \(calibrations.count) calibrations")
+            try await glucoseStorage.storeGlucose(calibrations)
+        }
+
         guard newGlucose.isNotEmpty else {
             endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
             return
@@ -283,22 +324,28 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
         let backfillGlucose = newGlucose.filter { $0.dateString <= syncDate }
         if backfillGlucose.isNotEmpty {
-            debug(.deviceManager, "Backfilling glucose...")
+            debug(.cgm, "Backfilling \(backfillGlucose.count) glucose readings")
             do {
                 try await glucoseStorage.backfillGlucose(backfillGlucose)
             } catch {
-                debug(.deviceManager, "Unable to backfill glucose: \(error)")
+                warning(.cgm, "Backfilling glucose failed", error: error)
             }
         }
 
         filteredByDate = newGlucose.filter { $0.dateString > syncDate }
         filtered = glucoseStorage.filterTooFrequentGlucose(filteredByDate, at: syncDate)
+        if filtered.count < filteredByDate.count {
+            debug(
+                .cgm,
+                "Skipped \(filteredByDate.count - filtered.count) glucose readings too close to last CGM reading at \(syncDate)"
+            )
+        }
 
         guard filtered.isNotEmpty else {
             endBackgroundTaskSafely(&backgroundTaskID, taskName: "Glucose Store and Heartbeat Decision")
             return
         }
-        debug(.deviceManager, "New glucose found")
+        debug(.cgm, "Storing \(filtered.count) new glucose readings")
 
         try await glucoseStorage.storeGlucose(filtered)
 
@@ -403,7 +450,7 @@ extension BaseFetchGlucoseManager {
     func fetchGlucose(context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
         // Compound predicate: time window + non-manual + valid date
         let timePredicate = NSPredicate.predicateForOneDayAgoInMinutes
-        let manualPredicate = NSPredicate(format: "isManual == NO")
+        let manualPredicate = NSPredicate.cgmGlucose
         let datePredicate = NSPredicate(format: "date != nil")
 
         let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
@@ -469,9 +516,9 @@ extension BaseFetchGlucoseManager {
             }
 
             let duration = Date().timeIntervalSince(startTime)
-            debugPrint(String(format: "Exponential smoothing duration: %0.04fs", duration))
+            debug(.cgm, String(format: "Glucose smoothing took %.3f s", duration))
         } catch {
-            debug(.deviceManager, "Failed to smooth glucose: \(error)")
+            warning(.cgm, "Glucose smoothing failed", error: error)
         }
     }
 

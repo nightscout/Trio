@@ -127,7 +127,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         guard isAvailableOnCurrentDevice,
               AppleHealthConfig.healthBGObject != nil else { return }
 
-        debug(.service, "HealthKitManager did create")
+        debug(.healthKit, "HealthKit manager created")
     }
 
     private func registerUploadControllers() {
@@ -148,7 +148,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 try self.carbsUploadController.performFetch()
                 try self.insulinUploadController.performFetch()
             } catch {
-                debug(.service, "\(DebuggingIdentifiers.failed) Failed to set up HealthKit upload controllers: \(error)")
+                warning(.healthKit, "Setting up Apple Health upload controllers failed", error: error)
             }
         }
     }
@@ -196,10 +196,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             let manualGlucose = try await glucoseStorage.getManualGlucoseNotYetUploadedToHealth()
             await uploadGlucose(manualGlucose)
         } catch {
-            debug(
-                .service,
-                "\(DebuggingIdentifiers.failed) Error fetching glucose for health upload: \(error)"
-            )
+            warning(.healthKit, "Fetching glucose for Apple Health upload failed", error: error)
         }
     }
 
@@ -230,19 +227,19 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             }
 
             guard glucoseSamples.isNotEmpty else {
-                debug(.service, "No glucose samples available for upload.")
+                debug(.healthKit, "No glucose samples to upload")
                 return
             }
 
             // Attempt to save the blood glucose samples to Apple Health
             try await healthKitStore.save(glucoseSamples)
-            debug(.service, "Successfully stored \(glucoseSamples.count) blood glucose samples in HealthKit.")
+            debug(.healthKit, "Uploaded \(glucoseSamples.count) glucose samples to Apple Health")
 
             // After successful upload, update the isUploadedToHealth flag in Core Data
             await updateGlucoseAsUploaded(glucose)
 
         } catch {
-            debug(.service, "Failed to upload glucose samples to HealthKit: \(error)")
+            warning(.healthKit, "Uploading glucose samples to Apple Health failed", error: error)
         }
     }
 
@@ -262,10 +259,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
                 guard context.hasChanges else { return }
                 try context.save()
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
-                )
+            } catch {
+                warning(.healthKit, "Marking glucose as uploaded to Apple Health failed", error: error)
             }
         }
     }
@@ -277,10 +272,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             let carbs = try await carbsStorage.getCarbsNotYetUploadedToHealth()
             await uploadCarbs(carbs)
         } catch {
-            debug(
-                .service,
-                "\(DebuggingIdentifiers.failed) Error fetching carbs for health upload: \(error)"
-            )
+            warning(.healthKit, "Fetching carbs for Apple Health upload failed", error: error)
         }
     }
 
@@ -354,18 +346,18 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
             // Attempt to save the samples to Apple Health
             guard samples.isNotEmpty else {
-                debug(.service, "No samples available for upload.")
+                debug(.healthKit, "No carb samples to upload")
                 return
             }
 
             try await healthKitStore.save(samples)
-            debug(.service, "Successfully stored \(samples.count) carb samples in HealthKit.")
+            debug(.healthKit, "Uploaded \(samples.count) carb samples to Apple Health")
 
             // After successful upload, update the isUploadedToHealth flag in Core Data
             await updateCarbsAsUploaded(carbs)
 
         } catch {
-            debug(.service, "Failed to upload carb samples to HealthKit: \(error)")
+            warning(.healthKit, "Uploading carb samples to Apple Health failed", error: error)
         }
     }
 
@@ -385,10 +377,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
                 guard context.hasChanges else { return }
                 try context.save()
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
-                )
+            } catch {
+                warning(.healthKit, "Marking carbs as uploaded to Apple Health failed", error: error)
             }
         }
     }
@@ -400,10 +390,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
             let events = try await pumpHistoryStorage.getPumpHistoryNotYetUploadedToHealth()
             await uploadInsulin(events)
         } catch {
-            debug(
-                .service,
-                "\(DebuggingIdentifiers.failed) Error fetching insulin events for health upload: \(error)"
-            )
+            warning(.healthKit, "Fetching insulin for Apple Health upload failed", error: error)
         }
     }
 
@@ -440,7 +427,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                     case .bolus:
                         // For bolus events, create a HealthKit sample directly
                         if let sample = self.createSample(for: event, sampleType: sampleType) {
-                            debug(.service, "Created HealthKit sample for bolus entry: \(sample)")
                             insulinSamples.append(sample)
                         }
                     case .tempBasal:
@@ -477,7 +463,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                             )
 
                             if let sample = self.createSample(for: newEvent, sampleType: sampleType) {
-                                debug(.service, "Created HealthKit sample for initial temp basal entry: \(sample)")
                                 insulinSamples.append(sample)
                             }
                         }
@@ -490,18 +475,18 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
             do {
                 guard insulinSamples.isNotEmpty else {
-                    debug(.service, "No insulin samples available for upload.")
+                    debug(.healthKit, "No insulin samples to upload")
                     return
                 }
 
                 try await healthKitStore.save(insulinSamples)
-                debug(.service, "Successfully stored \(insulinSamples.count) insulin samples in HealthKit.")
+                debug(.healthKit, "Uploaded \(insulinSamples.count) insulin samples to Apple Health")
                 await updateInsulinAsUploaded(insulinEvents)
             } catch {
-                debug(.service, "Failed to upload insulin samples to HealthKit: \(error)")
+                warning(.healthKit, "Uploading insulin samples to Apple Health failed", error: error)
             }
         } catch {
-            debug(.service, "\(DebuggingIdentifiers.failed) Error fetching temp basal entries: \(error)")
+            warning(.healthKit, "Fetching temp basals for Apple Health upload failed", error: error)
         }
     }
 
@@ -559,6 +544,16 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         // Calculate the end date based on the event duration
         let endDate = event.timestamp.addingTimeInterval(TimeInterval(minutes: Double(event.duration ?? 0)))
 
+        // HealthKit raises an uncatchable exception for a sample that ends before it starts, which
+        // terminates the app, so one misdated row would crash every upload attempt.
+        guard endDate >= event.timestamp else {
+            warning(
+                .healthKit,
+                "Skipping insulin sample \(event.id): ends \(endDate) before it starts \(event.timestamp)"
+            )
+            return nil
+        }
+
         // Create the HealthKit quantity sample with the appropriate metadata
         let sample = HKQuantitySample(
             type: sampleType,
@@ -593,6 +588,15 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
         // Check if the predecessor temp basal overlaps with the next event
         if predecessorEndDate > nextEventTimestamp {
+            // Same uncatchable-exception guard as `createSample`: the adjustment can only shorten
+            // the span, never invert it.
+            guard nextEventTimestamp >= predecessorTimestamp else {
+                warning(
+                    .healthKit,
+                    "Skipping temporary basal \(predecessorEntryId): ends \(nextEventTimestamp) before it starts \(predecessorTimestamp)"
+                )
+                return nil
+            }
             // Adjust the end date to the start of the next event to prevent overlap
             let adjustedEndDate = nextEventTimestamp
             // Precise duration in seconds
@@ -624,8 +628,6 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
                 ]
             )
 
-            debug(.service, "Created HealthKit sample for adjusted temp basal entry: \(sample)")
-
             // Create and return the HealthKit sample for the adjusted event
             return sample
         }
@@ -650,10 +652,8 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
                 guard context.hasChanges else { return }
                 try context.save()
-            } catch let error as NSError {
-                debugPrint(
-                    "\(DebuggingIdentifiers.failed) \(#file) \(#function) Failed to update isUploadedToHealth: \(error.userInfo)"
-                )
+            } catch {
+                warning(.healthKit, "Marking insulin as uploaded to Apple Health failed", error: error)
             }
         }
     }
@@ -674,9 +674,9 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
         do {
             try await deleteObjects(of: sampleType, predicate: predicate)
-            debug(.service, "Successfully deleted glucose sample with syncID: \(syncID)")
+            debug(.healthKit, "Deleted glucose sample \(syncID) from Apple Health")
         } catch {
-            warning(.service, "Failed to delete glucose sample with syncID: \(syncID)", error: error)
+            warning(.healthKit, "Deleting glucose sample \(syncID) from Apple Health failed", error: error)
         }
     }
 
@@ -691,9 +691,9 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
         do {
             try await deleteObjects(of: sampleType, predicate: predicate)
-            debug(.service, "Successfully deleted \(sampleType) with syncID: \(id)")
+            debug(.healthKit, "Deleted carb sample \(id) from Apple Health")
         } catch {
-            warning(.service, "Failed to delete carbs sample with syncID: \(id)", error: error)
+            warning(.healthKit, "Deleting carb sample \(id) from Apple Health failed", error: error)
         }
     }
 
@@ -702,7 +702,7 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
               let sampleType = AppleHealthConfig.healthInsulinObject,
               checkWriteToHealthPermissions(objectTypeToHealthStore: sampleType)
         else {
-            debug(.service, "HealthKit permissions are not available for insulin deletion.")
+            debug(.healthKit, "No Apple Health write permission, skipping insulin deletion")
             return
         }
 
@@ -714,18 +714,18 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
         do {
             try await deleteObjects(of: sampleType, predicate: predicate)
-            debug(.service, "Successfully deleted insulin sample with syncID: \(syncID)")
+            debug(.healthKit, "Deleted insulin sample \(syncID) from Apple Health")
         } catch {
-            warning(.service, "Failed to delete insulin sample with syncID: \(syncID)", error: error)
+            warning(.healthKit, "Deleting insulin sample \(syncID) from Apple Health failed", error: error)
         }
     }
 
     private func deleteObjects(of sampleType: HKSampleType, predicate: NSPredicate) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { success, _, error in
+            healthKitStore.deleteObjects(of: sampleType, predicate: predicate) { _, _, error in
                 if let error = error {
                     continuation.resume(throwing: error)
-                } else if success {
+                } else {
                     continuation.resume(returning: ())
                 }
             }

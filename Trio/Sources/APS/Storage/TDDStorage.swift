@@ -46,7 +46,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         pumpHistory: [PumpHistoryEvent],
         basalProfile: [BasalProfileEntry]
     ) async throws -> TDDResult {
-        debug(.apsManager, "Starting TDD calculation with \(pumpHistory.count) pump events")
+        debug(.algorithm, "Calculating TDD from \(pumpHistory.count) pump events")
 
         // Log the first and last pump history events if available
         let earliestEvent: String
@@ -59,7 +59,6 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         } else {
             earliestEvent = "No events available"
             latestEvent = "No events available"
-            debug(.apsManager, "No pump history events available for logging.")
         }
 
         // Group events by type once to avoid multiple filters
@@ -126,21 +125,14 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         let weightedAvgString = String(format: "%.2f", NSDecimalNumber(decimal: weighted?.rounded(toPlaces: 2) ?? 0).doubleValue)
         let hoursString = String(format: "%.5f", NSDecimalNumber(decimal: Decimal(hours).truncated(toPlaces: 5)).doubleValue)
 
-        debug(.apsManager, """
-        TDD Summary:
-        +-------------------+-----------+-----------+
-        | Type\t\t\t\t| Amount U\t| Percent %\t|
-        +-------------------+-----------+-----------+
-        | Total\t\t\t\t| \(totalString)\t\t| \t\t\t|
-        | Bolus\t\t\t\t| \(bolusString)\t\t| \(percentage(bolus, total))\t\t|
-        | Temp Basal\t\t| \(tempBasalString)\t\t| \(percentage(temp, total))\t\t|
-        | Scheduled Basal\t| \(scheduledBasalString)\t\t| \(percentage(scheduled, total))\t\t|
-        | Weighted Average\t| \(weightedAvgString)\t\t| \t\t\t|
-        +-------------------+-----------+-----------+
-        - Hours of Data: \(hoursString)
-        - Earliest Event: \(earliestEvent)
-        - Latest Event: \(latestEvent)
-        """)
+        debug(
+            .algorithm,
+            "TDD \(totalString) U: bolus \(bolusString) U (\(percentage(bolus, total))%), " +
+                "temp basal \(tempBasalString) U (\(percentage(temp, total))%), " +
+                "scheduled basal \(scheduledBasalString) U (\(percentage(scheduled, total))%), " +
+                "weighted average \(weightedAvgString) U, \(hoursString) h of data, " +
+                "earliest event \(earliestEvent), latest event \(latestEvent)"
+        )
 
         // Return calculated TDDResult
         return TDDResult(
@@ -172,7 +164,7 @@ final class BaseTDDStorage: TDDStorage, Injectable {
                 guard context.hasChanges else { return }
                 try context.save()
             } catch {
-                debug(.apsManager, "\(DebuggingIdentifiers.failed) Failed to save TDD: \(error)")
+                warning(.storage, "Saving TDD failed", error: error)
             }
         }
     }

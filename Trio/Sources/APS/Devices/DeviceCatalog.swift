@@ -22,6 +22,8 @@ import MockKit
 import MockKitUI
 import ObjectiveC
 import OmnipodKit
+import SyaiKit
+import SyaiKitUI
 import UIKit
 
 /// Single source of truth for every CGM and pump Trio can pair with.
@@ -45,6 +47,7 @@ enum DeviceManufacturer: CaseIterable {
     case roche
     case senseonics
     case sooil
+    case syai
     case otherSources
     case simulator
 
@@ -59,6 +62,7 @@ enum DeviceManufacturer: CaseIterable {
         case .roche: return "Roche"
         case .senseonics: return "Senseonics"
         case .sooil: return "SOOIL"
+        case .syai: return "Syai"
         case .otherSources: return String(localized: "Other Sources", comment: "Device picker section for data relays")
         case .simulator: return String(localized: "Simulator", comment: "Device picker section for simulated devices")
         }
@@ -208,7 +212,8 @@ struct CGMCatalogEntry: DeviceCatalogEntry {
         /// Backed by a `CGMType` case other than `.plugin`.
         case native(CGMType)
         /// Backed by a statically linked `CGMManagerUI`; persisted as `CGMType.plugin`.
-        case managed(CGMManagerUI.Type)
+        /// `id` is the manager's `pluginIdentifier`, which LoopKit only exposes per instance.
+        case managed(CGMManagerUI.Type, id: String)
 
         /// The value persisted to `TrioSettings.cgm`.
         var cgmType: CGMType {
@@ -222,12 +227,12 @@ struct CGMCatalogEntry: DeviceCatalogEntry {
         var id: String {
             switch self {
             case let .native(type): return type.rawValue
-            case let .managed(manager): return manager.pluginIdentifier
+            case let .managed(_, id): return id
             }
         }
 
         var managerType: CGMManagerUI.Type? {
-            guard case let .managed(manager) = self else { return nil }
+            guard case let .managed(manager, _) = self else { return nil }
             return manager
         }
 
@@ -282,6 +287,8 @@ struct CGMCatalogEntry: DeviceCatalogEntry {
 
 struct PumpCatalogEntry: DeviceCatalogEntry {
     let manager: PumpManagerUI.Type
+    /// The manager's `pluginIdentifier`, which LoopKit only exposes per instance.
+    let id: String
     let manufacturer: DeviceManufacturer
     let name: String
     let supportedModels: [String]
@@ -302,13 +309,13 @@ struct PumpCatalogEntry: DeviceCatalogEntry {
     /// `rewindResetsAutosens` is meaningless for them and onboarding hides the question.
     let reportsRewindEvents: Bool
 
-    var id: String { manager.pluginIdentifier }
     var iconImage: UIImage? { icon.image(managerBundle: Bundle(for: manager)) }
     var fallbackSymbolName: String { "ivfluid.bag" }
     var isSelectableInPicker: Bool { true }
 
     init(
         _ manager: PumpManagerUI.Type,
+        id: String,
         manufacturer: DeviceManufacturer,
         name: String,
         supportedModels: [String] = [],
@@ -319,6 +326,7 @@ struct PumpCatalogEntry: DeviceCatalogEntry {
         reportsRewindEvents: Bool
     ) {
         self.manager = manager
+        self.id = id
         self.manufacturer = manufacturer
         self.name = name
         self.supportedModels = supportedModels
@@ -345,14 +353,14 @@ extension DeviceCatalog {
         // Both Libre names carry their variants inline, matching the titles the driver authors chose upstream.
         // No icons: LibreTransmitterUI ships no asset catalog, and LibreLoopUI ships only onboarding steps.
         CGMCatalogEntry(
-            .managed(LibreTransmitterManagerV3.self),
+            .managed(LibreTransmitterManagerV3.self, id: "LibreTransmitterManagerV3"),
             manufacturer: .abbott,
             name: "FreeStyle Libre 1 / 2 / 2+"
         ),
         // "(Beta)" stays in the bold first line: it is a maturity warning about a driver feeding dosing
         // decisions, so it must not be demoted to the secondary line.
         CGMCatalogEntry(
-            .managed(LibreLoopCGMManager.self),
+            .managed(LibreLoopCGMManager.self, id: "LibreLoopCGMManager"),
             manufacturer: .abbott,
             name: "FreeStyle Libre 3 / 3+ (Beta)"
         ),
@@ -360,33 +368,40 @@ extension DeviceCatalog {
         // Dexcom rebrands rather than versioning, so the "/" names carry the variants and a sub-line would
         // just repeat them.
         // No G5 icon: CGMBLEKitUI ships only "g6", and reusing it would picture the wrong hardware.
-        CGMCatalogEntry(.managed(G5CGMManager.self), manufacturer: .dexcom, name: "Dexcom G5"),
+        CGMCatalogEntry(.managed(G5CGMManager.self, id: "DexG5Transmitter"), manufacturer: .dexcom, name: "Dexcom G5"),
         CGMCatalogEntry(
-            .managed(G6CGMManager.self),
+            .managed(G6CGMManager.self, id: "DexG6Transmitter"),
             manufacturer: .dexcom,
             name: "Dexcom G6 / ONE",
             icon: .uiBundle(identifier: "com.loopkit.CGMBLEKitUI", asset: "g6")
         ),
         CGMCatalogEntry(
-            .managed(G7CGMManager.self),
+            .managed(G7CGMManager.self, id: "G7CGMManager"),
             manufacturer: .dexcom,
-            name: "Dexcom G7 / ONE+",
+            name: "Dexcom G7 / ONE+ / Stelo",
             icon: .uiBundle(identifier: "org.loopkit.G7SensorKitUI", asset: "g7")
         ),
 
         CGMCatalogEntry(
-            .managed(AccuChekCgmManager.self),
+            .managed(AccuChekCgmManager.self, id: "AccuChek"),
             manufacturer: .roche,
             name: "Accu-Chek SmartGuide",
             icon: .managerBundle(asset: "sensor")
         ),
 
         CGMCatalogEntry(
-            .managed(EversenseCGMManager.self),
+            .managed(EversenseCGMManager.self, id: "EversenseKit"),
             manufacturer: .senseonics,
             name: "Eversense",
             supportedModels: ["E3", "E365"],
             icon: .managerBundle(asset: "transmitter")
+        ),
+
+        CGMCatalogEntry(
+            .managed(SyaiCGMManager.self, id: "SyaiCGMManager"),
+            manufacturer: .syai,
+            name: "Syai Ultra",
+            icon: .uiBundle(identifier: "org.loopkit.SyaiKitUI", asset: "sensor")
         ),
 
         CGMCatalogEntry(.native(.nightscout), manufacturer: .otherSources, icon: .trio(asset: "owl")),
@@ -402,6 +417,7 @@ extension DeviceCatalog {
     static let pumps: [PumpCatalogEntry] = [
         PumpCatalogEntry(
             OmniPumpManager.self,
+            id: "Omni",
             manufacturer: .insulet,
             name: "Omnipod",
             supportedModels: ["Classic", "DASH", "5"],
@@ -412,6 +428,7 @@ extension DeviceCatalog {
         ),
         PumpCatalogEntry(
             MinimedPumpManager.self,
+            id: "Minimed500",
             manufacturer: .medtronic,
             name: "MiniMed",
             supportedModels: ["x15", "x22", "x23", "x54"],
@@ -421,6 +438,7 @@ extension DeviceCatalog {
         ),
         PumpCatalogEntry(
             MedtrumPumpManager.self,
+            id: "Medtrum",
             manufacturer: .medtrum,
             name: "Medtrum Nano",
             supportedModels: ["200U", "300U"],
@@ -430,6 +448,7 @@ extension DeviceCatalog {
         ),
         PumpCatalogEntry(
             DanaKitPumpManager.self,
+            id: "Dana",
             manufacturer: .sooil,
             name: "Dana",
             supportedModels: ["DanaRS", "Dana-i"],
@@ -439,6 +458,7 @@ extension DeviceCatalog {
         ),
         PumpCatalogEntry(
             MockPumpManager.self,
+            id: "MockPumpManager",
             manufacturer: .simulator,
             name: String(localized: "Pump Simulator", comment: "Simulated pump in the device picker"),
             icon: .uiBundle(identifier: "com.loopkit.MockKitUI", asset: "Pump Simulator"),

@@ -1,17 +1,19 @@
 import Foundation
 
+// Keep legacy case names for saved settings compatibility.
 enum TimeInRangeType: String, JSON, CaseIterable, Identifiable, Codable, Hashable {
     var id: String { rawValue }
     case timeInTightRange
     case timeInNormoglycemia
 
-    var displayName: String {
+    func displayName(for units: GlucoseUnits) -> String {
+        let threshold = bottomThreshold.formatted(withUnits: units)
         switch self {
         case .timeInTightRange:
-            return String(localized: "Time in Tight Range (TITR)", comment: "")
+            return String(localized: "Standard (\(threshold))", comment: "Standard lower threshold for TIR and TITR statistics")
 
         case .timeInNormoglycemia:
-            return String(localized: "Time in Normoglycemia (TING)", comment: "")
+            return String(localized: "Extended (\(threshold))", comment: "Extended lower threshold for TIR and TITR statistics")
         }
     }
 

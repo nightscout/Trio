@@ -22,15 +22,6 @@ extension Home.RootView {
         return formatter
     }
 
-    private var fetchedTargetFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        } else { formatter.maximumFractionDigits = 0 }
-        return formatter
-    }
-
     func remainingFraction(start: Date?, durationMinutes: Decimal?, indefinite: Bool) -> Double? {
         guard !indefinite, let start = start, let durationMinutes = durationMinutes, durationMinutes > 0 else {
             return nil
@@ -79,11 +70,9 @@ extension Home.RootView {
         let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
 
         let unit = state.units
-        var target = (latestOverride.target ?? 0) as Decimal
-        target = unit == .mmolL ? target.asMmolL : target
+        let target = (latestOverride.target ?? 0) as Decimal
 
-        var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " + unit
-            .rawValue
+        var targetString = target == 0 ? "" : target.formatted(withUnits: unit)
         if tempTargetString != nil {
             targetString = ""
         }
@@ -158,7 +147,7 @@ extension Home.RootView {
         )
         var durationString = ""
         var percentageString = ""
-        var target = (latestTempTarget.target ?? 100) as Decimal
+        let target = (latestTempTarget.target ?? 100) as Decimal
         // Use TempTargetCalculations to get effective HBT (handles both custom and auto-adjusted standard TT)
         let effectiveHBT = TempTargetCalculations.computeEffectiveHBT(
             tempTargetHalfBasalTarget: latestTempTarget.halfBasalTarget?.decimalValue,
@@ -173,9 +162,7 @@ extension Home.RootView {
             percentageString =
                 " \(Int(TempTargetCalculations.computeAdjustedPercentage(halfBasalTarget: effectiveHBT, target: target, autosensMax: state.autosensMax)))%"
         }
-        target = state.units == .mmolL ? target.asMmolL : target
-        let targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " +
-            state.units.rawValue + percentageString
+        let targetString = target == 0 ? "" : target.formatted(withUnits: state.units) + percentageString
 
         if newDuration >= 1 {
             durationString =
@@ -540,26 +527,8 @@ extension Home.RootView {
         }
     }
 
-    /// Mean glucose (mg/dL) of today's readings, nil without data.
-    private var todayMeanGlucose: Double? {
-        let startOfDay = Calendar.current.startOfDay(for: Date())
-        let values = state.glucoseFromPersistence
-            .filter { ($0.date ?? .distantPast) >= startOfDay }
-            .map { Double($0.glucose) }
-        guard !values.isEmpty else { return nil }
-        return values.reduce(0, +) / Double(values.count)
-    }
-
-    private var todayAverageString: String {
-        guard let mean = todayMeanGlucose else { return "--" }
-        if state.units == .mmolL {
-            return Decimal(mean).asMmolL.formatted(.number.precision(.fractionLength(1))) + " " + GlucoseUnits.mmolL.rawValue
-        }
-        return "\(Int(mean.rounded())) " + GlucoseUnits.mgdL.rawValue
-    }
-
-    private var todayGMIString: String {
-        guard let mean = todayMeanGlucose else { return "--" }
+    private func gmiString(_ meanGlucose: Double?) -> String {
+        guard let mean = meanGlucose else { return "--" }
         let gmiPercentage = 3.31 + 0.02392 * mean
         // settingsManager is injected after first render; default until then
         if state.settingsManager?.settings.eA1cDisplayUnit == .mmolMol {
@@ -571,18 +540,19 @@ extension Home.RootView {
 
     @ViewBuilder func statsBanner() -> some View {
         let face = state.settingsManager?.settings.homeStatsPanelFace ?? .timeInRange
-        let distribution = state.todayGlucoseDistribution
-        let coveragePct = distribution.veryLowPct + distribution.lowPct + distribution.inRangePct + distribution
-            .highPct + distribution.veryHighPct
-        let hasData = coveragePct > 0
+        let range = state.homeStatsPanelRange
+        let stats = state.statsPanelStats
+        let hasData = stats.hasData
+        let averageString = stats.meanGlucose?.formatted(withUnits: state.units) ?? "--"
+        let gmiValueString = gmiString(stats.meanGlucose)
         let tirString = hasData
-            ? distribution.inRangePct.formatted(.number.precision(.fractionLength(0 ... 1))) + " %"
+            ? stats.inRangePct.formatted(.number.precision(.fractionLength(0 ... 1))) + " %"
             : "-- %"
         let segments: [(color: Color, fraction: CGFloat)] = hasData ? [
-            (.red, CGFloat(distribution.veryLowPct / 100)),
-            (.orange, CGFloat(distribution.lowPct / 100)),
-            (.loopGreen, CGFloat(distribution.inRangePct / 100)),
-            (.purple, CGFloat((distribution.highPct + distribution.veryHighPct) / 100))
+            (.red, CGFloat(stats.veryLowPct / 100)),
+            (.orange, CGFloat(stats.lowPct / 100)),
+            (.loopGreen, CGFloat(stats.inRangePct / 100)),
+            (.purple, CGFloat((stats.highPct + stats.veryHighPct) / 100))
         ] : [(Color.secondary.opacity(0.3), 1)]
 
         Button {
@@ -597,11 +567,11 @@ extension Home.RootView {
                                 Text(tirString)
                                     .font(.title2).fontWeight(.bold).fontDesign(.rounded)
                                     .foregroundStyle(.primary)
-                                // chart shows 72h; make the daily scope explicit
+                                // chart shows 72h; make the reported scope explicit
                                 (
                                     Text("Time in Range", comment: "Stats banner subtitle").fontWeight(.semibold)
                                         + Text(" ")
-                                        + Text("today", comment: "Stats banner scope")
+                                        + Text(range.scopeName)
                                 )
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
@@ -617,7 +587,7 @@ extension Home.RootView {
                             (
                                 Text("Time in Range", comment: "Stats banner subtitle").fontWeight(.semibold)
                                     + Text(" ")
-                                    + Text("today", comment: "Stats banner scope")
+                                    + Text(range.scopeName)
                             )
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -632,13 +602,13 @@ extension Home.RootView {
                             // "⌀" read as a diameter sign, so spell the label out (#1474)
                             (
                                 Text("Avg. Glucose:", comment: "Stats banner label")
-                                    + Text(" \(todayAverageString) \u{00B7} GMI \(todayGMIString)")
+                                    + Text(" \(averageString) \u{00B7} GMI \(gmiValueString)")
                             )
                             .font(.subheadline).fontWeight(.semibold)
                             .foregroundStyle(.primary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
-                            Text("Today's Average", comment: "Stats banner subtitle")
+                            Text(range.averageSubtitle)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

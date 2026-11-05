@@ -21,24 +21,6 @@ extension UserInterfaceSettings {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var glucoseFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            if state.units == .mmolL {
-                formatter.maximumFractionDigits = 1
-            }
-            formatter.roundingMode = .halfUp
-            return formatter
-        }
-
-        private var carbsFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 0
-            return formatter
-        }
-
         var body: some View {
             List {
                 Section(
@@ -235,7 +217,7 @@ extension UserInterfaceSettings {
                                     Spacer()
 
                                     Group {
-                                        Text(state.units == .mgdL ? state.low.description : state.low.asMmolL.description)
+                                        Text(state.low.formatted(for: state.units))
                                             .foregroundColor(!displayPickerLowThreshold ? .primary : .accentColor)
 
                                         Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
@@ -248,8 +230,7 @@ extension UserInterfaceSettings {
                                 .accessibilityElement(children: .ignore)
                                 .accessibilityLabel(Text("Low Threshold"))
                                 .accessibilityValue(Text(
-                                    (state.units == .mgdL ? state.low.description : state.low.asMmolL.description)
-                                        + " " + state.units.spokenValue
+                                    state.low.formatted(for: state.units) + " " + state.units.spokenValue
                                 ))
                                 .accessibilityHint(Text(
                                     displayPickerLowThreshold
@@ -272,8 +253,7 @@ extension UserInterfaceSettings {
                                         PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                         id: \.self
                                     ) { value in
-                                        let displayValue = state.units == .mgdL ? value : value.asMmolL
-                                        Text("\(displayValue.description)").tag(value)
+                                        Text(value.formatted(for: state.units)).tag(value)
                                     }
                                 }
                                 .pickerStyle(WheelPickerStyle())
@@ -287,7 +267,7 @@ extension UserInterfaceSettings {
                                     Spacer()
 
                                     Group {
-                                        Text(state.units == .mgdL ? state.high.description : state.high.asMmolL.description)
+                                        Text(state.high.formatted(for: state.units))
                                             .foregroundColor(!displayPickerHighThreshold ? .primary : .accentColor)
 
                                         Text(state.units == .mgdL ? " mg/dL" : " mmol/L").foregroundColor(.secondary)
@@ -300,8 +280,7 @@ extension UserInterfaceSettings {
                                 .accessibilityElement(children: .ignore)
                                 .accessibilityLabel(Text("High Threshold"))
                                 .accessibilityValue(Text(
-                                    (state.units == .mgdL ? state.high.description : state.high.asMmolL.description)
-                                        + " " + state.units.spokenValue
+                                    state.high.formatted(for: state.units) + " " + state.units.spokenValue
                                 ))
                                 .accessibilityHint(Text(
                                     displayPickerHighThreshold
@@ -323,8 +302,7 @@ extension UserInterfaceSettings {
                                         PickerSettingsProvider.shared.generatePickerValues(from: setting, units: state.units),
                                         id: \.self
                                     ) { value in
-                                        let displayValue = state.units == .mgdL ? value : value.asMmolL
-                                        Text("\(displayValue.description)").tag(value)
+                                        Text(value.formatted(for: state.units)).tag(value)
                                     }
                                 }
                                 .pickerStyle(WheelPickerStyle())
@@ -349,7 +327,7 @@ extension UserInterfaceSettings {
                                             AnyView(
                                                 VStack(alignment: .leading, spacing: 10) {
                                                     Text(
-                                                        "Default values are based on internationally accepted Time in Range values of \(state.units == .mgdL ? "70" : 70.formattedAsMmolL)-\(state.units == .mgdL ? "180" : 180.formattedAsMmolL) \(state.units.rawValue)."
+                                                        "Default values are based on internationally accepted Time in Range values of \(70.formatted(for: state.units))-\(180.formatted(for: state.units)) \(state.units.rawValue)."
                                                     ).bold()
                                                     Text(
                                                         "These thresholds drive the chart band colors, statistics in-range buckets, Live Activity colors, and Contact Image colors."
@@ -523,16 +501,16 @@ extension UserInterfaceSettings {
                     VStack(alignment: .leading) {
                         Picker(
                             selection: $state.timeInRangeType,
-                            label: Text("Time in Range Type").multilineTextAlignment(.leading)
+                            label: Text("TIR Lower Threshold").multilineTextAlignment(.leading)
                         ) {
                             ForEach(TimeInRangeType.allCases) { selection in
-                                Text(selection.displayName).tag(selection)
+                                Text(selection.displayName(for: state.units)).tag(selection)
                             }
                         }.padding(.top)
 
                         HStack(alignment: .center) {
                             Text(
-                                "Choose type of time in range to be used for Trio's statistics."
+                                "Choose the preferred lower threshold for Time in Range statistics."
                             )
                             .font(.footnote)
                             .foregroundColor(.secondary)
@@ -542,48 +520,41 @@ extension UserInterfaceSettings {
                             Spacer()
                             Button(
                                 action: {
-                                    hintLabel = String(localized: "Time in Range Type")
+                                    hintLabel = String(localized: "TIR Lower Threshold")
                                     selectedVerboseHint =
                                         AnyView(
                                             VStack(
                                                 alignment: .leading,
                                                 spacing: 10
                                             ) {
-                                                Text(
-                                                    "Choose which type of time in range Trio should adopt for all its statistical charts and displays:"
-                                                )
+                                                let tirUpperThreshold = 180.formatted(withUnits: state.units)
+                                                let titrUpperThreshold = 140.formatted(withUnits: state.units)
+                                                Text(String(
+                                                    localized: "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of \(tirUpperThreshold)) and Time in Tight Range (TITR, upper threshold of \(titrUpperThreshold)).",
+                                                    comment: "Explains that the lower threshold applies to both TIR and TITR"
+                                                ))
                                                 VStack(
                                                     alignment: .leading,
                                                     spacing: 5
                                                 ) {
-                                                    Text(
-                                                        "Time in Tight Range (TITR):"
-                                                    )
-                                                    .bold()
-                                                    let titrBottomThreshold =
-                                                        "\(state.units == .mgdL ? Decimal(70) : 70.asMmolL)"
-                                                    let titrTopThreshold =
-                                                        "\(state.units == .mgdL ? Decimal(140) : 140.asMmolL)"
+                                                    Text("Standard:").bold()
+                                                    let standardLowerThreshold = TimeInRangeType.timeInTightRange
+                                                        .bottomThreshold.formatted(withUnits: state.units)
                                                     Text(String(
-                                                        localized: "Uses the fairly established Time in Tight Range definition, which is defined as time between \(titrBottomThreshold) and \(titrTopThreshold)  \(state.units.rawValue).",
-                                                        comment: "Time in Tight Range (TITR) verbose hint description"
+                                                        localized: "Uses the established lower threshold of \(standardLowerThreshold).",
+                                                        comment: "Standard lower range threshold description"
                                                     ))
                                                 }
                                                 VStack(
                                                     alignment: .leading,
                                                     spacing: 5
                                                 ) {
-                                                    Text(
-                                                        "Time in Normoglycemia (TING):"
-                                                    )
-                                                    .bold()
-                                                    let tingBottomThreshold =
-                                                        "\(state.units == .mgdL ? Decimal(63) : 63.asMmolL)"
-                                                    let tingTopThreshold =
-                                                        "\(state.units == .mgdL ? Decimal(140) : 140.asMmolL)"
+                                                    Text("Extended:").bold()
+                                                    let extendedLowerThreshold = TimeInRangeType.timeInNormoglycemia
+                                                        .bottomThreshold.formatted(withUnits: state.units)
                                                     Text(String(
-                                                        localized: "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts its range as all values between the normoglycemic minimum threshold (\(tingBottomThreshold) \(state.units.rawValue)) and \(tingTopThreshold) \(state.units.rawValue).",
-                                                        comment: "Time in Normoglycemia (TING) verbose hint description"
+                                                        localized: "Uses the newer Time in Normoglycemia (TING) lower threshold of \(extendedLowerThreshold).",
+                                                        comment: "Extended lower range threshold description"
                                                     ))
                                                 }
                                             }
@@ -598,7 +569,7 @@ extension UserInterfaceSettings {
                             ).buttonStyle(BorderlessButtonStyle())
                         }.padding(.top)
                     }.padding(.bottom)
-                }.settingsSearchTarget(label: String(localized: "Time in Range Type"))
+                }.settingsSearchTarget(label: String(localized: "TIR Lower Threshold"))
 
                 Section {
                     VStack(alignment: .leading) {
@@ -627,7 +598,7 @@ extension UserInterfaceSettings {
                                     selectedVerboseHint =
                                         AnyView(
                                             Text(
-                                                "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut."
+                                                "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: your time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nAverages: your average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut.\n\nThe numbers cover the time span set in Home Statistics Range."
                                             )
                                         )
                                     shouldDisplayHint.toggle()
@@ -641,6 +612,48 @@ extension UserInterfaceSettings {
                         }.padding(.top)
                     }.padding(.bottom)
                 }.settingsSearchTarget(label: String(localized: "Home Statistics Panel"))
+
+                Section {
+                    VStack(alignment: .leading) {
+                        Picker(
+                            selection: $state.homeStatsPanelRange,
+                            label: Text("Home Statistics Range").multilineTextAlignment(.leading)
+                        ) {
+                            ForEach(HomeStatsPanelRange.allCases) { selection in
+                                Text(selection.displayName).tag(selection)
+                            }
+                        }.padding(.top)
+
+                        HStack(alignment: .center) {
+                            Text(
+                                "Choose the time span the home statistics panel covers."
+                            )
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .lineLimit(nil)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                            Button(
+                                action: {
+                                    hintLabel = String(localized: "Home Statistics Range")
+                                    selectedVerboseHint =
+                                        AnyView(
+                                            Text(
+                                                "Choose how far back the statistics panel on the home screen looks. The full statistics view opens on the same time span.\n\nToday: from midnight until now.\n\nLast 24 Hours: the past 24 hours.\n\nLast 7 Days: the past 7 days.\n\nLast Month: the past month.\n\nLast 3 Months: the past 3 months.\n\nThe panel's wording follows your choice, for example \"Time in Range last 7 days\"."
+                                            )
+                                        )
+                                    shouldDisplayHint.toggle()
+                                },
+                                label: {
+                                    HStack {
+                                        Image(systemName: "questionmark.circle").accessibilityLabel(Text("More information"))
+                                    }
+                                }
+                            ).buttonStyle(BorderlessButtonStyle())
+                        }.padding(.top)
+                    }.padding(.bottom)
+                }.settingsSearchTarget(label: String(localized: "Home Statistics Range"))
 
                 SettingInputSection(
                     decimalValue: $state.carbsRequiredThreshold,
@@ -749,11 +762,6 @@ private struct GlucoseColorGradientPreview: View {
         return min(max(CGFloat(truncating: raw as NSNumber), 0), 1)
     }
 
-    private func axisValue(_ value: Decimal) -> String {
-        let display = units == .mgdL ? value : value.asMmolL
-        return "\(display)"
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             RoundedRectangle(cornerRadius: 8)
@@ -783,7 +791,7 @@ private struct GlucoseColorGradientPreview: View {
             Image(systemName: "arrowtriangle.up.fill")
                 .font(.system(size: 7))
                 .foregroundColor(.primary.opacity(0.55))
-            Text(axisValue(value))
+            Text(value.formatted(for: units))
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }

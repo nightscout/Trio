@@ -34,21 +34,6 @@ struct CurrentGlucoseView: View {
 
     @Environment(\.colorScheme) var colorScheme
 
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        if units == .mmolL {
-            formatter.maximumFractionDigits = 1
-            formatter.minimumFractionDigits = 1
-            formatter.roundingMode = .halfUp
-        } else {
-            formatter.maximumFractionDigits = 0
-        }
-        formatter.positivePrefix = "  +"
-        formatter.negativePrefix = "  -"
-        return formatter
-    }
-
     var body: some View {
         let triangleColor = Color(red: 0.262745098, green: 0.7333333333, blue: 0.9137254902)
 
@@ -165,14 +150,9 @@ struct CurrentGlucoseView: View {
             return "--"
         }
 
-        var lastGlucose = Decimal(glucose.last?.glucose ?? 0)
-        var secondLastGlucose = Decimal(glucose.first?.glucose ?? 0)
-        if units == .mmolL {
-            lastGlucose = lastGlucose.asMmolL
-            secondLastGlucose = secondLastGlucose.asMmolL
-        }
-        let delta = lastGlucose - secondLastGlucose
-        return deltaFormatter.string(from: delta as NSNumber) ?? "--"
+        let lastGlucose = Decimal(glucose.last?.glucose ?? 0)
+        let secondLastGlucose = Decimal(glucose.first?.glucose ?? 0)
+        return (lastGlucose - secondLastGlucose).formattedDelta(for: units)
     }
 
     /// Spoken trend from the CGM direction arrow (which is otherwise image-only).
@@ -219,7 +199,7 @@ struct CurrentGlucoseView: View {
         }
         let valueString = glucoseValue == 400
             ? String(localized: "high", comment: "Accessibility: glucose is at the top of the scale")
-            : (units == .mgdL ? Decimal(glucoseValue).description : Decimal(glucoseValue).formattedAsMmolL)
+            : Decimal(glucoseValue).formatted(for: units)
         var parts = [String(localized: "Glucose", comment: "Accessibility: glucose label") + " \(valueString) \(units.rawValue)"]
         parts.append(rangeDescription(for: glucoseValue))
         if let trend = trendDescription { parts.append(trend) }
@@ -238,9 +218,7 @@ struct CurrentGlucoseView: View {
     @ViewBuilder private func bobbleContent() -> some View {
         HStack {
             if let glucoseValue = glucose.last?.glucose, isReadingFresh {
-                let displayGlucose = units == .mgdL
-                    ? Decimal(glucoseValue).description
-                    : Decimal(glucoseValue).formattedAsMmolL
+                let displayGlucose = Decimal(glucoseValue).formatted(for: units)
                 Text(glucoseValue == 400 ? "HIGH" : displayGlucose)
                     .font(.system(size: 40, weight: .bold, design: .rounded))
                     .foregroundStyle(glucoseColor(for: glucoseValue))
@@ -299,6 +277,14 @@ struct CurrentGlucoseView: View {
         return (status.imageName, oneLine, color)
     }
 
+    /// A status the user has to act on — sensor issue, signal loss, failure.
+    /// Not gated by sensor age: it is the reason the readings stopped making
+    /// sense, whether the sensor is on day two or day ten.
+    private var statusDemandsAttention: Bool {
+        guard let status = cgmStatus else { return false }
+        return status.status != .normal
+    }
+
     /// Arc shown for warmup, the last 48 h of a time-based sensor (incl.
     /// grace period), or any non-normal state from a battery-based manager.
     private var shouldShowArc: Bool {
@@ -336,14 +322,17 @@ struct CurrentGlucoseView: View {
         if isStabilizing {
             return ("Stabilizing", .orange, "hourglass")
         }
-        guard shouldShowArc else { return nil }
         if let status = cgmStatus {
+            // Only the normal tier is gated to the arc's 48h window; a warning
+            // or critical status has to show whatever the sensor's age.
+            guard statusDemandsAttention || shouldShowArc else { return nil }
             // LibreLoop's cgmStatusHighlight uses "\n" to split two-line pill
             // labels ("Signal\nLoss", "Sensor\nWarmup"); we render in a
             // single-line tag, so collapse newlines to spaces here.
             let oneLine = status.localizedMessage.replacingOccurrences(of: "\n", with: " ")
             return (oneLine, theme(for: status.status), nil)
         }
+        guard shouldShowArc else { return nil }
         if let expiresAt = cgmSensorExpiresAt {
             let text = SensorRemainingTimeFormatter.format(until: expiresAt)
             let theme: SensorStatusTagTheme

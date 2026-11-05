@@ -227,16 +227,7 @@ import UIKit
         let configContents = versionData.flatMap { String(data: $0, encoding: .utf8) }
         let fetchedDevVersion = configContents.flatMap { self.parseDevVersionFromConfig(contents: $0) }
 
-        #if DEBUG
-            print("AppVersionChecker.fetchDevVersion: Current dev version: \(currentVersion)")
-            print("AppVersionChecker.fetchDevVersion: Fetched dev version: \(fetchedDevVersion ?? "nil")")
-            if let contents = configContents {
-                let lines = contents.split(separator: "\n")
-                for line in lines where line.contains("VERSION") {
-                    print("AppVersionChecker.fetchDevVersion: Config line: \(line)")
-                }
-            }
-        #endif
+        debug(.lifecycle, "Dev version check: running \(currentVersion), latest \(fetchedDevVersion ?? "unknown")")
 
         // Determine if the fetched dev version is newer than the current version
         let isNewer = fetchedDevVersion.map {

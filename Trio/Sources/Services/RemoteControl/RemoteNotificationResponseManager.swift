@@ -1,5 +1,19 @@
 import Foundation
 
+/// Correlation data echoed back to the sender of a remote command.
+struct RemoteCommandAck: Sendable {
+    enum Result: String, Sendable {
+        case deleted
+        case updated
+        case notFound = "not_found"
+        case rejected
+    }
+
+    let commandId: String?
+    let mealId: String?
+    let result: Result
+}
+
 class RemoteNotificationResponseManager {
     static let shared = RemoteNotificationResponseManager()
 
@@ -10,12 +24,18 @@ class RemoteNotificationResponseManager {
         let commandStatus: String
         let commandType: String
         let timestamp: TimeInterval
+        let commandId: String?
+        let mealId: String?
+        let result: String?
 
         enum CodingKeys: String, CodingKey {
             case aps
             case commandStatus = "command_status"
             case commandType = "command_type"
             case timestamp
+            case commandId = "command_id"
+            case mealId = "meal_id"
+            case result
         }
     }
 
@@ -33,12 +53,13 @@ class RemoteNotificationResponseManager {
         to returnInfo: CommandPayload.ReturnNotificationInfo?,
         commandType: TrioRemoteControl.CommandType,
         success: Bool,
-        message: String
+        message: String,
+        ack: RemoteCommandAck? = nil
     ) async {
         guard let returnInfo = returnInfo,
               !returnInfo.deviceToken.isEmpty
         else {
-            debug(.remoteControl, "No return notification info provided, skipping response")
+            debug(.remote, "Response notification skipped: no return info")
             return
         }
 
@@ -51,7 +72,10 @@ class RemoteNotificationResponseManager {
             ),
             commandStatus: success ? "success" : "failed",
             commandType: commandType.rawValue,
-            timestamp: Date().timeIntervalSince1970
+            timestamp: Date().timeIntervalSince1970,
+            commandId: ack?.commandId,
+            mealId: ack?.mealId,
+            result: ack?.result.rawValue
         )
 
         await sendPushNotification(
@@ -71,13 +95,12 @@ class RemoteNotificationResponseManager {
             teamId: returnInfo.teamId,
             apnsKey: returnInfo.apnsKey
         ) else {
-            debug(.remoteControl, "Failed to generate JWT for response notification")
             return
         }
 
         let host = returnInfo.productionEnvironment ? "api.push.apple.com" : "api.sandbox.push.apple.com"
         guard let url = URL(string: "https://\(host)/3/device/\(deviceToken)") else {
-            debug(.remoteControl, "Failed to construct APNs URL")
+            warning(.remote, "Response notification skipped: invalid push URL")
             return
         }
 
@@ -98,13 +121,13 @@ class RemoteNotificationResponseManager {
 
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
-                    debug(.remoteControl, "Response notification sent successfully")
+                    debug(.remote, "Response notification sent")
                 } else {
-                    debug(.remoteControl, "Failed to send response notification: \(httpResponse.statusCode)")
+                    warning(.remote, "Response notification failed with HTTP \(httpResponse.statusCode)")
                 }
             }
         } catch {
-            debug(.remoteControl, "Error sending response notification: \(error.localizedDescription)")
+            warning(.remote, "Response notification failed", error: error)
         }
     }
 }

@@ -472,9 +472,9 @@ import Testing
         #expect(!DeviceAlertSeverityConfig(severity: .normal).playsSound)
     }
 
-    @Test("Critical default tone is High Chimes, not the siren") func criticalDefaultTone() {
-        #expect(DeviceAlertSeverityConfig(severity: .critical).soundFilename == "high_chimes.caf")
-        #expect(AlarmSoundCatalog.allFilenames.contains("high_chimes.caf"))
+    @Test("Critical default tone is the themed Acoustic Medium set") func criticalDefaultTone() {
+        #expect(DeviceAlertSeverityConfig(severity: .critical).soundFilename == "acoustic_dcr_medium.caf")
+        #expect(AlarmSoundCatalog.allFilenames.contains("acoustic_dcr_medium.caf"))
     }
 
     @Test("A stored config without playsSound falls back to the tier default") func decodeFallbackMatchesDefault() throws {
