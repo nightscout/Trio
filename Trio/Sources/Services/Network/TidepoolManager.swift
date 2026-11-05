@@ -3,7 +3,6 @@ import CoreData
 import CryptoKit
 import Foundation
 import HealthKit
-import LoopAlgorithm
 import LoopKit
 import LoopKitUI
 import Swinject

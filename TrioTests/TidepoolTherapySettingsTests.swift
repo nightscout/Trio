@@ -1,6 +1,5 @@
 import CryptoKit
 import HealthKit
-import LoopAlgorithm
 import LoopKit
 import Testing
 import TidepoolKit
