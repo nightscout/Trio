@@ -221,7 +221,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                 // Set IOB and COB from latest determination
                 let iob = self.iobService.currentIOB ?? 0
-                watchState.iob = Formatter.decimalFormatterWithTwoFractionDigits.string(from: iob as NSNumber)
+                watchState.iob = iob.formattedIOB()
 
                 if let latestDetermination = determinationObjects.first {
                     let cob = NSNumber(value: latestDetermination.cob)

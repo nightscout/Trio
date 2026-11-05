@@ -35,14 +35,6 @@ extension Formatter {
         return dateFormatter
     }()
 
-    static let decimalFormatterWithOneFractionDigit: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = .current
-        formatter.maximumFractionDigits = 1
-        return formatter
-    }()
-
     static let integerFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -66,6 +58,13 @@ extension Formatter {
         formatter.negativePrefix = ""
         return formatter
     }()
+}
+
+extension Decimal {
+    /// IOB, up to two decimals. Rounds first so -0.004 shows "0", not "-0".
+    func formattedIOB(locale: Locale = .autoupdatingCurrent) -> String {
+        rounded(scale: 2).formatted(.number.precision(.fractionLength(0 ... 2)).locale(locale))
+    }
 }
 
 extension JSONDecoder.DateDecodingStrategy {

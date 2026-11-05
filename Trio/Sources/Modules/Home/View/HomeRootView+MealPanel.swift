@@ -122,24 +122,12 @@ extension Home.RootView {
                     Image(systemName: "syringe.fill")
                         .font(.callout)
                         .foregroundColor(Color.insulin)
-                    Text(
-                        (
-                            Formatter.decimalFormatterWithTwoFractionDigits
-                                .string(from: state.currentIOB as NSNumber) ?? "0"
-                        ) +
-                            String(localized: " U", comment: "Insulin unit")
-                    )
-                    .font(.callout).fontWeight(.bold).fontDesign(.rounded)
+                    Text(state.currentIOB.formattedIOB() + String(localized: " U", comment: "Insulin unit"))
+                        .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("Insulin on board"))
-                .accessibilityValue(Text(
-                    (
-                        Formatter.decimalFormatterWithTwoFractionDigits
-                            .string(from: state.currentIOB as NSNumber) ?? "0"
-                    )
-                        + String(localized: " U", comment: "Insulin unit")
-                ))
+                .accessibilityValue(Text(state.currentIOB.formattedIOB() + " " + UnitSpelling.spoken("U")))
 
                 Spacer()
 
