@@ -443,7 +443,7 @@ struct EditOverrideForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHoursAndMinutes(Int(truncating: duration as NSNumber)))
+                        Text(Duration(minutes: duration).formattedTimeSpan())
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                             .onTapGesture {
                                 displayPickerDuration = toggleScrollWheel(displayPickerDuration)
