@@ -155,14 +155,7 @@ extension Adjustments.RootView {
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
 
-        // Int(_: Decimal) traps on NaN/out-of-range values, so a corrupted preset would crash
-        // this screen on every open. Guard via Double instead.
-        let durationString: String = {
-            guard !indefinite else { return "" }
-            let durationMinutes = NSDecimalNumber(decimal: duration).doubleValue
-            guard durationMinutes.isFinite, durationMinutes.magnitude <= Double(Int.max) else { return "" }
-            return state.formatHoursAndMinutes(Int(durationMinutes))
-        }()
+        let durationSpan: Duration? = indefinite ? nil : Duration(minutes: duration)
 
         let scheduledSMBString: String = {
             guard preset.smbIsScheduledOff, preset.start != preset.end else { return "" }
@@ -200,7 +193,7 @@ extension Adjustments.RootView {
             }
         }()
 
-        // Same trap risk as duration above.
+        // Int(_: Double) traps on NaN and huge values, so a corrupted preset would crash this screen on every open.
         let percentageString: String = {
             guard percentage != 100 else { return "" }
             guard percentage.isFinite, percentage.magnitude <= Double(Int.max) else { return "" }
@@ -208,14 +201,10 @@ extension Adjustments.RootView {
         }()
 
         // Combine all labels into a single array, filtering out empty strings
-        let labels: [String] = [
-            durationString,
-            percentageString,
-            targetString,
-            smbString,
-            maxSmbMinsString,
-            maxUamMinsString
-        ].filter { !$0.isEmpty }
+        let otherLabels = [percentageString, targetString, smbString, maxSmbMinsString, maxUamMinsString]
+        let labels = ([durationSpan?.formattedTimeSpan() ?? ""] + otherLabels).filter { !$0.isEmpty }
+        // VoiceOver reads the duration spelled out
+        let spokenLabels = ([durationSpan?.formattedSpokenTimeSpan() ?? ""] + otherLabels).filter { !$0.isEmpty }
 
         if !name.isEmpty {
             ZStack(alignment: .trailing) {
@@ -257,7 +246,7 @@ extension Adjustments.RootView {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(name))
-            .accessibilityValue(Text(labels.joined(separator: ", ")))
+            .accessibilityValue(Text(spokenLabels.joined(separator: ", ")))
             .accessibilityHint(Text(String(localized: "Double tap to enable this override", comment: "Accessibility hint")))
             .accessibilityAddTraits(showOverrideCheckmark && isSelected ? [.isButton, .isSelected] : .isButton)
             .accessibilityAction { onTap?() }

@@ -163,6 +163,7 @@ extension Adjustments.RootView {
             )
         )
         let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
+        let duration = Duration(minutes: (tempTarget.duration ?? 0) as Decimal)
 
         let row = ZStack(alignment: .trailing) {
             HStack {
@@ -171,7 +172,7 @@ extension Adjustments.RootView {
                         Text(tempTarget.name ?? "")
                         Spacer()
                         if remainingTime > 0 {
-                            Text("Starts in \(formattedTimeRemaining(remainingTime))")
+                            Text("Starts in \(Duration.seconds(remainingTime).formattedTimeSpan())")
                                 .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
                         }
                     }
@@ -182,10 +183,7 @@ extension Adjustments.RootView {
                         Text("for")
                             .foregroundColor(.secondary)
                             .font(.caption)
-                        Text("\(Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber)!)")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                        Text("min")
+                        Text(duration.formattedTimeSpan())
                             .foregroundColor(.secondary)
                             .font(.caption)
                         if state.isAdjustSensEnabled(usingTarget: tempTargetValue) {
@@ -218,8 +216,7 @@ extension Adjustments.RootView {
         .accessibilityValue(Text(
             (target as Decimal).formatted(withUnits: state.units) + " "
                 + String(localized: "for", comment: "duration connector") + " "
-                + (Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber) ?? "0") + " "
-                + String(localized: "min", comment: "minutes abbreviation")
+                + duration.formattedSpokenTimeSpan()
                 + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", \(percentage)%" : "")
         ))
         // Only tappable rows (presets) are buttons; scheduled rows are read-only, so they get
