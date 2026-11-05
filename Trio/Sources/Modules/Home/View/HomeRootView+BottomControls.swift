@@ -42,135 +42,50 @@ extension Home.RootView {
         return remainingFraction(start: t.date, durationMinutes: t.duration as Decimal?, indefinite: false)
     }
 
-    @ViewBuilder func adjustmentIcon(_ systemName: String, tint: Color) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(tint)
-            .frame(width: 30, height: 30)
-            .background(Circle().fill(tint.opacity(0.18)))
-            .accessibilityHidden(true)
-    }
-
     var adjustmentTint: Color? {
         if overrideString != nil { return Color.purple }
         if tempTargetString != nil { return Color.loopGreen }
         return nil
     }
 
-    var overrideString: String? {
-        guard let latestOverride = latestOverride.first else {
-            return nil
-        }
-
+    var adjustmentDescriber: AdjustmentDescriber? {
         guard let settingsManager = state.settingsManager else {
             return nil
         }
-
-        let percent = latestOverride.percentage
-        let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
-
-        let unit = state.units
-        let target = (latestOverride.target ?? 0) as Decimal
-
-        var targetString = target == 0 ? "" : target.formatted(withUnits: unit)
-        if tempTargetString != nil {
-            targetString = ""
-        }
-
-        let duration = latestOverride.duration ?? 0
-        let addedMinutes = Int(truncating: duration)
-        let date = latestOverride.date ?? Date()
-        let newDuration = max(
-            Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
-            0
+        return AdjustmentDescriber(
+            units: state.units,
+            maxSMBBasalMinutes: settingsManager.preferences.maxSMBBasalMinutes,
+            maxUAMSMBBasalMinutes: settingsManager.preferences.maxUAMSMBBasalMinutes,
+            settingHalfBasalTarget: state.settingHalfBasalTarget,
+            autosensMax: state.autosensMax,
+            isExerciseModeActive: state.isExerciseModeActive,
+            highTTraisesSens: state.highTTraisesSens,
+            lowTTlowersSens: state.lowTTlowersSens
         )
-        let indefinite = latestOverride.indefinite
-        var durationString = ""
+    }
 
-        if !indefinite {
-            if newDuration >= 1 {
-                durationString = formatHrMin(Int(newDuration))
-            } else if newDuration > 0 {
-                durationString = "\(Int(newDuration * 60)) s"
+    var overrideString: String? {
+        guard let latestOverride = latestOverride.first, let describer = adjustmentDescriber else {
+            return nil
+        }
 
-            } else {
-                /// Do not show the Override anymore
-                Task {
-                    guard let objectID = self.latestOverride.first?.objectID else { return }
-                    await state.cancelOverride(withID: objectID)
-                }
+        if AdjustmentDescriber.isExpired(latestOverride) {
+            /// Do not show the Override anymore
+            Task {
+                guard let objectID = self.latestOverride.first?.objectID else { return }
+                await state.cancelOverride(withID: objectID)
             }
         }
 
-        let smbScheduleString = latestOverride
-            .smbIsScheduledOff && ((latestOverride.start?.stringValue ?? "") != (latestOverride.end?.stringValue ?? ""))
-            ? " \(formatTimeRange(start: latestOverride.start?.stringValue, end: latestOverride.end?.stringValue))"
-            : ""
-
-        let smbToggleString = latestOverride.smbIsOff || latestOverride
-            .smbIsScheduledOff ? String(localized: "SMBs Off\(smbScheduleString)") : ""
-
-        var smbMinuteString: String = ""
-        var uamMinuteString: String = ""
-
-        if !latestOverride.smbIsOff, latestOverride.advancedSettings {
-            if let smbMinutes = latestOverride.smbMinutes,
-               smbMinutes.decimalValue != settingsManager.preferences.maxSMBBasalMinutes
-            {
-                smbMinuteString = "SMB\u{00A0}\(smbMinutes)\u{00A0}" +
-                    String(localized: "m", comment: "Abbreviation for Minutes")
-            }
-
-            if let uamMinutes = latestOverride.uamMinutes,
-               uamMinutes.decimalValue != settingsManager.preferences.maxUAMSMBBasalMinutes
-            {
-                uamMinuteString = "UAM\u{00A0}\(uamMinutes)\u{00A0}" +
-                    String(localized: "m", comment: "Abbreviation for Minutes")
-            }
-        }
-
-        let components = [durationString, percentString, targetString, smbToggleString, smbMinuteString, uamMinuteString]
-            .filter { !$0.isEmpty }
-        return components.isEmpty ? nil : components.joined(separator: ", ")
+        return describer.overrideDetails(latestOverride, showsTarget: tempTargetString == nil)
     }
 
     var tempTargetString: String? {
-        guard let latestTempTarget = latestTempTarget.first else {
+        guard let latestTempTarget = latestTempTarget.first, let describer = adjustmentDescriber else {
             return nil
         }
-        let duration = latestTempTarget.duration
-        let addedMinutes = Int(truncating: duration ?? 0)
-        let date = latestTempTarget.date ?? Date()
-        let newDuration = max(
-            Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
-            0
-        )
-        var durationString = ""
-        var percentageString = ""
-        let target = (latestTempTarget.target ?? 100) as Decimal
-        // Use TempTargetCalculations to get effective HBT (handles both custom and auto-adjusted standard TT)
-        let effectiveHBT = TempTargetCalculations.computeEffectiveHBT(
-            tempTargetHalfBasalTarget: latestTempTarget.halfBasalTarget?.decimalValue,
-            settingHalfBasalTarget: state.settingHalfBasalTarget,
-            target: target,
-            autosensMax: state.autosensMax
-        ) ?? state.settingHalfBasalTarget
-        var showPercentage = false
-        if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
-        if target < 100, state.lowTTlowersSens, state.autosensMax > 1 { showPercentage = true }
-        if showPercentage {
-            percentageString =
-                " \(Int(TempTargetCalculations.computeAdjustedPercentage(halfBasalTarget: effectiveHBT, target: target, autosensMax: state.autosensMax)))%"
-        }
-        let targetString = target == 0 ? "" : target.formatted(withUnits: state.units) + percentageString
 
-        if newDuration >= 1 {
-            durationString =
-                "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
-        } else if newDuration > 0 {
-            durationString =
-                "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
-        } else {
+        if AdjustmentDescriber.isExpired(latestTempTarget) {
             /// Do not show the Temp Target anymore
             Task {
                 guard let objectID = self.latestTempTarget.first?.objectID else { return }
@@ -178,36 +93,21 @@ extension Home.RootView {
             }
         }
 
-        let components = [targetString, durationString].filter { !$0.isEmpty }
-        return components.isEmpty ? nil : components.joined(separator: ", ")
+        return describer.tempTargetDetails(latestTempTarget)
     }
 
     @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
-        Group {
-            adjustmentIcon("clock.arrow.2.circlepath", tint: Color.purple)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(latestOverride.first?.name ?? String(localized: "Custom Override"))
-                    .font(.subheadline).fontWeight(.semibold)
-                    .frame(alignment: .leading)
-
-                Text(overrideString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        AdjustmentLabel.forOverride(
+            name: AdjustmentDescriber.name(of: latestOverride.first),
+            details: overrideString
+        )
     }
 
     @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
-        Group {
-            adjustmentIcon("target", tint: Color.loopGreen)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(latestTempTarget.first?.name ?? String(localized: "Temp Target"))
-                    .font(.subheadline).fontWeight(.semibold)
-                Text(tempTargetString)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        AdjustmentLabel.forTempTarget(
+            name: AdjustmentDescriber.name(of: latestTempTarget.first),
+            details: tempTargetString
+        )
     }
 
     @ViewBuilder func adjustmentsCancelView(_ cancelAction: @escaping () -> Void) -> some View {
@@ -283,7 +183,7 @@ extension Home.RootView {
 
     @ViewBuilder func noActiveAdjustmentsView() -> some View {
         Group {
-            adjustmentIcon("slider.horizontal.2.gobackward", tint: Color.secondary)
+            AdjustmentIcon(systemName: "slider.horizontal.2.gobackward", tint: Color.secondary)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text("No Active Adjustment")
@@ -661,7 +561,7 @@ extension Home.RootView {
         Button(action: action) {
             ZStack {
                 HStack(spacing: 12) {
-                    adjustmentIcon(systemImage, tint: tint)
+                    AdjustmentIcon(systemName: systemImage, tint: tint)
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(title)

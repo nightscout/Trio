@@ -27,6 +27,37 @@ struct ListStateView: View {
     }
 
     var body: some View {
+        VStack(spacing: 0) {
+            stateRow
+            adjustmentsRow
+        }
+    }
+
+    /// Rows stack instead of sitting side by side, because half the snippet width is too narrow for the details.
+    @ViewBuilder private var adjustmentsRow: some View {
+        let overrideLabel = state.overrideName.flatMap { name in
+            state.overrideDetails.map { AdjustmentLabel.forOverride(name: name, details: $0, style: .compact) }
+        }
+        let tempTargetLabel = state.tempTargetName.flatMap { name in
+            state.tempTargetDetails.map { AdjustmentLabel.forTempTarget(name: name, details: $0, style: .compact) }
+        }
+
+        if overrideLabel != nil || tempTargetLabel != nil {
+            VStack(alignment: .leading, spacing: 4) {
+                if let overrideLabel {
+                    overrideLabel
+                }
+                if let tempTargetLabel {
+                    tempTargetLabel
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 10)
+            .padding(.bottom, 6)
+        }
+    }
+
+    private var stateRow: some View {
         HStack(alignment: .center) {
             Spacer()
 
