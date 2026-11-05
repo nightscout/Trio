@@ -26,6 +26,22 @@ import Testing
         #expect(store.alerts.count == GlucoseAlertType.allCases.count)
     }
 
+    @Test("Fresh store seeds the rate alarms disabled, everything else enabled") func freshSeedRateAlarmsDisabled() {
+        let store = Self.makeStore()
+        for alert in store.alerts {
+            #expect(alert.isEnabled == !alert.type.isRateDriven, "Unexpected isEnabled for \(alert.type)")
+        }
+    }
+
+    @Test("Backfilled rate alarms are disabled at 3 mg/dL/min") func backfillRateAlarmsDisabled() {
+        let store = Self.makeStore(seed: [GlucoseAlert(type: .low)])
+        for type in [GlucoseAlertType.fallingFast, .risingFast] {
+            let alert = store.alerts.first { $0.type == type }
+            #expect(alert?.isEnabled == false)
+            #expect(alert?.thresholdMgDL == 3)
+        }
+    }
+
     @Test("Legacy load (no carbsRequired) backfills the new type") func legacyLoadBackfillsCarbsRequired() {
         let legacy: [GlucoseAlert] = [
             GlucoseAlert(type: .urgentLow),
