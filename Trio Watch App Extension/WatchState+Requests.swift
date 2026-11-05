@@ -175,16 +175,17 @@ extension WatchState {
         }
     }
 
-    func requestWatchStateUpdate() {
+    /// - Returns: `true` if the request was sent.
+    @discardableResult func requestWatchStateUpdate() -> Bool {
         guard let session = session else {
             WatchLogger.shared.warning(.connectivity, "No session for a state update")
-            return
+            return false
         }
 
         guard session.activationState == .activated else {
             WatchLogger.shared.debug(.connectivity, "Session not activated, activating")
             session.activate()
-            return
+            return false
         }
 
         if session.isReachable {
@@ -192,11 +193,23 @@ extension WatchState {
 
             let message = [WatchMessageKeys.requestWatchUpdate: WatchMessageKeys.watchState]
 
-            session.sendMessage(message, replyHandler: nil) { error in
+            session.sendMessage(message, replyHandler: { reply in
+                DispatchQueue.main.async {
+                    // Empty reply: the phone could not build a state.
+                    if reply.isEmpty || !self.acceptWatchStatePayload(reply) {
+                        self.showSyncingAnimation = false
+                    }
+                }
+            }, errorHandler: { error in
                 WatchLogger.shared.warning(.connectivity, "Requesting a state update failed", error: error)
-            }
+                DispatchQueue.main.async {
+                    self.showSyncingAnimation = false
+                }
+            })
+            return true
         } else {
             WatchLogger.shared.debug(.connectivity, "Phone unreachable, state update not requested")
+            return false
         }
     }
 

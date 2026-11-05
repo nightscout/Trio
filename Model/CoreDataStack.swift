@@ -30,6 +30,14 @@ class CoreDataStack: ObservableObject {
         entityChangeSubject.eraseToAnyPublisher()
     }
 
+    /// Like `entityChangePublisher`, without updates that only set upload flags.
+    private let contentChangeSubject = PassthroughSubject<Set<NSManagedObjectID>, Never>()
+    var contentChangePublisher: AnyPublisher<Set<NSManagedObjectID>, Never> {
+        contentChangeSubject.eraseToAnyPublisher()
+    }
+
+    private static let uploadFlags: Set<String> = ["isUploadedToNS", "isUploadedToHealth", "isUploadedToTidepool"]
+
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
 
@@ -174,7 +182,14 @@ class CoreDataStack: ObservableObject {
         // Update view context with objectIDs from history change request
         /// - Tag: mergeChanges
         let viewContext = persistentContainer.viewContext
-        let changedObjectIDs = Set(history.flatMap { $0.changes ?? [] }.map(\.changedObjectID))
+        let changes = history.flatMap { $0.changes ?? [] }
+        let changedObjectIDs = Set(changes.map(\.changedObjectID))
+        let contentChangedObjectIDs = Set(
+            changes.filter { change in
+                guard change.changeType == .update, let updated = change.updatedProperties else { return true }
+                return !updated.allSatisfy { Self.uploadFlags.contains($0.name) }
+            }.map(\.changedObjectID)
+        )
 
         viewContext.perform {
             for transaction in history {
@@ -186,6 +201,9 @@ class CoreDataStack: ObservableObject {
             // change feed replaces the hand-rolled changedObjectsOnManagedObjectContextDidSavePublisher.
             if !changedObjectIDs.isEmpty {
                 self.entityChangeSubject.send(changedObjectIDs)
+            }
+            if !contentChangedObjectIDs.isEmpty {
+                self.contentChangeSubject.send(contentChangedObjectIDs)
             }
         }
     }
