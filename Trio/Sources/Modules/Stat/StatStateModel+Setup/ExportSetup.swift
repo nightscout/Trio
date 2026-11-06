@@ -224,7 +224,7 @@ extension Stat.StateModel {
                 dynamicISFEnabled: preferences.useNewFormula,
                 smbEnabled: smbEnabled,
                 uamEnabled: preferences.enableUAM,
-                closedLoopActive: settingsManager.settings.closedLoop
+                closedLoopActive: settingsManager.settings.dosingMode == .closed
             )
         )
     }
