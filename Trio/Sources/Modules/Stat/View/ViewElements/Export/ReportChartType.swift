@@ -10,6 +10,7 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
     case glucosePercentileByTime
     case glucosePercentileByDay
     case glucoseDistributionByDay
+    case glucoseGlycemiaRiskIndex
     case insulinTotalDailyDose
     case insulinBolusDistribution
     case loopingPerformance
@@ -21,6 +22,7 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .glucoseDistributionByDay,
              .glucoseDistributionByTime,
+             .glucoseGlycemiaRiskIndex,
              .glucosePercentileByDay,
              .glucosePercentileByTime:
             return .glucose
@@ -46,6 +48,8 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
             return Stat.StateModel.GlucoseChartType.percentileByDay.displayName
         case .glucoseDistributionByDay:
             return Stat.StateModel.GlucoseChartType.distributionByDay.displayName
+        case .glucoseGlycemiaRiskIndex:
+            return Stat.StateModel.GlucoseChartType.glycemiaRiskIndex.displayName
         case .insulinTotalDailyDose:
             return Stat.StateModel.InsulinChartType.totalDailyDose.displayName
         case .insulinBolusDistribution:

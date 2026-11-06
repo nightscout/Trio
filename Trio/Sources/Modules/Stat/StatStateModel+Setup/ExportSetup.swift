@@ -97,6 +97,21 @@ extension Stat.StateModel {
         return GlucoseDistributionByDayExportData(dailyStats: dailyStats)
     }
 
+    /// Data required to render the "Glycemia Risk Index" PDF export.
+    struct GRIExportData {
+        let result: GRICalculator.Result?
+    }
+
+    /// Fetches glucose for the requested export range and computes its Glycemia Risk Index,
+    /// using the same calculator as the on-screen GRI chart.
+    func prepareGRIExportData(for interval: StatsTimeIntervalWithToday) async -> GRIExportData {
+        let ids = await fetchGlucose(for: interval)
+        let glucose = await resolveGlucose(ids: ids)
+        let result = GRICalculator.calculate(glucoseValues: glucose.map { Int($0.glucose) })
+
+        return GRIExportData(result: result)
+    }
+
     /// Data required to render the "Total Daily Dose" PDF export.
     struct TDDExportData {
         let stats: [TDDStats]
