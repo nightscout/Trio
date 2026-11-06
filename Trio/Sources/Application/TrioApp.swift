@@ -77,6 +77,7 @@ extension Notification.Name {
         _ = resolver.resolve(ContactImageManager.self)!
         _ = resolver.resolve(HealthKitManager.self)!
         _ = resolver.resolve(GarminManager.self)!
+        _ = resolver.resolve(SmartwatchHost.self)!
         _ = resolver.resolve(BluetoothStateManager.self)!
         _ = resolver.resolve(PluginManager.self)!
         _ = resolver.resolve(AlertPermissionsChecker.self)!
@@ -547,7 +548,9 @@ extension Notification.Name {
         switch components?.host {
         case "device-select-resp":
             resolver.resolve(NotificationCenter.self)!.post(name: .openFromGarminConnect, object: url)
-        default: break
+        default:
+            // Offer anything else to the watch plugin, for a companion app's callback.
+            _ = resolver.resolve(SmartwatchHost.self)!.handle(url)
         }
     }
 }
