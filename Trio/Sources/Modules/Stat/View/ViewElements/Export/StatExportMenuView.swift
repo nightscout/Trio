@@ -241,7 +241,7 @@ struct StatExportMenuView: View {
             case .percentileByTime: return .glucosePercentileByTime
             case .percentileByDay: return .glucosePercentileByDay
             case .distributionByDay: return .glucoseDistributionByDay
-            case .glycemiaRiskIndex: return nil
+            case .glycemiaRiskIndex: return .glucoseGlycemiaRiskIndex
             }
         case .insulin:
             switch selectedInsulinChartType {
@@ -493,6 +493,12 @@ struct StatExportMenuView: View {
                     timeInRangeType: state.timeInRangeType,
                     selectedInterval: selectedRange
                 )
+            })
+
+        case .glucoseGlycemiaRiskIndex:
+            let data = await state.prepareGRIExportData(for: widenedInterval)
+            return AnyView(page {
+                GlycemiaRiskIndexPDFContent(result: data.result, units: state.units)
             })
 
         case .insulinTotalDailyDose:
