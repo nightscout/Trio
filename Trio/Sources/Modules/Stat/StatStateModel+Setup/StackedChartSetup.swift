@@ -62,11 +62,25 @@ extension Stat.StateModel {
     /// - 140-180 = (2/7)*100 = 28.6%
     /// - 180-200 = (2/7)*100 = 28.6%
     func calculateGlucoseRangeStatsForStackedChart(from ids: [NSManagedObjectID]) async {
+        let stats = await Self.computeGlucoseRangeStats(from: ids, timeInRangeType: timeInRangeType)
+
+        // Update stats on main thread
+        await MainActor.run {
+            self.glucoseRangeStats = stats
+        }
+    }
+
+    /// Pure computation of glucose range distribution statistics, without mutating any published state.
+    /// Shared by the live chart (`calculateGlucoseRangeStatsForStackedChart`) and the PDF export flow.
+    static func computeGlucoseRangeStats(
+        from ids: [NSManagedObjectID],
+        timeInRangeType: TimeInRangeType
+    ) async -> [GlucoseRangeStats] {
         let taskContext = CoreDataStack.shared.newTaskContext()
 
         let calendar = Calendar.current
 
-        let stats = await taskContext.perform {
+        return await taskContext.perform {
             // Convert IDs to GlucoseStored objects using the context
             let readings = ids.compactMap { id -> GlucoseStored? in
                 do {
@@ -93,12 +107,12 @@ extension Stat.StateModel {
             // Ranges are processed from bottom to top in the stacked chart
             let ranges: [(name: String, condition: (Int) -> Bool)] = [
                 ("<54", { g in g <= 54 }),
-                ("54-\(self.timeInRangeType.bottomThreshold)", { g in g > 54 && g < self.timeInRangeType.bottomThreshold }),
+                ("54-\(timeInRangeType.bottomThreshold)", { g in g > 54 && g < timeInRangeType.bottomThreshold }),
                 (
-                    "\(self.timeInRangeType.bottomThreshold)-\(self.timeInRangeType.topThreshold)",
-                    { g in g >= self.timeInRangeType.bottomThreshold && g <= self.timeInRangeType.topThreshold }
+                    "\(timeInRangeType.bottomThreshold)-\(timeInRangeType.topThreshold)",
+                    { g in g >= timeInRangeType.bottomThreshold && g <= timeInRangeType.topThreshold }
                 ),
-                ("\(self.timeInRangeType.topThreshold)-180", { g in g > self.timeInRangeType.topThreshold && g <= 180 }),
+                ("\(timeInRangeType.topThreshold)-180", { g in g > timeInRangeType.topThreshold && g <= 180 }),
                 ("180-200", { g in g > 180 && g <= 200 }),
                 ("200-220", { g in g > 200 && g <= 220 }),
                 (">220", { g in g > 220 })
@@ -125,11 +139,6 @@ extension Stat.StateModel {
                 }
                 return GlucoseRangeStats(name: rangeName, values: hourlyValues)
             }
-        }
-
-        // Update stats on main thread
-        await MainActor.run {
-            self.glucoseRangeStats = stats
         }
     }
 }
