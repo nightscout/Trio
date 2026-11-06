@@ -559,14 +559,11 @@ private extension StoredSettings {
     }
 }
 
-// MARK: - Dose annotation (RemoteDataServiceDelegate contract)
+// MARK: - Dose annotation
 
-/// `TidepoolService.uploadDoseData` annotates doses through `BaseTidepoolManager`'s `RemoteDataServiceDelegate`.
-/// These pin down what the delegate's "no basal history" answer does to doses built the way Trio builds them.
 @Suite("Tidepool dose annotation Tests") struct TidepoolDoseAnnotationTests {
     private static let start = Date(timeIntervalSince1970: 1_800_000_000)
 
-    /// Same shape as the temp basal `BaseTidepoolManager.processTempBasalEvent` creates.
     private static func trioTempBasal(automatic: Bool?) -> DoseEntry {
         DoseEntry(
             type: .tempBasal,
