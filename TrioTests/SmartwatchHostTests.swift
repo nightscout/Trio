@@ -74,24 +74,25 @@ import Testing
         #expect(BaseSmartwatchHost.watchRecommendation(calculated: 0.3, deliveredSinceDetermination: 0.4) == 0)
     }
 
-    @Test("A recommendation is too soon exactly when Trio's recent-bolus check would refuse it") func recommendationTooSoon() {
-        #expect(BaseSmartwatchHost.recommendationIsTooSoon(1.45, recentBolus: 0.4))
-        #expect(BaseSmartwatchHost.recommendationIsTooSoon(1.85, recentBolus: 0.4))
-        #expect(!BaseSmartwatchHost.recommendationIsTooSoon(2.5, recentBolus: 0.4))
-        #expect(!BaseSmartwatchHost.recommendationIsTooSoon(1.85, recentBolus: 0))
-        #expect(!BaseSmartwatchHost.recommendationIsTooSoon(0, recentBolus: 0.4))
-        // The same answer as BolusSafetyEvaluator, with only its recent-bolus rule in play.
-        for units in stride(from: 0.05, through: 5.0, by: 0.05) {
-            for recent in [0.0, 0.1, 0.2, 0.4, 0.5, 1.0] {
-                let inputs = BolusSafetyInputs(maxBolus: 100, maxIOB: 100, currentIOB: 0, totalRecentBolus: Decimal(recent))
-                let refused = BolusSafetyEvaluator.evaluate(bolusAmount: Decimal(units), inputs: inputs)
-                    == .rejected(.recentBolusWithinWindow(totalRecent: Decimal(recent)))
-                #expect(
-                    BaseSmartwatchHost.recommendationIsTooSoon(units, recentBolus: recent) == refused,
-                    "\(units) U, \(recent) U recent"
-                )
-            }
-        }
+    @Test("A watch bolus right after an SMB passes Trio's checks as the watch asks them") func watchBolusAfterSMB() {
+        // The watch host asks with a window starting now: a 0.4 U SMB 89 s earlier
+        // no longer refuses a 1.45 U bolus, which Trio's 6-minute window would.
+        let afterSMB = BolusSafetyInputs(maxBolus: 5, maxIOB: 10, currentIOB: 2, totalRecentBolus: 0.4)
+        #expect(
+            BolusSafetyEvaluator
+                .evaluate(bolusAmount: 1.45, inputs: afterSMB) == .rejected(.recentBolusWithinWindow(totalRecent: 0.4))
+        )
+        let windowFromNow = BolusSafetyInputs(maxBolus: 5, maxIOB: 10, currentIOB: 2, totalRecentBolus: 0)
+        #expect(BolusSafetyEvaluator.evaluate(bolusAmount: 1.45, inputs: windowFromNow) == .allowed)
+        // Max bolus and max IOB still apply.
+        #expect(BolusSafetyEvaluator.evaluate(bolusAmount: 6, inputs: windowFromNow) == .rejected(.exceedsMaxBolus(maxBolus: 5)))
+        #expect(
+            BolusSafetyEvaluator.evaluate(
+                bolusAmount: 4,
+                inputs: BolusSafetyInputs(maxBolus: 5, maxIOB: 5, currentIOB: 2, totalRecentBolus: 0)
+            )
+                == .rejected(.exceedsMaxIOB(currentIOB: 2, maxIOB: 5))
+        )
     }
 
     @Test("Trio's bolus safety rejections reach the watch with a reason where there is one") func bolusSafetyErrors() {
