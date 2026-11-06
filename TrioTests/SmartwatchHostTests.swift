@@ -39,6 +39,15 @@ import Testing
         ) == [entry])
         // A determination after the entry counts it in COB.
         #expect(BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: now, now: now).isEmpty)
+        // Stored after a determination was calculated (deliverAt, 90 s ago) but before
+        // it was enacted (its timestamp, 30 s ago): it isn't in that determination,
+        // so the host compares with when it was calculated. The enact time would drop it.
+        #expect(BaseSmartwatchHost.uncountedWatchCarbs(
+            [entry],
+            determinationDate: now.addingTimeInterval(-90),
+            now: now
+        ) == [entry])
+        #expect(BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: now.addingTimeInterval(-30), now: now).isEmpty)
         // Entries over 30 minutes old are dropped.
         let old = BaseSmartwatchHost.WatchCarbEntry(date: now.addingTimeInterval(-31 * 60), grams: 20)
         #expect(BaseSmartwatchHost.uncountedWatchCarbs([old], determinationDate: nil, now: now).isEmpty)
@@ -102,6 +111,39 @@ import Testing
         if case .refusedByHost = BaseSmartwatchHost.bolusError(for: .exceedsMaxIOB(currentIOB: 9, maxIOB: 10)) {} else {
             Issue.record("max IOB should stay refusedByHost")
         }
+    }
+
+    @Test("A watch bolus that reached the pump counts for the time between boluses, delivered or not") func bolusAttempts() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let token = UUID()
+        let context = SmartwatchBolusContext(
+            token: token,
+            issuedAt: now.addingTimeInterval(-60),
+            recommendedBolus: 2,
+            maximumBolus: 5,
+            supportedBolusVolumes: []
+        )
+        func evaluate(_ deliveries: [SmartwatchBolusPolicy.Delivery], at date: Date) -> Result<Double, SmartwatchBolusError> {
+            SmartwatchBolusPolicy(
+                isAllowed: true,
+                currentContext: context,
+                latestGlucoseDate: date.addingTimeInterval(-60),
+                recentDeliveries: deliveries,
+                roundToSupportedVolume: { $0 }
+            ).evaluate(SmartwatchBolusRequest(units: 1, contextToken: token, requestedAt: date), now: date)
+        }
+
+        // A failed (possibly uncertain) delivery: the next watch bolus waits 5 minutes.
+        let failed = BaseSmartwatchHost.bolusAttempted(at: now, in: [])
+        #expect(evaluate(failed, at: now.addingTimeInterval(60)) == .failure(.rateLimited))
+        #expect(evaluate(failed, at: now.addingTimeInterval(5 * 60 + 1)) == .success(1))
+        // ...and adds nothing to the daily total.
+        #expect(failed.reduce(0) { $0 + $1.units } == 0)
+
+        // A delivered one replaces its attempt with its units.
+        let delivered = BaseSmartwatchHost.bolusDelivered(1.5, attemptedAt: now, in: failed)
+        #expect(delivered == [SmartwatchBolusPolicy.Delivery(date: now, units: 1.5)])
+        #expect(evaluate(delivered, at: now.addingTimeInterval(60)) == .failure(.rateLimited))
     }
 
     @Test("Trend arrows match LoopKit's GlucoseTrend") func trends() {

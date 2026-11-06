@@ -257,10 +257,9 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     }
 
     private struct DeterminationValues {
-        var timestamp: Date?
-        /// When it was calculated: the insulin it counts is what was delivered
-        /// before this. `timestamp` is moved to when it was enacted, after an SMB
-        /// it decided on.
+        /// When it was calculated (`deliverAt`): the insulin and carbs it counts are
+        /// those from before this. Its `timestamp` is moved to when it was enacted,
+        /// after an SMB it decided on, so it can't tell what was counted.
         var calculatedAt: Date?
         var cob: Double?
         var eventualGlucose: Double?
@@ -292,7 +291,6 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         if capabilities.contains(.remoteBolus) {
             snapshot.bolusContext = await currentBolusContext(
                 minPredBG: determination?.minPredBG,
-                determinationDate: determination?.timestamp,
                 determinationCalculatedAt: determination?.calculatedAt,
                 latestGlucoseDate: readings.last?.date
             )
@@ -370,11 +368,10 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     /// the next snapshot, before a new determination has counted them in COB.
     @MainActor private func currentBolusContext(
         minPredBG: Decimal?,
-        determinationDate: Date?,
         determinationCalculatedAt: Date?,
         latestGlucoseDate: Date?
     ) async -> SmartwatchBolusContext {
-        watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: determinationDate, now: Date())
+        watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: determinationCalculatedAt, now: Date())
         let result = await bolusCalculationManager.handleBolusCalculation(
             carbs: Decimal(watchCarbEntries.reduce(0) { $0 + $1.grams }),
             useFattyMealCorrection: false,
@@ -481,6 +478,16 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         }
         log(manager, .delegate, String(format: "Delivering watch bolus of %.3f U", units))
 
+        // Counted for the time between watch boluses from here, whether or not the
+        // pump reports it delivered: a failure can be uncertain (the pump lost
+        // contact mid-bolus), and a resend at once could give it twice. Only a
+        // delivered bolus counts toward the daily total.
+        let attemptedAt = Date()
+        UserDefaults.standard.smartwatchBolusDeliveries = Self.bolusAttempted(
+            at: attemptedAt,
+            in: UserDefaults.standard.smartwatchBolusDeliveries
+        )
+
         // enactBolus answers through its callback before it returns.
         let outcome = BolusOutcome()
         await apsManager.enactBolus(amount: units, isSMB: false) { success, message in
@@ -492,7 +499,11 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             refresh()
             throw SmartwatchBolusError.deliveryFailed(outcome.message)
         }
-        UserDefaults.standard.smartwatchBolusDeliveries += [SmartwatchBolusPolicy.Delivery(date: Date(), units: units)]
+        UserDefaults.standard.smartwatchBolusDeliveries = Self.bolusDelivered(
+            units,
+            attemptedAt: attemptedAt,
+            in: UserDefaults.standard.smartwatchBolusDeliveries
+        )
         log(manager, .delegateResponse, String(format: "Watch bolus of %.3f U delivered", units))
         refresh()
         return units
@@ -503,8 +514,8 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         let grams: Double
     }
 
-    /// The watch carb entries a determination dated `determinationDate` doesn't
-    /// count yet: those added after it. Entries over 30 minutes old are dropped
+    /// The watch carb entries a determination calculated at `determinationDate`
+    /// doesn't count yet: those added after it. Entries over 30 minutes old are dropped
     /// too, so carbs are never counted twice and old ones don't raise the
     /// recommendation; both mistakes only lower it.
     static func uncountedWatchCarbs(_ entries: [WatchCarbEntry], determinationDate: Date?, now: Date) -> [WatchCarbEntry] {
@@ -519,6 +530,25 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     /// until the next loop.
     static func watchRecommendation(calculated: Double, deliveredSinceDetermination: Double) -> Double {
         max(0, calculated - deliveredSinceDetermination)
+    }
+
+    /// The watch boluses `SmartwatchBolusPolicy` counts, with an attempt at `date`:
+    /// 0 U, so it counts for the time between boluses but not the daily total.
+    static func bolusAttempted(
+        at date: Date,
+        in deliveries: [SmartwatchBolusPolicy.Delivery]
+    ) -> [SmartwatchBolusPolicy.Delivery] {
+        deliveries + [SmartwatchBolusPolicy.Delivery(date: date, units: 0)]
+    }
+
+    /// The attempt at `attemptedAt` delivered `units`: they count toward the daily total too.
+    static func bolusDelivered(
+        _ units: Double,
+        attemptedAt: Date,
+        in deliveries: [SmartwatchBolusPolicy.Delivery]
+    ) -> [SmartwatchBolusPolicy.Delivery] {
+        deliveries.filter { $0 != SmartwatchBolusPolicy.Delivery(date: attemptedAt, units: 0) }
+            + [SmartwatchBolusPolicy.Delivery(date: attemptedAt, units: units)]
     }
 
     /// The watch's error for a rejection by Trio's bolus safety checks, so the
@@ -599,7 +629,6 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             guard let determination = (results as? [OrefDetermination])?.first else { return nil }
             let double = { (value: NSDecimalNumber?) in value.map { Double(truncating: $0) } }
             return DeterminationValues(
-                timestamp: determination.timestamp,
                 calculatedAt: determination.deliverAt,
                 cob: Double(determination.cob),
                 eventualGlucose: double(determination.eventualBG),
@@ -830,7 +859,7 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
             throw SmartwatchBolusError.invalidAmount
         }
         let determination = (try? await latestDetermination()) ?? nil
-        watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: determination?.timestamp, now: Date())
+        watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: determination?.calculatedAt, now: Date())
         let result = await bolusCalculationManager.handleBolusCalculation(
             carbs: Decimal(watchCarbEntries.reduce(0) { $0 + $1.grams } + grams),
             useFattyMealCorrection: false,
