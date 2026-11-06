@@ -446,12 +446,19 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         bolusContextIssuer.beginDelivery(of: request)
         defer { bolusContextIssuer.endDelivery() }
 
-        // Trio's own checks for any bolus from outside the bolus screen (remote
-        // commands, Shortcuts): max bolus, max IOB, and no recent bolus of 20 % or
-        // more within 6 minutes. The default window covers the whole time since the
-        // user confirmed, which is at most 30 seconds.
+        // Trio's bolus safety checks for max bolus and max IOB. Their recent-bolus
+        // check (20 % within 6 minutes) is for remote commands and Shortcuts, which
+        // can arrive late or twice from someone who can't see what was just given;
+        // like Trio's Apple Watch app, a watch bolus goes without it: it was
+        // confirmed on the watch at most 30 s ago, is one per 5 minutes, is capped
+        // at a recommendation that counts insulin given since the determination,
+        // and a resend during delivery gets inProgress. With it, a small bolus for
+        // more carbs was refused after almost every SMB. A window starting now
+        // leaves that check nothing to count.
         do {
-            if case let .rejected(reason) = try await bolusSafetyValidator.validate(bolusAmount: Decimal(units)) {
+            if case let .rejected(reason) = try await bolusSafetyValidator
+                .validate(bolusAmount: Decimal(units), lookbackStart: Date())
+            {
                 log(manager, .error, "Bolus request rejected by Trio's bolus safety checks: \(reason)")
                 throw Self.bolusError(for: reason)
             }
@@ -512,12 +519,6 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     /// until the next loop.
     static func watchRecommendation(calculated: Double, deliveredSinceDetermination: Double) -> Double {
         max(0, calculated - deliveredSinceDetermination)
-    }
-
-    /// Whether Trio's recent-bolus check (`BolusSafetyEvaluator`) would refuse a
-    /// bolus of `units` now.
-    static func recommendationIsTooSoon(_ units: Double, recentBolus: Double) -> Bool {
-        units > 0 && Decimal(recentBolus) >= Decimal(units) * BolusSafetyEvaluator.recentBolusThreshold
     }
 
     /// The watch's error for a rejection by Trio's bolus safety checks, so the
@@ -851,19 +852,6 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
         }
         // Rounded as the bolus check rounds the recommendation it caps at.
         let units = deviceDataManager.pumpManager?.roundToSupportedBolusVolume(units: recommended) ?? recommended
-        // Trio's recent-bolus check would refuse a bolus of this size now: the
-        // watch says "too soon" before the user picks an amount.
-        let recentWindow = Date().addingTimeInterval(-Double(BolusSafetyEvaluator.recentBolusWindowMinutes * 60))
-        let recent = await insulinDelivered(since: recentWindow)
-        if Self.recommendationIsTooSoon(units, recentBolus: recent) {
-            log(manager, .error, String(
-                format: "Bolus recommendation refused: %.2f U delivered in the last %d minutes, and Trio refuses a bolus of %.2f U until then",
-                recent,
-                BolusSafetyEvaluator.recentBolusWindowMinutes,
-                units
-            ))
-            throw SmartwatchBolusError.rateLimited
-        }
         let maximumBolus = Double(truncating: settingsManager.pumpSettings.maxBolus as NSNumber)
         log(manager, .delegateResponse, String(
             format: "Bolus recommendation with %.0f g of carbs: %.2f U (Max Bolus %.2f U)",
