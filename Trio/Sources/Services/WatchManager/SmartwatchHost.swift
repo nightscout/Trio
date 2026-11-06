@@ -258,6 +258,10 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
 
     private struct DeterminationValues {
         var timestamp: Date?
+        /// When it was calculated: the insulin it counts is what was delivered
+        /// before this. `timestamp` is moved to when it was enacted, after an SMB
+        /// it decided on.
+        var calculatedAt: Date?
         var cob: Double?
         var eventualGlucose: Double?
         var insulinSensitivity: Double?
@@ -289,6 +293,7 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             snapshot.bolusContext = await currentBolusContext(
                 minPredBG: determination?.minPredBG,
                 determinationDate: determination?.timestamp,
+                determinationCalculatedAt: determination?.calculatedAt,
                 latestGlucoseDate: readings.last?.date
             )
         }
@@ -366,6 +371,7 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     @MainActor private func currentBolusContext(
         minPredBG: Decimal?,
         determinationDate: Date?,
+        determinationCalculatedAt: Date?,
         latestGlucoseDate: Date?
     ) async -> SmartwatchBolusContext {
         watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: determinationDate, now: Date())
@@ -378,8 +384,12 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             simulatedCOB: nil,
             isBackdated: false
         )
+        let deliveredSince = await insulinDelivered(since: determinationCalculatedAt)
         let inputs = SmartwatchBolusContextIssuer.Inputs(
-            recommendedBolus: Double(truncating: result.insulinCalculated as NSNumber),
+            recommendedBolus: Self.watchRecommendation(
+                calculated: Double(truncating: result.insulinCalculated as NSNumber),
+                deliveredSinceDetermination: deliveredSince
+            ),
             maximumBolus: Double(truncating: settingsManager.pumpSettings.maxBolus as NSNumber),
             supportedBolusVolumes: deviceDataManager.pumpManager?.supportedBolusVolumes ?? [],
             latestGlucoseDate: latestGlucoseDate
@@ -443,7 +453,7 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         do {
             if case let .rejected(reason) = try await bolusSafetyValidator.validate(bolusAmount: Decimal(units)) {
                 log(manager, .error, "Bolus request rejected by Trio's bolus safety checks: \(reason)")
-                throw SmartwatchBolusError.refusedByHost(String(describing: reason))
+                throw Self.bolusError(for: reason)
             }
         } catch let error as SmartwatchBolusError {
             throw error
@@ -494,6 +504,37 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         entries.filter { entry in
             entry.date > now.addingTimeInterval(-30 * 60) && determinationDate.map { entry.date > $0 } ?? true
         }
+    }
+
+    /// The calculator's recommendation less insulin delivered since the determination
+    /// it uses was calculated (the SMB it decided on, a bolus since): that
+    /// determination's IOB doesn't count it yet, so it would be recommended twice
+    /// until the next loop.
+    static func watchRecommendation(calculated: Double, deliveredSinceDetermination: Double) -> Double {
+        max(0, calculated - deliveredSinceDetermination)
+    }
+
+    /// Whether Trio's recent-bolus check (`BolusSafetyEvaluator`) would refuse a
+    /// bolus of `units` now.
+    static func recommendationIsTooSoon(_ units: Double, recentBolus: Double) -> Bool {
+        units > 0 && Decimal(recentBolus) >= Decimal(units) * BolusSafetyEvaluator.recentBolusThreshold
+    }
+
+    /// The watch's error for a rejection by Trio's bolus safety checks, so the
+    /// plugin can tell the watch why (too soon, over the maximum bolus).
+    static func bolusError(for rejection: BolusSafetyRejection) -> SmartwatchBolusError {
+        switch rejection {
+        case .recentBolusWithinWindow: .rateLimited
+        case .exceedsMaxBolus: .exceedsMaximumBolus
+        case .exceedsMaxIOB,
+             .iobUnavailable: .refusedByHost(String(describing: rejection))
+        }
+    }
+
+    /// Insulin delivered as boluses (SMBs included) since `date`; 0 without one.
+    private func insulinDelivered(since date: Date?) async -> Double {
+        guard let date, let total = try? await bolusSafetyValidator.fetchTotalRecentBolusAmount(since: date) else { return 0 }
+        return Double(truncating: total as NSNumber)
     }
 
     private final class BolusOutcome: @unchecked Sendable {
@@ -558,6 +599,7 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             let double = { (value: NSDecimalNumber?) in value.map { Double(truncating: $0) } }
             return DeterminationValues(
                 timestamp: determination.timestamp,
+                calculatedAt: determination.deliverAt,
                 cob: Double(determination.cob),
                 eventualGlucose: double(determination.eventualBG),
                 insulinSensitivity: double(determination.insulinSensitivity),
@@ -797,9 +839,31 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
             simulatedCOB: nil,
             isBackdated: false
         )
+        let calculated = Double(truncating: result.insulinCalculated as NSNumber)
+        let deliveredSince = await insulinDelivered(since: determination?.calculatedAt)
+        let recommended = Self.watchRecommendation(calculated: calculated, deliveredSinceDetermination: deliveredSince)
+        if deliveredSince > 0 {
+            log(manager, .delegateResponse, String(
+                format: "Bolus recommendation: %.2f U less %.2f U delivered since the determination it uses",
+                calculated,
+                deliveredSince
+            ))
+        }
         // Rounded as the bolus check rounds the recommendation it caps at.
-        let recommended = max(0, Double(truncating: result.insulinCalculated as NSNumber))
         let units = deviceDataManager.pumpManager?.roundToSupportedBolusVolume(units: recommended) ?? recommended
+        // Trio's recent-bolus check would refuse a bolus of this size now: the
+        // watch says "too soon" before the user picks an amount.
+        let recentWindow = Date().addingTimeInterval(-Double(BolusSafetyEvaluator.recentBolusWindowMinutes * 60))
+        let recent = await insulinDelivered(since: recentWindow)
+        if Self.recommendationIsTooSoon(units, recentBolus: recent) {
+            log(manager, .error, String(
+                format: "Bolus recommendation refused: %.2f U delivered in the last %d minutes, and Trio refuses a bolus of %.2f U until then",
+                recent,
+                BolusSafetyEvaluator.recentBolusWindowMinutes,
+                units
+            ))
+            throw SmartwatchBolusError.rateLimited
+        }
         let maximumBolus = Double(truncating: settingsManager.pumpSettings.maxBolus as NSNumber)
         log(manager, .delegateResponse, String(
             format: "Bolus recommendation with %.0f g of carbs: %.2f U (Max Bolus %.2f U)",
