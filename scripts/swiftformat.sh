@@ -122,5 +122,6 @@ trailingClosures \
 --exclude RoundWhiteDiscKit \
 --exclude AccuChekKit \
 --exclude EversenseKit \
---exclude SyaiKit
+--exclude SyaiKit \
+--exclude LupedSmartwatchKit
       

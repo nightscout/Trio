@@ -304,7 +304,7 @@ final class GlucoseAlertCoordinator: Injectable {
             acknowledgeActionButtonLabel: String(localized: "OK")
         )
         let alert = Alert(
-            identifier: alertID(for: alarm),
+            identifier: Self.alertID(for: alarm),
             foregroundContent: content,
             backgroundContent: content,
             trigger: .immediate,
@@ -318,7 +318,7 @@ final class GlucoseAlertCoordinator: Injectable {
         dispatchPrecondition(condition: .onQueue(evaluationQueue))
         guard firingAlertIDs.contains(alarm.id) else { return }
         firingAlertIDs.remove(alarm.id)
-        trioAlertManager.retractAlert(identifier: alertID(for: alarm))
+        trioAlertManager.retractAlert(identifier: Self.alertID(for: alarm))
     }
 
     private func retractReadingDrivenFiringAlarms() {
@@ -344,7 +344,9 @@ final class GlucoseAlertCoordinator: Injectable {
         )
     }
 
-    private func alertID(for alarm: GlucoseAlert) -> Alert.Identifier {
+    /// The alert an alarm issues. Also used by the watch host, which clears
+    /// alarms on the watch that Trio didn't issue again after a relaunch.
+    static func alertID(for alarm: GlucoseAlert) -> Alert.Identifier {
         let typeSlug: String
         switch alarm.type {
         case .urgentLow: typeSlug = "urgentLow"
@@ -481,7 +483,7 @@ extension GlucoseAlertCoordinator: GlucoseSnoozeObserver {
             guard !matchingAlarms.isEmpty else { return }
             store.alerts = updated
             for alarm in matchingAlarms {
-                self.trioAlertManager.retractAlert(identifier: self.alertID(for: alarm))
+                self.trioAlertManager.retractAlert(identifier: Self.alertID(for: alarm))
             }
             let ids = Set(matchingAlarms.map(\.id))
             self.evaluationQueue.async { [weak self] in
