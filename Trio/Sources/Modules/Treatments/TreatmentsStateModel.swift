@@ -515,6 +515,13 @@ extension Treatments {
                 let isCarbsPresent = carbs > 0
                 let isFatPresent = fat > 0
                 let isProteinPresent = protein > 0
+                let reminderArmed = mealTimeReminderMinutes > 0
+
+                let leadTime = TimeInterval(Double(mealTimeReminderMinutes) * 60)
+
+                if isCarbsPresent || isFatPresent || isProteinPresent {
+                    await saveMeal(reminderArmed: reminderArmed)
+                }
 
                 if isInsulinGiven {
                     let delivered = await handleInsulin(isExternal: externalInsulin)
@@ -524,12 +531,7 @@ extension Treatments {
                     // boluses the reminder itself waits for the delivery to finish (or be cancelled
                     // early), so a long delivery doesn't eat into the lead time. The alarm has to
                     // outlive this screen, so it is handled by the service rather than the view.
-                    let reminderArmed = delivered && mealTimeReminderMinutes > 0
-                    if isCarbsPresent || isFatPresent || isProteinPresent {
-                        await saveMeal(reminderArmed: reminderArmed)
-                    }
-                    if reminderArmed {
-                        let leadTime = TimeInterval(Double(mealTimeReminderMinutes) * 60)
+                    if delivered && reminderArmed {
                         if externalInsulin {
                             await mealTimeReminderService.scheduleEatReminder(
                                 after: leadTime,
@@ -547,12 +549,7 @@ extension Treatments {
                 } else {
                     // No insulin: with the reminder set this is a standalone timer over the
                     // entered meal (or no meal at all), so start it right away.
-                    let reminderArmed = mealTimeReminderMinutes > 0
-                    if isCarbsPresent || isFatPresent || isProteinPresent {
-                        await saveMeal(reminderArmed: reminderArmed)
-                    }
                     if reminderArmed {
-                        let leadTime = TimeInterval(Double(mealTimeReminderMinutes) * 60)
                         await mealTimeReminderService.scheduleEatReminder(
                             after: leadTime,
                             carbs: carbs,
@@ -758,8 +755,10 @@ extension Treatments {
         /// The meal note with the meal-time reminder lead time prefixed onto it.
         ///
         /// The alarm is local and leaves no trace, so the note is what makes the timing visible
-        /// later in the history and in Nightscout. The prefix is only added when a reminder is
-        /// actually armed, so a failed bolus does not leave a note claiming one was set.
+        /// later in the history and in Nightscout. `reminderArmed` reflects the entered lead time
+        /// (the meal is saved before the bolus outcome is known), not whether the alarm actually
+        /// ended up scheduled — a failed bolus still leaves this prefix on the note even though no
+        /// alarm fires for it.
         func noteWithMealTimeReminder(reminderArmed: Bool) -> String {
             guard reminderArmed, mealTimeReminderMinutes > 0 else { return note }
             let prefix = String(localized: "Meal-time reminder: \(Int(mealTimeReminderMinutes)) min")
