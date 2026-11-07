@@ -18,13 +18,8 @@ struct PendingMealTimeReminder: Equatable, Codable {
 protocol MealTimeReminderService: AnyObject {
     func requestAuthorization() async
 
-    /// Schedules the reminder immediately. Used for external insulin, where there is no pump
-    /// delivery to wait for.
+    /// Schedules the reminder `after` from now.
     @discardableResult func scheduleEatReminder(after leadTime: TimeInterval, carbs: Decimal, bolusAmount: Decimal) async -> Bool
-
-    /// Registers the reminder to be scheduled once the pump reports the bolus has finished
-    /// delivering (or was cancelled early), so the lead time is not eaten into by the delivery.
-    func prepareEatReminder(after leadTime: TimeInterval, carbs: Decimal, bolusAmount: Decimal) async
 
     @MainActor func cancelPendingReminders()
 
@@ -32,7 +27,6 @@ protocol MealTimeReminderService: AnyObject {
 }
 
 @Observable final class BaseMealTimeReminderService: MealTimeReminderService, Injectable {
-    @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
     @ObservationIgnored @Injected() private var trioAlertManager: TrioAlertManager!
 
     private static let pendingReminderDefaultsKey = "Trio.mealTimeReminderPending"
@@ -40,24 +34,9 @@ protocol MealTimeReminderService: AnyObject {
     /// LoopKit alert identifier for the pre-iOS 26 path.
     private static let alertIdentifier = Alert.Identifier.mealTimeReminderEat
 
-    /// Extra time past the lead time after which an awaiting bolus completion is considered
-    /// lost (pump went silent mid-delivery), so a much-later, unrelated completion can't
-    /// schedule a stale reminder.
-    private static let staleCompletionAllowance: TimeInterval = 5 * 60
-
-    /// A reminder whose bolus is still delivering; scheduled once delivery stops.
-    private struct AwaitingBolusCompletion: Equatable {
-        let id: UUID
-        let leadTime: TimeInterval
-        let carbs: Decimal
-    }
-
     @MainActor private(set) var pendingReminder: PendingMealTimeReminder?
 
     @ObservationIgnored private var expiryTask: Task<Void, Never>?
-
-    @ObservationIgnored private var awaitingCompletion: AwaitingBolusCompletion?
-    @ObservationIgnored private var awaitingExpiryTask: Task<Void, Never>?
 
     /// The AlarmKit alarm this service scheduled, so cancel never touches foreign alarms (e.g.
     /// the critical safety alarms that share `AlarmManager.shared`).
@@ -65,7 +44,6 @@ protocol MealTimeReminderService: AnyObject {
 
     init(resolver: Resolver) {
         injectServices(resolver)
-        broadcaster.register(BolusDeliveryObserver.self, observer: self)
         Task { await restorePendingReminder() }
     }
 
@@ -114,44 +92,7 @@ protocol MealTimeReminderService: AnyObject {
         return true
     }
 
-    func prepareEatReminder(
-        after leadTime: TimeInterval,
-        carbs: Decimal,
-        bolusAmount _: Decimal
-    ) async {
-        guard leadTime > 0 else { return }
-
-        await cancelPendingReminders()
-
-        let awaiting = AwaitingBolusCompletion(id: UUID(), leadTime: leadTime, carbs: carbs)
-        await MainActor.run { awaitingCompletion = awaiting }
-        debug(.bolus, "Meal-time reminder awaiting bolus completion: \(Int(leadTime / 60)) min lead time")
-
-        await MainActor.run {
-            startAwaitingExpiry(awaiting, after: leadTime + Self.staleCompletionAllowance)
-        }
-    }
-
-    /// Once delivery plus lead time would surely have passed, drop the awaiting record so a
-    /// much-later, unrelated completion can't schedule a stale reminder.
-    @MainActor private func startAwaitingExpiry(_ awaiting: AwaitingBolusCompletion, after delay: TimeInterval) {
-        awaitingExpiryTask?.cancel()
-        awaitingExpiryTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-            guard !Task.isCancelled else { return }
-            await MainActor.run {
-                guard let self, self.awaitingCompletion == awaiting else { return }
-                debug(.bolus, "Meal-time reminder dropped: bolus completion never arrived")
-                self.awaitingCompletion = nil
-            }
-        }
-    }
-
     @MainActor func cancelPendingReminders() {
-        awaitingCompletion = nil
-        awaitingExpiryTask?.cancel()
-        awaitingExpiryTask = nil
-
         // Must run before setPendingReminder(nil), which is what scheduledAlarmID mirrors.
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *), let alarmID = scheduledAlarmID {
@@ -336,32 +277,6 @@ protocol MealTimeReminderService: AnyObject {
             return String(localized: "Time to eat! You logged \(carbsText) g of carbs.")
         case (false, false):
             return String(localized: "Time to eat!")
-        }
-    }
-}
-
-extension BaseMealTimeReminderService: BolusDeliveryObserver {
-    /// The lead time starts when delivery actually stops, not when the pump accepted the command.
-    /// A cancelled bolus still schedules the reminder for whatever was delivered; zero delivered
-    /// means there is nothing to cover.
-    func bolusDeliveryDidFinish(deliveredUnits: Double) {
-        Task { @MainActor in
-            guard let awaiting = awaitingCompletion else { return }
-            debug(.bolus, "Bolus delivery finished with \(deliveredUnits) U; scheduling meal-time reminder")
-            awaitingCompletion = nil
-            awaitingExpiryTask?.cancel()
-            awaitingExpiryTask = nil
-
-            guard deliveredUnits > 0 else {
-                cancelPendingReminders()
-                return
-            }
-
-            await scheduleEatReminder(
-                after: awaiting.leadTime,
-                carbs: awaiting.carbs,
-                bolusAmount: Decimal(deliveredUnits)
-            )
         }
     }
 }

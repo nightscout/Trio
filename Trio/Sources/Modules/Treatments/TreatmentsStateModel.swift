@@ -308,6 +308,9 @@ extension Treatments {
             Task {
                 await apsManager.cancelBolus(nil)
                 try? await apsManager.determineBasalSync()
+                // The reminder was scheduled for the full requested amount; an interrupted bolus
+                // doesn't deliver that, and the carbs are already logged regardless, so just drop it.
+                await mealTimeReminderService.cancelPendingReminders()
             }
         }
 
@@ -521,25 +524,14 @@ extension Treatments {
                 if isInsulinGiven {
                     let delivered = await handleInsulin(isExternal: externalInsulin)
 
-                    // Only once the bolus command was accepted does anything get scheduled: an alarm
-                    // after a failed bolus would tell the user to eat uncovered carbs. For pump
-                    // boluses the reminder itself waits for the delivery to finish (or be cancelled
-                    // early), so a long delivery doesn't eat into the lead time. The alarm has to
-                    // outlive this screen, so it is handled by the service rather than the view.
-                    if delivered && reminderArmed {
-                        if externalInsulin {
-                            await mealTimeReminderService.scheduleEatReminder(
-                                after: leadTime,
-                                carbs: carbs,
-                                bolusAmount: amount
-                            )
-                        } else {
-                            await mealTimeReminderService.prepareEatReminder(
-                                after: leadTime,
-                                carbs: carbs,
-                                bolusAmount: amount
-                            )
-                        }
+                    // Only once the bolus command was accepted does anything get scheduled: an
+                    // alarm after a failed bolus would tell the user to eat uncovered carbs.
+                    if delivered, reminderArmed {
+                        await mealTimeReminderService.scheduleEatReminder(
+                            after: leadTime,
+                            carbs: carbs,
+                            bolusAmount: amount
+                        )
                     }
                 } else {
                     // No insulin: with the reminder set this is a standalone timer over the

@@ -198,7 +198,7 @@ extension BolusCalculatorConfig {
                                     "Enabling this option adds a \"Remind Me to Eat\" row to the bolus calculator. When enabled for a meal, it lets you set a timer based on your configured presets."
                                 )
                                 Text(
-                                    "Set how many minutes before eating you want to bolus. The reminder starts off for each meal. Once the bolus is delivered, an alarm counts down until it is time to eat."
+                                    "Set how many minutes before eating you want to bolus. The reminder starts off for each meal. Once the bolus is confirmed, an alarm counts down until it is time to eat."
                                 )
                             },
                             label: String(localized: "Enable Meal-Time Reminder Option")

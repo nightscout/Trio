@@ -266420,7 +266420,7 @@
         }
       }
     },
-    "Set how many minutes before eating you want to bolus. The reminder starts off for each meal. Once the bolus is delivered, an alarm counts down until it is time to eat." : {
+    "Set how many minutes before eating you want to bolus. The reminder starts off for each meal. Once the bolus is confirmed, an alarm counts down until it is time to eat." : {
 
     },
     "Set limits for each type of macro per meal entry." : {
