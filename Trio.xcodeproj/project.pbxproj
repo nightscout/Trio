@@ -1154,6 +1154,7 @@
 		4B2E5E56B4A54D5EA8608486 /* LoopKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; };
 		A4CEF7BBB9594AD1A935A000 /* LoopKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1EB5165261AB48C3AB179F12 /* G7SensorKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		E6F95378516C489AAF95C3D0 /* AlgorithmLoggingShim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003825BBFA684CCFA8DA2929 /* AlgorithmLoggingShim.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2393,6 +2394,7 @@
 		A66C2B3CEBDE46809E8B522C /* WatchDeviceManagers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDeviceManagers.swift; sourceTree = "<group>"; };
 		6688C245006345FDAB78C680 /* TrioWatchAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppDelegate.swift; sourceTree = "<group>"; };
 		7C1E5A0B2F1D4E6A9B3C8D21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		003825BBFA684CCFA8DA2929 /* AlgorithmLoggingShim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trio/Sources/APS/OpenAPSSwift/AlgorithmLoggingShim.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -4447,6 +4449,7 @@
 		BDFF7A9C2D25FA730016C40C /* Trio Watch App Extension */ = {
 			isa = PBXGroup;
 			children = (
+				003825BBFA684CCFA8DA2929 /* AlgorithmLoggingShim.swift */,
 				7461B194383D4B959304E145 /* WatchAlarms.swift */,
 				32A6B8C5BEE64685991B67FD /* WatchCGMHost.swift */,
 				A66C2B3CEBDE46809E8B522C /* WatchDeviceManagers.swift */,
@@ -6703,6 +6706,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E6F95378516C489AAF95C3D0 /* AlgorithmLoggingShim.swift in Sources */,
 				272BFEADB1AE49E9AA5290ED /* WatchAlarms.swift in Sources */,
 				C788E1B5524B4596AC33BB7B /* WatchCGMHost.swift in Sources */,
 				E688674CA6A94925995C023E /* WatchDeviceManagers.swift in Sources */,
@@ -7224,7 +7228,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG TRIO_ALGORITHM_PACKAGE $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -7235,6 +7239,7 @@
 		BDFF79A22D25AA890016C40C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "TRIO_ALGORITHM_PACKAGE $(inherited)";
 				INFOPLIST_FILE = "Trio Watch App Extension/Info.plist";
 				PRODUCT_MODULE_NAME = Trio;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
