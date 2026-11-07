@@ -58,6 +58,21 @@ enum WatchMessageKeys {
 
     // Forecast
     static let showForecastWatch = "showForecastWatch"
+    /// Whether the watch's own urgent low alarm should use Critical Alerts.
+    static let useCriticalAlertsWatch = "useCriticalAlertsWatch"
+    /// Latest CGM export for the watch's own sensor link; can be absent while the phone is starting.
+    static let watchSensorConfiguration = "watchSensorConfiguration"
+    /// The CGM's Read on Apple Watch; independent of whether the phone's CGM manager is loaded yet.
+    static let watchReadsSensor = "watchReadsSensor"
+    /// mg/dL bounds, target and color scheme the watch colors its own readings by.
+    static let glucoseRangeLow = "glucoseRangeLow"
+    static let glucoseRangeHigh = "glucoseRangeHigh"
+    static let glucoseRangeTarget = "glucoseRangeTarget"
+    static let glucoseColorScheme = "glucoseColorScheme"
+    /// mg/dL of the phone's glucose alarms that are on, the most cautious of each; 0: none.
+    static let glucoseAlarmUrgentLow = "glucoseAlarmUrgentLow"
+    static let glucoseAlarmLow = "glucoseAlarmLow"
+    static let glucoseAlarmHigh = "glucoseAlarmHigh"
     static let isForecastCone = "isForecastCone"
     static let forecastData = "forecastData"
     static let forecastStartDate = "forecastStartDate"

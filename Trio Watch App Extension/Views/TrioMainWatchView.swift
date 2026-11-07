@@ -3,7 +3,7 @@ import SwiftUI
 import WatchKit
 
 struct TrioMainWatchView: View {
-    @State private var state = WatchState()
+    @State private var state = WatchState.shared
 
     // misc
     @State private var currentPage: Int = 0
@@ -19,6 +19,15 @@ struct TrioMainWatchView: View {
 
     // treatments
     @State private var selectedTreatment: TreatmentOption?
+
+    /// Ticks the bubble's staleness and the switch to the watch's own readings.
+    @State private var now = Date()
+
+    /// The bubble is dated by its newest reading, the watch's own included; without readings, by the last update.
+    private var isReadingDated: Bool {
+        guard let newestReading = state.glucoseValues.last?.date else { return isWatchStateDated }
+        return now.timeIntervalSince(newestReading) > 6 * 60
+    }
 
     var isWatchStateDated: Bool {
         // If `lastWatchStateUpdate` is nil, treat as "dated"
@@ -67,7 +76,9 @@ struct TrioMainWatchView: View {
                     GlucoseTrendView(
                         state: state,
                         rotationDegrees: rotationDegrees,
-                        isWatchStateDated: isWatchStateDated || isSessionUnreachable
+                        isWatchStateDated: isReadingDated,
+                        // the phone's readings still come: a state of the watch's own link is no reason to hide the minutes
+                        sensorStateText: state.phoneReadingsAreFresh(at: now) ? nil : WatchCGMHost.shared.sensorStateText
                     )
 
                     if state.showSyncingAnimation {
@@ -230,6 +241,7 @@ struct TrioMainWatchView: View {
             }
         }
         .ignoresSafeArea()
+        .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { now = $0 }
     }
 
     private func updateRotation(for trend: String?) {
