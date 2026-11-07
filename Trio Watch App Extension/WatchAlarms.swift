@@ -59,19 +59,32 @@ import WatchKit
             return
         }
         lastAlarm[kind] = Date()
-        notify(id: Self.notificationPrefix + kind, critical: Self.criticalKinds.contains(kind), title: title, body: body)
+        notify(
+            id: Self.notificationPrefix + kind,
+            critical: Self.criticalKinds.contains(kind),
+            title: title,
+            body: body,
+            // the phone's snooze actions
+            category: NotificationCategoryIdentifier.trioAlert.rawValue
+        )
         // felt at once while the app runs; the notification may wait for the screen
         WKInterfaceDevice.current().play(kind == "high" ? .notification : .failure)
         WatchLogger.shared.info(.data, "Watch alarm: \(title) \(body)")
     }
 
-    func notify(id: String, critical: Bool = false, title: String, body: String, after delay: TimeInterval? = nil) {
+    func notify(
+        id: String,
+        critical: Bool = false,
+        title: String,
+        body: String,
+        category: String? = nil,
+        after delay: TimeInterval? = nil
+    ) {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = critical && WatchState.shared.useCriticalAlerts ? .defaultCritical : .default
-        // the phone's snooze actions
-        content.categoryIdentifier = NotificationCategoryIdentifier.trioAlert.rawValue
+        if let category { content.categoryIdentifier = category }
         let trigger = delay.flatMap { $0 > 0 ? UNTimeIntervalNotificationTrigger(timeInterval: $0, repeats: false) : nil }
         UNUserNotificationCenter.current()
             .add(UNNotificationRequest(identifier: id, content: content, trigger: trigger)) { error in

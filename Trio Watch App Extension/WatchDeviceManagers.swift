@@ -14,6 +14,9 @@ protocol WatchReadableCGM: CGMManager & DeviceConfigurationSharing {
     var watchSensorStateText: String? { get }
     /// The sensor itself needs a look: the yellow triangle in the glucose bubble.
     var watchHasSensorProblem: Bool { get }
+    /// A pairing that watchOS only lets through with Trio on the screen (its Bluetooth pairing request shows only
+    /// then), as for a sensor the phone has just paired.
+    var watchNeedsAppInFront: Bool { get }
     /// A wake that is not the sensor's own: its acquisition re-checks itself.
     func recheckAcquisition()
 }
@@ -39,7 +42,7 @@ func watchCGMManager(rawValue: [String: Any]) -> (any WatchReadableCGM)? {
 extension G7CGMManager: WatchReadableCGM {
     var watchSensorStateText: String? {
         if needsCodeForSensor != nil { return String(localized: "Sensor code needed") }
-        if isSearchingForSensor { return String(localized: "Searching for sensor") }
+        if isSearchingForSensor { return String(localized: "Pairing the sensor: keep Trio open") }
         switch lifecycleState {
         case .warmup: return String(localized: "Sensor warmup")
         case .failed: return String(localized: "Sensor failed")
@@ -48,6 +51,9 @@ extension G7CGMManager: WatchReadableCGM {
         default: return nil
         }
     }
+
+    /// Searching is for a sensor the watch has never connected to: a new one.
+    var watchNeedsAppInFront: Bool { isSearchingForSensor }
 
     var watchHasSensorProblem: Bool {
         switch lifecycleState {

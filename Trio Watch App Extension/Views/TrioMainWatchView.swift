@@ -77,8 +77,7 @@ struct TrioMainWatchView: View {
                         state: state,
                         rotationDegrees: rotationDegrees,
                         isWatchStateDated: isReadingDated,
-                        // the phone's readings still come: a state of the watch's own link is no reason to hide the minutes
-                        sensorStateText: state.phoneReadingsAreFresh(at: now) ? nil : WatchCGMHost.shared.sensorStateText
+                        sensorStateText: WatchCGMHost.shared.sensorStateText
                     )
 
                     if state.showSyncingAnimation {
