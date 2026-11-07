@@ -131885,6 +131885,9 @@
         }
       }
     },
+    "Entry expired after 2 minutes. Nothing was sent. Please enter it again." : {
+      "comment" : "Watch message when a carbs or bolus entry was too old to send"
+    },
     "Error" : {
       "comment" : "Error title",
       "localizations" : {

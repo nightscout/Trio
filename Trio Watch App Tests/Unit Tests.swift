@@ -175,4 +175,102 @@ import Testing
         #expect(watchState.acknowledgementStatus == .success)
         #expect(watchState.acknowledgmentMessage == "Bolus enacted successfully.")
     }
+
+    // MARK: - Entries expire after 2 minutes
+
+    private let entryStart = Date(timeIntervalSince1970: 1_800_000_000)
+
+    /// An entry on the confirm screen: 20 g carbs and 3 U, last edited at `entryStart`
+    private func enterMealBolus() {
+        watchState.carbsAmount = 20
+        watchState.bolusAmount = 3.0
+        watchState.confirmationProgress = 0.5
+        watchState.markEntryEdited(at: entryStart)
+    }
+
+    private func expectEntryCleared() {
+        #expect(watchState.bolusAmount == 0)
+        #expect(watchState.carbsAmount == 0)
+        #expect(watchState.confirmationProgress == 0)
+        #expect(watchState.entryEditedAt == nil)
+    }
+
+    @Test("An entry is fresh for 2 minutes after its last edit") func testEntryFreshness() throws {
+        #expect(!watchState.isEntryFresh(at: entryStart), "no entry has been edited yet")
+
+        watchState.markEntryEdited(at: entryStart)
+
+        #expect(watchState.isEntryFresh(at: entryStart.addingTimeInterval(119)))
+        #expect(watchState.isEntryFresh(at: entryStart.addingTimeInterval(120)))
+        #expect(!watchState.isEntryFresh(at: entryStart.addingTimeInterval(121)))
+
+        // Editing again restarts the clock
+        watchState.markEntryEdited(at: entryStart.addingTimeInterval(100))
+        #expect(watchState.isEntryFresh(at: entryStart.addingTimeInterval(200)))
+    }
+
+    @Test("Confirming an entry older than 2 minutes sends nothing and clears it")
+    func testExpiredEntryNotSent() throws {
+        enterMealBolus()
+
+        watchState.sendConfirmedEntry(bolusAmount: 3.0, at: entryStart.addingTimeInterval(121))
+
+        // The expired message, not "phone unreachable", shows nothing was attempted
+        #expect(watchState.acknowledgementStatus == .failure)
+        #expect(watchState.acknowledgmentMessage == WatchState.entryExpiredMessage)
+        expectEntryCleared()
+    }
+
+    @Test("Confirming an entry with no recorded edit sends nothing") func testUneditedEntryNotSent() throws {
+        watchState.bolusAmount = 3.0
+
+        watchState.sendConfirmedEntry(bolusAmount: 3.0, at: entryStart)
+
+        #expect(watchState.acknowledgmentMessage == WatchState.entryExpiredMessage)
+        expectEntryCleared()
+    }
+
+    @Test("Confirming a fresh entry sends it and clears it") func testFreshEntrySent() throws {
+        enterMealBolus()
+        // No phone in tests: reaching the "unreachable" refusal proves the send was attempted
+        watchState.session = nil
+
+        watchState.sendConfirmedEntry(bolusAmount: 3.0, at: entryStart.addingTimeInterval(60))
+
+        #expect(watchState.acknowledgmentMessage == WatchState.phoneUnreachableMessage)
+        expectEntryCleared()
+    }
+
+    @Test("Logging carbs older than 2 minutes sends nothing") func testExpiredCarbsNotSent() throws {
+        watchState.markEntryEdited(at: entryStart)
+
+        watchState.sendCarbsEntry(20, at: entryStart.addingTimeInterval(121))
+
+        #expect(watchState.acknowledgmentMessage == WatchState.entryExpiredMessage)
+        expectEntryCleared()
+    }
+
+    @Test("Logging fresh carbs sends them") func testFreshCarbsSent() throws {
+        watchState.markEntryEdited(at: entryStart)
+        watchState.session = nil
+
+        watchState.sendCarbsEntry(20, at: entryStart.addingTimeInterval(60))
+
+        #expect(watchState.acknowledgmentMessage == WatchState.phoneUnreachableMessage)
+        expectEntryCleared()
+    }
+
+    @Test("Returning to the app clears an entry older than 2 minutes") func testStaleEntryExpiresOnReturn() throws {
+        enterMealBolus()
+
+        #expect(!watchState.expireStaleEntry(at: entryStart.addingTimeInterval(120)))
+        #expect(watchState.bolusAmount == 3.0)
+
+        #expect(watchState.expireStaleEntry(at: entryStart.addingTimeInterval(121)))
+        expectEntryCleared()
+    }
+
+    @Test("Returning to the app with no entry in progress changes nothing") func testNoEntryOnReturn() throws {
+        #expect(!watchState.expireStaleEntry(at: entryStart))
+    }
 }

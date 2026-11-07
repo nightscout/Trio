@@ -4,6 +4,35 @@ import WatchConnectivity
 // MARK: - Send Data to Phone
 
 extension WatchState {
+    /// Sends the entry confirmed with the crown: its carbs, if any, then the bolus.
+    /// Refuses an entry older than `entryLifetime` and clears it instead.
+    func sendConfirmedEntry(bolusAmount amount: Double, at now: Date = Date()) {
+        guard refuseIfExpired(at: now) == false else { return }
+
+        let carbs = carbsAmount
+        clearEntry()
+        if carbs > 0 {
+            sendCarbsRequest(carbs, now)
+        }
+        sendBolusRequest(Decimal(amount))
+    }
+
+    /// Sends a carbs-only entry ("Log Carbs"). Refuses an entry older than `entryLifetime` and clears it instead.
+    func sendCarbsEntry(_ amount: Int, at now: Date = Date()) {
+        guard refuseIfExpired(at: now) == false else { return }
+
+        clearEntry()
+        sendCarbsRequest(amount, now)
+    }
+
+    private func refuseIfExpired(at now: Date) -> Bool {
+        guard !isEntryFresh(at: now) else { return false }
+        WatchLogger.shared.warning(.treatments, "Entry older than \(Int(Self.entryLifetime / 60)) min not sent")
+        clearEntry()
+        handleRequestNotSent(Self.entryExpiredMessage)
+        return true
+    }
+
     /// Sends a bolus insulin request to the paired iPhone
     /// - Parameters:
     ///   - amount: The insulin amount to be delivered
