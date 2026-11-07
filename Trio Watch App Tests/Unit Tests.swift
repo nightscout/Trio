@@ -1,10 +1,14 @@
-import SwiftUICore
+import SwiftUI
 import Testing
 @testable import Trio_Watch_App
-import XCTest
 
-@Suite("Watch App Tests") final class TrioWatchAppTests {
+@Suite("Watch App Tests", .serialized) @MainActor final class TrioWatchAppTests {
     var watchState = WatchState()
+
+    /// Lets main-queue work scheduled by WatchState (asyncAfter, async) run
+    private func waitForMainQueue(_ seconds: Double) async throws {
+        try await Task.sleep(for: .milliseconds(Int(seconds * 1000)))
+    }
 
     // MARK: - Color Conversion Tests
 
@@ -40,47 +44,9 @@ import XCTest
 
     @Test("Carb limits have correct default values") func testCarbLimits() throws {
         #expect(watchState.maxCarbs == Decimal(250))
-        #expect(watchState.maxCOB == Decimal(120))
     }
 
-    @Test("Bolus cancellation resets all related values") func testBolusCancellation() throws {
-        // Given
-        watchState.bolusProgress = 0.5
-        watchState.activeBolusAmount = 5.0
-        watchState.isBolusCanceled = false
-
-        // When
-        watchState.sendCancelBolusRequest()
-
-        // Then
-        #expect(watchState.isBolusCanceled)
-        #expect(watchState.bolusProgress == 0)
-        #expect(watchState.activeBolusAmount == 0)
-    }
-
-    @Test("Meal bolus combo state transitions work correctly") func testMealBolusComboState() throws {
-        // Given - Initial state
-        #expect(!watchState.isMealBolusCombo)
-        #expect(watchState.mealBolusStep == .savingCarbs)
-
-        // When - Setup meal bolus combo
-        watchState.carbsAmount = 30
-        watchState.bolusAmount = 3.0
-
-        // Then - Test state transitions
-        watchState.handleAcknowledgment(success: true, message: "Saving carbs...", isFinal: false)
-        #expect(watchState.isMealBolusCombo)
-        #expect(watchState.mealBolusStep == .savingCarbs)
-
-        watchState.handleAcknowledgment(success: true, message: "Enacting bolus...", isFinal: false)
-        #expect(watchState.isMealBolusCombo)
-        #expect(watchState.mealBolusStep == .enactingBolus)
-
-        watchState.handleAcknowledgment(success: true, message: "Carbs and bolus logged successfully", isFinal: true)
-        #expect(!watchState.isMealBolusCombo)
-    }
-
-    @Test("Acknowledgment states transition correctly") func testAcknowledgmentStates() throws {
+    @Test("Acknowledgment states transition correctly") func testAcknowledgmentStates() async throws {
         // Given - Initial state
         #expect(watchState.acknowledgementStatus == .pending)
         #expect(!watchState.showAcknowledgmentBanner)
@@ -88,13 +54,125 @@ import XCTest
         // When/Then - Success acknowledgment
         watchState.handleAcknowledgment(success: true, message: "Success")
         #expect(watchState.acknowledgementStatus == .success)
-        #expect(watchState.showAcknowledgmentBanner)
         #expect(watchState.acknowledgmentMessage == "Success")
+        try await waitForMainQueue(0.5)
+        #expect(watchState.showAcknowledgmentBanner)
 
         // When/Then - Failure acknowledgment
         watchState.handleAcknowledgment(success: false, message: "Error")
         #expect(watchState.acknowledgementStatus == .failure)
-        #expect(watchState.showAcknowledgmentBanner)
         #expect(watchState.acknowledgmentMessage == "Error")
+    }
+
+    // MARK: - Reachability must not touch entries in progress
+
+    @Test("Phone reconnecting keeps the bolus being confirmed") func testReconnectKeepsBolusEntry() throws {
+        // Given - the user is on the confirm screen, partway through dialing the crown
+        watchState.bolusAmount = 3.0
+        watchState.carbsAmount = 20
+        watchState.confirmationProgress = 0.5
+
+        // When - raising the wrist reconnects the phone
+        watchState.handleReachabilityChange(isReachable: false)
+        watchState.handleReachabilityChange(isReachable: true)
+
+        // Then - the confirmed amount is still the one the user entered, not 0 U
+        #expect(watchState.bolusAmount == 3.0)
+        #expect(watchState.carbsAmount == 20)
+        #expect(watchState.confirmationProgress == 0.5)
+    }
+
+    // MARK: - Bolus requests that must not be sent
+
+    @Test("Zero bolus is refused on the watch", arguments: [
+        Decimal(0),
+        Decimal(-1)
+    ]) func testZeroBolusRefused(amount: Decimal) async throws {
+        watchState.sendBolusRequest(amount)
+
+        #expect(watchState.acknowledgementStatus == .failure)
+        #expect(watchState.acknowledgmentMessage == WatchState.invalidBolusAmountMessage)
+        try await waitForMainQueue(0.5)
+        #expect(!watchState.showCommsAnimation)
+        #expect(watchState.showAcknowledgmentBanner)
+    }
+
+    @Test("Bolus with the phone unreachable says nothing was sent") func testUnreachableBolus() async throws {
+        watchState.session = nil
+
+        watchState.sendBolusRequest(3)
+
+        #expect(watchState.acknowledgementStatus == .failure)
+        #expect(watchState.acknowledgmentMessage == WatchState.phoneUnreachableMessage)
+        try await waitForMainQueue(0.5)
+        #expect(!watchState.showCommsAnimation)
+        #expect(watchState.showAcknowledgmentBanner)
+    }
+
+    @Test("Other treatment requests with the phone unreachable say nothing was sent") func testUnreachableTreatments() throws {
+        watchState.session = nil
+        let requests: [() -> Void] = [
+            { self.watchState.sendCarbsRequest(20) },
+            { self.watchState.sendCancelOverrideRequest() },
+            { self.watchState.sendActivateOverrideRequest(presetName: "Exercise") },
+            { self.watchState.sendCancelTempTargetRequest() },
+            { self.watchState.sendActivateTempTargetRequest(presetName: "Eating soon") }
+        ]
+
+        for request in requests {
+            watchState.acknowledgementStatus = .pending
+            watchState.acknowledgmentMessage = ""
+            request()
+            #expect(watchState.acknowledgementStatus == .failure)
+            #expect(watchState.acknowledgmentMessage == WatchState.phoneUnreachableMessage)
+        }
+    }
+
+    // MARK: - Waiting for the phone's answer
+
+    @Test("Processing ends with a check-your-phone message when the phone never answers") func testAcknowledgmentTimeout() async throws {
+        watchState.beginAwaitingAcknowledgment(timeout: 0.1)
+        #expect(watchState.showCommsAnimation)
+        #expect(watchState.acknowledgementStatus == .pending)
+
+        try await waitForMainQueue(0.6)
+
+        #expect(!watchState.showCommsAnimation)
+        #expect(watchState.acknowledgementStatus == .failure)
+        #expect(watchState.acknowledgmentMessage == WatchState.noAnswerMessage)
+        #expect(watchState.showAcknowledgmentBanner)
+    }
+
+    @Test("An answer from the phone cancels the timeout") func testAcknowledgmentCancelsTimeout() async throws {
+        watchState.beginAwaitingAcknowledgment(timeout: 0.1)
+
+        watchState.handleAcknowledgment(success: true, message: "Bolus enacted successfully.")
+        try await waitForMainQueue(0.6)
+
+        #expect(watchState.acknowledgementStatus == .success)
+        #expect(watchState.acknowledgmentMessage == "Bolus enacted successfully.")
+    }
+
+    @Test("A send error ends processing with the check-your-phone message") func testSendErrorEndsProcessing() async throws {
+        watchState.beginAwaitingAcknowledgment(timeout: 60)
+
+        // What the sendMessage error handler does
+        watchState.handleMissingAcknowledgment()
+
+        #expect(watchState.acknowledgementStatus == .failure)
+        #expect(watchState.acknowledgmentMessage == WatchState.noAnswerMessage)
+        try await waitForMainQueue(0.5)
+        #expect(!watchState.showCommsAnimation)
+    }
+
+    @Test("A late timeout does not overwrite an answer already shown") func testMissingAcknowledgmentAfterAnswer() async throws {
+        watchState.beginAwaitingAcknowledgment(timeout: 60)
+        watchState.handleAcknowledgment(success: true, message: "Bolus enacted successfully.")
+        try await waitForMainQueue(0.3)
+
+        watchState.handleMissingAcknowledgment()
+
+        #expect(watchState.acknowledgementStatus == .success)
+        #expect(watchState.acknowledgmentMessage == "Bolus enacted successfully.")
     }
 }

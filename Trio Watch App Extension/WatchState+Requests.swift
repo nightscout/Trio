@@ -8,23 +8,17 @@ extension WatchState {
     /// - Parameters:
     ///   - amount: The insulin amount to be delivered
     func sendBolusRequest(_ amount: Decimal) {
-        guard let session = session, session.isReachable else {
-            WatchLogger.shared.warning(.bolus, "Bolus request not sent, phone unreachable")
+        guard amount > 0 else {
+            WatchLogger.shared.warning(.bolus, "Bolus of \(amount) U not sent, amount must be above 0")
+            handleRequestNotSent(Self.invalidBolusAmountMessage)
             return
         }
 
+        guard let session = reachableSession(.bolus, notSentLog: "Bolus request not sent, phone unreachable") else { return }
+
         WatchLogger.shared.info(.bolus, "Bolus of \(amount) U requested")
 
-        let message: [String: Any] = [
-            WatchMessageKeys.bolus: amount
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            WatchLogger.shared.error(.bolus, "Sending bolus request failed", error: error)
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
+        send([WatchMessageKeys.bolus: amount], on: session, .bolus, failureLog: "Sending bolus request failed")
     }
 
     /// Sends a carbohydrate entry request to the paired iPhone
@@ -32,10 +26,7 @@ extension WatchState {
     ///   - amount: The amount of carbs in grams
     ///   - date: The timestamp for the carb entry (defaults to current time)
     func sendCarbsRequest(_ amount: Int, _ date: Date = Date()) {
-        guard let session = session, session.isReachable else {
-            WatchLogger.shared.warning(.treatments, "Carbs request not sent, phone unreachable")
-            return
-        }
+        guard let session = reachableSession(.treatments, notSentLog: "Carbs request not sent, phone unreachable") else { return }
 
         WatchLogger.shared.info(.treatments, "Carbs of \(amount) g requested for \(date)")
 
@@ -43,99 +34,91 @@ extension WatchState {
             WatchMessageKeys.carbs: amount,
             WatchMessageKeys.date: date.timeIntervalSince1970
         ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            WatchLogger.shared.error(.treatments, "Sending carbs request failed", error: error)
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
+        send(message, on: session, .treatments, failureLog: "Sending carbs request failed")
     }
 
     /// Sends a request to cancel the current override preset to the paired iPhone
     func sendCancelOverrideRequest() {
-        guard let session = session, session.isReachable else {
-            WatchLogger.shared.warning(.treatments, "Override cancel not sent, phone unreachable")
-            return
-        }
+        guard let session = reachableSession(.treatments, notSentLog: "Override cancel not sent, phone unreachable")
+        else { return }
 
         WatchLogger.shared.info(.treatments, "Override cancel requested")
 
-        let message: [String: Any] = [
-            WatchMessageKeys.cancelOverride: true
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            WatchLogger.shared.error(.treatments, "Sending override cancel failed", error: error)
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
+        send([WatchMessageKeys.cancelOverride: true], on: session, .treatments, failureLog: "Sending override cancel failed")
     }
 
     /// Sends a request to activate an override preset to the paired iPhone
     /// - Parameter presetName: The name of the override preset to activate
     func sendActivateOverrideRequest(presetName: String) {
-        guard let session = session, session.isReachable else {
-            WatchLogger.shared.warning(.treatments, "Override request not sent, phone unreachable")
-            return
-        }
+        guard let session = reachableSession(.treatments, notSentLog: "Override request not sent, phone unreachable")
+        else { return }
 
         WatchLogger.shared.info(.treatments, "Override preset \(presetName) requested")
 
-        let message: [String: Any] = [
-            WatchMessageKeys.activateOverride: presetName
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            WatchLogger.shared.error(.treatments, "Sending override request failed", error: error)
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
+        send(
+            [WatchMessageKeys.activateOverride: presetName],
+            on: session,
+            .treatments,
+            failureLog: "Sending override request failed"
+        )
     }
 
     /// Sends a request to cancel the current temporary target to the paired iPhone
     func sendCancelTempTargetRequest() {
-        guard let session = session, session.isReachable else {
-            WatchLogger.shared.warning(.treatments, "Temp target cancel not sent, phone unreachable")
-            return
-        }
+        guard let session = reachableSession(.treatments, notSentLog: "Temp target cancel not sent, phone unreachable")
+        else { return }
 
         WatchLogger.shared.info(.treatments, "Temp target cancel requested")
 
-        let message: [String: Any] = [
-            WatchMessageKeys.cancelTempTarget: true
-        ]
-
-        session.sendMessage(message, replyHandler: nil) { error in
-            WatchLogger.shared.error(.treatments, "Sending temp target cancel failed", error: error)
-        }
-
-        // Display pending communication animation
-        showCommsAnimation = true
+        send(
+            [WatchMessageKeys.cancelTempTarget: true],
+            on: session,
+            .treatments,
+            failureLog: "Sending temp target cancel failed"
+        )
     }
 
     /// Sends a request to activate a temporary target preset to the paired iPhone
     /// - Parameter presetName: The name of the temporary target preset to activate
     func sendActivateTempTargetRequest(presetName: String) {
-        guard let session = session, session.isReachable else {
-            WatchLogger.shared.warning(.treatments, "Temp target request not sent, phone unreachable")
-            return
-        }
+        guard let session = reachableSession(.treatments, notSentLog: "Temp target request not sent, phone unreachable")
+        else { return }
 
         WatchLogger.shared.info(.treatments, "Temp target preset \(presetName) requested")
 
-        let message: [String: Any] = [
-            WatchMessageKeys.activateTempTarget: presetName
-        ]
+        send(
+            [WatchMessageKeys.activateTempTarget: presetName],
+            on: session,
+            .treatments,
+            failureLog: "Sending temp target request failed"
+        )
+    }
+
+    /// The session when the phone can take a request; otherwise tells the user nothing was sent
+    private func reachableSession(_ category: WatchLogEntry.Category, notSentLog: String) -> WCSession? {
+        guard let session = session, session.isReachable else {
+            WatchLogger.shared.warning(category, notSentLog)
+            handleRequestNotSent(Self.phoneUnreachableMessage)
+            return nil
+        }
+        return session
+    }
+
+    /// Sends a treatment request and waits for the phone's acknowledgment
+    private func send(
+        _ message: [String: Any],
+        on session: WCSession,
+        _ category: WatchLogEntry.Category,
+        failureLog: String
+    ) {
+        beginAwaitingAcknowledgment()
 
         session.sendMessage(message, replyHandler: nil) { error in
-            WatchLogger.shared.error(.treatments, "Sending temp target request failed", error: error)
+            WatchLogger.shared.error(category, failureLog, error: error)
+            DispatchQueue.main.async {
+                self.handleMissingAcknowledgment()
+            }
         }
-
-        // Display pending communication animation
-        showCommsAnimation = true
     }
 
     /// Sends a request to calculate a bolus recommendation based on the current carbs amount
