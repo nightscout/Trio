@@ -132,7 +132,9 @@ import WatchKit
         WatchAlarms.shared.notify(
             id: Self.pairingNoticeID,
             title: String(localized: "Open Trio to Pair the Sensor"),
-            body: String(localized: "The watch can only pair with the sensor while Trio is open. Accept a Bluetooth pairing request if one appears.")
+            body: String(
+                localized: "The watch can only pair with the sensor while Trio is open. Accept a Bluetooth pairing request if one appears."
+            )
         )
     }
 
