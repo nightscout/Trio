@@ -471,6 +471,7 @@
 		AD3D2CD42CD01B9EB8F26522 /* PumpConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */; };
 		B015AFE32E500000000D7351 /* BolusSafetyValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015AFE12E500000000D7351 /* BolusSafetyValidator.swift */; };
 		B015AFE52E500000000D7351 /* BolusSafetyValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015AFE42E500000000D7351 /* BolusSafetyValidatorTests.swift */; };
+		E1B0A5D00000000000000002 /* EnactBolusAmountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1B0A5D00000000000000001 /* EnactBolusAmountTests.swift */; };
 		B015AFF32E600000000D7351 /* AdjustmentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015AFF12E600000000D7351 /* AdjustmentManager.swift */; };
 		B015AFF52E600000000D7351 /* AdjustmentManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015AFF42E600000000D7351 /* AdjustmentManagerTests.swift */; };
 		B63C9D934FC54853BC4EF29A /* NightscoutUploadSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10E61A0885164081B57C357C /* NightscoutUploadSerializer.swift */; };
@@ -1697,6 +1698,7 @@
 		AF65DA88F972B56090AD6AC3 /* PumpConfigDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PumpConfigDataFlow.swift; sourceTree = "<group>"; };
 		B015AFE12E500000000D7351 /* BolusSafetyValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusSafetyValidator.swift; sourceTree = "<group>"; };
 		B015AFE42E500000000D7351 /* BolusSafetyValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BolusSafetyValidatorTests.swift; sourceTree = "<group>"; };
+		E1B0A5D00000000000000001 /* EnactBolusAmountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnactBolusAmountTests.swift; sourceTree = "<group>"; };
 		B015AFF12E600000000D7351 /* AdjustmentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentManager.swift; sourceTree = "<group>"; };
 		B015AFF42E600000000D7351 /* AdjustmentManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdjustmentManagerTests.swift; sourceTree = "<group>"; };
 		B3919BBB515547118D684CA2 /* SettingsSearchTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsSearchTests.swift; sourceTree = "<group>"; };
@@ -4031,6 +4033,7 @@
 			isa = PBXGroup;
 			children = (
 				B015AFE42E500000000D7351 /* BolusSafetyValidatorTests.swift */,
+				E1B0A5D00000000000000001 /* EnactBolusAmountTests.swift */,
 			);
 			path = BolusSafetyTests;
 			sourceTree = "<group>";
@@ -6613,6 +6616,7 @@
 				41740E936552456AAC0EDCC3 /* MaxIOBSuggestionTests.swift in Sources */,
 				41740E936552456AAC0EDBC3 /* DosingModeMigrationTests.swift in Sources */,
 				B015AFE52E500000000D7351 /* BolusSafetyValidatorTests.swift in Sources */,
+				E1B0A5D00000000000000002 /* EnactBolusAmountTests.swift in Sources */,
 				BD8FC0712D661B0000B95AED /* TidepoolTherapySettingsTests.swift in Sources */,
 				CA03000000000000000010C2 /* AlertCatalogRegistryOmniFaultTests.swift in Sources */,
 				CD1235B000000000000000F2 /* TidepoolUploadSerializerTests.swift in Sources */,

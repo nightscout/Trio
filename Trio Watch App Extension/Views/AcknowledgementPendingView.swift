@@ -43,17 +43,8 @@ struct AcknowledgementPendingView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden)
         .background(trioBackgroundColor)
-        .onChange(of: state.showCommsAnimation) { oldValue, newValue in
-            if newValue && !oldValue {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                    // If after 5 seconds there is still no acknowledgement banner, return to root
-                    if !state.showAcknowledgmentBanner {
-                        // Navigate back to the root
-                        navigationPath.removeLast(navigationPath.count)
-                    }
-                }
-            }
-        }
+        // WatchState times out a missing answer by showing a banner (beginAwaitingAcknowledgment), so every
+        // request ends here. A timer in this view never started: the flag is already true when the view appears.
         .onChange(of: state.showAcknowledgmentBanner) { _, newValue in
             if !newValue {
                 // Navigate back to the root when acknowledgment banner disappears
