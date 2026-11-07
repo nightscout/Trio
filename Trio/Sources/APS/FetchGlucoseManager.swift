@@ -108,26 +108,19 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
             }
             .sink { glucose in
                 debug(.cgm, "Glucose source returned \(glucose.count) readings")
-                Publishers.CombineLatest(
-                    Just(glucose),
-                    Just(self.glucoseStorage.syncDate())
-                )
-                .eraseToAnyPublisher()
-                .sink { newGlucose, syncDate in
-                    self.glucoseStoreAndHeartLock.wait()
-                    Task {
-                        do {
-                            try await self.glucoseStoreAndHeartDecision(
-                                syncDate: syncDate,
-                                glucose: newGlucose
-                            )
-                        } catch {
-                            warning(.cgm, "Storing glucose failed", error: error)
-                        }
-                        self.glucoseStoreAndHeartLock.signal()
+                let syncDate = self.glucoseStorage.syncDate()
+                self.glucoseStoreAndHeartLock.wait()
+                Task {
+                    do {
+                        try await self.glucoseStoreAndHeartDecision(
+                            syncDate: syncDate,
+                            glucose: glucose
+                        )
+                    } catch {
+                        warning(.cgm, "Storing glucose failed", error: error)
                     }
+                    self.glucoseStoreAndHeartLock.signal()
                 }
-                .store(in: &self.lifetime)
             }
             .store(in: &lifetime)
         timer.fire()

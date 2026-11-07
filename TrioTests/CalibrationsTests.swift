@@ -4,10 +4,10 @@ import Testing
 
 @testable import Trio
 
-@Suite("Calibration Service Tests", .serialized) struct CalibrationTests: Injectable {
+@Suite("Calibration Service Tests", .serialized) @MainActor struct CalibrationTests: Injectable {
     let fileStorage = BaseFileStorage()
     @Injected() var calibrationService: CalibrationService!
-    let resolver = TrioApp().resolver
+    let resolver = TrioApp.resolver
 
     init() {
         injectServices(resolver)
@@ -72,5 +72,25 @@ import Testing
         #expect(calibrationService.slope <= 1.25, "Slope should not be more than maximum")
         #expect(calibrationService.intercept >= -100, "Intercept should not be less than minimum")
         #expect(calibrationService.intercept <= 100, "Intercept should not be more than maximum")
+    }
+
+    @Test("Concurrent calibrate and remove all do not race") func testConcurrentCalibrateAndRemoveAll() {
+        let service = BaseCalibrationService(resolver: resolver)
+        service.removeAllCalibrations()
+
+        DispatchQueue.concurrentPerform(iterations: 200) { index in
+            switch index % 3 {
+            case 0:
+                service.addCalibration(Calibration(x: 100.0, y: 110.0))
+            case 1:
+                service.removeAllCalibrations()
+            default:
+                let value = service.calibrate(value: 120)
+                #expect(value >= 0 && value <= 500)
+            }
+        }
+
+        service.removeAllCalibrations()
+        #expect(service.calibrations.isEmpty)
     }
 }
