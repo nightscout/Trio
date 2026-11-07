@@ -73,14 +73,34 @@ final class FailableTherapyProfileStorage: TherapyProfileStorage, @unchecked Sen
         try base.fetchProfiles()
     }
 
-    func storeProfiles(_ profiles: StoredTherapyProfiles) async throws {
+    func storeProfiles(
+        _ profiles: StoredTherapyProfiles,
+        switchDate: Date?,
+        switchTrigger: TherapyProfileSwitch.Trigger?
+    ) async throws {
         if failsToStore { throw TherapyProfileError.storageFailed }
         try beforeStore?()
-        try await base.storeProfiles(profiles)
+        try await base.storeProfiles(profiles, switchDate: switchDate, switchTrigger: switchTrigger)
     }
 
     func settleScheduledSwitches(at date: Date) async throws {
         try await base.settleScheduledSwitches(at: date)
+    }
+
+    func profilesNotYetUploaded() throws -> Bool {
+        try base.profilesNotYetUploaded()
+    }
+
+    func markProfilesUploaded(_ profiles: StoredTherapyProfiles) async throws {
+        try await base.markProfilesUploaded(profiles)
+    }
+
+    func profileSwitchesNotYetUploaded() throws -> [TherapyProfileSwitch] {
+        try base.profileSwitchesNotYetUploaded()
+    }
+
+    func markSwitchUploaded(_ profileSwitch: TherapyProfileSwitch) async throws {
+        try await base.markSwitchUploaded(profileSwitch)
     }
 }
 

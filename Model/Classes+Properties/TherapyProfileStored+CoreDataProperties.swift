@@ -7,6 +7,7 @@ public extension TherapyProfileStored {
     }
 
     @NSManaged var isActive: Bool
+    @NSManaged var isUploadedToNS: Bool
     @NSManaged var name: String?
     @NSManaged var scheduledSwitchesSettledAt: Date?
     @NSManaged var entries: Set<TherapyProfileEntryStored>?

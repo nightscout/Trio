@@ -98,4 +98,49 @@ import Testing
         #expect(try storage.fetchProfiles().scheduledSwitches == [entries[1]])
         #expect(try await rowCount(ScheduledProfileSwitchStored.self) == 1)
     }
+
+    @Test("Changes and switches stay pending until they are marked uploaded") func uploadTracking() async throws {
+        let sport = TherapyProfileFixtures.profile("Sport", basal: [(0, 0.5)])
+        let stored = StoredTherapyProfiles(
+            activeProfileName: "Sport",
+            inactiveProfiles: [TherapyProfileFixtures.profile("Default")]
+        )
+        let switchDate = Date(timeIntervalSince1970: 1_800_000_000)
+        try await storage.storeProfiles(StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [sport]))
+        try await storage.storeProfiles(stored, switchDate: switchDate, switchTrigger: .scheduled)
+
+        #expect(try storage.profilesNotYetUploaded())
+        #expect(
+            try storage.profileSwitchesNotYetUploaded() ==
+                [TherapyProfileSwitch(name: "Sport", date: switchDate, trigger: .scheduled)]
+        )
+
+        try await storage.markProfilesUploaded(StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [sport]))
+        #expect(try storage.profilesNotYetUploaded())
+
+        try await storage.markProfilesUploaded(stored)
+        try await storage.markSwitchUploaded(TherapyProfileSwitch(name: "Sport", date: switchDate))
+        #expect(try !storage.profilesNotYetUploaded())
+        #expect(try storage.profileSwitchesNotYetUploaded().isEmpty)
+    }
+
+    @Test("A changed list of scheduled switches is pending upload, settling is not") func scheduledSwitchUploadTracking() async throws {
+        var stored = StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [])
+        try await storage.storeProfiles(stored)
+        try await storage.markProfilesUploaded(stored)
+        #expect(try !storage.profilesNotYetUploaded())
+
+        try await storage.settleScheduledSwitches(at: Date(timeIntervalSince1970: 1_800_000_000))
+        #expect(try !storage.profilesNotYetUploaded())
+
+        stored.scheduledSwitches = [ScheduledProfileSwitch(id: "s", profileName: "Default", weekday: 2, time: 21600)]
+        stored.scheduledSwitchesSettledAt = Date(timeIntervalSince1970: 1_800_000_060)
+        try await storage.storeProfiles(stored)
+        #expect(try storage.profilesNotYetUploaded())
+        try await storage.markProfilesUploaded(StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: []))
+        #expect(try storage.profilesNotYetUploaded())
+        stored.scheduledSwitchesSettledAt = nil
+        try await storage.markProfilesUploaded(stored)
+        #expect(try !storage.profilesNotYetUploaded())
+    }
 }

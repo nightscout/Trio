@@ -19,7 +19,9 @@ protocol NightscoutManager: GlucoseSource {
     func uploadTempTargets() async
     func uploadProfiles() async throws
     @discardableResult func uploadNoteTreatment(note: String) async -> Bool
-    func importSettings() async -> ScheduledNightscoutProfile?
+    /// Uploads the profile switches and the profile document that have not reached Nightscout yet.
+    func uploadTherapyProfiles() async
+    func importSettings() async -> FetchedNightscoutProfileStore?
     var cgmURL: URL? { get }
 }
 
@@ -39,6 +41,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() var healthkitManager: HealthKitManager!
     @Injected() private var bolusCalculationManager: BolusCalculationManager!
     @Injected() private var apsManager: APSManager!
+    @Injected() private var therapyProfileStorage: TherapyProfileStorage!
 
     private let processQueue = DispatchQueue(label: "BaseNetworkManager.processQueue")
     private var ping: TimeInterval?
@@ -71,6 +74,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         case .deviceStatus:
             do { try await performUploadDeviceStatus() }
             catch { warning(.nightscout, "Device status upload failed", error: error) }
+        case .profiles: await performUploadTherapyProfiles()
         }
     }
 
@@ -780,46 +784,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     return
                 }
 
-                let shouldParseToMmolL = settingsManager.settings.units == .mmolL
-
-                let sens = sensitivities.sensitivities.map { item in
-                    NightscoutTimevalue(
-                        time: String(item.start.prefix(5)),
-                        value: !shouldParseToMmolL ? item.sensitivity : item.sensitivity.asMmolL,
-                        timeAsSeconds: item.offset * 60
-                    )
-                }
-                let targetLow = targets.targets.map { item in
-                    NightscoutTimevalue(
-                        time: String(item.start.prefix(5)),
-                        value: !shouldParseToMmolL ? item.low : item.low.asMmolL,
-                        timeAsSeconds: item.offset * 60
-                    )
-                }
-                let targetHigh = targets.targets.map { item in
-                    NightscoutTimevalue(
-                        time: String(item.start.prefix(5)),
-                        value: !shouldParseToMmolL ? item.high : item.high.asMmolL,
-                        timeAsSeconds: item.offset * 60
-                    )
-                }
-                let cr = carbRatios.schedule.map { item in
-                    NightscoutTimevalue(
-                        time: String(item.start.prefix(5)),
-                        value: item.ratio,
-                        timeAsSeconds: item.offset * 60
-                    )
-                }
-                let basal = basalProfile.map { item in
-                    NightscoutTimevalue(
-                        time: String(item.start.prefix(5)),
-                        value: item.rate,
-                        timeAsSeconds: item.minutes * 60
-                    )
-                }
-
+                let units = settingsManager.settings.units
                 let nsUnits: String = {
-                    switch settingsManager.settings.units {
+                    switch units {
                     case .mgdL:
                         return "mg/dl"
                     case .mmolL:
@@ -827,28 +794,23 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     }
                 }()
 
-                var carbsHr: Decimal = 0
-                if let isf = sensitivities.sensitivities.map(\.sensitivity).first,
-                   let cr = carbRatios.schedule.map(\.ratio).first,
-                   isf > 0, cr > 0
-                {
-                    carbsHr = settingsManager.preferences.min5mCarbimpact * 12 / isf * cr
-                    carbsHr = Decimal(round(Double(carbsHr) * 10.0)) / 10
-                }
-
-                let scheduledProfile = ScheduledNightscoutProfile(
-                    dia: settingsManager.pumpSettings.insulinActionCurve,
-                    carbs_hr: Int(carbsHr),
-                    delay: 0,
-                    timezone: TimeZone.current.identifier,
-                    target_low: targetLow,
-                    target_high: targetHigh,
-                    sens: sens,
-                    basal: basal,
-                    carbratio: cr,
-                    units: nsUnits
+                let storedProfiles = try therapyProfileStorage.fetchProfiles()
+                let activeProfile = TrioTherapyProfile(
+                    name: storedProfiles.activeProfileName ?? TrioTherapyProfile.defaultName,
+                    basalProfile: basalProfile,
+                    carbRatios: carbRatios,
+                    insulinSensitivities: sensitivities,
+                    bgTargets: targets
                 )
-                let defaultProfile = "default"
+                let store = ScheduledNightscoutProfile.store(
+                    profiles: storedProfiles.inactiveProfiles + [activeProfile],
+                    units: units,
+                    dia: settingsManager.pumpSettings.insulinActionCurve,
+                    min5mCarbimpact: settingsManager.preferences.min5mCarbimpact,
+                    timezone: TimeZone.current.identifier
+                )
+                let defaultProfile = activeProfile.storeKey
+                let scheduledSwitches = storedProfiles.scheduledSwitches.withStoreKeys
 
                 let now = Date()
 
@@ -866,14 +828,16 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     mills: Int(now.timeIntervalSince1970) * 1000,
                     units: nsUnits,
                     enteredBy: NightscoutTreatment.local,
-                    store: [defaultProfile: scheduledProfile],
+                    store: store,
                     bundleIdentifier: bundleIdentifier,
                     deviceToken: deviceToken,
                     isAPNSProduction: isAPNSProduction,
                     overridePresets: presetOverrides,
                     teamID: teamID,
                     expirationDate: expireDate,
-                    remoteCommands: remoteCommands
+                    remoteCommands: remoteCommands,
+                    scheduledSwitches: scheduledSwitches,
+                    scheduledSwitchesFingerprint: scheduledSwitches.fingerprint
                 )
 
                 guard let nightscout = nightscoutAPI, isNetworkReachable else {
@@ -886,6 +850,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 }
 
                 try await nightscout.uploadProfile(profileStore)
+                try await therapyProfileStorage.markProfilesUploaded(storedProfiles)
 
                 BuildDetails.shared.recordUploadedExpireDate(expireDate: expireDate)
                 BuildDetails.shared.recordUploadedRemoteCommands(remoteCommands)
@@ -900,7 +865,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
     }
 
-    func importSettings() async -> ScheduledNightscoutProfile? {
+    func importSettings() async -> FetchedNightscoutProfileStore? {
         guard let nightscout = nightscoutAPI else {
             debug(.nightscout, "Settings import skipped: Nightscout not set up")
             return nil
@@ -1354,6 +1319,37 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 //            await uploadTreatments([noteTreatment], fileToSave: OpenAPS.Nightscout.uploadedNotes)
         }
         return false
+    }
+
+    func uploadTherapyProfiles() async {
+        await uploadSerializer.run(.profiles)
+    }
+
+    private func performUploadTherapyProfiles() async {
+        do {
+            for profileSwitch in try therapyProfileStorage.profileSwitchesNotYetUploaded() {
+                let profileName = profileSwitch.name == TrioTherapyProfile.defaultName
+                    ? TrioTherapyProfile.defaultStoreKey : profileSwitch.name
+                let treatment = NightscoutTreatment(
+                    duration: 0,
+                    eventType: .nsProfileSwitch,
+                    createdAt: profileSwitch.date,
+                    enteredBy: NightscoutTreatment.local,
+                    notes: profileSwitch.trigger?.nightscoutNote,
+                    targetTop: nil,
+                    targetBottom: nil,
+                    profile: profileName
+                )
+                guard await uploadNonCoreDataTreatments([treatment]) else { return }
+                try await therapyProfileStorage.markSwitchUploaded(profileSwitch)
+                info(.nightscout, "Profile switch of \(profileSwitch.date) uploaded")
+            }
+            if try therapyProfileStorage.profilesNotYetUploaded() {
+                try await uploadProfiles()
+            }
+        } catch {
+            warning(.nightscout, "Therapy profile upload failed", error: error)
+        }
     }
 }
 

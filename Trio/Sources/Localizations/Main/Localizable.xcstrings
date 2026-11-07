@@ -352062,6 +352062,49 @@
         }
       }
     },
+    "%@ Trio imports its values as the Default profile." : {
+
+    },
+    "The active Nightscout profile %@ can not be imported: %@" : {
+
+    },
+    "Trio keeps at most %lld profiles." : {
+
+    },
+    "Glucose Targets: each entry needs a start time, a low and a high value." : {
+
+    },
+    "Invalid start time %@." : {
+
+    },
+    "Some Profiles Were Not Imported" : {
+
+    },
+    "The Default profile takes the values of the active profile %@." : {
+
+    },
+    "The profile could not be read." : {
+
+    },
+    "Trio imported the other profiles. You can create the missing ones later in Settings > Therapy > Therapy Profiles." : {
+
+    },
+    "%lld scheduled switches could not be read." : {
+
+    },
+    "%@ starts %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ starts %2$@ %3$@"
+          }
+        }
+      }
+    },
+    "Its profile was not imported." : {
+
+    },
     "%@ is used by 1 scheduled switch, which will be removed." : {
 
     },

@@ -90,7 +90,11 @@ protocol TherapyProfileManager: AnyObject {
     func profile(named name: String) -> TrioTherapyProfile?
 
     /// Validates, writes the basal schedule to the pump, then makes the profile's values the live settings.
-    @discardableResult func activate(_ name: String, expectedFingerprint: String?) async throws -> TrioTherapyProfile
+    @discardableResult func activate(
+        _ name: String,
+        expectedFingerprint: String?,
+        trigger: TherapyProfileSwitch.Trigger
+    ) async throws -> TrioTherapyProfile
     /// Creates the profile when `originalName` is nil, otherwise updates or renames that profile. Saving the active
     /// profile writes a changed basal schedule to the pump and changes the live settings.
     @discardableResult func save(
@@ -110,6 +114,13 @@ protocol TherapyProfileManager: AnyObject {
         writesBasalSchedule: Bool,
         write: @escaping @Sendable() async throws -> Void
     ) async throws -> TrioTherapyProfile
+    /// Replaces the stored profiles and scheduled switches and makes `activeProfileName` active. The live settings already
+    /// hold the active profile's values, and Default takes them too when `profiles` has none for it.
+    func replaceProfiles(
+        _ profiles: [TrioTherapyProfile],
+        activeProfileName: String,
+        scheduledSwitches: [ScheduledProfileSwitch]
+    ) async throws
     /// Makes the profile whose values the live settings hold active, when the app stopped during a switch after writing
     /// the live settings and before storing the profiles.
     func completeInterruptedSwitch() async
@@ -128,6 +139,10 @@ protocol TherapyProfileManager: AnyObject {
 }
 
 extension TherapyProfileManager {
+    @discardableResult func activate(_ name: String, expectedFingerprint: String?) async throws -> TrioTherapyProfile {
+        try await activate(name, expectedFingerprint: expectedFingerprint, trigger: .local)
+    }
+
     @discardableResult func saveLiveSettings(
         expectedActiveName: String,
         expectedFingerprint: String,
@@ -309,10 +324,16 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     }
 
     /// Writes the live settings, then the stored profiles. A failure restores the previous live settings and basal schedule.
-    private func commit(_ state: State, live: TrioTherapyProfile, previousLive: TrioTherapyProfile) async throws {
+    private func commit(
+        _ state: State,
+        live: TrioTherapyProfile,
+        previousLive: TrioTherapyProfile,
+        switchDate: Date? = nil,
+        switchTrigger: TherapyProfileSwitch.Trigger? = nil
+    ) async throws {
         do {
             try writeLive(live)
-            try await therapyProfileStorage.storeProfiles(state.stored)
+            try await therapyProfileStorage.storeProfiles(state.stored, switchDate: switchDate, switchTrigger: switchTrigger)
         } catch let commitError {
             try? writeLive(previousLive)
             if live.basal != previousLive.basal {
@@ -363,37 +384,45 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
                 return (live, false)
             }
         }
-        await didChange(liveSettings: saved, refreshDetermination: false)
+        await didChange(liveSettings: saved, fromEditor: true, profilesStored: stored)
         guard stored else { throw TherapyProfileError.liveSettingsNotStored }
         return saved
     }
 
     func completeInterruptedSwitch() async {
         do {
-            let switchedTo = try await serializer.run { () -> String? in
+            let switchedTo = try await serializer.run { () -> TrioTherapyProfile? in
                 var state = try self.loadState()
                 let storedActiveName = try self.therapyProfileStorage.fetchProfiles().activeProfileName
                 guard let storedActiveName, storedActiveName != state.activeProfileName else { return nil }
-                state.scheduledSwitchesSettledAt = self.now()
-                try await self.therapyProfileStorage.storeProfiles(state.stored)
-                return state.activeProfileName
+                let switchDate = self.now()
+                state.scheduledSwitchesSettledAt = switchDate
+                try await self.therapyProfileStorage.storeProfiles(state.stored, switchDate: switchDate, switchTrigger: nil)
+                return state.activeProfile
             }
             guard let switchedTo else { return }
-            warning(.settings, "A switch to therapy profile \(switchedTo) was interrupted and is now completed")
+            warning(
+                .settings,
+                "A switch to therapy profile \(switchedTo.fingerprint(units: .mgdL)) was interrupted and is now completed"
+            )
             await didChange(liveSettings: nil)
         } catch {
             warning(.settings, "Checking for an interrupted therapy profile switch failed", error: error)
         }
     }
 
-    @discardableResult func activate(_ name: String, expectedFingerprint: String?) async throws -> TrioTherapyProfile {
-        let (profile, switched) = try await serializer.run { () -> (TrioTherapyProfile, Bool) in
+    @discardableResult func activate(
+        _ name: String,
+        expectedFingerprint: String?,
+        trigger: TherapyProfileSwitch.Trigger
+    ) async throws -> TrioTherapyProfile {
+        let (profile, switchDate) = try await serializer.run { () -> (TrioTherapyProfile, Date?) in
             var state = try self.loadState()
             guard let target = state.profile(named: name) else { throw TherapyProfileError.notFound(name) }
             if let expectedFingerprint, !target.matchesFingerprint(expectedFingerprint) {
                 throw TherapyProfileError.conflict(target.name)
             }
-            guard target.name != state.activeProfileName else { return (target, false) }
+            guard target.name != state.activeProfileName else { return (target, nil) }
             if let reason = TherapyProfileValidator.validate(target, basalLimits: self.basalLimits) {
                 throw TherapyProfileError.invalidValues(reason)
             }
@@ -401,12 +430,19 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
             let previousLive = self.liveProfile(named: state.activeProfileName)
             try await self.syncPump(target)
             state.activeProfileName = target.name
-            state.scheduledSwitchesSettledAt = self.now()
-            try await self.commit(state, live: target, previousLive: previousLive)
-            return (target, true)
+            let switchDate = self.now()
+            state.scheduledSwitchesSettledAt = switchDate
+            try await self.commit(
+                state,
+                live: target,
+                previousLive: previousLive,
+                switchDate: switchDate,
+                switchTrigger: trigger
+            )
+            return (target, switchDate)
         }
-        if switched {
-            info(.settings, "Therapy profile \(profile.name) is active")
+        if switchDate != nil {
+            info(.settings, "Therapy profile \(profile.fingerprint(units: .mgdL)) is active")
             await didChange(liveSettings: profile)
         }
         return profile
@@ -501,6 +537,30 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         info(.settings, "Therapy profile \(deleted.fingerprint(units: .mgdL)) deleted with \(removedSwitches) scheduled switches")
         await didChange(liveSettings: nil)
         return removedSwitches
+    }
+
+    func replaceProfiles(
+        _ profiles: [TrioTherapyProfile],
+        activeProfileName: String,
+        scheduledSwitches: [ScheduledProfileSwitch]
+    ) async throws {
+        try await serializer.run {
+            var inactiveProfiles = profiles.filter { $0.name != activeProfileName }
+            if activeProfileName != TrioTherapyProfile.defaultName, !inactiveProfiles.contains(where: \.isDefault) {
+                inactiveProfiles.append(self.liveProfile(named: TrioTherapyProfile.defaultName))
+            }
+            try await self.therapyProfileStorage.storeProfiles(
+                StoredTherapyProfiles(
+                    activeProfileName: activeProfileName,
+                    inactiveProfiles: inactiveProfiles,
+                    activeProfileValues: self.liveProfile(named: activeProfileName),
+                    scheduledSwitches: scheduledSwitches,
+                    scheduledSwitchesSettledAt: self.now()
+                )
+            )
+        }
+        info(.settings, "\(profiles.count) therapy profiles and \(scheduledSwitches.count) scheduled switches stored")
+        await didChange(liveSettings: nil)
     }
 
     // MARK: Scheduled switches
@@ -617,7 +677,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         state.activeProfileName = target.name
         state.scheduledSwitchesSettledAt = due.date
         do {
-            try await commit(state, live: target, previousLive: previousLive)
+            try await commit(state, live: target, previousLive: previousLive, switchDate: now, switchTrigger: .scheduled)
         } catch {
             try? await therapyProfileStorage.settleScheduledSwitches(at: now)
             return .failed(due, reason: error.localizedDescription)
@@ -792,9 +852,14 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     // MARK: Side effects
 
-    /// Notifies observers. When the live settings changed, also refreshes the determination unless
-    /// `refreshDetermination` is false, and uploads the settings.
-    private func didChange(liveSettings profile: TrioTherapyProfile?, refreshDetermination: Bool = true) async {
+    /// Notifies observers and uploads the profiles. When the live settings changed, also refreshes the determination and
+    /// uploads the settings to Tidepool. A therapy editor's save refreshes no determination and does not wait for the
+    /// uploads; when its values could not be stored, the profile document is uploaded from the live settings directly.
+    private func didChange(
+        liveSettings profile: TrioTherapyProfile?,
+        fromEditor: Bool = false,
+        profilesStored: Bool = true
+    ) async {
         await MainActor.run {
             if let profile {
                 let basal = profile.basalProfileEntries
@@ -810,12 +875,30 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
             }
             broadcaster.notify(TherapyProfilesObserver.self, on: .main) { $0.therapyProfilesDidChange() }
         }
-        if refreshDetermination {
+
+        if !fromEditor {
             await armScheduledSwitchAlert()
         }
-        guard profile != nil else { return }
 
-        if refreshDetermination {
+        if fromEditor {
+            if profilesStored {
+                requestNightscoutUpload([.profiles], source: "TherapyProfileManager")
+            } else {
+                Task.detached(priority: .low) { [nightscoutManager] in
+                    do {
+                        try await nightscoutManager?.uploadProfiles()
+                    } catch {
+                        warning(.nightscout, "Uploading the profiles after a therapy settings edit failed", error: error)
+                    }
+                }
+            }
+            Task.detached(priority: .low) { [tidepoolManager] in
+                await tidepoolManager?.uploadSettings()
+            }
+            return
+        }
+
+        if profile != nil {
             if let recompute {
                 await recompute()
             } else {
@@ -826,12 +909,10 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
                 }
             }
         }
-        do {
-            try await nightscoutManager.uploadProfiles()
-        } catch {
-            warning(.nightscout, "Uploading profile after a therapy profile change failed", error: error)
+        await nightscoutManager.uploadTherapyProfiles()
+        if profile != nil {
+            await tidepoolManager.uploadSettings()
         }
-        await tidepoolManager.uploadSettings()
     }
 }
 

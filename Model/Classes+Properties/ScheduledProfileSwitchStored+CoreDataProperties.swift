@@ -7,6 +7,7 @@ public extension ScheduledProfileSwitchStored {
     }
 
     @NSManaged var id: String?
+    @NSManaged var isUploadedToNS: Bool
     @NSManaged var paused: Bool
     @NSManaged var profileName: String?
     @NSManaged var time: Int32
