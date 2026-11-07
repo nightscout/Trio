@@ -30,6 +30,14 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     // Forecast options
     var showForecast: Bool = false
     var isForecastCone: Bool = false
+    /// Latest CGM export while the CGM's Read on Apple Watch is on; nil until the phone has loaded its CGM manager.
+    var watchSensorConfiguration: Data? = nil
+    var watchReadsSensor: Bool = false
+    /// The range and color scheme the watch colors its own readings by.
+    var glucoseRangeLow: Decimal = 70
+    var glucoseRangeHigh: Decimal = 180
+    var glucoseRangeTarget: Decimal = 100
+    var glucoseColorScheme: String = GlucoseColorScheme.staticColor.rawValue
     var forecastStartDate: Date? = nil
     var forecastConeMin: [Double] = []
     var forecastConeMax: [Double] = []
@@ -38,7 +46,15 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var snoozeUntilDate: Date = .distantPast
 
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
-        lhs.date == rhs.date &&
+        // apart from the chain below, which is at the edge of the type checker's budget
+        let watchSensorIsEqual = lhs.watchSensorConfiguration == rhs.watchSensorConfiguration &&
+            lhs.watchReadsSensor == rhs.watchReadsSensor &&
+            lhs.glucoseRangeLow == rhs.glucoseRangeLow &&
+            lhs.glucoseRangeHigh == rhs.glucoseRangeHigh &&
+            lhs.glucoseRangeTarget == rhs.glucoseRangeTarget &&
+            lhs.glucoseColorScheme == rhs.glucoseColorScheme
+        guard watchSensorIsEqual else { return false }
+        return lhs.date == rhs.date &&
             lhs.currentGlucose == rhs.currentGlucose &&
             lhs.trend == rhs.trend &&
             lhs.delta == rhs.delta &&
@@ -95,6 +111,12 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(confirmBolusFaster)
         hasher.combine(showForecast)
         hasher.combine(isForecastCone)
+        hasher.combine(watchSensorConfiguration)
+        hasher.combine(watchReadsSensor)
+        hasher.combine(glucoseRangeLow)
+        hasher.combine(glucoseRangeHigh)
+        hasher.combine(glucoseRangeTarget)
+        hasher.combine(glucoseColorScheme)
         hasher.combine(forecastStartDate)
         hasher.combine(forecastConeMin)
         hasher.combine(forecastConeMax)

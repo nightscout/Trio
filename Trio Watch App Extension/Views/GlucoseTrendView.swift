@@ -4,6 +4,8 @@ struct GlucoseTrendView: View {
     let state: WatchState
     let rotationDegrees: Double
     let isWatchStateDated: Bool
+    /// Why the watch's own sensor link brings no readings; shown in place of the minutes.
+    let sensorStateText: String?
 
     /// Determines the status color based on the time elapsed since the last loop
     /// - Parameter timeString: The time string representing minutes since last loop (format: "X min")
@@ -143,19 +145,45 @@ struct GlucoseTrendView: View {
                             .font(.system(.caption))
                             .foregroundStyle(.secondary)
                     }
+
+                    // where the reading comes from, a sensor problem first (after Kristin Kandschur's watch UI)
+                    if WatchCGMHost.shared.hasSensorProblem {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.yellow)
+                            .accessibilityLabel(String(localized: "Sensor problem"))
+                    } else if WatchCGMHost.shared.isReadingDirectly, !isWatchStateDated {
+                        Image(systemName: state.newestReadingIsOwn ? "applewatch" : "iphone")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .accessibilityLabel(
+                                state.newestReadingIsOwn ?
+                                    String(localized: "Reading from the watch") :
+                                    String(localized: "Reading from the iPhone")
+                            )
+                    }
                 }
             }
 
             Spacer()
 
-            Text(
-                isWatchStateDated ?
-                    String(localized: "STALE DATA", comment: "Information displayed when watch app data outdated or stale.") :
-                    state
-                    .lastLoopTime ?? "--"
-            )
-            .font(.system(size: minutesAgoFontSize))
-            .fontWidth(isWatchStateDated ? .expanded : .standard)
+            if let sensorStateText {
+                Text(sensorStateText)
+                    .font(.system(size: minutesAgoFontSize))
+                    .foregroundStyle(.yellow)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+            } else {
+                Text(
+                    isWatchStateDated ?
+                        String(localized: "STALE DATA", comment: "Information displayed when watch app data outdated or stale.") :
+                        state
+                        .lastLoopTime ?? "--"
+                )
+                .font(.system(size: minutesAgoFontSize))
+                .fontWidth(isWatchStateDated ? .expanded : .standard)
+            }
 
             Spacer()
 
