@@ -18,13 +18,16 @@ final class SpyAlertManager: TrioAlertManager {
     private(set) var callLog: [Call] = []
     private(set) var issuedAlerts: [Alert] = []
     private(set) var retractedIdentifiers: [Alert.Identifier] = []
+    private(set) var calledOffMain = false
 
     func issueAlert(_ alert: Alert) {
+        calledOffMain = calledOffMain || !Thread.isMainThread
         callLog.append(.issue(alert))
         issuedAlerts.append(alert)
     }
 
     func retractAlert(identifier: Alert.Identifier) {
+        calledOffMain = calledOffMain || !Thread.isMainThread
         callLog.append(.retract(identifier))
         retractedIdentifiers.append(identifier)
     }
@@ -68,17 +71,25 @@ final class SpyAlertManager: TrioAlertManager {
         #expect(abs(interval - TimeInterval(minutes * 60)) < 5, sourceLocation: sourceLocation)
     }
 
-    private func armLadder() -> SpyAlertManager {
+    /// The monitor re-arms on the main queue, so a block queued there after a send runs after the re-arm.
+    private func drainMainQueue() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.main.async { continuation.resume() }
+        }
+    }
+
+    private func armLadder() async -> SpyAlertManager {
         let subject = PassthroughSubject<Date, Never>()
         let spy = SpyAlertManager()
         let monitor = NotLoopingMonitor(loopDates: subject.eraseToAnyPublisher(), trioAlertManager: spy)
         subject.send(Date())
-        _ = monitor // retain through the synchronous send
+        await drainMainQueue()
+        _ = monitor // retain until the re-arm has run
         return spy
     }
 
-    @Test("A loop success arms five warnings and one critical") func armsFullLadder() {
-        let spy = armLadder()
+    @Test("A loop success arms five warnings and one critical") func armsFullLadder() async {
+        let spy = await armLadder()
         #expect(spy.issuedAlerts.count == 6)
 
         let warnings = spy.issuedAlerts.filter { $0.identifier != criticalID }
@@ -91,8 +102,8 @@ final class SpyAlertManager: TrioAlertManager {
         }
     }
 
-    @Test("The sixth step is critical at 120 minutes") func criticalStepAtTwoHours() {
-        let spy = armLadder()
+    @Test("The sixth step is critical at 120 minutes") func criticalStepAtTwoHours() async {
+        let spy = await armLadder()
         guard let critical = spy.issuedAlerts.first(where: { $0.identifier == criticalID }) else {
             Issue.record("expected a critical escalation alert")
             return
@@ -101,8 +112,8 @@ final class SpyAlertManager: TrioAlertManager {
         #expect(critical.interruptionLevel == .critical)
     }
 
-    @Test("Every step is retracted before anything is re-armed") func retractsWholeLadderFirst() {
-        let spy = armLadder()
+    @Test("Every step is retracted before anything is re-armed") func retractsWholeLadderFirst() async {
+        let spy = await armLadder()
         let firstIssue = spy.callLog.firstIndex { if case .issue = $0 { return true }
             return false }
         let lastRetract = spy.callLog.lastIndex { if case .retract = $0 { return true }
@@ -116,16 +127,35 @@ final class SpyAlertManager: TrioAlertManager {
         #expect(Set(spy.retractedIdentifiers) == Set([criticalID] + (1 ... 5).map(warningID)))
     }
 
-    @Test("A recovered loop re-arms the whole ladder again") func reArmsOnEachSuccess() {
+    @Test("A recovered loop re-arms the whole ladder again") func reArmsOnEachSuccess() async {
         let subject = PassthroughSubject<Date, Never>()
         let spy = SpyAlertManager()
         let monitor = NotLoopingMonitor(loopDates: subject.eraseToAnyPublisher(), trioAlertManager: spy)
 
         subject.send(Date())
         subject.send(Date())
+        await drainMainQueue()
 
         #expect(spy.issuedAlerts.count == 12)
         #expect(spy.retractedIdentifiers.count == 12)
+        _ = monitor
+    }
+
+    @Test("A loop finishing off the main thread re-arms on main") func reArmsOnMainQueue() async {
+        let subject = PassthroughSubject<Date, Never>()
+        let spy = SpyAlertManager()
+        let monitor = NotLoopingMonitor(loopDates: subject.eraseToAnyPublisher(), trioAlertManager: spy)
+
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global().async {
+                subject.send(Date())
+                continuation.resume()
+            }
+        }
+        await drainMainQueue()
+
+        #expect(spy.issuedAlerts.count == 6)
+        #expect(!spy.calledOffMain)
         _ = monitor
     }
 
@@ -141,8 +171,8 @@ final class SpyAlertManager: TrioAlertManager {
         #expect(AlertCatalogRegistry.lookup(criticalID)?.interruptionLevel == .critical)
     }
 
-    @Test("Every step is delayed, never immediate") func allStepsDelayed() {
-        for alert in armLadder().issuedAlerts {
+    @Test("Every step is delayed, never immediate") func allStepsDelayed() async {
+        for alert in await armLadder().issuedAlerts {
             #expect(alert.trigger != .immediate)
         }
     }

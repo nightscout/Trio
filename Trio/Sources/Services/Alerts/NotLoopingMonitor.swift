@@ -71,7 +71,9 @@ final class NotLoopingMonitor: Injectable {
     }
 
     private func subscribe(to loopDates: AnyPublisher<Date, Never>) {
+        // Loops finish off main; the APS flags rescheduleAlarm reads are written on main, and snoozes re-arm there.
         loopDates
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] date in
                 self?.lastLoopDate = date
                 self?.rescheduleAlarm()
