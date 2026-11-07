@@ -5,6 +5,8 @@ import Swinject
 extension ISFEditor {
     struct RootView: BaseView {
         let resolver: Resolver
+        /// A stored profile to edit; nil edits the live settings.
+        var profileName: String? = nil
         @State var state = StateModel()
         @State private var refreshUI = UUID()
         @State private var now = Date()
@@ -68,6 +70,10 @@ extension ISFEditor {
                     ScrollView {
                         LazyVStack {
                             VStack(alignment: .leading, spacing: 0) {
+                                if let bannerInfo = state.bannerInfo {
+                                    TherapyProfileBanner(info: bannerInfo)
+                                }
+
                                 // Chart visualization
                                 if !state.items.isEmpty {
                                     isfChart
@@ -117,9 +123,20 @@ extension ISFEditor {
                     }
 
                     saveButton
+                        .alert(
+                            "Unable to Save",
+                            isPresented: Binding(
+                                get: { state.profileSaveError != nil },
+                                set: { if !$0 { state.profileSaveError = nil } }
+                            )
+                        ) {
+                            Button("OK", role: .cancel) {}
+                        } message: {
+                            Text(state.profileSaveError ?? "")
+                        }
                 }
                 .background(appState.trioBackgroundColor(for: colorScheme))
-                .onAppear(perform: configureView)
+                .onAppear { configureView { state.profileName = profileName } }
                 .navigationTitle("Insulin Sensitivities")
                 .navigationBarTitleDisplayMode(.automatic)
                 .onAppear {

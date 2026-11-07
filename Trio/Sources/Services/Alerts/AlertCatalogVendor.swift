@@ -43,6 +43,10 @@ extension Alert {
         case notLooping
         case algorithmError
         case glucoseDataStale
+        // Trio-internal "Profiles" concepts. Emitted by `TherapyProfileManager`
+        // under the `trio.therapyProfiles` manager identifier.
+        case profileSwitched
+        case scheduledProfileSwitchNotDone
         /// Plugin-unique alarm that doesn't merge with anything else.
         case unspecified
 
@@ -80,6 +84,8 @@ extension Alert {
             case .notLooping: return String(localized: "Trio Not Looping")
             case .algorithmError: return String(localized: "Algorithm Error")
             case .glucoseDataStale: return String(localized: "Glucose Data Stale")
+            case .profileSwitched: return String(localized: "Profile Switched")
+            case .scheduledProfileSwitchNotDone: return String(localized: "Scheduled Switch Not Done")
             case .unspecified: return ""
             }
         }

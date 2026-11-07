@@ -51,10 +51,12 @@ import Testing
         #expect(resolver.resolve(TrioRemoteControl.self) != nil)
         #expect(resolver.resolve(TelemetryClient.self) != nil)
         #expect(resolver.resolve(TelemetryAttestor.self) != nil)
+        #expect(resolver.resolve(TherapyProfileManager.self) != nil)
 
         // Container scope must return the same instance on every resolve
         #expect(resolver.resolve(TrioRemoteControl.self) === resolver.resolve(TrioRemoteControl.self))
         #expect(resolver.resolve(TelemetryClient.self) === resolver.resolve(TelemetryClient.self))
+        #expect(resolver.resolve(TherapyProfileManager.self) === resolver.resolve(TherapyProfileManager.self))
         #expect(
             resolver.resolve(CarbEntryMutationService.self) as AnyObject ===
                 resolver.resolve(CarbEntryMutationService.self) as AnyObject

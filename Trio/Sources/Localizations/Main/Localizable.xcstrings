@@ -1143,6 +1143,9 @@
     "Discord Name" : {
 
     },
+    "Edit %@" : {
+
+    },
     "Email" : {
 
     },
@@ -1234,6 +1237,9 @@
 
     },
     "The Trio team's server sent an answer the app doesn't understand." : {
+
+    },
+    "There can be at most %lld profiles. Delete a profile before creating another." : {
 
     },
     "This build of Trio can't send reports. Please share your logs on Discord or Facebook instead." : {
@@ -172385,6 +172391,9 @@
           }
         }
       }
+    },
+    "Insulin delivery is suspended. Resume delivery before changing the basal rates." : {
+
     },
     "Insulin doses will be decreased by %@." : {
       "comment" : "Adjustment footer; the value is a percentage, e.g. 20%"
@@ -351662,6 +351671,402 @@
           }
         }
       }
+    },
+    "%@ %@ at %@ is not a multiple of %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ at %3$@ is not a multiple of %4$@."
+          }
+        }
+      }
+    },
+    "%@ %@ at %@ is outside %@–%@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ at %3$@ is outside %4$@–%5$@."
+          }
+        }
+      }
+    },
+    "%@: start times must be in ascending order." : {
+
+    },
+    "%@: start times must be on the hour or half hour." : {
+
+    },
+    "%@: the schedule has more than %lld entries." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: the schedule has more than %2$lld entries."
+          }
+        }
+      }
+    },
+    "%@: the schedule is empty." : {
+
+    },
+    "%@: the schedule must start at midnight." : {
+
+    },
+    "A profile holds basal rates, carb ratios, insulin sensitivities and glucose targets. Trio always uses the active profile, and editing the therapy settings edits the active profile." : {
+
+    },
+    "A profile named %@ already exists." : {
+
+    },
+    "Activate %@?" : {
+
+    },
+    "Activate Profile" : {
+
+    },
+    "Activating a profile sends its basal rates to the pump first. Only when the pump accepts them does Trio start using the profile's carb ratios, insulin sensitivities and glucose targets." : {
+
+    },
+    "Active profile %@" : {
+
+    },
+    "Basal rate %@ U/hr at %@ exceeds the max basal rate of %@ U/hr." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Basal rate %1$@ U/hr at %2$@ exceeds the max basal rate of %3$@ U/hr."
+          }
+        }
+      }
+    },
+    "Basal rate %@ U/hr at %@ is not supported by the pump." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Basal rate %1$@ U/hr at %2$@ is not supported by the pump."
+          }
+        }
+      }
+    },
+    "Basal rate at %@ must be greater than 0 U/hr." : {
+
+    },
+    "Carb Ratio" : {
+
+    },
+    "Delete %@?" : {
+
+    },
+    "Delete Profile" : {
+
+    },
+    "Enter a name for the new profile." : {
+
+    },
+    "Enter a new name for the profile." : {
+
+    },
+    "New Profile" : {
+
+    },
+    "No pump is connected, so the basal rates cannot be sent to the pump." : {
+
+    },
+    "Not active" : {
+
+    },
+    "Overrides and temporary targets are not part of a profile. One that is running stays on and applies on top of the newly active profile." : {
+
+    },
+    "Profile %@" : {
+
+    },
+    "Profile %@ became active while you were editing, so your changes were not saved. Open this screen again to edit the current values." : {
+
+    },
+    "Profile %@ has changed since it was loaded. Reload and try again." : {
+
+    },
+    "Profile %@ was changed while you were editing, so your changes were not saved. Open this screen again to edit the current values." : {
+
+    },
+    "Profile Not Changed" : {
+
+    },
+    "Rename" : {
+
+    },
+    "Rename Profile" : {
+
+    },
+    "Save Current Settings as New Profile" : {
+
+    },
+    "Some basal rates of this schedule are not rates your pump supports. Each is shown as the nearest supported rate. Check them before you save." : {
+
+    },
+    "Status" : {
+
+    },
+    "The Default profile cannot be deleted." : {
+
+    },
+    "The Default profile cannot be renamed." : {
+
+    },
+    "The active profile cannot be deleted." : {
+
+    },
+    "The name %@ is reserved." : {
+
+    },
+    "The name must be at most %lld characters." : {
+
+    },
+    "The name must not be empty." : {
+
+    },
+    "The name must not contain a period." : {
+
+    },
+    "The name must not start or end with spaces." : {
+
+    },
+    "The name must not start with $." : {
+
+    },
+    "The profiles could not be saved, and the pump may still hold the basal rates of profile %@ while Trio uses those of profile %@. Check the basal schedule on the pump." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The profiles could not be saved, and the pump may still hold the basal rates of profile %1$@ while Trio uses those of profile %2$@. Check the basal schedule on the pump."
+          }
+        }
+      }
+    },
+    "The profiles could not be saved." : {
+
+    },
+    "The pump did not accept the basal rates: %@" : {
+
+    },
+    "Therapy Profiles" : {
+
+    },
+    "There is no profile named %@." : {
+
+    },
+    "Trio always uses the active profile." : {
+
+    },
+    "Trio sends this profile's basal rates to the pump and starts using its carb ratios, insulin sensitivities and glucose targets right away." : {
+
+    },
+    "Trio uses the new settings, but could not store them with the active profile. Save again to retry." : {
+
+    },
+    "Scheduled Switches" : {
+
+    },
+    "Add Scheduled Switch" : {
+
+    },
+    "%@ · %@ starts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ starts"
+          }
+        }
+      }
+    },
+    "Paused" : {
+
+    },
+    "until %@" : {
+
+    },
+    "Pause" : {
+
+    },
+    "No scheduled switches. Trio keeps the active profile until you switch." : {
+
+    },
+    "All starts are paused." : {
+
+    },
+    "Next: %@ starts %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Next: %1$@ starts %2$@."
+          }
+        }
+      }
+    },
+    "%lld starts paused." : {
+
+    },
+    "Trio switches the active profile at the scheduled starts. A profile stays active until the next scheduled start, also after a switch you make yourself. A paused start does not run until you resume it." : {
+
+    },
+    "Weekday" : {
+
+    },
+    "%@ starts every %@ and stays active until the next scheduled start." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ starts every %2$@ and stays active until the next scheduled start."
+          }
+        }
+      }
+    },
+    "A paused start does not run until you resume it. Nothing is switched when you resume; the start runs again at its next time." : {
+
+    },
+    "Delete Scheduled Switch" : {
+
+    },
+    "Scheduled Switch" : {
+
+    },
+    "Scheduled Switches Not Changed" : {
+
+    },
+    "%@ already starts %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ already starts %2$@."
+          }
+        }
+      }
+    },
+    "%@ is used by %lld scheduled switches, which will be removed." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ is used by %2$lld scheduled switches, which will be removed."
+          }
+        }
+      }
+    },
+    "%@ (paused)" : {
+
+    },
+    "The scheduled switches have changed since they were loaded. Reload and try again." : {
+
+    },
+    "Trio could not switch within 24 hours of the scheduled time." : {
+
+    },
+    "A bolus was in progress." : {
+
+    },
+    "Profile Switched" : {
+
+    },
+    "Scheduled Switch Not Done" : {
+
+    },
+    "Trio switched to %@ as scheduled (%@)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio switched to %1$@ as scheduled (%2$@)."
+          }
+        }
+      }
+    },
+    "Trio switched to %@, scheduled for %@, done at %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio switched to %1$@, scheduled for %2$@, done at %3$@."
+          }
+        }
+      }
+    },
+    "The scheduled switch to %@ did not happen: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The scheduled switch to %1$@ did not happen: %2$@"
+          }
+        }
+      }
+    },
+    "Trio has not been able to switch to %@ as scheduled at %@: %@ Open Trio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio has not been able to switch to %1$@ as scheduled at %2$@: %3$@ Open Trio."
+          }
+        }
+      }
+    },
+    "Trio has not been able to switch to %@ as scheduled at %@. Open Trio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio has not been able to switch to %1$@ as scheduled at %2$@. Open Trio."
+          }
+        }
+      }
+    },
+    "There can be at most %lld scheduled switches." : {
+
+    },
+    "Each scheduled switch needs its own id." : {
+
+    },
+    "The weekday of a scheduled switch must be 1 to 7." : {
+
+    },
+    "The time of a scheduled switch must be a whole minute of the day." : {
+
+    },
+    "Two scheduled switches start on %@ at %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Two scheduled switches start on %1$@ at %2$@."
+          }
+        }
+      }
+    },
+    "%@ stays active until %@ starts %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ stays active until %2$@ starts %3$@."
+          }
+        }
+      }
+    },
+    "%@ is used by 1 scheduled switch, which will be removed." : {
+
+    },
+    "At those times the profile active before stays active until the next scheduled start." : {
+
     }
   },
   "version" : "1.1"

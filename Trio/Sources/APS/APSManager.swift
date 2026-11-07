@@ -122,6 +122,7 @@ private actor LoopGuard {
 
 final class BaseAPSManager: APSManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseAPSManager.processQueue")
+    private let resolver: Resolver
     @Injected() private var storage: FileStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var alertHistoryStorage: AlertHistoryStorage!
@@ -195,6 +196,7 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     init(resolver: Resolver) {
+        self.resolver = resolver
         injectServices(resolver)
         openAPS = OpenAPS(storage: storage, tddStorage: tddStorage, glucoseStorage: glucoseStorage, carbsStorage: carbsStorage)
         lastDosingMode = settingsManager.settings.dosingMode
@@ -307,6 +309,10 @@ final class BaseAPSManager: APSManager, Injectable {
                 debug(.loop, "Loop skipped: no pump configured")
                 return
             }
+
+            // Before the loop starts, so the loop doses with the new profile. Resolved here because the profile manager
+            // depends on this manager.
+            await self.resolver.resolve(TherapyProfileManager.self)?.runDueScheduledSwitch()
 
             // Atomic check-and-set via actor — eliminates the race between
             // checking isLooping.value and sending isLooping(true).
