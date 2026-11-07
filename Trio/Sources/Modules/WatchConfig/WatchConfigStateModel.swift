@@ -10,6 +10,9 @@ extension WatchConfig {
         @Published var devices: [IQDevice] = []
         @Published var confirmBolusFaster = false
         @Published var showForecastWatch = false
+        @Published var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
+        @Published var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
+        @Published var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
 
         /// Garmin watch settings containing all watch-related configuration
         @Published var garminSettings = GarminWatchSettings()
@@ -24,6 +27,11 @@ extension WatchConfig {
             subscribeSetting(\.garminSettings, on: $garminSettings) { garminSettings = $0 }
             subscribeSetting(\.confirmBolusFaster, on: $confirmBolusFaster) { confirmBolusFaster = $0 }
             subscribeSetting(\.showForecastWatch, on: $showForecastWatch) { showForecastWatch = $0 }
+            subscribeSetting(\.watchComplicationCornerValue, on: $complicationCornerValue) { complicationCornerValue = $0 }
+            subscribeSetting(\.watchComplicationSecondaryValue, on: $complicationSecondaryValue) {
+                complicationSecondaryValue = $0
+            }
+            subscribeSetting(\.watchComplicationStaleMinutes, on: $complicationStaleMinutes) { complicationStaleMinutes = $0 }
 
             devices = garmin.devices
         }
