@@ -42,6 +42,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     @Injected() private var bolusCalculationManager: BolusCalculationManager!
     @Injected() private var apsManager: APSManager!
     @Injected() private var therapyProfileStorage: TherapyProfileStorage!
+    @Injected() private var deviceDataManager: DeviceDataManager!
 
     private let processQueue = DispatchQueue(label: "BaseNetworkManager.processQueue")
     private var ping: TimeInterval?
@@ -811,6 +812,13 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 )
                 let defaultProfile = activeProfile.storeKey
                 let scheduledSwitches = storedProfiles.scheduledSwitches.withStoreKeys
+                let profileEditLimits = NightscoutProfileEditLimits(
+                    units: units,
+                    basalLimits: TherapyBasalLimits(
+                        pumpManager: deviceDataManager.pumpManager,
+                        maxBasal: settingsManager.pumpSettings.maxBasal
+                    )
+                )
 
                 let now = Date()
 
@@ -836,6 +844,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     teamID: teamID,
                     expirationDate: expireDate,
                     remoteCommands: remoteCommands,
+                    profileEditLimits: profileEditLimits,
                     scheduledSwitches: scheduledSwitches,
                     scheduledSwitchesFingerprint: scheduledSwitches.fingerprint
                 )

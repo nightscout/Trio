@@ -208,13 +208,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     private var basalLimits: TherapyBasalLimits {
         if let basalLimitsOverride { return basalLimitsOverride() }
-        let rates = deviceDataManager.pumpManager?.supportedBasalRates
-            .filter { $0 > 0 }
-            .map { Decimal($0).rounded(scale: 3) }
-        return TherapyBasalLimits(
-            supportedRates: rates ?? TherapyBasalLimits.fallbackRates,
-            maxBasal: settingsManager.pumpSettings.maxBasal
-        )
+        return TherapyBasalLimits(pumpManager: deviceDataManager.pumpManager, maxBasal: settingsManager.pumpSettings.maxBasal)
     }
 
     var activeProfileName: String {
