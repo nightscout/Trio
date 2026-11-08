@@ -6,6 +6,7 @@ extension UnitsLimitsSettings {
         @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
         @Injected() private var tidepoolManager: TidepoolManager!
+        @Injected() private var broadcaster: Broadcaster!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var unitsIndex = 0 // index 0 is mg/dl
@@ -26,6 +27,7 @@ extension UnitsLimitsSettings {
         }
 
         override func subscribe() {
+            broadcaster.register(SettingsObserver.self, observer: self)
             units = settingsManager.settings.units
             subscribeSetting(\.units, on: $unitsIndex.map { $0 == 0 ? GlucoseUnits.mgdL : .mmolL }) {
                 unitsIndex = $0 == .mgdL ? 0 : 1
@@ -71,5 +73,6 @@ extension UnitsLimitsSettings {
 extension UnitsLimitsSettings.StateModel: SettingsObserver {
     func settingsDidChange(_: TrioSettings) {
         units = settingsManager.settings.units
+        unitsIndex = units == .mgdL ? 0 : 1
     }
 }
