@@ -8,18 +8,16 @@ import Testing
 /// synthesis audit.
 ///
 /// Rows in this suite come from that audit's inspection of RileyLinkKit /
-/// RileyLinkBLEKit source plus Trio's routing layer (`AlertCatalogRegistry`,
-/// `TrioAlertClassifier`, `APSManager.processError`).
+/// RileyLinkBLEKit source plus Trio's routing layer (`TrioAlertClassifier`,
+/// `APSManager.processError`).
 ///
 /// HEADLINE FINDING: RileyLinkKit issues **NO LoopKit Alerts of its own**.
 /// It is a shared radio bridge with no `issueAlert` / `AlertIssuer` usage
 /// (the only `AlertIssuer` conformance is a no-op stub in the bundled dev
 /// app, and there is no `UNUserNotificationCenter` scheduling). The
-/// `lowRLBattery` catalog entry is registered under the *embedding* pump
-/// managers "Omni" and "Minimed" (both `.timeSensitive`) and is issued by
-/// OmniBLE/OmniKit and MinimedKit, NOT by RileyLinkKit — so it belongs to
-/// those managers' tables, not this one. The PRIMARY alert table here is
-/// therefore intentionally empty, and that emptiness is the pinned fact.
+/// `lowRLBattery` alert is issued and declared by the *embedding* pump
+/// managers, OmnipodKit ("Omni") and MinimedKit ("Minimed500"), both at
+/// `.timeSensitive`; its level is pinned in those kits' suites.
 ///
 /// RileyLinkKit's only path into Trio is its two `LocalizedError` enums
 /// (`PeripheralManagerError`, `RileyLinkDeviceError`) handed back through the
@@ -50,24 +48,15 @@ import Testing
         let description: String
     }
 
-    // MARK: - Primary alert table (empty by design)
+    // MARK: - Embedding managers' lowRLBattery
 
-    /// RileyLinkKit issues no LoopKit Alerts, so there are no
-    /// `(managerIdentifier, alertIdentifier)` rows to pin. The synthesized
-    /// manager key is preserved verbatim from the audit to document WHY the
-    /// table is empty (the alert that might be attributed here, `lowRLBattery`,
-    /// is registered under "Omni" and "Minimed"). A lookup against this
-    /// non-existent key must return nil — confirming RileyLinkKit contributes
-    /// nothing to the catalog.
-    @Test("primary alert table is empty (no RileyLinkKit-issued alerts)") func primaryAlertTableIsEmpty() {
-        let syntheticManagerKey =
-            "(none — RileyLinkKit issues no LoopKit Alerts of its own; its lowRLBattery alert surfaces under the embedding managers \"Omni\" and \"Minimed\")"
-        #expect(AlertCatalogRegistry.lookup(id(syntheticManagerKey, "lowRLBattery"))?.interruptionLevel == nil)
-
-        // The lowRLBattery alert is real, but it belongs to the embedding
-        // managers. Pin where it actually lives so the attribution is explicit.
-        #expect(AlertCatalogRegistry.lookup(id("Omni", "lowRLBattery"))?.interruptionLevel == .timeSensitive)
-        #expect(AlertCatalogRegistry.lookup(id("Minimed", "lowRLBattery"))?.interruptionLevel == .timeSensitive)
+    /// RileyLinkKit issues no LoopKit Alerts, so there is nothing of its own
+    /// to pin. The RileyLink battery alert it might be credited with reaches
+    /// Trio under the embedding managers and follows the Device Alarms tiers
+    /// there.
+    @Test("lowRLBattery follows the Device Alarms tiers under the embedding managers") func lowRLBatteryFollowsDeviceTiers() {
+        #expect(BaseTrioAlertManager.followsDeviceTiers(id("Omni", "lowRLBattery")))
+        #expect(BaseTrioAlertManager.followsDeviceTiers(id("Minimed500", "lowRLBattery")))
     }
 
     // MARK: - Classifier rows (error string -> category)

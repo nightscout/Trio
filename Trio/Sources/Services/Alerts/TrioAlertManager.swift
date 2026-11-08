@@ -74,6 +74,8 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     private var responders: [String: WeakRef] = [:]
     private var soundVendors: [String: WeakRef] = [:]
     private var liveAlerts: [Alert.Identifier: Alert] = [:]
+    /// Device Alarms tier of each live alert, from its pre-override level.
+    private var liveTiers: [Alert.Identifier: DeviceAlertSeverity] = [:]
 
     init(resolver: Resolver) {
         muter = AlertMuter()
@@ -226,17 +228,19 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
              let .repeating(interval): fireDate = now.addingTimeInterval(interval)
         }
 
-        // Catalog-known alerts (pump, CGM lifecycle, Trio algorithm) get the
+        // Device alerts (pump, CGM) and Trio's algorithm alerts get the
         // user's Device Alarms tier config applied — tone, Play Sound,
         // Override Silence & Focus, day/night window. Everything else
         // (Trio-internal glucose, owned by `GlucoseAlertCoordinator`) is
         // passed through with the level and sound its producer chose.
         let effective: Alert
-        if let entry = AlertCatalogRegistry.lookup(alert.identifier) {
-            // Tier comes from the catalog, never from the post-override
-            // level: a Time-Sensitive alarm with "Override Silence & Focus"
-            // on still snoozes and configures as Time-Sensitive.
-            guard let tier = DeviceAlertSeverity(level: entry.interruptionLevel) else { return }
+        var deviceTier: DeviceAlertSeverity?
+        if Self.followsDeviceTiers(alert.identifier) {
+            // Tier comes from the level the issuer chose, never from the
+            // post-override level: a Time-Sensitive alarm with "Override
+            // Silence & Focus" on still snoozes and configures as Time-Sensitive.
+            guard let tier = DeviceAlertSeverity(level: alert.interruptionLevel) else { return }
+            deviceTier = tier
 
             // Per-tier snooze. Critical tier ignores snooze.
             if tier != .critical, DeviceAlertsStore.shared.isTierSnoozed(tier, at: fireDate) {
@@ -249,7 +253,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
                 debug(.alerts, "Alert \(alert.identifier.value) dropped, all variants in tier \(tier) disabled")
                 return
             }
-            effective = Self.applyDeviceSeverityConfig(config, entry: entry, to: alert)
+            effective = Self.applyDeviceSeverityConfig(config, to: alert)
         } else {
             effective = alert
         }
@@ -267,6 +271,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         }
         queue.async {
             self.liveAlerts[effective.identifier] = effective
+            self.liveTiers[effective.identifier] = deviceTier
         }
         recordIssued(effective)
         let muted = muter.shouldMute(at: now)
@@ -290,14 +295,13 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         }
     }
 
-    /// Overlays the user's Device Alarms tier config onto a catalog-known
-    /// alert. Plugins issue their alerts without a sound, so this is what
+    /// Overlays the user's Device Alarms tier config onto a device or
+    /// algorithm alert. Plugins issue their alerts without a sound, so this is what
     /// gives a pump/CGM alarm the tone the user picked — and what engages
     /// `CriticalAlertAudioPlayer`, which needs a filename to play.
     /// Static so tests can exercise it without the Swinject graph.
     static func applyDeviceSeverityConfig(
         _ config: DeviceAlertSeverityConfig,
-        entry: Alert.CatalogEntry,
         to alert: Alert
     ) -> Alert {
         Alert(
@@ -305,10 +309,9 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             foregroundContent: alert.foregroundContent,
             backgroundContent: alert.backgroundContent,
             trigger: alert.trigger,
-            // Escalate only — the catalog level is the floor, so the override
-            // toggle can't demote a Critical alarm or promote a Normal one
-            // past what the catalog says it is.
-            interruptionLevel: config.overridesSilenceAndDND ? .critical : entry.interruptionLevel,
+            // Escalate only — the issued level is the floor, so the override
+            // toggle can't demote a Critical alarm.
+            interruptionLevel: config.overridesSilenceAndDND ? .critical : alert.interruptionLevel,
             sound: config.playsSound ? .sound(name: config.soundFilename) : nil,
             metadata: alert.metadata
         )
@@ -317,6 +320,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     func retractAlert(identifier: Alert.Identifier) {
         queue.async {
             self.liveAlerts.removeValue(forKey: identifier)
+            self.liveTiers.removeValue(forKey: identifier)
         }
         modalScheduler.unschedule(identifier: identifier)
         userNotificationScheduler.unschedule(identifier: identifier)
@@ -347,7 +351,11 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             ) {
             case let .replay(alert):
                 debug(.alerts, "Alert \(alert.identifier.value) replayed after launch")
-                queue.async { self.liveAlerts[alert.identifier] = alert }
+                let tier = Self.followsDeviceTiers(alert.identifier) ? DeviceAlertSeverity(level: alert.interruptionLevel) : nil
+                queue.async {
+                    self.liveAlerts[alert.identifier] = alert
+                    self.liveTiers[alert.identifier] = tier
+                }
                 modalScheduler.schedule(alert)
             case .acknowledgeSilently:
                 alertHistoryStorage.acknowledgeAlert(entry.issuedDate, nil)
@@ -373,6 +381,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         )
         queue.async {
             self.liveAlerts.removeValue(forKey: identifier)
+            self.liveTiers.removeValue(forKey: identifier)
         }
         acknowledgeOnDevice(identifier: identifier)
     }
@@ -547,6 +556,8 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
 
 extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAlertResponder {
     func requestSnooze(identifier: Alert.Identifier, duration: TimeInterval) {
+        // Read before the ack below clears it.
+        let tier = queue.sync { liveTiers[identifier] }
         // Dismissal is the user's response — full ack (history + device) first.
         handleAcknowledgement(identifier: identifier)
         let untilDate = duration > 0 ? Date().addingTimeInterval(duration) : .distantPast
@@ -554,11 +565,8 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
             broadcaster.notify(GlucoseSnoozeObserver.self, on: .main) { (observer: GlucoseSnoozeObserver) in
                 observer.snoozeGlucoseType(glucoseType, until: untilDate)
             }
-        } else if let entry = AlertCatalogRegistry.lookup(identifier),
-                  let tier = DeviceAlertSeverity(level: entry.interruptionLevel),
-                  tier != .critical
-        {
-            guard !entry.concept.isEscalationStep else { return }
+        } else if let tier, tier != .critical {
+            guard !NotLoopingMonitor.owns(identifier) else { return }
             DeviceAlertsStore.shared.snoozeTier(tier, until: untilDate)
             dismissAlertsInTier(tier, excluding: identifier)
         } else {
@@ -573,12 +581,8 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
     /// retracted with their history entries deleted.
     private func dismissAlertsInTier(_ tier: DeviceAlertSeverity, excluding: Alert.Identifier) {
         let toDismiss: [Alert.Identifier] = queue.sync {
-            liveAlerts.compactMap { id, _ in
-                guard id != excluding,
-                      let entry = AlertCatalogRegistry.lookup(id),
-                      !entry.concept.isEscalationStep,
-                      DeviceAlertSeverity(level: entry.interruptionLevel) == tier
-                else { return nil }
+            liveTiers.compactMap { id, liveTier in
+                guard id != excluding, liveTier == tier, !NotLoopingMonitor.owns(id) else { return nil }
                 return id
             }
         }
@@ -605,6 +609,38 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
 
     func isSnoozeActive(at date: Date) -> Bool {
         muter.shouldMute(at: date)
+    }
+}
+
+extension BaseTrioAlertManager {
+    /// Trio's own alerts that follow the Device Alarms tiers, like pump and CGM alerts do.
+    static let tierConfiguredAlerts: [IssuableAlert] = [
+        IssuableAlert(
+            identifier: NotLoopingMonitor.criticalAlertIdentifier,
+            interruptionLevel: .critical,
+            title: String(localized: "Trio Not Looping")
+        ),
+        IssuableAlert(
+            identifier: TrioAlertCategory.algorithmError.alertIdentifier,
+            interruptionLevel: TrioAlertCategory.algorithmError.interruptionLevel,
+            title: String(localized: "Algorithm Error")
+        ),
+        IssuableAlert(
+            identifier: TrioAlertCategory.glucoseDataStale.alertIdentifier,
+            interruptionLevel: TrioAlertCategory.glucoseDataStale.interruptionLevel,
+            title: String(localized: "Glucose Data Stale")
+        )
+    ]
+
+    /// Every device-issued alert, plus `tierConfiguredAlerts` and the not-looping warnings.
+    /// Trio's other alerts (glucose, calibration, Garmin…) keep the sound they were issued with.
+    static func followsDeviceTiers(_ identifier: Alert.Identifier) -> Bool {
+        let manager = identifier.managerIdentifier
+        if manager == "trio.aps" {
+            return NotLoopingMonitor.owns(identifier)
+                || tierConfiguredAlerts.contains { $0.identifier == identifier.alertIdentifier }
+        }
+        return manager != managerIdentifier && !manager.hasPrefix("trio.")
     }
 }
 

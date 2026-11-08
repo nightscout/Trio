@@ -2,8 +2,8 @@ import Foundation
 import LoopKit
 
 /// Internal slug + severity producer for Trio-emitted alerts (APSManager,
-/// notLooping, glucose threshold). Pump/device alarms now flow through
-/// `AlertCatalogRegistry` and don't touch this enum.
+/// notLooping, glucose threshold). Pump/device alarms carry the level their
+/// kit sets and don't touch this enum.
 enum TrioAlertCategory: Equatable {
     case occlusion
     case reservoirLow

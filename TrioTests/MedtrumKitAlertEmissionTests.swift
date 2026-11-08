@@ -1,19 +1,18 @@
 import Foundation
 import LoopKit
+import MedtrumKit
 import Testing
 
 @testable import Trio
 
-/// Manager-emission pins for **MedtrumKit** (`managerIdentifier` family
-/// `"Medtrum"`). Rows come from the synthesis audit over the bundled pump
-/// managers (`managers`/`pump`/`MedtrumKit`).
+/// Manager-emission pins for **MedtrumKit** (`managerIdentifier`
+/// `"Medtrum"`). MedtrumKit issues its pump alarms as LoopKit Alerts
+/// (`MedtrumAlert`, via `MedtrumPumpManager.emitAlert`) at the level it sets
+/// on each and declares in `MedtrumPumpManager.issuableAlerts`.
 ///
 /// What this suite pins:
-///  - `registryBehaviorIsPinned`: the CURRENT `AlertCatalogRegistry.lookup`
-///    level for every alert identifier the Medtrum registry block keys on
-///    (the exact strings, including the misspelled double-s
-///    `patch-occlussion`). These are GREEN assertions of present behavior,
-///    not of the ideal.
+///  - `declaredLevelIsPinned`: the declared level for every alert MedtrumKit
+///    issues, and that Trio applies the Device Alarms tiers to each.
 ///  - `classifierCategoryIsPinned`: the CURRENT `TrioAlertClassifier`
 ///    categorization for the one confidently-statable error that reaches
 ///    `APSManager.processError` via a PumpManager completion handler
@@ -21,38 +20,44 @@ import Testing
 ///  - `knownEscalationGapsAreExactlyAsDocumented`: a ratchet over the
 ///    documented gap set; FAILS when a gap is fixed, prompting an update.
 ///
-/// One-line gap summary: MedtrumKit issues NO LoopKit Alerts — every pump
-/// alarm is a `UNUserNotificationCenter` local notification, so
-/// `AlertCatalogRegistry.lookup` is never exercised by real emissions and
-/// the carefully-built Medtrum registry block escalates nothing today.
-/// Taxonomy-Critical conditions (occlusion/fault/reservoir-empty/daily &
-/// hourly suspend) reach the user only at the UN-notification default level
-/// (treated as `.timeSensitive` — unknown -> assume time-sensitive),
-/// below their `.critical` taxonomy mapping.
+/// One-line gap summary: the daily and hourly insulin-limit suspends
+/// (taxonomy N2 -> `.critical`) are issued `.timeSensitive`, and the patch
+/// expiry reminder (F3 -> `.timeSensitive`) is issued `.active`.
 @Suite("Trio Alert Emission: MedtrumKit") struct MedtrumKitAlertEmissionTests {
     private func id(_ manager: String, _ alertID: String) -> Alert.Identifier {
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
     }
 
-    // MARK: - Registry behavior (CURRENT, must be green)
+    private static func declaredLevel(_ alertID: String) -> Alert.InterruptionLevel? {
+        MedtrumPumpManager.issuableAlerts.first { $0.identifier == alertID }?.interruptionLevel
+    }
 
-    /// `(alertIdentifier, currentRegistryLevel?)` exactly as the registry
-    /// keys on them today. `nil` means no entry (pass-through).
-    static let registryRows: [(alertID: String, level: Alert.InterruptionLevel?)] = [
-        ("com.nightscout.medtrumkit.patch-occlussion", .critical), // NotificationManager.swift:61 / Registry:152 (double-s)
-        ("com.nightscout.medtrumkit.patch-fault", .critical), // NotificationManager.swift:71 / Registry:154
-        ("com.nightscout.medtrumkit.patch-empty", .critical), // NotificationManager.swift:81 / Registry:155
-        ("com.nightscout.medtrumkit.patch-daily-limit", .timeSensitive), // NotificationManager.swift:38 / Registry:130
-        ("com.nightscout.medtrumkit.patch-hourly-limit", .timeSensitive), // NotificationManager.swift:48 / Registry:138
-        ("com.nightscout.medtrumkit.reservoir-low", .timeSensitive), // NotificationManager.swift:91 / Registry:156
-        ("com.nightscout.medtrumkit.patch-expired", .active) // NotificationManager.swift:15 / Registry:122
+    // MARK: - Declared levels (CURRENT, must be green)
+
+    /// `(alertIdentifier, level)` exactly as MedtrumKit issues and declares them.
+    static let levelRows: [(alertID: String, level: Alert.InterruptionLevel)] = [
+        ("com.nightscout.medtrumkit.patch-occlusion", .critical),
+        ("com.nightscout.medtrumkit.patch-fault", .critical),
+        ("com.nightscout.medtrumkit.patch-empty", .critical),
+        ("com.nightscout.medtrumkit.base-reset", .critical),
+        ("com.nightscout.medtrumkit.patch-daily-limit", .timeSensitive),
+        ("com.nightscout.medtrumkit.patch-hourly-limit", .timeSensitive),
+        ("com.nightscout.medtrumkit.reservoir-low", .timeSensitive),
+        ("com.nightscout.medtrumkit.patch-expired", .active)
     ]
 
     @Test(
-        "registry behavior is pinned for every emitted alert",
-        arguments: registryRows
-    ) func registryBehaviorIsPinned(alertID: String, level: Alert.InterruptionLevel?) {
-        #expect(AlertCatalogRegistry.lookup(id("Medtrum", alertID))?.interruptionLevel == level)
+        "declared level is pinned and follows the Device Alarms tiers for every emitted alert",
+        arguments: levelRows
+    ) func declaredLevelIsPinned(alertID: String, level: Alert.InterruptionLevel) {
+        #expect(Self.declaredLevel(alertID) == level)
+        #expect(BaseTrioAlertManager.followsDeviceTiers(id("Medtrum", alertID)))
+    }
+
+    @Test("declared alerts are exactly the pinned rows, each declared once") func declaredAlertsMatchRows() {
+        let declared = MedtrumPumpManager.issuableAlerts.map(\.identifier)
+        #expect(declared.count == Set(declared).count)
+        #expect(Set(declared) == Set(Self.levelRows.map(\.alertID)))
     }
 
     // MARK: - Classifier behavior (CURRENT, must be green)
@@ -78,48 +83,27 @@ import Testing
 
     // MARK: - Known escalation gaps (ratchet)
 
-    /// Alert identifiers where the EFFECTIVE current level is less severe
-    /// than the taxonomy level (`isGap == true` in the audit). Every row
-    /// is a gap today because MedtrumKit issues these as UN local
-    /// notifications, never as LoopKit Alerts — so `AlertCatalogRegistry`
-    /// is never consulted and the effective level is the UN-notification
-    /// default (unknown -> assume `.timeSensitive`).
-    ///
-    /// SHOULD-have taxonomy levels (for when these are wired through
-    /// `issueAlert`):
-    ///  - patch-occlussion: N1 Critical -> .critical (NotificationManager.swift:61)
-    ///  - patch-fault:       N1 Critical -> .critical (NotificationManager.swift:71)
-    ///  - patch-empty:       N4 Critical -> .critical (NotificationManager.swift:81)
-    ///  - patch-daily-limit: N2 Critical -> .critical; registry only .timeSensitive (NotificationManager.swift:38)
-    ///  - patch-hourly-limit:N2 Critical -> .critical; registry only .timeSensitive (NotificationManager.swift:48)
-    ///  - reservoir-low:     F1 High -> .timeSensitive; registry already .timeSensitive,
-    ///                       gap is ONLY the missing issueAlert wiring (NotificationManager.swift:91)
-    ///  - patch-expired:     F3 Medium -> .timeSensitive; registry only .active (NotificationManager.swift:15)
+    /// Alert identifiers whose declared level is less severe than the
+    /// taxonomy level:
+    ///  - patch-daily-limit:  N2 Critical -> .critical; issued .timeSensitive
+    ///  - patch-hourly-limit: N2 Critical -> .critical; issued .timeSensitive
+    ///  - patch-expired:      F3 Medium -> .timeSensitive; issued .active
     static let knownEscalationGaps: Set<String> = [
-        "com.nightscout.medtrumkit.patch-occlussion",
-        "com.nightscout.medtrumkit.patch-fault",
-        "com.nightscout.medtrumkit.patch-empty",
         "com.nightscout.medtrumkit.patch-daily-limit",
         "com.nightscout.medtrumkit.patch-hourly-limit",
-        "com.nightscout.medtrumkit.reservoir-low",
         "com.nightscout.medtrumkit.patch-expired"
     ]
 
-    /// `(alertID, effectiveLevel, taxonomyLevel)` — `effectiveLevel` is the
-    /// registry level when present, else (no Alert issued) the
-    /// UN-notification default, which we treat as `.timeSensitive`
-    /// (unknown -> assume time-sensitive). A gap exists when
-    /// `effectiveLevel` is less severe than `taxonomyLevel`. Because no
-    /// LoopKit Alert is issued, the effective level for every row is the
-    /// UN default regardless of the registry value.
-    static let gapTable: [(alertID: String, effective: Alert.InterruptionLevel, taxonomy: Alert.InterruptionLevel)] = [
-        ("com.nightscout.medtrumkit.patch-occlussion", .timeSensitive, .critical),
-        ("com.nightscout.medtrumkit.patch-fault", .timeSensitive, .critical),
-        ("com.nightscout.medtrumkit.patch-empty", .timeSensitive, .critical),
-        ("com.nightscout.medtrumkit.patch-daily-limit", .timeSensitive, .critical),
-        ("com.nightscout.medtrumkit.patch-hourly-limit", .timeSensitive, .critical),
-        ("com.nightscout.medtrumkit.reservoir-low", .timeSensitive, .timeSensitive),
-        ("com.nightscout.medtrumkit.patch-expired", .timeSensitive, .timeSensitive)
+    /// `(alertID, taxonomyLevel)` for every audited alert. base-reset was not
+    /// part of the audit and has no taxonomy row.
+    static let taxonomyTable: [(alertID: String, taxonomy: Alert.InterruptionLevel)] = [
+        ("com.nightscout.medtrumkit.patch-occlusion", .critical),
+        ("com.nightscout.medtrumkit.patch-fault", .critical),
+        ("com.nightscout.medtrumkit.patch-empty", .critical),
+        ("com.nightscout.medtrumkit.patch-daily-limit", .critical),
+        ("com.nightscout.medtrumkit.patch-hourly-limit", .critical),
+        ("com.nightscout.medtrumkit.reservoir-low", .timeSensitive),
+        ("com.nightscout.medtrumkit.patch-expired", .timeSensitive)
     ]
 
     /// Severity rank for comparing interruption levels (higher == more severe).
@@ -133,24 +117,14 @@ import Testing
     }
 
     @Test("known escalation gaps are exactly as documented") func knownEscalationGapsAreExactlyAsDocumented() {
-        // Recompute the gap set from the table: a gap is an emission whose
-        // effective level is strictly less severe than its taxonomy level.
-        // reservoir-low / patch-expired tie on level but remain documented
-        // gaps because no Alert is issued (registry override never fires);
-        // they are listed in `knownEscalationGaps` directly. Reconcile the
-        // strictly-less-severe rows against the documented set, accounting
-        // for the architectural (no-issueAlert) gaps.
-        let strictlyLessSevere = Set(
-            Self.gapTable
-                .filter { Self.severity($0.effective) < Self.severity($0.taxonomy) }
+        // A gap is an emission whose declared level is strictly less severe
+        // than its taxonomy level.
+        let recomputed = Set(
+            Self.taxonomyTable
+                .filter { Self.severity(Self.declaredLevel($0.alertID) ?? .active) < Self.severity($0.taxonomy) }
                 .map(\.alertID)
         )
-        // Every strictly-less-severe row must be documented.
-        #expect(strictlyLessSevere.isSubset(of: Self.knownEscalationGaps))
-        // The full documented set is the audit's gap set (includes the
-        // tie-level architectural gaps reservoir-low + patch-expired).
-        let auditedGaps = Set(Self.gapTable.map(\.alertID))
-        #expect(Self.knownEscalationGaps == auditedGaps)
+        #expect(recomputed == Self.knownEscalationGaps)
     }
 }
 

@@ -266,14 +266,15 @@ import Testing
         return DeviceAlertsStore(defaults: defaults, configsKey: configsKey, snoozesKey: snoozesKey)
     }
 
-    /// Mirrors what MedtrumKit emits: no sound, no interruption level.
-    private static func pluginAlert(_ identifier: Alert.Identifier) -> Alert {
+    /// Mirrors what a kit emits: its own level, no sound.
+    private static func pluginAlert(_ identifier: Alert.Identifier, _ level: Alert.InterruptionLevel) -> Alert {
         let content = Alert.Content(title: "t", body: "b", acknowledgeActionButtonLabel: "OK")
         return Alert(
             identifier: identifier,
             foregroundContent: content,
             backgroundContent: content,
-            trigger: .immediate
+            trigger: .immediate,
+            interruptionLevel: level
         )
     }
 
@@ -289,45 +290,40 @@ import Testing
     // MARK: - Tone
 
     @Test("Critical device alarm carries the user's selected tone") func criticalGetsSelectedTone() throws {
-        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
         var config = DeviceAlertSeverityConfig(severity: .critical)
         config.soundFilename = "synth.caf"
         config.playsSound = true
 
-        let issued = Self.pluginAlert(Self.patchEmpty)
+        let issued = Self.pluginAlert(Self.patchEmpty, .critical)
         #expect(issued.sound == nil, "Precondition: plugins emit no sound")
 
-        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(config, entry: entry, to: issued)
+        let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(config, to: issued)
         #expect(effective.sound == .sound(name: "synth.caf"))
         // The critical-audio fallback keys off this filename.
         #expect(effective.sound?.filename == "synth.caf")
     }
 
     @Test("Time-sensitive device alarm carries the user's selected tone") func timeSensitiveGetsSelectedTone() throws {
-        let entry = try #require(AlertCatalogRegistry.lookup(Self.reservoirLow))
         var config = DeviceAlertSeverityConfig(severity: .timeSensitive)
         config.soundFilename = "synth.caf"
         config.playsSound = true // tier default is now silent; this test is about tone carriage
 
         let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
             config,
-            entry: entry,
-            to: Self.pluginAlert(Self.reservoirLow)
+            to: Self.pluginAlert(Self.reservoirLow, .timeSensitive)
         )
         #expect(effective.sound == .sound(name: "synth.caf"))
         #expect(effective.interruptionLevel == .timeSensitive)
     }
 
     @Test("Play Sound off yields a silent alarm") func playSoundOffSilences() throws {
-        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
         var config = DeviceAlertSeverityConfig(severity: .critical)
         config.soundFilename = "synth.caf"
         config.playsSound = false
 
         let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
             config,
-            entry: entry,
-            to: Self.pluginAlert(Self.patchEmpty)
+            to: Self.pluginAlert(Self.patchEmpty, .critical)
         )
         #expect(effective.sound == nil)
     }
@@ -335,45 +331,36 @@ import Testing
     // MARK: - Override Silence & Focus
 
     @Test("Override Silence & Focus escalates to .critical") func overrideEscalates() throws {
-        let entry = try #require(AlertCatalogRegistry.lookup(Self.reservoirLow))
-        #expect(entry.interruptionLevel == .timeSensitive, "Precondition: catalog level")
         var config = DeviceAlertSeverityConfig(severity: .timeSensitive)
         config.overridesSilenceAndDND = true
 
         let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
             config,
-            entry: entry,
-            to: Self.pluginAlert(Self.reservoirLow)
+            to: Self.pluginAlert(Self.reservoirLow, .timeSensitive)
         )
         #expect(effective.interruptionLevel == .critical)
     }
 
-    @Test("Override off keeps the catalog level as the floor") func overrideOffKeepsCatalogLevel() throws {
-        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
-        #expect(entry.interruptionLevel == .critical, "Precondition: catalog level")
+    @Test("Override off keeps the issued level as the floor") func overrideOffKeepsIssuedLevel() throws {
         var config = DeviceAlertSeverityConfig(severity: .critical)
         config.overridesSilenceAndDND = false
 
         // The toggle escalates only — it must not demote a critical alarm.
         let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
             config,
-            entry: entry,
-            to: Self.pluginAlert(Self.patchEmpty)
+            to: Self.pluginAlert(Self.patchEmpty, .critical)
         )
         #expect(effective.interruptionLevel == .critical)
     }
 
     @Test("Override off does not promote a Normal-tier alarm") func normalTierNotPromoted() throws {
         let identifier = Alert.Identifier(managerIdentifier: "trio.aps", alertIdentifier: "algorithmError")
-        let entry = try #require(AlertCatalogRegistry.lookup(identifier))
-        #expect(entry.interruptionLevel == .active, "Precondition: catalog level")
         var config = DeviceAlertSeverityConfig(severity: .normal)
         config.overridesSilenceAndDND = false
 
         let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
             config,
-            entry: entry,
-            to: Self.pluginAlert(identifier)
+            to: Self.pluginAlert(identifier, .active)
         )
         #expect(effective.interruptionLevel == .active)
     }
@@ -396,11 +383,9 @@ import Testing
         let store = Self.makeStore(seed: [always, night])
 
         let config = try #require(store.config(for: .critical, at: Date(), isNight: true))
-        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
         let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
             config,
-            entry: entry,
-            to: Self.pluginAlert(Self.patchEmpty)
+            to: Self.pluginAlert(Self.patchEmpty, .critical)
         )
         #expect(effective.sound == .sound(name: "synth.caf"))
     }
@@ -418,11 +403,9 @@ import Testing
     // MARK: - Identity preservation
 
     @Test("Overlay preserves identifier, content and trigger") func overlayPreservesIdentity() throws {
-        let entry = try #require(AlertCatalogRegistry.lookup(Self.patchEmpty))
-        let issued = Self.pluginAlert(Self.patchEmpty)
+        let issued = Self.pluginAlert(Self.patchEmpty, .critical)
         let effective = BaseTrioAlertManager.applyDeviceSeverityConfig(
             DeviceAlertSeverityConfig(severity: .critical),
-            entry: entry,
             to: issued
         )
         #expect(effective.identifier == issued.identifier)

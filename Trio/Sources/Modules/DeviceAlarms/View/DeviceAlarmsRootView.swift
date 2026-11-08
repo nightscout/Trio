@@ -98,6 +98,7 @@ extension DeviceAlarms {
                         store: store,
                         initial: config,
                         isNew: isNew,
+                        issuableAlerts: state.issuableAlerts,
                         onDone: { sheet = nil },
                         onCancel: { sheet = nil }
                     )

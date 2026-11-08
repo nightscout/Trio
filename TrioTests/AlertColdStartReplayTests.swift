@@ -87,9 +87,8 @@ import Testing
         #expect(decide(carbs) == .acknowledgeSilently)
     }
 
-    @Test("Catalog level override wins over stored level") func catalogOverridesStoredLevel() {
-        // userPodExpiration is catalogued .active; stored says critical (3).
-        let decision = decide(entry(level: 3))
+    @Test("Device alert replays at its stored level") func deviceAlertKeepsStoredLevel() {
+        let decision = decide(entry(level: 1))
         guard case let .replay(alert) = decision else {
             Issue.record("expected replay, got \(decision)")
             return
@@ -111,17 +110,21 @@ import Testing
         #expect(unstored.interruptionLevel == .timeSensitive)
     }
 
-    @Test("Tier snooze skips catalog non-critical, critical pierces") func tierSnoozeGate() {
+    @Test("Tier snooze skips device non-critical, critical pierces") func tierSnoozeGate() {
         #expect(decide(entry(), tierSnoozed: true) == .skip)
-        let critical = entry(manager: "trio.aps", alert: "loop.notActive", issuedAgo: 60)
+        let critical = entry(manager: "trio.aps", alert: "loop.notActive", issuedAgo: 60, level: 3)
         if case .replay = decide(critical, tierSnoozed: true) {} else {
             Issue.record("critical should pierce tier snooze")
+        }
+        let trioOwned = entry(manager: "trio.calibration", alert: "calibration")
+        if case .replay = decide(trioOwned, tierSnoozed: true) {} else {
+            Issue.record("Trio-owned alerts don't follow device tiers")
         }
     }
 
     @Test("Mute skips non-critical, critical pierces") func muteGate() {
         #expect(decide(entry(), muted: true) == .skip)
-        let critical = entry(manager: "trio.aps", alert: "loop.notActive", issuedAgo: 60)
+        let critical = entry(manager: "trio.aps", alert: "loop.notActive", issuedAgo: 60, level: 3)
         if case .replay = decide(critical, muted: true) {} else {
             Issue.record("critical should pierce mute")
         }

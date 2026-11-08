@@ -516,10 +516,6 @@ extension DeviceCatalog {
     }
 
     /// Resolves an identifier read back from persisted pump state, including ones written by retired managers.
-    ///
-    /// Note the identifier used for alert routing is *not* always this one: `AlertCatalogRegistry` keys MiniMed
-    /// entries under "Minimed" while `MinimedPumpManager.pluginIdentifier` is "Minimed500". Do not unify them —
-    /// see TrioTests/MinimedKitAlertEmissionTests.swift.
     static func pumpEntry(forPersistedIdentifier identifier: String) -> PumpCatalogEntry? {
         if let exact = pumpEntry(id: identifier) {
             return exact
