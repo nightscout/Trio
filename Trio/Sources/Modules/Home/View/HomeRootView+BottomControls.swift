@@ -551,7 +551,7 @@ extension Home.RootView {
         let gmiValueString = gmiString(stats.meanGlucose)
         let tirString = hasData
             ? (stats.inRangePct / 100).formatted(.upToOneDecimalPercent)
-            : "-- %"
+            : "--"
         let segments: [(color: Color, fraction: CGFloat)] = hasData ? [
             (.red, CGFloat(stats.veryLowPct / 100)),
             (.orange, CGFloat(stats.lowPct / 100)),

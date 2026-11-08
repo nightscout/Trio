@@ -24,6 +24,12 @@ import Testing
         check(input, expected, double: .upToOneDecimalPercent, decimal: .upToOneDecimalPercent)
     }
 
+    @Test("Up to two decimals drops trailing zeros", arguments: [
+        ("0.8333", "83.33%"), ("0.72", "72%")
+    ]) func upToTwoDecimals(input: String, expected: String) {
+        check(input, expected, double: .upToTwoDecimalPercent, decimal: .upToTwoDecimalPercent)
+    }
+
     /// The Double and Decimal styles are separate copies, so both are checked.
     private func check(
         _ input: String,

@@ -72,7 +72,7 @@ extension AutosensSettings {
                     HStack {
                         Text("Sensitivity Ratio")
                         Spacer()
-                        Text((decimalValue as Decimal).formatted(.upToOneDecimalPercent))
+                        Text((decimalValue as Decimal).formatted(.upToTwoDecimalPercent))
                     }.padding(.vertical)
                     HStack {
                         Text("Calculated Sensitivity")
