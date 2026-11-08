@@ -229,7 +229,7 @@ extension Stat.StateModel {
             hardware: ReportMetadata.Hardware(
                 cgmName: cgmName,
                 pumpName: apsManager.pumpName.value,
-                iPhoneType: UIDevice.current.getDeviceId
+                iPhoneType: UIDevice.current.marketingName
             ),
             software: ReportMetadata.Software(
                 trioVersion: Bundle.main.releaseVersionNumber ?? String(localized: "Unknown"),
