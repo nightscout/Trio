@@ -20,6 +20,7 @@ import Foundation
 
         let glucoseValues = try? stateIntent.getLastGlucose(onContext: context)
         let iob_cob_value = try? stateIntent.getIobAndCob(onContext: context)
+        let adjustments = stateIntent.getActiveAdjustments(onContext: context)
 
         guard let glucoseValue = glucoseValues else { throw StateIntentError.NoBG }
         guard let iob_cob = iob_cob_value else { throw StateIntentError.NoIOBCOB }
@@ -30,7 +31,9 @@ import Foundation
             date: glucoseValue.dateGlucose,
             iob: iob_cob.iob,
             cob: iob_cob.cob,
-            unit: stateIntent.settingsManager.settings.units
+            unit: stateIntent.settingsManager.settings.units,
+            override: adjustments.override,
+            tempTarget: adjustments.tempTarget
         )
         return .result(
             value: BG,
