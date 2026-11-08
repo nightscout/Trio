@@ -133,17 +133,25 @@ import Testing
         ) == .mealTimeReminderCountdown(mealTimeReminder))
     }
 
-    @Test("The broken-right-now warnings outrank a pending meal-time reminder") func testMealTimeReminderYieldsToWarnings() {
+    @Test(
+        "A pending meal-time reminder outranks the time-change and stale-CGM warnings"
+    ) func testMealTimeReminderOverStandingWarnings() {
+        #expect(resolve(
+            pumpTimeMismatch: true,
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder
+        ) == .mealTimeReminderCountdown(mealTimeReminder))
+        #expect(
+            resolve(lastGlucoseDate: stale, pendingMealTimeReminder: mealTimeReminder) ==
+                .mealTimeReminderCountdown(mealTimeReminder)
+        )
+    }
+
+    @Test("Disabled notifications outrank a pending meal-time reminder") func testMealTimeReminderYieldsToNotificationsDisabled() {
         #expect(resolve(
             notificationsDisabled: true,
             lastGlucoseDate: fresh,
             pendingMealTimeReminder: mealTimeReminder
         ) == .notificationsDisabled)
-        #expect(resolve(
-            pumpTimeMismatch: true,
-            lastGlucoseDate: fresh,
-            pendingMealTimeReminder: mealTimeReminder
-        ) == .pumpTimeMismatch)
-        #expect(resolve(lastGlucoseDate: stale, pendingMealTimeReminder: mealTimeReminder) == .cgmStale)
     }
 }

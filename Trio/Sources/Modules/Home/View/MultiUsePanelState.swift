@@ -24,12 +24,13 @@ enum MultiUsePanelState: Equatable {
         dosingMode: DosingMode,
         now: Date
     ) -> MultiUsePanelState {
+        // Without notifications the reminder itself may never arrive (pre-iOS 26 path), so this stays on top.
         if notificationsDisabled { return .notificationsDisabled }
+        // A pending meal-time reminder was just armed by the user and lasts at most an hour, and its banner
+        // holds the only in-app stop button, so it outranks the standing warnings below; they return once it ends.
+        if let pendingMealTimeReminder { return .mealTimeReminderCountdown(pendingMealTimeReminder) }
         if pumpTimeMismatch { return .pumpTimeMismatch }
         if now.timeIntervalSince(lastGlucoseDate ?? .distantPast) > cgmStaleAfter { return .cgmStale }
-        // A pending meal-time reminder is time-sensitive, so it outranks the deliberate, persistent states
-        // below but still yields to the "something is broken right now" warnings above.
-        if let pendingMealTimeReminder { return .mealTimeReminderCountdown(pendingMealTimeReminder) }
         // constrained modes clamp Max IOB to 0 without touching the stored value
         if dosingMode.automation == .reductionsOnly || dosingMode.automation == .hypoSuspendOnly {
             return .dosingModeLimited(dosingMode)
