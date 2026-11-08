@@ -107,24 +107,9 @@ import WidgetKit
             return false
         }
 
-        /// "45 g · 2.4 U", omitting either half when it is zero.
         var mealSummary: String {
             guard let metadata = attributes.metadata else { return "" }
-
-            var parts: [String] = []
-            if metadata.carbs > 0 {
-                parts.append(String(
-                    localized: "\(Int(metadata.carbs.rounded())) g",
-                    comment: "Carb amount in grams in the meal-time reminder Live Activity"
-                ))
-            }
-            if metadata.bolusAmount > 0 {
-                parts.append(String(
-                    localized: "\(metadata.bolusAmount, specifier: "%.2f") U",
-                    comment: "Insulin amount in units in the meal-time reminder Live Activity"
-                ))
-            }
-            return parts.joined(separator: " · ")
+            return MealTimeReminderSummary.compact(carbs: metadata.carbs, bolusAmount: metadata.bolusAmount)
         }
     }
 #endif

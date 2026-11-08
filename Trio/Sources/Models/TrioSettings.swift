@@ -19,6 +19,12 @@ struct TrioSettings: JSON, Equatable, Encodable {
     /// Maximum number of meal-time reminder preset buttons offered in the bolus calculator.
     static let mealTimeReminderPresetLimit = 3
 
+    /// Drops non-positive and duplicate entries, sorts, and caps to `mealTimeReminderPresetLimit`.
+    static func normalizedMealTimeReminderPresets(_ presets: [Decimal]) -> [Decimal] {
+        let normalized = Array(Set(presets.filter { $0 > 0 })).sorted()
+        return Array(normalized.prefix(mealTimeReminderPresetLimit))
+    }
+
     var units: GlucoseUnits = .mgdL
     var dosingMode: DosingMode = .open
     var isUploadEnabled: Bool = false
@@ -234,8 +240,7 @@ extension TrioSettings: Decodable {
         }
 
         if let mealTimeReminderPresets = try? container.decode([Decimal].self, forKey: .mealTimeReminderPresets) {
-            let normalized = Array(Set(mealTimeReminderPresets.filter { $0 > 0 })).sorted()
-            settings.mealTimeReminderPresets = Array(normalized.prefix(TrioSettings.mealTimeReminderPresetLimit))
+            settings.mealTimeReminderPresets = TrioSettings.normalizedMealTimeReminderPresets(mealTimeReminderPresets)
         }
 
         if let overrideFactor = try? container.decode(Decimal.self, forKey: .overrideFactor) {

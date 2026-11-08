@@ -61,7 +61,7 @@ protocol MealTimeReminderService: AnyObject {
 
     /// The AlarmKit alarm this service scheduled, so cancel never touches foreign alarms (e.g.
     /// the critical safety alarms that share `AlarmManager.shared`).
-    @MainActor private var scheduledAlarmID: UUID?
+    @MainActor private var scheduledAlarmID: UUID? { pendingReminder?.alarmID }
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -152,7 +152,7 @@ protocol MealTimeReminderService: AnyObject {
         awaitingExpiryTask?.cancel()
         awaitingExpiryTask = nil
 
-        // Must run before setPendingReminder(nil), which clears scheduledAlarmID.
+        // Must run before setPendingReminder(nil), which is what scheduledAlarmID mirrors.
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *), let alarmID = scheduledAlarmID {
                 // cancel clears a scheduled or counting-down alarm; an already alerting one
@@ -168,7 +168,6 @@ protocol MealTimeReminderService: AnyObject {
                         warning(.bolus, "Meal-time reminder alarm cancel/stop failed", error: error)
                     }
                 }
-                scheduledAlarmID = nil
             }
         #endif
 
@@ -183,7 +182,6 @@ protocol MealTimeReminderService: AnyObject {
         expiryTask?.cancel()
         expiryTask = nil
         pendingReminder = reminder
-        scheduledAlarmID = reminder?.alarmID
 
         guard let reminder else {
             UserDefaults.standard.removeObject(forKey: Self.pendingReminderDefaultsKey)

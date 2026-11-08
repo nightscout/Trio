@@ -514,22 +514,13 @@ extension Home.RootView {
     /// In-app mirror of the meal-time reminder alarm: a live countdown until the user can eat, with the
     /// meal summary and a cancel button.
     @ViewBuilder func mealTimeReminderCountdownView(_ reminder: PendingMealTimeReminder) -> some View {
-        let carbsText = Formatter.integerFormatter.string(from: reminder.carbs as NSDecimalNumber) ?? "0"
-        let bolusText = Formatter.decimalFormatterWithTwoFractionDigits
-            .string(from: reminder.bolusAmount as NSDecimalNumber) ?? "0"
-        // Zero halves are omitted, matching the reminder body's wording; with neither, only the
+        // Empty when neither half is present, matching the reminder body's wording; then only the
         // countdown is shown.
-        let mealSummary: String? = switch (reminder.bolusAmount > 0, reminder.carbs > 0) {
-        case (true, true):
-            carbsText + String(localized: " g · ", comment: "Separator in meal-time reminder meal summary") +
-                bolusText + String(localized: " U", comment: "Insulin unit")
-        case (true, false):
-            bolusText + String(localized: " U", comment: "Insulin unit")
-        case (false, true):
-            carbsText + String(localized: " g", comment: "Carb grams in meal-time reminder meal summary")
-        case (false, false):
-            nil
-        }
+        let summary = MealTimeReminderSummary.compact(
+            carbs: NSDecimalNumber(decimal: reminder.carbs).doubleValue,
+            bolusAmount: NSDecimalNumber(decimal: reminder.bolusAmount).doubleValue
+        )
+        let mealSummary: String? = summary.isEmpty ? nil : summary
 
         HStack {
             Image(systemName: "fork.knife")
