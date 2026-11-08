@@ -211,20 +211,24 @@ extension BolusCalculatorConfig {
 
                 if state.mealTimeReminderEnabled {
                     Section {
-                        ForEach(state.mealTimeReminderPresets.indices, id: \.self) { index in
+                        ForEach($state.mealTimeReminderPresets, id: \.self) { $preset in
+                            // Presets are deduplicated on save, so matching by value (rather than
+                            // a captured array index, which can go stale mid swipe-to-delete
+                            // animation and crash) is safe.
+                            let position = (state.mealTimeReminderPresets.firstIndex(of: preset) ?? 0) + 1
                             PickerSettingRow(
                                 label: String(
-                                    localized: "Preset \(index + 1)",
+                                    localized: "Preset \(position)",
                                     comment: "Numbered meal-time reminder preset button"
                                 ),
-                                decimalValue: $state.mealTimeReminderPresets[index],
+                                decimalValue: $preset,
                                 setting: PickerSettingsProvider.shared.settings.mealTimeReminderPreset,
                                 units: state.units
                             )
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 if state.mealTimeReminderPresets.count > 1 {
                                     Button(role: .destructive) {
-                                        state.mealTimeReminderPresets.remove(at: index)
+                                        state.mealTimeReminderPresets.removeAll { $0 == preset }
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
