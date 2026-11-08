@@ -240,7 +240,7 @@ extension Treatments {
 
         /// Determines the next field to focus on based on the current focused field.
         private func nextField(from current: FocusedField) -> FocusedField? {
-            // If the fat/protein fields are hidden, skip them in navigation
+            // If fat/protein fields are hidden, skip them in navigation
             let showFPU = state.useFPUconversion
 
             switch current {
