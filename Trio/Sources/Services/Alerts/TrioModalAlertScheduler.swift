@@ -48,15 +48,15 @@ final class TrioModalAlertScheduler: ObservableObject {
         remove(identifier: identifier)
     }
 
-    /// Drops every active non-critical banner. Called from `applySnooze` so
-    /// banners visible at the moment a global snooze starts disappear too —
-    /// otherwise they'd outlive the alarm they advertised.
+    /// Drops every active banner that doesn't pierce snooze. Called from `applySnooze` so
+    /// banners visible at the moment a global snooze starts disappear too — otherwise they'd
+    /// outlive the alarm they advertised.
     func clearNonCriticalBanners() {
         guard Thread.isMainThread else {
             DispatchQueue.main.async { [weak self] in self?.clearNonCriticalBanners() }
             return
         }
-        active.removeAll { $0.interruptionLevel != .critical }
+        active.removeAll { !$0.piercesSnooze }
     }
 
     func snooze(identifier: LoopKit.Alert.Identifier, duration: TimeInterval) {
@@ -138,13 +138,10 @@ final class TrioModalAlertScheduler: ObservableObject {
                 // than `interval`; on resume the timer fires immediately
                 // even if the underlying alert was already retracted).
                 let isAlertActive = self.responder?.isAlertActive(identifier: alert.identifier) ?? true
-                // Honor active global snooze, except for alerts that pierce it:
-                // critical alerts and the explicitly user-armed meal-time reminder.
+                // Honor active global snooze, except for alerts that pierce it.
                 let isSnoozeActive = self.responder?.isSnoozeActive(at: Date()) == true
-                let piercesSnooze = alert.interruptionLevel == .critical
-                    || alert.identifier == .mealTimeReminderEat
                 switch Self.shouldInsertOnFire(
-                    piercesSnooze: piercesSnooze,
+                    piercesSnooze: alert.piercesSnooze,
                     isAlertActive: isAlertActive,
                     isSnoozeActive: isSnoozeActive
                 ) {
