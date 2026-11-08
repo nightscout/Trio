@@ -165,7 +165,7 @@ protocol MealTimeReminderService: AnyObject {
                         try AlarmManager.shared.stop(id: alarmID)
                         debug(.bolus, "Meal-time reminder alarm stopped: \(alarmID)")
                     } catch {
-                        warning(.bolus, "Meal-time reminder alarm cancel/stop failed: \(error.localizedDescription)")
+                        warning(.bolus, "Meal-time reminder alarm cancel/stop failed", error: error)
                     }
                 }
                 scheduledAlarmID = nil
@@ -224,11 +224,8 @@ protocol MealTimeReminderService: AnyObject {
 
         #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
-                let alarms = (try? AlarmManager.shared.alarms) ?? []
-                debug(
-                    .bolus,
-                    "Meal-time reminder sees \(alarms.count) system alarm(s): \(alarms.map { "\($0.id) state=\($0.state)" })"
-                )
+                let alarmCount = (try? AlarmManager.shared.alarms.count) ?? 0
+                debug(.bolus, "Meal-time reminder sees \(alarmCount) system alarm(s)")
             }
         #endif
     }
@@ -278,7 +275,7 @@ protocol MealTimeReminderService: AnyObject {
                 debug(.bolus, "Meal-time reminder alarm scheduled for \(Int(leadTime / 60)) min")
                 return alarmID
             } catch {
-                warning(.bolus, "Failed to schedule meal-time reminder alarm: \(error)")
+                warning(.bolus, "Failed to schedule meal-time reminder alarm", error: error)
                 return nil
             }
         }

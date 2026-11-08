@@ -254,8 +254,6 @@ extension Treatments {
             // Leave any scheduled alarm alone: this runs on dismissal, when a just-set
             // meal-time reminder starts counting down.
             mealTimeReminderMinutes = 0
-
-            debug(.bolus, "StateModel cleanup() finished")
         }
 
         private func setupBolusStateConcurrently() {
@@ -581,8 +579,6 @@ extension Treatments {
 
         /// - Returns: `true` if the insulin was delivered (pump) or logged (external).
         private func handleInsulin(isExternal: Bool) async -> Bool {
-            debug(.bolus, "handleInsulin fired")
-
             if !isExternal {
                 return await addPumpInsulin()
             } else {

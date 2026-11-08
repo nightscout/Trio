@@ -707,7 +707,7 @@ final class BaseAPSManager: APSManager, Injectable {
         debug(.bolus, "Cancelling bolus")
         do {
             let dose = try await pump.cancelBolus()
-            debug(.bolus, "Bolus cancelled")
+            info(.bolus, "Bolus cancelled")
             // An early cancel still delivers part of the bolus; report it like a completion
             // so observers (e.g. the meal-time reminder) can react to what was delivered.
             // Pump managers may return a nil dose on cancel, so fall back to the progress
