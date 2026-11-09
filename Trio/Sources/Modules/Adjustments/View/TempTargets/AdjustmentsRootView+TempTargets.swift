@@ -172,7 +172,7 @@ extension Adjustments.RootView {
                         Text(tempTarget.name ?? "")
                         Spacer()
                         if remainingTime > 0 {
-                            Text("Starts in \(Duration.seconds(remainingTime).formattedTimeSpan())")
+                            Text("Starts in \(Duration.seconds(remainingTime).formattedTimeSpan(.largestTwoUnits))")
                                 .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
                         }
                     }

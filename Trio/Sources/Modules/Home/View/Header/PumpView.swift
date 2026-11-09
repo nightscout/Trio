@@ -141,7 +141,7 @@ struct PumpView: View {
         guard time > 0 else {
             return String(localized: "Replace pod", comment: "View/Header when pod expired")
         }
-        return Duration.seconds(time).formattedTimeSpan()
+        return Duration.seconds(time).formattedTimeSpan(.largestTwoUnits)
     }
 
     /// Spoken remaining pod time, so VoiceOver doesn't read the compact "m" as "meters".
@@ -149,7 +149,7 @@ struct PumpView: View {
         guard time > 0 else {
             return String(localized: "Replace pod", comment: "View/Header when pod expired")
         }
-        return Duration.seconds(time).formattedSpokenTimeSpan()
+        return Duration.seconds(time).formattedSpokenTimeSpan(.largestTwoUnits)
     }
 
     /// Reservoir amount plus a spoken severity word, so the color-coded low state is not lost.

@@ -312,7 +312,12 @@ struct CurrentGlucoseView: View {
         if isInWarmup {
             if let endsAt = cgmWarmupEndsAt {
                 let remaining = Duration.seconds(endsAt.timeIntervalSinceNow)
-                return (remaining.formattedTimeSpan(), remaining.formattedSpokenTimeSpan(), .orange, "hourglass")
+                return (
+                    remaining.formattedTimeSpan(.largestTwoUnits),
+                    remaining.formattedSpokenTimeSpan(.largestTwoUnits),
+                    .orange,
+                    "hourglass"
+                )
             }
             return ("Warming up", "Warming up", .orange, "hourglass")
         }
@@ -338,7 +343,12 @@ struct CurrentGlucoseView: View {
             case .warning: theme = .orange
             default: theme = .green
             }
-            return (remaining.formattedTimeSpan(), remaining.formattedSpokenTimeSpan(), theme, nil)
+            return (
+                remaining.formattedTimeSpan(.largestTwoUnits),
+                remaining.formattedSpokenTimeSpan(.largestTwoUnits),
+                theme,
+                nil
+            )
         }
         return nil
     }

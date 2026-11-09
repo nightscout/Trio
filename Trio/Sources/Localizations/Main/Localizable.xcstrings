@@ -9500,6 +9500,9 @@
         }
       }
     },
+    "%@ ago" : {
+      "comment" : "Accessibility: elapsed time; %@ is a duration like \"1 hour, 59 minutes\". Word it so %@ stays unchanged (German: \"%@ her\")."
+    },
     "%@ and %lld g fat" : {
       "comment" : "The text to be displayed when fat is > 0 for the Add Carbs shortcut",
       "localizations" : {
@@ -180831,6 +180834,9 @@
           }
         }
       }
+    },
+    "less than a minute" : {
+      "comment" : "Accessibility: a duration under one minute"
     },
     "less than a minute ago" : {
       "comment" : "Accessibility: elapsed time",

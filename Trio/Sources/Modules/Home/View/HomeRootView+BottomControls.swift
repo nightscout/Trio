@@ -84,8 +84,8 @@ extension Home.RootView {
 
         if !indefinite {
             if remaining > .zero {
-                durationString = remaining.formattedTimeSpan()
-                spokenDurationString = remaining.formattedSpokenTimeSpan()
+                durationString = remaining.formattedTimeSpan(.largestTwoUnits)
+                spokenDurationString = remaining.formattedSpokenTimeSpan(.largestTwoUnits)
             } else {
                 /// Do not show the Override anymore
                 Task {
@@ -157,8 +157,8 @@ extension Home.RootView {
         let targetString = target == 0 ? "" : target.formatted(withUnits: state.units) + percentageString
 
         if remaining > .zero {
-            durationString = remaining.formattedTimeSpan()
-            spokenDurationString = remaining.formattedSpokenTimeSpan()
+            durationString = remaining.formattedTimeSpan(.largestTwoUnits)
+            spokenDurationString = remaining.formattedSpokenTimeSpan(.largestTwoUnits)
         } else {
             /// Do not show the Temp Target anymore
             Task {

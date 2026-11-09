@@ -68,22 +68,42 @@ extension Duration {
         self = minutes.isNaN ? .zero : .seconds(min(max(minutes, 0), Double(Int32.max)) * 60)
     }
 
+    /// Which units a span shows. All round down.
+    enum SpanStyle {
+        /// Days, hours and minutes, for stored values: "1d 1h 30m".
+        case exact
+        /// Hours and minutes under a day, days and hours from a day on, for countdowns and ages: "2d 16h".
+        case largestTwoUnits
+        /// Minutes only, for settings counted in minutes: "90m".
+        case minutes
+    }
+
     /// Compact span, rounded down: "45m", "1h 30m", "5d 14h", "< 1m".
-    func formattedTimeSpan(locale: Locale = .autoupdatingCurrent) -> String {
-        timeSpan(width: .narrow, locale: locale)
-    }
-
-    /// VoiceOver form of `formattedTimeSpan`: "1 hour, 30 minutes".
-    func formattedSpokenTimeSpan(locale: Locale = .autoupdatingCurrent) -> String {
-        timeSpan(width: .wide, locale: locale)
-    }
-
-    private func timeSpan(width: UnitsFormatStyle.UnitWidth, locale: Locale) -> String {
-        // Zero is an exact length, like an unset duration picker, not "less than a minute".
-        if self < .seconds(60), self != .zero {
-            return "<\u{00A0}" + Duration.seconds(60).timeSpan(width: width, locale: locale)
+    func formattedTimeSpan(_ style: SpanStyle = .exact, locale: Locale = .autoupdatingCurrent) -> String {
+        if isUnderAMinute {
+            return "<\u{00A0}" + Duration.seconds(60).timeSpan(style, width: .narrow, locale: locale)
         }
-        let units: Set<UnitsFormatStyle.Unit> = self < .seconds(86400) ? [.hours, .minutes] : [.days, .hours]
+        return timeSpan(style, width: .narrow, locale: locale)
+    }
+
+    /// VoiceOver form of `formattedTimeSpan`: "1 hour, 30 minutes", "less than a minute".
+    /// `locale` formats the units; "less than a minute" follows the app language.
+    func formattedSpokenTimeSpan(_ style: SpanStyle = .exact, locale: Locale = .autoupdatingCurrent) -> String {
+        if isUnderAMinute {
+            return String(localized: "less than a minute", comment: "Accessibility: a duration under one minute")
+        }
+        return timeSpan(style, width: .wide, locale: locale)
+    }
+
+    /// Zero is an exact length, like an unset duration picker, so it stays "0m" rather than "< 1m".
+    var isUnderAMinute: Bool { self < .seconds(60) && self != .zero }
+
+    private func timeSpan(_ style: SpanStyle, width: UnitsFormatStyle.UnitWidth, locale: Locale) -> String {
+        let units: Set<UnitsFormatStyle.Unit> = switch style {
+        case .exact: [.days, .hours, .minutes]
+        case .largestTwoUnits: self < .seconds(86400) ? [.hours, .minutes] : [.days, .hours]
+        case .minutes: [.minutes]
+        }
         return formatted(.units(allowed: units, width: width, fractionalPart: .hide(rounded: .down)).locale(locale))
     }
 }
@@ -91,23 +111,22 @@ extension Duration {
 extension Date {
     /// Time since this date, rounded down: "7m", "1h 30m", "< 1m".
     func formattedTimeAgo(locale: Locale = .autoupdatingCurrent) -> String {
-        Duration.seconds(-timeIntervalSinceNow).formattedTimeSpan(locale: locale)
+        Duration.seconds(-timeIntervalSinceNow).formattedTimeSpan(.largestTwoUnits, locale: locale)
     }
 
-    /// VoiceOver: "7 minutes ago", "1 hour ago", "yesterday", "less than a minute ago".
+    /// VoiceOver form of `formattedTimeAgo`: "1 hour, 59 minutes ago", "less than a minute ago".
+    /// `locale` formats the duration; the words around it follow the app language, like `String(localized:locale:)`.
     func formattedSpokenTimeAgo(locale: Locale = .autoupdatingCurrent) -> String {
-        let elapsed = -timeIntervalSinceNow
-        guard elapsed >= 60 else {
+        let elapsed = Duration.seconds(-timeIntervalSinceNow)
+        // One phrase rather than span + "ago", so translators can get its grammar right.
+        if elapsed.isUnderAMinute {
             return String(localized: "less than a minute ago", comment: "Accessibility: elapsed time")
         }
-        // Under a day the style rounds to the nearest minute or hour; floor so VoiceOver matches the visible text.
-        // From a day on it counts calendar days ("yesterday"); shifting the date could cross midnight.
-        let remainder: TimeInterval = switch elapsed {
-        case ..<3600: elapsed.truncatingRemainder(dividingBy: 60)
-        case ..<86400: elapsed.truncatingRemainder(dividingBy: 3600)
-        default: 0
-        }
-        return addingTimeInterval(remainder).formatted(.relative(presentation: .named, unitsStyle: .wide).locale(locale))
+
+        return String(
+            localized: "\(elapsed.formattedSpokenTimeSpan(.largestTwoUnits, locale: locale)) ago",
+            comment: "Accessibility: elapsed time; %@ is a duration like \"1 hour, 59 minutes\". Word it so %@ stays unchanged (German: \"%@ her\")."
+        )
     }
 }
 
