@@ -87,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dabear/elbbepTransport.git",
       "state" : {
-        "revision" : "18c83911501390c639f950fd3b6e61df1357f9e7",
-        "version" : "1.4.8"
+        "revision" : "d60475a029f7727f5e1beaebf0b71cf0cbc30b99",
+        "version" : "1.4.9"
       }
     },
     {
