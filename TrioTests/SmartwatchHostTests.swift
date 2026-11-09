@@ -137,6 +137,27 @@ import Testing
         #expect(evaluate(delivered, at: now.addingTimeInterval(60)) == .failure(.rateLimited))
     }
 
+    @Test("A watch bolus is answered when the pump reports, not after the determination that follows") func pumpOutcomeAtCallback() async {
+        let start = ContinuousClock.now
+        let outcome = await BaseSmartwatchHost.pumpOutcome { callback in
+            callback(true, "Bolus enacted successfully.")
+            // The determination after a manual bolus, longer than the watch waits.
+            try? await Task.sleep(for: .seconds(60))
+        }
+        #expect(outcome == .init(success: true, message: "Bolus enacted successfully."))
+        #expect(ContinuousClock.now - start < .seconds(10))
+    }
+
+    @Test("A bolus path that never reports is a failure, and only its first report counts") func pumpOutcomeWithoutCallback() async {
+        let silent = await BaseSmartwatchHost.pumpOutcome { _ in }
+        #expect(silent == .init(success: false, message: "no answer from the pump"))
+        let twice = await BaseSmartwatchHost.pumpOutcome { callback in
+            callback(false, "Error! Bolus failed")
+            callback(true, "Bolus enacted successfully.")
+        }
+        #expect(twice == .init(success: false, message: "Error! Bolus failed"))
+    }
+
     @Test("Watch carbs stored while a determination ran count as in it, not twice") func carbsDuringADetermination() {
         // A loop starts calculating at 0 s (deliverAt) and fetches carbs at 2 s;
         // 40 g from the watch were stored at 1 s, so they are in its COB. The host
