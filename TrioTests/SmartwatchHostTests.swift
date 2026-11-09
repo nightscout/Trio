@@ -145,12 +145,21 @@ import Testing
         let entry = BaseSmartwatchHost.WatchCarbEntry(date: start.addingTimeInterval(1), grams: 40)
         var sighting = BaseSmartwatchHost.DeterminationSighting()
         let seenAt = sighting.seenAt(calculatedAt: start, now: start.addingTimeInterval(3))
-        #expect(BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: seenAt, now: start.addingTimeInterval(3)).isEmpty)
+        #expect(
+            BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: seenAt, now: start.addingTimeInterval(3))
+                .isEmpty
+        )
         // Compared with deliverAt they were added a second time.
-        #expect(BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: start, now: start.addingTimeInterval(3)) == [entry])
+        #expect(
+            BaseSmartwatchHost
+                .uncountedWatchCarbs([entry], determinationDate: start, now: start.addingTimeInterval(3)) == [entry]
+        )
         // Carbs stored after the host saw the determination are not in it.
         let later = BaseSmartwatchHost.WatchCarbEntry(date: start.addingTimeInterval(4), grams: 10)
-        #expect(BaseSmartwatchHost.uncountedWatchCarbs([later], determinationDate: seenAt, now: start.addingTimeInterval(5)) == [later])
+        #expect(
+            BaseSmartwatchHost
+                .uncountedWatchCarbs([later], determinationDate: seenAt, now: start.addingTimeInterval(5)) == [later]
+        )
     }
 
     @Test("A determination is first seen once") func determinationSighting() {
@@ -158,7 +167,10 @@ import Testing
         var sighting = BaseSmartwatchHost.DeterminationSighting()
         #expect(sighting.seenAt(calculatedAt: nil, now: start) == nil)
         #expect(sighting.seenAt(calculatedAt: start, now: start.addingTimeInterval(3)) == start.addingTimeInterval(3))
-        #expect(sighting.seenAt(calculatedAt: start, now: start.addingTimeInterval(60)) == start.addingTimeInterval(3), "seen again later")
+        #expect(
+            sighting.seenAt(calculatedAt: start, now: start.addingTimeInterval(60)) == start.addingTimeInterval(3),
+            "seen again later"
+        )
         let next = start.addingTimeInterval(300)
         #expect(sighting.seenAt(calculatedAt: next, now: next.addingTimeInterval(2)) == next.addingTimeInterval(2))
     }
