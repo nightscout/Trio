@@ -168,7 +168,7 @@ extension Adjustments.RootView {
 
         let smbString: String = {
             guard preset.smbIsOff || preset.smbIsScheduledOff else { return "" }
-            return "SMBs Off\(scheduledSMBString)"
+            return String(localized: "SMBs Off\(scheduledSMBString)")
         }()
 
         let maxSmbMins: (text: String, spoken: String) = {
