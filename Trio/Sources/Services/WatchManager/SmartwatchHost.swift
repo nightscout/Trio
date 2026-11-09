@@ -78,6 +78,9 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     @MainActor private var bolusContextIssuer = SmartwatchBolusContextIssuer()
     /// Carb entries from the watch that the latest determination may not count yet.
     @MainActor private var watchCarbEntries: [WatchCarbEntry] = []
+    /// When this host first saw the latest determination: watch carbs stored
+    /// before then count as in its COB.
+    @MainActor private var determinationSighting = DeterminationSighting()
     /// Glucose alerts the plugin restored from before a relaunch that Trio doesn't issue again.
     @MainActor private var restoredAlerts = RestoredWatchAlerts(launchedAt: Date())
 
@@ -257,9 +260,11 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     }
 
     private struct DeterminationValues {
-        /// When it was calculated (`deliverAt`): the insulin and carbs it counts are
-        /// those from before this. Its `timestamp` is moved to when it was enacted,
-        /// after an SMB it decided on, so it can't tell what was counted.
+        /// When it was calculated (`deliverAt`): its IOB counts the insulin delivered
+        /// before this (it may count a little more, which only lowers the
+        /// recommendation). Its `timestamp` is moved to when it was enacted, after an
+        /// SMB it decided on. Carbs are fetched later than `deliverAt`, so watch carbs
+        /// are counted by `DeterminationSighting` instead.
         var calculatedAt: Date?
         var cob: Double?
         var eventualGlucose: Double?
@@ -373,7 +378,9 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         determinationCalculatedAt: Date?,
         latestGlucoseDate: Date?
     ) async -> SmartwatchBolusContext {
-        watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: determinationCalculatedAt, now: Date())
+        let now = Date()
+        let countedBefore = determinationSighting.seenAt(calculatedAt: determinationCalculatedAt, now: now)
+        watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: countedBefore, now: now)
         let result = await bolusCalculationManager.handleBolusCalculation(
             carbs: Decimal(watchCarbEntries.reduce(0) { $0 + $1.grams }),
             useFattyMealCorrection: false,
@@ -516,10 +523,33 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         let grams: Double
     }
 
-    /// The watch carb entries a determination calculated at `determinationDate`
-    /// doesn't count yet: those added after it. Entries over 30 minutes old are dropped
-    /// too, so carbs are never counted twice and old ones don't raise the
-    /// recommendation; both mistakes only lower it.
+    /// The watch carb entries a determination doesn't count yet: those stored after
+    /// `determinationDate`, when this host first saw it (`DeterminationSighting`).
+    /// Entries over 30 minutes old are dropped too, so carbs are never counted
+    /// twice and old ones don't raise the recommendation; both mistakes only lower it.
+    ///
+    /// Not `deliverAt`: Trio takes it before the determination fetches its carbs,
+    /// so carbs stored in between are in its COB and were added again.
+    /// When the host first saw each determination, by its `deliverAt`. A
+    /// determination is saved after it fetched its carbs, and the host sees it
+    /// after it was saved, so a watch carb entry stored before then is in its COB
+    /// or, at worst, treated as if it were.
+    struct DeterminationSighting {
+        private var calculatedAt: Date?
+        private var seen: Date?
+
+        /// When the determination calculated at `calculatedAt` was first seen;
+        /// `now` for one not seen before, `nil` without a determination.
+        mutating func seenAt(calculatedAt: Date?, now: Date) -> Date? {
+            guard let calculatedAt else { return nil }
+            if calculatedAt != self.calculatedAt {
+                self.calculatedAt = calculatedAt
+                seen = now
+            }
+            return seen
+        }
+    }
+
     static func uncountedWatchCarbs(_ entries: [WatchCarbEntry], determinationDate: Date?, now: Date) -> [WatchCarbEntry] {
         entries.filter { entry in
             entry.date > now.addingTimeInterval(-30 * 60) && determinationDate.map { entry.date > $0 } ?? true
@@ -861,7 +891,9 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
             throw SmartwatchBolusError.invalidAmount
         }
         let determination = (try? await latestDetermination()) ?? nil
-        watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: determination?.calculatedAt, now: Date())
+        let now = Date()
+        let countedBefore = determinationSighting.seenAt(calculatedAt: determination?.calculatedAt, now: now)
+        watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: countedBefore, now: now)
         let result = await bolusCalculationManager.handleBolusCalculation(
             carbs: Decimal(watchCarbEntries.reduce(0) { $0 + $1.grams } + grams),
             useFattyMealCorrection: false,
