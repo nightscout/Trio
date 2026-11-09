@@ -24,6 +24,8 @@ import UserNotifications
             } else if newScenePhase == .active {
                 // looking at the watch is a wake that is not the sensor's own
                 WatchCGMHost.shared.recheckAcquisition()
+                // the watch's own reading may have aged out while the app was suspended
+                WatchState.shared.refreshShownReading()
             }
         }
     }
