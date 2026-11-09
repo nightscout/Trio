@@ -128,16 +128,30 @@ import WatchConnectivity
 
     /// The newest reading the phone has sent.
     private(set) var phoneNewestReading: Date?
-    /// Readings from the watch's own sensor link the phone hasn't sent yet, oldest first. Collected all the time, so
-    /// they show at once when the phone's readings stop.
+    /// The phone's readings and bubble as it sent them, shown while the watch has no fresh reading of its own.
+    private var phoneGlucoseValues: [(date: Date, glucose: Double, color: Color)] = []
+    private var phoneBubble = PhoneBubble()
+    private struct PhoneBubble {
+        var currentGlucose = "--"
+        var colorString = "#ffffff"
+        var trend: String? = ""
+        var delta: String? = "--"
+    }
+
+    /// Readings from the watch's own sensor link, oldest first, the last six hours.
     private var ownReadings: [BloodGlucose] = []
     /// The reading shown is the watch's own, not the phone's: the bubble says so.
     private(set) var newestReadingIsOwn = false
+    /// The watch's own newest reading is shown while it is this fresh: one 5-minute cycle and 30 s of slack. After
+    /// that, the phone's readings, if they are newer.
+    static let ownReadingFreshFor: TimeInterval = 5 * 60 + 30
+    /// Falls back to the phone's readings once the watch's own newest is no longer fresh.
+    private var ownReadingExpiry: DispatchWorkItem?
 
-    /// The phone's readings keep coming: one 5-minute cycle and the delivery's slack since its newest.
-    static let phoneReadingsFreshFor: TimeInterval = 7 * 60
+    /// The phone's readings keep coming: one 5-minute cycle and 30 s of slack since its newest, as the watch's own.
+    static let phoneReadingsFreshFor: TimeInterval = ownReadingFreshFor
 
-    /// While true, the watch shows only the phone's readings and leaves the alarms to it.
+    /// While true, the watch leaves the alarms to the phone.
     func phoneReadingsAreFresh(at now: Date = Date()) -> Bool {
         guard let phoneNewestReading else { return false }
         return now.timeIntervalSince(phoneNewestReading) < Self.phoneReadingsFreshFor
@@ -454,18 +468,22 @@ import WatchConnectivity
 
         if let currentGlucose = message[WatchMessageKeys.currentGlucose] as? String {
             self.currentGlucose = currentGlucose
+            phoneBubble.currentGlucose = currentGlucose
         }
 
         if let currentGlucoseColorString = message[WatchMessageKeys.currentGlucoseColorString] as? String {
             self.currentGlucoseColorString = currentGlucoseColorString
+            phoneBubble.colorString = currentGlucoseColorString
         }
 
         if let trend = message[WatchMessageKeys.trend] as? String {
             self.trend = trend
+            phoneBubble.trend = trend
         }
 
         if let delta = message[WatchMessageKeys.delta] as? String {
             self.delta = delta
+            phoneBubble.delta = delta
         }
 
         if let iob = message[WatchMessageKeys.iob] as? String {
@@ -494,6 +512,7 @@ import WatchConnectivity
                 )
             }
             .sorted { $0.date < $1.date }
+            phoneGlucoseValues = glucoseValues
             phoneNewestReading = glucoseValues.last?.date
         }
 
@@ -620,13 +639,13 @@ import WatchConnectivity
             Task { @MainActor in WatchCGMHost.shared.update(from: self) }
         }
 
-        // the phone's readings first; the watch's own only once those have stopped
+        // the watch's own reading first; the phone's only while the watch has none fresh
         applyOwnOverlay()
     }
 
     // MARK: - The watch's own sensor readings
 
-    /// Readings from the watch's own sensor link, always collected; shown only while the phone's have stopped.
+    /// Readings from the watch's own sensor link: shown first, the phone's only while these are not fresh.
     func applyOwnReadings(_ readings: [BloodGlucose]) {
         let known = Set(ownReadings.map { Int($0.dateString.timeIntervalSince1970 / 60) })
         ownReadings += readings.filter { !known.contains(Int($0.dateString.timeIntervalSince1970 / 60)) }
@@ -634,22 +653,36 @@ import WatchConnectivity
         applyOwnOverlay()
     }
 
-    /// While the phone's readings come, they stand as sent. Once they stop, the watch's own newer readings follow
-    /// them and the newest is the one shown. Idempotent: the phone's next state replaces all of it.
+    /// Picks the reading shown again, as time passes: called when the watch app comes to the front.
+    func refreshShownReading() {
+        applyOwnOverlay()
+    }
+
+    /// The watch's own newest reading is shown while it is fresh (`ownReadingFreshFor`), or while it is newer than the
+    /// phone's; otherwise the phone's readings stand as sent. The chart is the watch's own readings, the phone's where
+    /// the watch has none. Idempotent: built each time from the phone's copy and the watch's own.
     private func applyOwnOverlay(now: Date = Date()) {
-        let phoneNewest = phoneNewestReading ?? .distantPast
-        // the phone's copy of a reading carries a timestamp a few seconds apart from the watch's
-        ownReadings.removeAll {
-            $0.dateString <= phoneNewest.addingTimeInterval(60) || $0.dateString < now.addingTimeInterval(-6 * 60 * 60)
-        }
-        newestReadingIsOwn = false
-        guard !phoneReadingsAreFresh(at: now) else { return }
-        glucoseValues.removeAll { $0.date > phoneNewest.addingTimeInterval(60) }
+        // the watch's own reading gives way to the phone's once it is no longer fresh
+        defer { scheduleOwnReadingExpiry(now: now) }
+        ownReadings.removeAll { $0.dateString < now.addingTimeInterval(-6 * 60 * 60) }
         let range = glucoseRange
         let own = ownReadings.compactMap { reading in (reading.glucose ?? reading.sgv).map { (reading, $0) } }
-        guard let (latest, value) = own.last else { return }
+        let phoneNewest = phoneNewestReading ?? .distantPast
+        guard let (latest, value) = own.last,
+              now.timeIntervalSince(latest.dateString) < Self.ownReadingFreshFor ||
+              latest.dateString > phoneNewest.addingTimeInterval(60)
+        else {
+            showPhoneReadings()
+            return
+        }
         newestReadingIsOwn = true
-        glucoseValues += own.map { (date: $0.0.dateString, glucose: range.display($0.1), color: range.color($0.1)) }
+        // the phone's copy of a reading carries a timestamp a few seconds apart from the watch's
+        let ownDates = own.map(\.0.dateString)
+        let phoneOnly = phoneGlucoseValues.filter { phone in
+            !ownDates.contains { abs($0.timeIntervalSince(phone.date)) < 150 }
+        }
+        glucoseValues = (phoneOnly + own.map { (date: $0.0.dateString, glucose: range.display($0.1), color: range.color($0.1)) })
+            .sorted { $0.date < $1.date }
         currentGlucose = Decimal(value).formatted(for: range.isMmol ? .mmolL : .mgdL)
         let inRange = Decimal(value) > range.low && Decimal(value) < range.high
         currentGlucoseColorString = inRange ? "#ffffff" : range.color(value).toHexString()
@@ -659,6 +692,28 @@ import WatchConnectivity
             let formatted = range.isMmol ? String(format: "%.1f", change) : String(format: "%.0f", change)
             delta = change < 0 ? formatted : "+" + formatted
         }
+    }
+
+    private func showPhoneReadings() {
+        newestReadingIsOwn = false
+        glucoseValues = phoneGlucoseValues
+        currentGlucose = phoneBubble.currentGlucose
+        currentGlucoseColorString = phoneBubble.colorString
+        trend = phoneBubble.trend
+        delta = phoneBubble.delta
+    }
+
+    /// While the watch's own reading is shown, the phone's take over once it is no longer fresh, without waiting for
+    /// the next reading or phone message.
+    private func scheduleOwnReadingExpiry(now: Date) {
+        ownReadingExpiry?.cancel()
+        ownReadingExpiry = nil
+        guard newestReadingIsOwn, let latest = ownReadings.last?.dateString else { return }
+        let delay = latest.addingTimeInterval(Self.ownReadingFreshFor).timeIntervalSince(now)
+        guard delay > 0 else { return }
+        let work = DispatchWorkItem { [weak self] in self?.applyOwnOverlay() }
+        ownReadingExpiry = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay + 1, execute: work)
     }
 }
 
