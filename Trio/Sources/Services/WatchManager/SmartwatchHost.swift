@@ -5,6 +5,7 @@ import LoopKit
 import LoopKitUI
 import LupedSmartwatchKit
 import LupedSmartwatchKitUI
+import os
 import Swinject
 
 /// A watch plugin Trio can host. Trio links its plugins statically.
@@ -243,17 +244,23 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         let generation = updateGeneration
         let capabilities = manager.effectiveCapabilities
         Task { @MainActor in
-            let snapshot: SmartwatchStatusSnapshot
+            var snapshot: SmartwatchStatusSnapshot
+            let bolusInputs: SmartwatchBolusContextIssuer.Inputs?
             do {
-                snapshot = try await makeSnapshot(capabilities: capabilities)
+                (snapshot, bolusInputs) = try await makeSnapshot(capabilities: capabilities)
             } catch {
                 warning(.watch, "Unable to build the watch snapshot: \(error)")
                 return
             }
             guard generation == updateGeneration,
-                  let current = smartwatchManager, current === manager,
-                  snapshot != lastSentSnapshot
+                  let current = smartwatchManager, current === manager
             else { return }
+            // Issued only for the snapshot that goes out, so a slower, dropped one
+            // can't replace the context the watch was sent.
+            if let bolusInputs {
+                snapshot.bolusContext = bolusContextIssuer.context(for: bolusInputs, now: Date())
+            }
+            guard snapshot != lastSentSnapshot else { return }
             lastSentSnapshot = snapshot
             current.watchDataDidUpdate(snapshot)
         }
@@ -275,7 +282,10 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         var minPredBG: Decimal?
     }
 
-    @MainActor private func makeSnapshot(capabilities: SmartwatchCapabilities) async throws -> SmartwatchStatusSnapshot {
+    /// The snapshot without its bolus context, and what that context is to be issued from.
+    @MainActor private func makeSnapshot(
+        capabilities: SmartwatchCapabilities
+    ) async throws -> (SmartwatchStatusSnapshot, SmartwatchBolusContextIssuer.Inputs?) {
         let readings = try await fetchReadings(since: Date().addingTimeInterval(-SmartwatchStatusSnapshot.historyInterval))
         var snapshot = SmartwatchStatusSnapshot(
             displayUnit: settingsManager.settings.units == .mmolL ? .millimolesPerLiter : .milligramsPerDeciliter,
@@ -290,11 +300,12 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         }
         addRemoteActionInfo(to: &snapshot, capabilities: capabilities)
         guard capabilities.contains(.loopStatus) || capabilities.contains(.therapy) || capabilities.contains(.remoteBolus)
-        else { return snapshot }
+        else { return (snapshot, nil) }
 
         let determination = try await latestDetermination()
+        var bolusInputs: SmartwatchBolusContextIssuer.Inputs?
         if capabilities.contains(.remoteBolus) {
-            snapshot.bolusContext = await currentBolusContext(
+            bolusInputs = await bolusContextInputs(
                 minPredBG: determination?.minPredBG,
                 determinationCalculatedAt: determination?.calculatedAt,
                 latestGlucoseDate: readings.last?.date
@@ -322,7 +333,7 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
                 correctionRange: determination?.target.map { $0 ... $0 }
             )
         }
-        return snapshot
+        return (snapshot, bolusInputs)
     }
 
     /// What every snapshot carries for the remote actions: the user's permissions
@@ -373,11 +384,11 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     /// just added as that app counts the carbs it is about to save: the plugin adds
     /// the carbs of a carbs-and-bolus request first and checks the bolus against
     /// the next snapshot, before a new determination has counted them in COB.
-    @MainActor private func currentBolusContext(
+    @MainActor private func bolusContextInputs(
         minPredBG: Decimal?,
         determinationCalculatedAt: Date?,
         latestGlucoseDate: Date?
-    ) async -> SmartwatchBolusContext {
+    ) async -> SmartwatchBolusContextIssuer.Inputs {
         let now = Date()
         let countedBefore = determinationSighting.seenAt(calculatedAt: determinationCalculatedAt, now: now)
         watchCarbEntries = Self.uncountedWatchCarbs(watchCarbEntries, determinationDate: countedBefore, now: now)
@@ -391,7 +402,7 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             isBackdated: false
         )
         let deliveredSince = await insulinDelivered(since: determinationCalculatedAt)
-        let inputs = SmartwatchBolusContextIssuer.Inputs(
+        return SmartwatchBolusContextIssuer.Inputs(
             recommendedBolus: Self.watchRecommendation(
                 calculated: Double(truncating: result.insulinCalculated as NSNumber),
                 deliveredSinceDetermination: deliveredSince
@@ -400,7 +411,6 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             supportedBolusVolumes: deviceDataManager.pumpManager?.supportedBolusVolumes ?? [],
             latestGlucoseDate: latestGlucoseDate
         )
-        return bolusContextIssuer.context(for: inputs, now: Date())
     }
 
     /// Delivers a bolus the plugin authenticated, if LoopKit's `SmartwatchBolusPolicy`
@@ -497,11 +507,11 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             in: UserDefaults.standard.smartwatchBolusDeliveries
         )
 
-        // enactBolus answers through its callback before it returns.
-        let outcome = BolusOutcome()
-        await apsManager.enactBolus(amount: units, isSMB: false) { success, message in
-            outcome.success = success
-            outcome.message = message
+        // Answered as soon as the pump reports, not after the determination that
+        // enactBolus runs after a manual bolus, which can outlast the watch's wait.
+        let apsManager: APSManager = self.apsManager
+        let outcome = await Self.pumpOutcome { callback in
+            await apsManager.enactBolus(amount: units, isSMB: false, callback: callback)
         }
         guard outcome.success else {
             log(manager, .error, "Watch bolus delivery failed: \(outcome.message)")
@@ -600,9 +610,35 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         return Double(truncating: total as NSNumber)
     }
 
-    private final class BolusOutcome: @unchecked Sendable {
-        var success = false
-        var message = "no answer from the pump"
+    struct BolusOutcome: Equatable {
+        var success: Bool
+        var message: String
+    }
+
+    /// The outcome `enact` passes to its callback, as soon as it does, while `enact`
+    /// goes on in its own task. Failure if `enact` returns without calling it; only
+    /// the first call counts.
+    static func pumpOutcome(
+        of enact: @escaping @Sendable(@escaping (Bool, String) -> Void) async -> Void
+    ) async -> BolusOutcome {
+        await withCheckedContinuation { continuation in
+            let answered = OSAllocatedUnfairLock(initialState: false)
+            let answer: @Sendable(BolusOutcome) -> Void = { outcome in
+                let first = answered.withLock { done in
+                    defer { done = true }
+                    return !done
+                }
+                if first {
+                    continuation.resume(returning: outcome)
+                }
+            }
+            Task {
+                await enact { success, message in
+                    answer(BolusOutcome(success: success, message: message))
+                }
+                answer(BolusOutcome(success: false, message: "no answer from the pump"))
+            }
+        }
     }
 
     /// Trio's override presets; `enabled` marks the running one. Durations are stored in minutes.
