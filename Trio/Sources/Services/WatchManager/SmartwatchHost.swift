@@ -741,15 +741,15 @@ extension BaseSmartwatchHost: TrioAlertForwarder {
     /// as they reach the phone.
     func alertManager(didIssue alert: Alert, muted _: Bool) {
         guard let manager = smartwatchManager, manager.effectiveCapabilities.contains(.alerts) else { return }
-        let content = alert.foregroundContent ?? alert.backgroundContent
-        guard let glucoseAlertType = Self.glucoseAlertType(of: alert.identifier) else {
-            log(manager, .delegate, "\(content.title) not sent to the watch: only glucose alerts are forwarded")
-            return
-        }
+        // Trio hands every alert to its forwarders; the watch only gets glucose
+        // alerts as they fire. Others (and scheduled ones, such as the not-looping
+        // ladder Trio re-arms on every loop) are dropped without a log line.
+        guard let glucoseAlertType = Self.glucoseAlertType(of: alert.identifier) else { return }
         guard case .immediate = alert.trigger else {
-            log(manager, .delegate, "\(content.title) not sent to the watch: only immediate alerts are forwarded")
+            log(manager, .delegate, "\(alert.identifier.alertIdentifier) not sent to the watch: a scheduled glucose alert")
             return
         }
+        let content = alert.foregroundContent ?? alert.backgroundContent
         let level: SmartwatchAlertLevel = switch alert.interruptionLevel {
         case .active: .informational
         case .timeSensitive: .warning
