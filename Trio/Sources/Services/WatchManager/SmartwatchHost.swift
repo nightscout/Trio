@@ -327,6 +327,8 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         capabilities: SmartwatchCapabilities
     ) {
         snapshot.permittedActions = UserDefaults.standard.permittedSmartwatchActions(within: capabilities)
+        // oref has no per-entry carb absorption, so a watch needn't ask for one.
+        snapshot.usesCarbAbsorption = false
         if capabilities.contains(.remoteCarbs) {
             snapshot.maximumCarbEntry = Double(truncating: settingsManager.settings.maxCarbs as NSNumber)
         }
