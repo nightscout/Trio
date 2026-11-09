@@ -79,13 +79,14 @@ extension Home.RootView {
         let date = latestOverride.date ?? Date()
         let remaining = Duration(minutes: (latestOverride.duration ?? 0) as Decimal) + .seconds(date.timeIntervalSinceNow)
         let indefinite = latestOverride.indefinite
-        var durationString = ""
-        var spokenDurationString = ""
+        var durationLabel = (text: "", spoken: "")
 
         if !indefinite {
             if remaining > .zero {
-                durationString = remaining.formattedTimeSpan(.largestTwoUnits)
-                spokenDurationString = remaining.formattedSpokenTimeSpan(.largestTwoUnits)
+                durationLabel = (
+                    remaining.formattedTimeSpan(.largestTwoUnits),
+                    remaining.formattedSpokenTimeSpan(.largestTwoUnits)
+                )
             } else {
                 /// Do not show the Override anymore
                 Task {
@@ -103,28 +104,36 @@ extension Home.RootView {
         let smbToggleString = latestOverride.smbIsOff || latestOverride
             .smbIsScheduledOff ? String(localized: "SMBs Off\(smbScheduleString)") : ""
 
-        var smbMinuteString: String = ""
-        var uamMinuteString: String = ""
+        var smbMinuteLabel = (text: "", spoken: "")
+        var uamMinuteLabel = (text: "", spoken: "")
 
         if !latestOverride.smbIsOff, latestOverride.advancedSettings {
-            if let smbMinutes = latestOverride.smbMinutes,
-               smbMinutes.decimalValue != settingsManager.preferences.maxSMBBasalMinutes
+            if let smbMinutes = latestOverride.smbMinutes?.decimalValue,
+               smbMinutes != settingsManager.preferences.maxSMBBasalMinutes
             {
-                smbMinuteString = "SMB\u{00A0}\(smbMinutes)\u{00A0}" +
-                    String(localized: "m", comment: "Abbreviation for Minutes")
+                let span = Duration(minutes: smbMinutes)
+                smbMinuteLabel = (
+                    "SMB\u{00A0}" + span.formattedTimeSpan(.minutes),
+                    "SMB\u{00A0}" + span.formattedSpokenTimeSpan(.minutes)
+                )
             }
 
-            if let uamMinutes = latestOverride.uamMinutes,
-               uamMinutes.decimalValue != settingsManager.preferences.maxUAMSMBBasalMinutes
+            if let uamMinutes = latestOverride.uamMinutes?.decimalValue,
+               uamMinutes != settingsManager.preferences.maxUAMSMBBasalMinutes
             {
-                uamMinuteString = "UAM\u{00A0}\(uamMinutes)\u{00A0}" +
-                    String(localized: "m", comment: "Abbreviation for Minutes")
+                let span = Duration(minutes: uamMinutes)
+                uamMinuteLabel = (
+                    "UAM\u{00A0}" + span.formattedTimeSpan(.minutes),
+                    "UAM\u{00A0}" + span.formattedSpokenTimeSpan(.minutes)
+                )
             }
         }
 
-        let otherComponents = [percentString, targetString, smbToggleString, smbMinuteString, uamMinuteString]
-        let components = ([durationString] + otherComponents).filter { !$0.isEmpty }
-        let spokenComponents = ([spokenDurationString] + otherComponents).filter { !$0.isEmpty }
+        let otherComponents = [percentString, targetString, smbToggleString]
+        let components = ([durationLabel.text] + otherComponents + [smbMinuteLabel.text, uamMinuteLabel.text])
+            .filter { !$0.isEmpty }
+        let spokenComponents = ([durationLabel.spoken] + otherComponents + [smbMinuteLabel.spoken, uamMinuteLabel.spoken])
+            .filter { !$0.isEmpty }
 
         guard !components.isEmpty else { return nil }
         return (components.joined(separator: ", "), spokenComponents.joined(separator: ", "))

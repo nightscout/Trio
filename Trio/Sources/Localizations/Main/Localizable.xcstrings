@@ -191912,6 +191912,7 @@
     },
     "m" : {
       "comment" : "Abbreviation for Minutes\nabbreviation for minutes",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {

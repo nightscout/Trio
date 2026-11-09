@@ -155,7 +155,11 @@ extension Adjustments.RootView {
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
 
-        let durationSpan: Duration? = indefinite ? nil : Duration(minutes: duration)
+        let durationLabel: (text: String, spoken: String) = {
+            guard !indefinite else { return ("", "") }
+            let span = Duration(minutes: duration)
+            return (span.formattedTimeSpan(), span.formattedSpokenTimeSpan())
+        }()
 
         let scheduledSMBString: String = {
             guard preset.smbIsScheduledOff, preset.start != preset.end else { return "" }
@@ -167,16 +171,18 @@ extension Adjustments.RootView {
             return "SMBs Off\(scheduledSMBString)"
         }()
 
-        let maxSmbMinsString: String = {
+        let maxSmbMins: (text: String, spoken: String) = {
             guard smbMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
-                  smbMinutes != state.defaultSmbMinutes else { return "" }
-            return "\(smbMinutes.formatted()) min SMB"
+                  smbMinutes != state.defaultSmbMinutes else { return ("", "") }
+            let span = Duration(minutes: smbMinutes)
+            return ("SMB\u{00A0}" + span.formattedTimeSpan(.minutes), "SMB\u{00A0}" + span.formattedSpokenTimeSpan(.minutes))
         }()
 
-        let maxUamMinsString: String = {
+        let maxUamMins: (text: String, spoken: String) = {
             guard uamMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
-                  uamMinutes != state.defaultUamMinutes else { return "" }
-            return "\(uamMinutes.formatted()) min UAM"
+                  uamMinutes != state.defaultUamMinutes else { return ("", "") }
+            let span = Duration(minutes: uamMinutes)
+            return ("UAM\u{00A0}" + span.formattedTimeSpan(.minutes), "UAM\u{00A0}" + span.formattedSpokenTimeSpan(.minutes))
         }()
 
         let isfAndCrString: String = {
@@ -200,11 +206,11 @@ extension Adjustments.RootView {
             return "\(Int(percentage))%\(isfAndCrString)"
         }()
 
-        // Combine all labels into a single array, filtering out empty strings
-        let otherLabels = [percentageString, targetString, smbString, maxSmbMinsString, maxUamMinsString]
-        let labels = ([durationSpan?.formattedTimeSpan() ?? ""] + otherLabels).filter { !$0.isEmpty }
-        // VoiceOver reads the duration spelled out
-        let spokenLabels = ([durationSpan?.formattedSpokenTimeSpan() ?? ""] + otherLabels).filter { !$0.isEmpty }
+        let otherLabels = [percentageString, targetString, smbString]
+        let labels = ([durationLabel.text] + otherLabels + [maxSmbMins.text, maxUamMins.text])
+            .filter { !$0.isEmpty }
+        let spokenLabels = ([durationLabel.spoken] + otherLabels + [maxSmbMins.spoken, maxUamMins.spoken])
+            .filter { !$0.isEmpty }
 
         if !name.isEmpty {
             ZStack(alignment: .trailing) {

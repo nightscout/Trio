@@ -5,40 +5,37 @@ import Testing
 
 @Suite("Duration Formatting") struct DurationFormattingTests {
     private let english = Locale(identifier: "en_US")
-    private let french = Locale(identifier: "fr_FR")
 
-    @Test("Lengths round down, with hours and minutes under a day and days and hours from a day", arguments: [
-        (0, "0m", "0min", "0 minutes"),
-        (59, "<\u{00A0}1m", "<\u{00A0}1min", "<\u{00A0}1 minute"),
-        (-30, "<\u{00A0}1m", "<\u{00A0}1min", "<\u{00A0}1 minute"),
-        (89, "1m", "1min", "1 minute"),
-        (7200, "2h", "2h", "2 hours"),
-        (86399, "23h 59m", "23h 59min", "23 hours, 59 minutes"),
-        (86400, "1d", "1j", "1 day"),
-        (485_940, "5d 14h", "5j 14h", "5 days, 14 hours")
-    ]) func timeSpan(seconds: Int, expected: String, expectedFrench: String, expectedSpoken: String) {
+    @Test("Each style shows its units, rounded down", arguments: [
+        (0, Duration.SpanStyle.exact, "0m", "0 minutes"),
+        (59, .exact, "<\u{00A0}1m", "less than a minute"),
+        (1530 * 60, .exact, "1d 1h 30m", "1 day, 1 hour, 30 minutes"),
+        (86399, .largestTwoUnits, "23h 59m", "23 hours, 59 minutes"),
+        (86400, .largestTwoUnits, "1d", "1 day"),
+        (485_940, .largestTwoUnits, "5d 14h", "5 days, 14 hours"),
+        (90 * 60, .minutes, "90m", "90 minutes")
+    ]) func timeSpan(seconds: Int, style: Duration.SpanStyle, expected: String, expectedSpoken: String) {
         let duration = Duration.seconds(seconds)
-        #expect(duration.formattedTimeSpan(locale: english) == expected)
-        #expect(duration.formattedTimeSpan(locale: french) == expectedFrench)
-        #expect(duration.formattedSpokenTimeSpan(locale: english) == expectedSpoken)
+        #expect(duration.formattedTimeSpan(style, locale: english) == expected)
+        #expect(duration.formattedSpokenTimeSpan(style, locale: english) == expectedSpoken)
     }
 
-    // shortcut: reads the real clock, so the 1-day case can fail in the 24 hours after clocks go back;
-    // pass a reference date (Date.AnchoredRelativeFormatStyle) once iOS 18 is the minimum.
-    @Test("VoiceOver time ago matches the visible text under a day and names the calendar day after", arguments: [
+    @Test("Time ago shows the two largest units, and VoiceOver reads the same span", arguments: [
         (30, "<\u{00A0}1m", "less than a minute ago"),
         (-30, "<\u{00A0}1m", "less than a minute ago"),
-        (479, "7m", "7 minutes ago"),
-        (10740, "2h 59m", "2 hours ago"),
-        (86400, "1d", "yesterday")
+        (7140, "1h 59m", "1 hour, 59 minutes ago"),
+        (172_740, "1d 23h", "1 day, 23 hours ago")
     ]) func timeAgo(secondsAgo: Int, expected: String, expectedSpoken: String) {
         let date = Date(timeIntervalSinceNow: TimeInterval(-secondsAgo))
         #expect(date.formattedTimeAgo(locale: english) == expected)
         #expect(date.formattedSpokenTimeAgo(locale: english) == expectedSpoken)
     }
 
-    @Test("Spoken time ago uses the locale's grammar") func spokenTimeAgoFrench() {
-        #expect(Date(timeIntervalSinceNow: -479).formattedSpokenTimeAgo(locale: french) == "il y a 7 minutes")
+    @Test("Locale formats the units; the words around them follow the app language") func locale() {
+        let french = Locale(identifier: "fr_FR")
+        #expect(Duration.seconds(5400).formattedTimeSpan(locale: french) == "1h 30min")
+        #expect(Duration.seconds(30).formattedTimeSpan(locale: french) == "<\u{00A0}1min")
+        #expect(Date(timeIntervalSinceNow: -7200).formattedSpokenTimeAgo(locale: french) == "2\u{00A0}heures ago")
     }
 
     @Test("Stored minutes clamp instead of trapping on corrupt values") func storedMinutes() {
