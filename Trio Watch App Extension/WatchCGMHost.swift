@@ -18,7 +18,14 @@ import WatchKit
 
     /// For the glucose bubble.
     private(set) var isReadingDirectly = false
-    private(set) var sensorStateText: String?
+    private var linkStateText: String?
+    private var lifecycleStateText: String?
+    /// Shown in place of the minutes. A fresh reading of the watch's own proves the link, so a link note (a code, a
+    /// search) the sensor kit has not cleared yet stays hidden while there is one.
+    var sensorStateText: String? {
+        WatchState.shared.hasFreshOwnReading ? lifecycleStateText : linkStateText ?? lifecycleStateText
+    }
+
     /// The sensor needs a look; set by its lifecycle and by a reading the sensor marks unreliable.
     private(set) var hasSensorProblem = false
     /// When the watch last asked to be opened for a pairing.
@@ -108,9 +115,10 @@ import WatchKit
 
     private func updateStatus() {
         isReadingDirectly = cgmManager != nil
-        sensorStateText = cgmManager?.watchSensorStateText
+        linkStateText = cgmManager?.watchLinkStateText
+        lifecycleStateText = cgmManager?.watchSensorStateText
         noteSensorProblem(cgmManager?.watchHasSensorProblem ?? false)
-        askToBeOpenedForPairing(cgmManager?.watchNeedsAppInFront ?? false)
+        askToBeOpenedForPairing((cgmManager?.watchNeedsAppInFront ?? false) && !WatchState.shared.hasFreshOwnReading)
     }
 
     /// A pairing waits for Trio on the screen: in the background, a notification asks for it, and goes once the
@@ -194,8 +202,9 @@ extension WatchCGMHost: CGMManagerDelegate {
                 let readings = Self.readings(from: samples)
                 guard !readings.isEmpty else { return }
                 WatchLogger.shared.info(.data, "Direct reading: \(readings.count) sample(s)")
-                noteSensorProblem(cgmManager?.watchHasSensorProblem ?? false)
                 WatchState.shared.applyOwnReadings(readings)
+                // a reading is news of the link too: the status the kit may not have posted
+                updateStatus()
                 WatchAlarms.shared.check(own: readings)
                 scheduleAcquisitionBackstop()
             case .unreliableData:

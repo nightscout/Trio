@@ -10,7 +10,9 @@ import LoopKit
 protocol WatchReadableCGM: CGMManager & DeviceConfigurationSharing {
     /// Posted when anything below changes.
     static var statusDidChange: Notification.Name { get }
-    /// Shown in place of the minutes under the glucose bubble: why no readings come (a code, a search, warmup).
+    /// Shown in place of the minutes under the glucose bubble: why the link brings no readings (a code, a search).
+    var watchLinkStateText: String? { get }
+    /// Shown in place of the minutes under the glucose bubble: the sensor's own state (warmup, expired).
     var watchSensorStateText: String? { get }
     /// The sensor itself needs a look: the yellow triangle in the glucose bubble.
     var watchHasSensorProblem: Bool { get }
@@ -40,9 +42,13 @@ func watchCGMManager(rawValue: [String: Any]) -> (any WatchReadableCGM)? {
 }
 
 extension G7CGMManager: WatchReadableCGM {
-    var watchSensorStateText: String? {
+    var watchLinkStateText: String? {
         if needsCodeForSensor != nil { return String(localized: "Sensor code needed") }
         if isSearchingForSensor { return String(localized: "Pairing the sensor: keep Trio open") }
+        return nil
+    }
+
+    var watchSensorStateText: String? {
         switch lifecycleState {
         case .warmup: return String(localized: "Sensor warmup")
         case .failed: return String(localized: "Sensor failed")

@@ -142,6 +142,8 @@ import WatchConnectivity
     private var ownReadings: [BloodGlucose] = []
     /// The reading shown is the watch's own, not the phone's: the bubble says so.
     private(set) var newestReadingIsOwn = false
+    /// The watch's own newest reading is within `ownReadingFreshFor`: its sensor link works.
+    private(set) var hasFreshOwnReading = false
     /// The watch's own newest reading is shown while it is this fresh: one 5-minute cycle and 30 s of slack. After
     /// that, the phone's readings, if they are newer.
     static let ownReadingFreshFor: TimeInterval = 5 * 60 + 30
@@ -668,6 +670,7 @@ import WatchConnectivity
         let range = glucoseRange
         let own = ownReadings.compactMap { reading in (reading.glucose ?? reading.sgv).map { (reading, $0) } }
         let phoneNewest = phoneNewestReading ?? .distantPast
+        hasFreshOwnReading = own.last.map { now.timeIntervalSince($0.0.dateString) < Self.ownReadingFreshFor } ?? false
         guard let (latest, value) = own.last,
               now.timeIntervalSince(latest.dateString) < Self.ownReadingFreshFor ||
               latest.dateString > phoneNewest.addingTimeInterval(60)
