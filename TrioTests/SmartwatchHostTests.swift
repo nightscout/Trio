@@ -39,15 +39,6 @@ import Testing
         ) == [entry])
         // A determination after the entry counts it in COB.
         #expect(BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: now, now: now).isEmpty)
-        // Stored after a determination was calculated (deliverAt, 90 s ago) but before
-        // it was enacted (its timestamp, 30 s ago): it isn't in that determination,
-        // so the host compares with when it was calculated. The enact time would drop it.
-        #expect(BaseSmartwatchHost.uncountedWatchCarbs(
-            [entry],
-            determinationDate: now.addingTimeInterval(-90),
-            now: now
-        ) == [entry])
-        #expect(BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: now.addingTimeInterval(-30), now: now).isEmpty)
         // Entries over 30 minutes old are dropped.
         let old = BaseSmartwatchHost.WatchCarbEntry(date: now.addingTimeInterval(-31 * 60), grams: 20)
         #expect(BaseSmartwatchHost.uncountedWatchCarbs([old], determinationDate: nil, now: now).isEmpty)
@@ -144,6 +135,32 @@ import Testing
         let delivered = BaseSmartwatchHost.bolusDelivered(1.5, attemptedAt: now, in: failed)
         #expect(delivered == [SmartwatchBolusPolicy.Delivery(date: now, units: 1.5)])
         #expect(evaluate(delivered, at: now.addingTimeInterval(60)) == .failure(.rateLimited))
+    }
+
+    @Test("Watch carbs stored while a determination ran count as in it, not twice") func carbsDuringADetermination() {
+        // A loop starts calculating at 0 s (deliverAt) and fetches carbs at 2 s;
+        // 40 g from the watch were stored at 1 s, so they are in its COB. The host
+        // first sees the determination at 3 s.
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        let entry = BaseSmartwatchHost.WatchCarbEntry(date: start.addingTimeInterval(1), grams: 40)
+        var sighting = BaseSmartwatchHost.DeterminationSighting()
+        let seenAt = sighting.seenAt(calculatedAt: start, now: start.addingTimeInterval(3))
+        #expect(BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: seenAt, now: start.addingTimeInterval(3)).isEmpty)
+        // Compared with deliverAt they were added a second time.
+        #expect(BaseSmartwatchHost.uncountedWatchCarbs([entry], determinationDate: start, now: start.addingTimeInterval(3)) == [entry])
+        // Carbs stored after the host saw the determination are not in it.
+        let later = BaseSmartwatchHost.WatchCarbEntry(date: start.addingTimeInterval(4), grams: 10)
+        #expect(BaseSmartwatchHost.uncountedWatchCarbs([later], determinationDate: seenAt, now: start.addingTimeInterval(5)) == [later])
+    }
+
+    @Test("A determination is first seen once") func determinationSighting() {
+        let start = Date(timeIntervalSince1970: 1_800_000_000)
+        var sighting = BaseSmartwatchHost.DeterminationSighting()
+        #expect(sighting.seenAt(calculatedAt: nil, now: start) == nil)
+        #expect(sighting.seenAt(calculatedAt: start, now: start.addingTimeInterval(3)) == start.addingTimeInterval(3))
+        #expect(sighting.seenAt(calculatedAt: start, now: start.addingTimeInterval(60)) == start.addingTimeInterval(3), "seen again later")
+        let next = start.addingTimeInterval(300)
+        #expect(sighting.seenAt(calculatedAt: next, now: next.addingTimeInterval(2)) == next.addingTimeInterval(2))
     }
 
     @Test("Trend arrows match LoopKit's GlucoseTrend") func trends() {
