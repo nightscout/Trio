@@ -6,7 +6,6 @@ import HealthKit
 import LoopKit
 import LoopKitUI
 import Swinject
-import TidepoolKit
 import TidepoolServiceKit
 import UIKit
 
@@ -38,7 +37,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
 
     /// Raised by `TidepoolService` when its login session is cleared
     static let authenticationAlertIdentifier = LoopKit.Alert.Identifier(
-        managerIdentifier: TidepoolService.pluginIdentifier,
+        managerIdentifier: TidepoolService.serviceIdentifier,
         alertIdentifier: "authentication-needed"
     )
 
@@ -216,27 +215,6 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             }
     }
 
-    /// Signs out when Tidepool rejects the stored login, so the plugin raises its re-login alert
-    private func handleUploadFailure(_ error: Error) {
-        guard Self.isAuthenticationFailure(error), let service = tidepoolService as? TidepoolService else { return }
-        warning(.tidepool, "Tidepool rejected the stored login, signing out until the user logs in again", error: error)
-        Task { await service.tapi.logout() }
-    }
-
-    static func isAuthenticationFailure(_ error: Error) -> Bool {
-        switch error as? TError {
-        case .requestNotAuthenticated:
-            return true
-        case let .responseMalformedJSON(response, data, _):
-            // Token refresh rejected, e.g. after a Tidepool password change
-            struct OAuthError: Decodable { let error: String }
-            return response.statusCode == 400
-                && (try? JSONDecoder().decode(OAuthError.self, from: data))?.error == "invalid_grant"
-        default:
-            return false
-        }
-    }
-
     /// Returns the Tidepool service UI if available
     func getTidepoolServiceUI() -> ServiceUI? {
         tidepoolService as? ServiceUI
@@ -377,7 +355,6 @@ extension BaseTidepoolManager {
                 await updateCarbsAsUploaded(Array(chunk))
             case let .failure(error):
                 warning(.tidepool, "Tidepool upload of \(chunk.count) carb entries failed", error: error)
-                handleUploadFailure(error)
             }
         }
     }
@@ -435,7 +412,6 @@ extension BaseTidepoolManager {
                     debug(.tidepool, "Carb entry deletion synced to Tidepool")
                 case let .failure(error):
                     warning(.tidepool, "Tidepool carb entry deletion failed", error: error)
-                    self?.handleUploadFailure(error)
                 }
             }
         }
@@ -565,7 +541,6 @@ extension BaseTidepoolManager {
                 await updateInsulinAsUploaded(insulinEvents)
             case let .failure(error):
                 warning(.tidepool, "Tidepool upload of \(insulinDoseEvents.count) dose entries failed", error: error)
-                handleUploadFailure(error)
             }
 
             guard await uploadSerializer.isCurrent(generation) else { return }
@@ -580,7 +555,6 @@ extension BaseTidepoolManager {
                 await updateInsulinAsUploaded(pumpEventsToMark)
             case let .failure(error):
                 warning(.tidepool, "Tidepool upload of \(pumpEvents.count) pump events failed", error: error)
-                handleUploadFailure(error)
             }
         } catch {
             warning(.tidepool, "Failed to prepare dose entries for Tidepool upload", error: error)
@@ -632,7 +606,6 @@ extension BaseTidepoolManager {
                     debug(.tidepool, "Dose deletion synced to Tidepool")
                 case let .failure(error):
                     warning(.tidepool, "Tidepool dose deletion failed", error: error)
-                    self?.handleUploadFailure(error)
                 }
             }
         }
@@ -830,7 +803,6 @@ extension BaseTidepoolManager {
                 await updateGlucoseAsUploaded(Array(chunk))
             case let .failure(error):
                 warning(.tidepool, "Tidepool upload of \(chunk.count) glucose values failed", error: error)
-                handleUploadFailure(error)
             }
         }
     }
@@ -912,7 +884,6 @@ extension BaseTidepoolManager {
             info(.tidepool, "Settings uploaded to Tidepool")
         case let .failure(error):
             warning(.tidepool, "Tidepool settings upload failed", error: error)
-            handleUploadFailure(error)
         }
     }
 }
