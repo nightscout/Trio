@@ -1,10 +1,11 @@
+import CoreData
 import Foundation
 import LoopKit
 import Testing
 
 @testable import Trio
 
-@Suite("Smartwatch host: alert and trend mapping") struct SmartwatchHostTests {
+@Suite("Smartwatch host: alerts, trends, presets and the watch bolus") struct SmartwatchHostTests {
     private func identifier(_ alertIdentifier: String, manager: String = BaseTrioAlertManager.managerIdentifier)
         -> Alert.Identifier
     {
@@ -104,39 +105,6 @@ import Testing
         }
     }
 
-    @Test("A watch bolus that reached the pump counts for the time between boluses, delivered or not") func bolusAttempts() {
-        let now = Date(timeIntervalSince1970: 1_800_000_000)
-        let token = UUID()
-        let context = SmartwatchBolusContext(
-            token: token,
-            issuedAt: now.addingTimeInterval(-60),
-            recommendedBolus: 2,
-            maximumBolus: 5,
-            supportedBolusVolumes: []
-        )
-        func evaluate(_ deliveries: [SmartwatchBolusPolicy.Delivery], at date: Date) -> Result<Double, SmartwatchBolusError> {
-            SmartwatchBolusPolicy(
-                isAllowed: true,
-                currentContext: context,
-                latestGlucoseDate: date.addingTimeInterval(-60),
-                recentDeliveries: deliveries,
-                roundToSupportedVolume: { $0 }
-            ).evaluate(SmartwatchBolusRequest(units: 1, contextToken: token, requestedAt: date), now: date)
-        }
-
-        // A failed (possibly uncertain) delivery: the next watch bolus waits 5 minutes.
-        let failed = BaseSmartwatchHost.bolusAttempted(at: now, in: [])
-        #expect(evaluate(failed, at: now.addingTimeInterval(60)) == .failure(.rateLimited))
-        #expect(evaluate(failed, at: now.addingTimeInterval(5 * 60 + 1)) == .success(1))
-        // ...and adds nothing to the daily total.
-        #expect(failed.reduce(0) { $0 + $1.units } == 0)
-
-        // A delivered one replaces its attempt with its units.
-        let delivered = BaseSmartwatchHost.bolusDelivered(1.5, attemptedAt: now, in: failed)
-        #expect(delivered == [SmartwatchBolusPolicy.Delivery(date: now, units: 1.5)])
-        #expect(evaluate(delivered, at: now.addingTimeInterval(60)) == .failure(.rateLimited))
-    }
-
     @Test("A watch bolus is answered when the pump reports, not after the determination that follows") func pumpOutcomeAtCallback() async {
         let start = ContinuousClock.now
         let outcome = await BaseSmartwatchHost.pumpOutcome { callback in
@@ -196,17 +164,117 @@ import Testing
         #expect(sighting.seenAt(calculatedAt: next, now: next.addingTimeInterval(2)) == next.addingTimeInterval(2))
     }
 
+    private func pluginAlert(_ level: Alert.InterruptionLevel, manager: String = "SomePump") -> Alert {
+        let content = Alert.Content(title: "Watch app missing", body: "Install it again.", acknowledgeActionButtonLabel: "OK")
+        return Alert(
+            identifier: identifier("watchAppMissing", manager: manager),
+            foregroundContent: content,
+            backgroundContent: content,
+            trigger: .immediate,
+            interruptionLevel: level
+        )
+    }
+
+    @Test("A watch plugin's alert is never critical") func watchPluginAlertCap() {
+        #expect(
+            BaseSmartwatchHost.watchPluginAlert(pluginAlert(.critical), from: "LupedSmartwatch").interruptionLevel ==
+                .timeSensitive
+        )
+        #expect(
+            BaseSmartwatchHost.watchPluginAlert(pluginAlert(.timeSensitive), from: "LupedSmartwatch").interruptionLevel ==
+                .timeSensitive
+        )
+        #expect(BaseSmartwatchHost.watchPluginAlert(pluginAlert(.active), from: "LupedSmartwatch").interruptionLevel == .active)
+    }
+
+    @Test("A watch plugin's alert is its own, whatever manager it names") func watchPluginAlertIdentity() {
+        // Naming Trio or a pump can't impersonate or retract their alerts.
+        for manager in [BaseTrioAlertManager.managerIdentifier, "SomePump"] {
+            let alert = BaseSmartwatchHost.watchPluginAlert(pluginAlert(.critical, manager: manager), from: "LupedSmartwatch")
+            #expect(alert.identifier == identifier("watchAppMissing", manager: "LupedSmartwatch"))
+            #expect(BaseSmartwatchHost.glucoseAlertType(of: alert.identifier) == nil)
+        }
+        #expect(
+            BaseSmartwatchHost.watchPluginAlertIdentifier(identifier("watchAppMissing"), from: "LupedSmartwatch") ==
+                identifier("watchAppMissing", manager: "LupedSmartwatch")
+        )
+        // Content, trigger and sound are the plugin's.
+        let alert = BaseSmartwatchHost.watchPluginAlert(pluginAlert(.critical), from: "LupedSmartwatch")
+        #expect(alert.foregroundContent == pluginAlert(.critical).foregroundContent)
+        #expect(alert.backgroundContent == pluginAlert(.critical).backgroundContent)
+        #expect(alert.trigger == .immediate)
+    }
+
+    @Test("Preset durations in minutes, none or 0 as indefinite") func presetDurations() {
+        #expect(BaseSmartwatchHost.duration(minutes: NSDecimalNumber(value: 60), indefinite: false) == .finite(60 * 60))
+        #expect(BaseSmartwatchHost.duration(minutes: NSDecimalNumber(value: 60), indefinite: true) == .indefinite)
+        #expect(BaseSmartwatchHost.duration(minutes: NSDecimalNumber(value: 0), indefinite: false) == .indefinite)
+        #expect(BaseSmartwatchHost.duration(minutes: nil, indefinite: false) == .indefinite)
+    }
+
     @Test("Trend arrows match LoopKit's GlucoseTrend") func trends() {
-        #expect(BloodGlucose.Direction.tripleUp.smartwatchTrend == .upUpUp)
-        #expect(BloodGlucose.Direction.doubleUp.smartwatchTrend == .upUpUp)
-        #expect(BloodGlucose.Direction.singleUp.smartwatchTrend == .upUp)
-        #expect(BloodGlucose.Direction.fortyFiveUp.smartwatchTrend == .up)
-        #expect(BloodGlucose.Direction.flat.smartwatchTrend == .flat)
-        #expect(BloodGlucose.Direction.fortyFiveDown.smartwatchTrend == .down)
-        #expect(BloodGlucose.Direction.singleDown.smartwatchTrend == .downDown)
-        #expect(BloodGlucose.Direction.doubleDown.smartwatchTrend == .downDownDown)
-        #expect(BloodGlucose.Direction.tripleDown.smartwatchTrend == .downDownDown)
-        #expect(BloodGlucose.Direction.notComputable.smartwatchTrend == nil)
-        #expect(BloodGlucose.Direction.rateOutOfRange.smartwatchTrend == nil)
+        #expect(BloodGlucose.Direction.tripleUp.glucoseTrend == .upUpUp)
+        #expect(BloodGlucose.Direction.doubleUp.glucoseTrend == .upUpUp)
+        #expect(BloodGlucose.Direction.singleUp.glucoseTrend == .upUp)
+        #expect(BloodGlucose.Direction.fortyFiveUp.glucoseTrend == .up)
+        #expect(BloodGlucose.Direction.flat.glucoseTrend == .flat)
+        #expect(BloodGlucose.Direction.fortyFiveDown.glucoseTrend == .down)
+        #expect(BloodGlucose.Direction.singleDown.glucoseTrend == .downDown)
+        #expect(BloodGlucose.Direction.doubleDown.glucoseTrend == .downDownDown)
+        #expect(BloodGlucose.Direction.tripleDown.glucoseTrend == .downDownDown)
+        #expect(BloodGlucose.Direction.notComputable.glucoseTrend == nil)
+        #expect(BloodGlucose.Direction.rateOutOfRange.glucoseTrend == nil)
+    }
+}
+
+@Suite("Smartwatch host: Trio's readings as LoopKit samples", .serialized) struct SmartwatchHostGlucoseTests {
+    let context: NSManagedObjectContext
+
+    init() async throws {
+        context = try await CoreDataStack.createForTests().newTaskContext()
+    }
+
+    private func sample(
+        _ glucose: Int16,
+        direction: String?,
+        isManual: Bool = false,
+        date: Date? = Date()
+    ) async -> StoredGlucoseSample? {
+        await context.perform {
+            let stored = GlucoseStored(context: context)
+            stored.glucose = glucose
+            stored.direction = direction
+            stored.isManual = isManual
+            stored.date = date
+            stored.id = UUID()
+            return BaseSmartwatchHost.glucoseSample(from: stored)
+        }
+    }
+
+    @Test("A reading in mg/dL with its date, id and arrow") func cgmReading() async throws {
+        let date = Date(timeIntervalSince1970: 1_800_000_000)
+        let reading = try #require(await sample(126, direction: "SingleUp", date: date))
+        #expect(reading.quantity == LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: 126))
+        #expect(reading.quantity.doubleValue(for: .millimolesPerLiter) > 6.9)
+        #expect(reading.startDate == date)
+        #expect(reading.trend == .upUp)
+        #expect(reading.syncIdentifier != nil)
+        #expect(!reading.wasUserEntered)
+        #expect(!reading.isDisplayOnly)
+    }
+
+    @Test("No arrow for a missing or uncomputable direction") func noArrow() async throws {
+        #expect(try #require(await sample(100, direction: nil)).trend == nil)
+        #expect(try #require(await sample(100, direction: "NOT COMPUTABLE")).trend == nil)
+        #expect(try #require(await sample(100, direction: "RATE OUT OF RANGE")).trend == nil)
+        #expect(try #require(await sample(100, direction: "TripleDown")).trend == .downDownDown)
+    }
+
+    @Test("A hand-entered reading is marked as such") func manualReading() async throws {
+        #expect(try #require(await sample(140, direction: nil, isManual: true)).wasUserEntered)
+    }
+
+    @Test("A reading without a date is left out") func noDate() async {
+        #expect(await sample(100, direction: "Flat", date: nil) == nil)
     }
 }
