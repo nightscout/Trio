@@ -915,6 +915,8 @@ extension BaseTidepoolManager: StatefulPluggableDelegate {
     func pluginDidUpdateState(_: LoopKit.StatefulPluggable) {}
 
     func pluginWantsDeletion(_: LoopKit.StatefulPluggable) {
+        // deleteService() logs out right after, which would raise the re-login alert
+        tidepoolService?.serviceDelegate = nil
         tidepoolService = nil
         sessionSubscription = nil
         setLoginRequired(false)
