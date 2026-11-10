@@ -129,16 +129,16 @@ final class SpyAlertManager: TrioAlertManager {
         _ = monitor
     }
 
-    @Test("Warning identifiers resolve to the Time-Sensitive tier") func warningsAreCatalogedTimeSensitive() {
-        for step in 1 ... 5 {
-            guard let entry = AlertCatalogRegistry.lookup(warningID(step)) else {
-                Issue.record("warning step \(step) has no catalog entry")
-                return
-            }
-            #expect(entry.interruptionLevel == .timeSensitive)
-            #expect(entry.concept == .notLooping)
+    @Test("Ladder follows the device tiers and is exempt from tier dismissal") func ladderFollowsDeviceTiers() {
+        for id in (1 ... 5).map(warningID) + [criticalID] {
+            #expect(BaseTrioAlertManager.followsDeviceTiers(id))
+            #expect(NotLoopingMonitor.owns(id))
         }
-        #expect(AlertCatalogRegistry.lookup(criticalID)?.interruptionLevel == .critical)
+        let levels = Dictionary(armLadder().issuedAlerts.map { ($0.identifier, $0.interruptionLevel) }) { first, _ in first }
+        for step in 1 ... 5 {
+            #expect(levels[warningID(step)] == .timeSensitive)
+        }
+        #expect(levels[criticalID] == .critical)
     }
 
     @Test("Every step is delayed, never immediate") func allStepsDelayed() {

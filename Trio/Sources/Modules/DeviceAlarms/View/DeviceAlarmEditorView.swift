@@ -5,6 +5,7 @@ struct DeviceAlarmEditorView: View {
     @ObservedObject var store: DeviceAlertsStore
     let configID: UUID
     let isNew: Bool
+    let alertCatalog: [AlertCatalogEntry]
     var onDone: () -> Void
     var onCancel: () -> Void
 
@@ -17,12 +18,14 @@ struct DeviceAlarmEditorView: View {
         store: DeviceAlertsStore,
         initial: DeviceAlertSeverityConfig,
         isNew: Bool,
+        alertCatalog: [AlertCatalogEntry],
         onDone: @escaping () -> Void,
         onCancel: @escaping () -> Void = {}
     ) {
         self.store = store
         configID = initial.id
         self.isNew = isNew
+        self.alertCatalog = alertCatalog
         self.onDone = onDone
         self.onCancel = onCancel
         _working = State(initialValue: initial)
@@ -62,8 +65,8 @@ struct DeviceAlarmEditorView: View {
                 )
 
                 Section(header: Text("Applies To (Cannot be changed)")) {
-                    ForEach(conceptsForTier(working.severity), id: \.self) { concept in
-                        Text(concept.displayTitle)
+                    ForEach(titlesForTier(working.severity), id: \.self) { title in
+                        Text(title)
                             .font(.footnote)
                             .foregroundColor(.secondary)
                     }
@@ -113,18 +116,8 @@ struct DeviceAlarmEditorView: View {
         }
     }
 
-    /// Distinct alarm concepts whose catalog entries fall into this tier.
-    /// Sorted by display title so the list is stable across plugin changes.
-    private func conceptsForTier(_ tier: DeviceAlertSeverity) -> [LoopKit.Alert.CatalogConcept] {
-        var seen: Set<LoopKit.Alert.CatalogConcept> = []
-        var ordered: [LoopKit.Alert.CatalogConcept] = []
-        for entry in AlertCatalogRegistry.entries
-            where DeviceAlertSeverity(level: entry.interruptionLevel) == tier
-        {
-            if seen.insert(entry.concept).inserted {
-                ordered.append(entry.concept)
-            }
-        }
-        return ordered.sorted { $0.displayTitle < $1.displayTitle }
+    /// Distinct titles of the paired devices' alerts that fall into this tier, sorted.
+    private func titlesForTier(_ tier: DeviceAlertSeverity) -> [String] {
+        Set(alertCatalog.filter { DeviceAlertSeverity(level: $0.interruptionLevel) == tier }.map(\.title)).sorted()
     }
 }

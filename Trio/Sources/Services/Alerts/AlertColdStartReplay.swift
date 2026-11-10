@@ -53,16 +53,14 @@ enum AlertColdStartReplay {
             managerIdentifier: entry.managerIdentifier,
             alertIdentifier: entry.alertIdentifier
         )
-        let catalogEntry = AlertCatalogRegistry.lookup(identifier)
-        let level = catalogEntry?.interruptionLevel
-            ?? entry.primitiveInterruptionLevel
+        let level = entry.primitiveInterruptionLevel
             .flatMap { Alert.InterruptionLevel(storedValue: NSDecimalNumber(decimal: $0)) }
             ?? .timeSensitive
 
-        // Same gates as issueAlert: tier snooze for catalog-known device
+        // Same gates as issueAlert: tier snooze for device and algorithm
         // alerts, global mute for everything non-critical.
         if let tier = DeviceAlertSeverity(level: level),
-           catalogEntry != nil,
+           BaseTrioAlertManager.followsDeviceTiers(identifier),
            tier != .critical,
            isTierSnoozed(tier)
         {

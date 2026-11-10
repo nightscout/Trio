@@ -1,5 +1,6 @@
 import Foundation
 import LoopKit
+import OmnipodKit
 import Testing
 
 @testable import Trio
@@ -7,34 +8,28 @@ import Testing
 // MARK: - Manager Emissions: OmnipodKit
 
 //
-// This suite PINS the current alert-routing behavior for every OmnipodKit
-// (managerIdentifier "Omni", plus the pod-fault channel "Omni:pumpFault")
-// emission that actually reaches Trio. Rows come from the synthesis audit of
-// the managers/pump OmnipodKit sources (PumpManagerAlert.swift, OmniPumpManager.swift,
-// FaultEventCode.swift) cross-referenced against Trio's AlertCatalogRegistry and
-// TrioAlertCategory routing.
+// This suite PINS the alert levels of every OmnipodKit emission that reaches Trio
+// (managerIdentifier "Omni", plus the pod-fault channel "Omni:pumpFault").
 //
 // Two emission channels reach Trio:
-//   1. LoopKit Alerts issued via issueAlert (Alert.Identifier carries
-//      managerIdentifier/alertIdentifier). TrioAlertManager.issueAlert OVERRIDES the
-//      issued interruptionLevel with AlertCatalogRegistry.lookup(...)'s level when a
-//      (managerIdentifier, alertIdentifier) entry is found, else falls back to the
-//      plugin's own level. This is the PRIMARY table below.
+//   1. LoopKit Alerts issued via issueAlert. OmnipodKit sets each alert's
+//      interruptionLevel itself and declares it in OmniPumpManager.alertCatalog;
+//      TrioAlertManager takes the Device Alarms tier from that issued level.
+//      This is the PRIMARY table below.
 //   2. PumpManager errors handed back through completion handlers that
 //      APSManager.processError routes through TrioAlertClassifier.categorize(error:)
 //      (ordered substring match over String(describing: error).lowercased()).
 //
-// The two tests that assert CURRENT behavior (registry pin, classifier pin) MUST stay
-// green. The gap-ratchet test documents the known under-escalations and stays green
-// until someone fixes a gap, at which point it FAILS to prompt updating this file.
+// The level and classifier pins assert CURRENT behavior and MUST stay green. The
+// gap-ratchet test documents the known under-escalations and stays green until
+// someone fixes a gap, at which point it FAILS to prompt updating this file.
 //
-// GAP SUMMARY: Several taxonomy-Critical emissions reach Trio at a sub-critical
-// effective level. The dominant gap is end-of-life / suspend escalation:
-//   - podExpiring (N6-pump, 72h "Pod Expired") registered .timeSensitive.
-//   - suspendEnded (N2, delivery suspended -> "Resume Insulin") registered .timeSensitive.
+// GAP SUMMARY: Several taxonomy-Critical emissions are issued below critical:
+//   - podExpiring (N6-pump, 72h "Pod Expired") issued .timeSensitive.
+//   - suspendEnded (N2, delivery suspended -> "Resume Insulin") issued .timeSensitive.
 //   - pod-fault 0x1C exceededMaximumPodLife80Hrs (N6-pump, 80h hard stop, delivery
-//     stopped) mapped .timeSensitive by omniPodFaultEntry.
-//   - userPodExpiration (F3) registered .active (minor under-escalation vs .timeSensitive).
+//     stopped) issued .timeSensitive by OmniPumpManager.podFaultInterruptionLevel.
+//   - userPodExpiration (F3) issued .active (minor under-escalation vs .timeSensitive).
 // Classifier-channel gaps: podSuspended, noResponse, podNotConnected, unfinalizedBolus
 // all land at .active where taxonomy wants .timeSensitive.
 
@@ -52,40 +47,51 @@ import Testing
         let description: String
     }
 
-    // MARK: - Registry pin (PRIMARY LoopKit-Alert table)
+    private static func declaredLevel(_ alertID: String) -> Alert.InterruptionLevel? {
+        OmniPumpManager.alertCatalog.first { $0.identifier == alertID }?.interruptionLevel
+    }
+
+    // MARK: - Declared level pin (PRIMARY LoopKit-Alert table)
 
     //
-    // (manager, alertIdentifier, expected current registry interruptionLevel or nil).
-    // "Omni:pumpFault" rows resolve through omniPodFaultEntry's bounded hex parser.
-    // These assert CURRENT behavior, NOT the taxonomy-ideal level.
+    // (manager, alertIdentifier, level OmnipodKit issues and declares).
+    // "Omni:pumpFault" rows are the representative faults OmnipodKit declares; their
+    // identifier is FaultEventCode.description. podFaultInterruptionLevel is internal
+    // to OmnipodKit, so its rule (0x1C timeSensitive, every other fault critical) is
+    // pinned through these rows. These assert CURRENT behavior, NOT the taxonomy-ideal level.
 
-    static let registryRows: [(manager: String, alertID: String, level: Alert.InterruptionLevel?)] = [
-        // managerIdentifier "Omni" — static omniEntries table
-        ("Omni", "podExpireImminent", .timeSensitive),
+    static let levelRows: [(manager: String, alertID: String, level: Alert.InterruptionLevel)] = [
         ("Omni", "userPodExpiration", .active),
+        ("Omni", "podExpiring", .timeSensitive),
+        ("Omni", "podExpireImminent", .timeSensitive),
         ("Omni", "lowReservoir", .timeSensitive),
         ("Omni", "suspendEnded", .timeSensitive),
-        ("Omni", "podExpiring", .timeSensitive),
+        ("Omni", "suspendEnded-repeating", .timeSensitive),
         ("Omni", "unexpectedAlert", .critical),
         ("Omni", "timeOffsetChangeDetected", .active),
         ("Omni", "lowRLBattery", .timeSensitive),
-        // managerIdentifier "Omni:pumpFault" — omniPodFaultEntry hex-code mapping
-        ("Omni:pumpFault", "Fault Event Code 0x14: occluded", .critical),
-        ("Omni:pumpFault", "Fault Event Code 0x18: reservoirEmpty", .critical),
-        ("Omni:pumpFault", "Fault Event Code 0x1C: exceededMaximumPodLife80Hrs", .timeSensitive),
-        ("Omni:pumpFault", "Fault Event Code 0xNN: <other>", .critical)
+        ("Omni:pumpFault", "Fault Event Code 0x14: Occluded", .critical),
+        ("Omni:pumpFault", "Fault Event Code 0x18: Reservoir empty or exceeded maximum pulse delivery", .critical),
+        ("Omni:pumpFault", "Fault Event Code 0x1c: Exceeded maximum Pod life of 80 hours", .timeSensitive),
+        ("Omni:pumpFault", "Fault Event Code 0x49: Bad timer values: COP timer ratio bad", .critical)
     ]
 
     @Test(
-        "registry behavior is pinned for every emitted alert",
-        arguments: registryRows
-    ) func registryLevelIsPinned(_ row: (
+        "declared level is pinned and follows the Device Alarms tiers for every emitted alert",
+        arguments: levelRows
+    ) func declaredLevelIsPinned(_ row: (
         manager: String,
         alertID: String,
-        level: Alert.InterruptionLevel?
+        level: Alert.InterruptionLevel
     )) {
-        let entry = AlertCatalogRegistry.lookup(id(row.manager, row.alertID))
-        #expect(entry?.interruptionLevel == row.level)
+        #expect(Self.declaredLevel(row.alertID) == row.level)
+        #expect(BaseTrioAlertManager.followsDeviceTiers(id(row.manager, row.alertID)))
+    }
+
+    @Test("declared alerts are exactly the pinned rows, each declared once") func declaredAlertsMatchRows() {
+        let declared = OmniPumpManager.alertCatalog.map(\.identifier)
+        #expect(declared.count == Set(declared).count)
+        #expect(Set(declared) == Set(Self.levelRows.map(\.alertID)))
     }
 
     // MARK: - Classifier pin (PumpManager errors via APSManager.processError)
@@ -117,26 +123,23 @@ import Testing
     //
     // Each entry is an emission whose EFFECTIVE current level is LESS severe than its
     // taxonomy level. Recorded here verbatim with the taxonomy level it SHOULD have and
-    // why. The test below recomputes the gap set from the pinned tables + taxonomy and
-    // asserts it equals this documented set. Fixing a gap (raising its level) shrinks the
-    // recomputed set and FAILS this test, forcing an update here.
+    // why. The test below recomputes the gap set from the declared levels, the classifier
+    // and the taxonomy, and asserts it equals this documented set. Fixing a gap (raising
+    // its level) shrinks the recomputed set and FAILS this test, forcing an update here.
 
     static let knownEscalationGaps: Set<String> = [
-        // LoopKit-Alert (registry) gaps — keyed by alertIdentifier
-        // userPodExpiration: F3 -> SHOULD be .timeSensitive; registry .active.
-        //   PumpManagerAlert.swift:42,69 / AlertCatalogRegistry.swift:72
+        // LoopKit-Alert gaps — keyed by alertIdentifier
+        // userPodExpiration: F3 -> SHOULD be .timeSensitive; issued .active.
         "userPodExpiration",
         // suspendEnded: N2 (delivery suspended/stopped, "Resume Insulin") -> SHOULD be
-        //   .critical; registry .timeSensitive. PumpManagerAlert.swift:52,81,124 /
-        //   AlertCatalogRegistry.swift:77
+        //   .critical; issued .timeSensitive.
         "suspendEnded",
         // podExpiring: N6-pump (72h "Pod Expired", delivery ending) -> SHOULD be .critical;
-        //   registry .timeSensitive. PumpManagerAlert.swift:44,71 / AlertCatalogRegistry.swift:73
+        //   issued .timeSensitive.
         "podExpiring",
         // pod-fault 0x1C exceededMaximumPodLife80Hrs: N6-pump (80h hard stop, delivery
-        //   stopped) -> SHOULD be .critical; omniPodFaultEntry returns .timeSensitive.
-        //   FaultEventCode.swift:650,659 / AlertCatalogRegistry.swift:43-47
-        "Fault Event Code 0x1C: exceededMaximumPodLife80Hrs",
+        //   stopped) -> SHOULD be .critical; podFaultInterruptionLevel returns .timeSensitive.
+        "Fault Event Code 0x1c: Exceeded maximum Pod life of 80 hours",
         // Classifier-channel gaps — keyed by String(describing: error)
         // podSuspended: N9 (Medium) -> SHOULD be .timeSensitive; .other -> .active.
         //   PodCommsSession.swift:80 / TrioAlertCategory.swift:173
@@ -158,7 +161,7 @@ import Testing
         ("userPodExpiration", .timeSensitive),
         ("suspendEnded", .critical),
         ("podExpiring", .critical),
-        ("Fault Event Code 0x1C: exceededMaximumPodLife80Hrs", .critical),
+        ("Fault Event Code 0x1c: Exceeded maximum Pod life of 80 hours", .critical),
         ("podSuspended", .timeSensitive),
         ("noResponse", .timeSensitive),
         ("podNotConnected", .timeSensitive),
@@ -175,12 +178,11 @@ import Testing
         }
     }
 
-    /// Resolves the EFFECTIVE current level of a gap-candidate identifier from the pinned
-    /// tables: registry entry (LoopKit-Alert rows) or classifier category interruptionLevel.
+    /// Resolves the EFFECTIVE current level of a gap-candidate identifier: the level
+    /// OmnipodKit declares (LoopKit-Alert rows) or the classifier category interruptionLevel.
     private func effectiveLevel(for identifier: String) -> Alert.InterruptionLevel? {
-        // LoopKit-Alert rows (match by alertIdentifier across both manager keys).
-        if let row = Self.registryRows.first(where: { $0.alertID == identifier }) {
-            return AlertCatalogRegistry.lookup(id(row.manager, row.alertID))?.interruptionLevel
+        if let level = Self.declaredLevel(identifier) {
+            return level
         }
         // Classifier rows (match by String(describing:)).
         if let row = Self.classifierRows.first(where: { $0.describing == identifier }) {

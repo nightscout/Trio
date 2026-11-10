@@ -1,24 +1,20 @@
+import DanaKit
 import Foundation
 import LoopKit
 import Testing
 
 @testable import Trio
 
-/// Pins how DanaKit's emitted LoopKit Alerts are routed through Trio's alert
-/// layer, as recorded by the synthesis audit over the managers / pump /
-/// DanaKit sources (`DanaKit/Packets/DanaNotifyAlarm.swift`,
-/// `DanaKit/PumpManager/PumpManagerAlert.swift`,
+/// Pins the levels DanaKit issues its LoopKit Alerts with
+/// (`DanaKit/PumpManager/PumpManagerAlert.swift`,
+/// `Common/DanaKitNotification.swift`,
 /// `DanaKit/PumpManager/DanaKitPumpManager.swift`).
 ///
 /// What this suite pins:
-///  - The CURRENT (not ideal) registry behavior for every alert DanaKit
-///    issues. Unlike MinimedKit, DanaKit issues all 15 `PumpManagerAlert`
-///    cases via `delegate.issueAlert` with managerIdentifier "Dana", which
-///    MATCHES the registry key (AlertCatalogRegistry.swift:99-115). Every
-///    emission therefore resolves to a registry `CatalogEntry` and is
-///    overridden to that entry's interruptionLevel; the plugin itself sets no
-///    interruptionLevel, so without a registry hit they would fall back to
-///    LoopKit's default `.timeSensitive`.
+///  - The level DanaKit declares in `DanaKitPumpManager.alertCatalog` for
+///    every alert it issues (the pump alarms plus the two disconnect
+///    reminders), and that Trio applies the Device Alarms tiers to each under
+///    the issued managerIdentifier "Dana".
 ///  - The documented escalation gaps, as a ratchet that fails when a gap is
 ///    fixed (forcing this file to be updated).
 ///
@@ -28,10 +24,9 @@ import Testing
 /// the wrapping, not the Dana case name. That input cannot be stated from the
 /// synthesis audit alone, so classifier rows are omitted rather than guessed.
 ///
-/// One-line gap summary: three taxonomy-Critical emissions are
-/// under-escalated by the registry — `basalMax` and `dailyMax` (N2 Delivery
-/// Suspended/Stopped -> `.critical`) are registered `.active`, and `unknown`
-/// (N1 Hardware Fault catch-all -> `.critical`) is registered `.timeSensitive`
+/// One-line gap summary: three taxonomy-Critical emissions are issued below
+/// critical — `basalMax` and `dailyMax` (N2 Delivery Suspended/Stopped) at
+/// `.active`, and `unknown` (N1 Hardware Fault catch-all) at `.timeSensitive`
 /// — so a daily/basal hard stop or an unrecognized pump alarm reaches the user
 /// below critical.
 @Suite("Trio Alert Emission: DanaKit") struct DanaKitAlertEmissionTests {
@@ -39,130 +34,117 @@ import Testing
         Alert.Identifier(managerIdentifier: manager, alertIdentifier: alertID)
     }
 
-    /// The managerIdentifier DanaKit actually issues with, which matches the
-    /// registry's "Dana" key (so lookups resolve, unlike MinimedKit).
+    /// The managerIdentifier DanaKit issues with.
     private static let emittedManagerIdentifier = "Dana"
 
-    /// Emitted alerts from the synthesis audit. `currentRegistryLevel` is the
-    /// level `lookup(id("Dana", alertID))` returns TODAY. `taxonomyLevel` is
-    /// what the row should be per taxonomy; `isGap` is true when the effective
-    /// level (the registry level here, since all "Dana" lookups resolve) is
-    /// less severe than taxonomy.
+    /// Emitted alerts. `level` is the level DanaKit issues and declares;
+    /// `taxonomyLevel` is what the row should be per taxonomy.
     struct Row {
         let alertIdentifier: String
-        let currentRegistryLevel: Alert.InterruptionLevel?
+        let level: Alert.InterruptionLevel
         let taxonomyLevel: Alert.InterruptionLevel
-        let isGap: Bool
     }
 
     private static let rows: [Row] = [
-        // N5-pump -> .critical. Registry .critical matches taxonomy.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:11
-        Row(alertIdentifier: "batteryZeroPercent", currentRegistryLevel: .critical, taxonomyLevel: .critical, isGap: false),
-        // N1 Hardware Fault -> .critical. Registry .critical matches.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:12
-        Row(alertIdentifier: "pumpError", currentRegistryLevel: .critical, taxonomyLevel: .critical, isGap: false),
-        // N1 -> .critical. Registry .critical matches.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:13
-        Row(alertIdentifier: "occlusion", currentRegistryLevel: .critical, taxonomyLevel: .critical, isGap: false),
-        // F2 Battery Low (High) -> .timeSensitive. Registry .timeSensitive matches.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:14
-        Row(alertIdentifier: "lowBattery", currentRegistryLevel: .timeSensitive, taxonomyLevel: .timeSensitive, isGap: false),
-        // N2 Delivery Suspended -> .critical. Registry .critical matches.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:15
-        Row(alertIdentifier: "shutdown", currentRegistryLevel: .critical, taxonomyLevel: .critical, isGap: false),
-        // N14 Informational/Status -> .active. Registry .active matches.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:16
-        Row(alertIdentifier: "basalCompare", currentRegistryLevel: .active, taxonomyLevel: .active, isGap: false),
-        // N14 -> .active. Registry .active matches. Codes 0x07/0xFF both map here.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:17
-        Row(alertIdentifier: "bloodSugarMeasure", currentRegistryLevel: .active, taxonomyLevel: .active, isGap: false),
-        // F1 Insulin Supply Low (High) -> .timeSensitive. Registry .timeSensitive
-        // matches. Codes 0x08/0xFE both map here.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:19
-        Row(
-            alertIdentifier: "remainingInsulinLevel",
-            currentRegistryLevel: .timeSensitive,
-            taxonomyLevel: .timeSensitive,
-            isGap: false
-        ),
-        // N4 Reservoir Empty -> .critical. Registry .critical matches.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:21
-        Row(alertIdentifier: "emptyReservoir", currentRegistryLevel: .critical, taxonomyLevel: .critical, isGap: false),
-        // N1 Hardware Fault -> .critical. Registry .critical matches.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:22
-        Row(alertIdentifier: "checkShaft", currentRegistryLevel: .critical, taxonomyLevel: .critical, isGap: false),
-        // N2 Delivery Suspended/Stopped -> .critical. GAP: registry registers
-        // .active, which is LESS severe than taxonomy .critical.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:23
-        Row(alertIdentifier: "basalMax", currentRegistryLevel: .active, taxonomyLevel: .critical, isGap: true),
-        // N2 -> .critical. GAP: registry registers .active, LESS severe than
-        // taxonomy .critical.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:24
-        Row(alertIdentifier: "dailyMax", currentRegistryLevel: .active, taxonomyLevel: .critical, isGap: true),
-        // N14 Informational/Status -> .active. Registry .active matches.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:25
-        Row(alertIdentifier: "bloodSugarCheckMiss", currentRegistryLevel: .active, taxonomyLevel: .active, isGap: false),
+        // N5-pump -> .critical.
+        Row(alertIdentifier: "batteryZeroPercent", level: .critical, taxonomyLevel: .critical),
+        // N1 Hardware Fault -> .critical.
+        Row(alertIdentifier: "pumpError", level: .critical, taxonomyLevel: .critical),
+        // N1 -> .critical.
+        Row(alertIdentifier: "occlusion", level: .critical, taxonomyLevel: .critical),
+        // F2 Battery Low (High) -> .timeSensitive.
+        Row(alertIdentifier: "lowBattery", level: .timeSensitive, taxonomyLevel: .timeSensitive),
+        // N2 Delivery Suspended -> .critical.
+        Row(alertIdentifier: "shutdown", level: .critical, taxonomyLevel: .critical),
+        // N14 Informational/Status -> .active.
+        Row(alertIdentifier: "basalCompare", level: .active, taxonomyLevel: .active),
+        // N14 -> .active. Codes 0x07/0xFF both map here.
+        Row(alertIdentifier: "bloodSugarMeasure", level: .active, taxonomyLevel: .active),
+        // F1 Insulin Supply Low (High) -> .timeSensitive. Codes 0x08/0xFE both map here.
+        Row(alertIdentifier: "remainingInsulinLevel", level: .timeSensitive, taxonomyLevel: .timeSensitive),
+        // N4 Reservoir Empty -> .critical.
+        Row(alertIdentifier: "emptyReservoir", level: .critical, taxonomyLevel: .critical),
+        // N1 Hardware Fault -> .critical.
+        Row(alertIdentifier: "checkShaft", level: .critical, taxonomyLevel: .critical),
+        // N2 Delivery Suspended/Stopped -> .critical. GAP: issued .active.
+        Row(alertIdentifier: "basalMax", level: .active, taxonomyLevel: .critical),
+        // N2 -> .critical. GAP: issued .active.
+        Row(alertIdentifier: "dailyMax", level: .active, taxonomyLevel: .critical),
+        // N14 Informational/Status -> .active.
+        Row(alertIdentifier: "bloodSugarCheckMiss", level: .active, taxonomyLevel: .active),
         // N1 Hardware Fault catch-all for unmapped alarm codes -> .critical.
-        // GAP: registry registers .timeSensitive, LESS severe than taxonomy
-        // .critical, so an unrecognized pump alarm reaches the user below
-        // critical.
-        // DanaKit/Packets/DanaNotifyAlarm.swift:29
-        Row(alertIdentifier: "unknown", currentRegistryLevel: .timeSensitive, taxonomyLevel: .critical, isGap: true),
-        // N10 Authentication/Security -> .timeSensitive. Registry .timeSensitive
-        // matches. DEAD CASE: defined with full copy but never constructed/fired
-        // via issueAlert (the equivalent text is an ad hoc SwiftUI string at
-        // DanaKitScanViewModel.swift:77, which Trio never receives). Listed for
-        // completeness; no gap if it were ever fired.
-        // DanaKit/PumpManager/PumpManagerAlert.swift:18
-        Row(alertIdentifier: "ble5InvalidKeys", currentRegistryLevel: .timeSensitive, taxonomyLevel: .timeSensitive, isGap: false)
+        // GAP: issued .timeSensitive.
+        Row(alertIdentifier: "unknown", level: .timeSensitive, taxonomyLevel: .critical),
+        // N8 Connectivity (Medium) -> .timeSensitive. DanaKitNotification.
+        Row(
+            alertIdentifier: "com.bastiaanv.continuous-ble.disconnect-warning",
+            level: .timeSensitive,
+            taxonomyLevel: .timeSensitive
+        ),
+        // N8 -> .timeSensitive. DanaKitNotification, delayed by the user's reminder setting.
+        Row(
+            alertIdentifier: "com.bastiaanv.continuous-ble.disconnect-reminder",
+            level: .timeSensitive,
+            taxonomyLevel: .timeSensitive
+        )
     ]
 
-    // MARK: - Registry behavior (pinned to CURRENT, must be green)
+    private static func declaredLevel(_ alertID: String) -> Alert.InterruptionLevel? {
+        DanaKitPumpManager.alertCatalog.first { $0.identifier == alertID }?.interruptionLevel
+    }
+
+    /// Severity rank for comparing interruption levels (higher == more severe).
+    private static func severity(_ level: Alert.InterruptionLevel) -> Int {
+        switch level {
+        case .active: return 0
+        case .timeSensitive: return 1
+        case .critical: return 2
+        @unknown default: return -1
+        }
+    }
+
+    // MARK: - Declared levels (CURRENT, must be green)
 
     @Test(
-        "registry behavior is pinned for every emitted alert",
+        "declared level is pinned and follows the Device Alarms tiers for every emitted alert",
         arguments: rows
-    ) func registryBehaviorPinned(_ row: Row) {
-        // Asserts CURRENT behavior: lookup under the EMITTED managerIdentifier
-        // "Dana" returns the recorded level. All Dana lookups resolve (the
-        // managerIdentifier matches the registry key); this documents the
-        // level the registry overrides each emission to today, not the ideal.
-        #expect(
-            AlertCatalogRegistry.lookup(
-                id(Self.emittedManagerIdentifier, row.alertIdentifier)
-            )?.interruptionLevel == row.currentRegistryLevel
-        )
+    ) func declaredLevelPinned(_ row: Row) {
+        #expect(Self.declaredLevel(row.alertIdentifier) == row.level)
+        #expect(BaseTrioAlertManager.followsDeviceTiers(id(Self.emittedManagerIdentifier, row.alertIdentifier)))
+    }
+
+    /// `ble5InvalidKeys` is defined but never issued (the equivalent text is an
+    /// ad hoc SwiftUI string in `DanaKitScanViewModel`), so it is not declared.
+    @Test("declared alerts are exactly the pinned rows, each declared once") func declaredAlertsMatchRows() {
+        let declared = DanaKitPumpManager.alertCatalog.map(\.identifier)
+        #expect(declared.count == Set(declared).count)
+        #expect(Set(declared) == Set(Self.rows.map(\.alertIdentifier)))
+        #expect(!declared.contains("ble5InvalidKeys"))
     }
 
     // MARK: - Known escalation gaps (ratchet)
 
-    /// AlertIdentifiers whose effective level is LESS severe than their
+    /// AlertIdentifiers whose declared level is LESS severe than their
     /// taxonomy level today. Documented expectation per identifier:
     ///
     ///  - "basalMax": SHOULD be `.critical` (taxonomy N2 Delivery
-    ///    Suspended/Stopped). Registry registers it `.active`
-    ///    (AlertCatalogRegistry.swift:110). A basal hard stop reaches the user
-    ///    below critical.
-    ///    Source: DanaKit/Packets/DanaNotifyAlarm.swift:23
+    ///    Suspended/Stopped); issued `.active`. A basal hard stop reaches the
+    ///    user below critical.
     ///
-    ///  - "dailyMax": SHOULD be `.critical` (taxonomy N2). Registry registers
-    ///    it `.active` (AlertCatalogRegistry.swift:111). A daily-insulin hard
-    ///    stop reaches the user below critical.
-    ///    Source: DanaKit/Packets/DanaNotifyAlarm.swift:24
+    ///  - "dailyMax": SHOULD be `.critical` (taxonomy N2); issued `.active`. A
+    ///    daily-insulin hard stop reaches the user below critical.
     ///
     ///  - "unknown": SHOULD be `.critical` (taxonomy N1 Hardware Fault). This
-    ///    is the catch-all for unmapped pump alarm codes; registry registers it
-    ///    `.timeSensitive` (AlertCatalogRegistry.swift:114), so an unrecognized
-    ///    pump alarm reaches the user below critical.
-    ///    Source: DanaKit/Packets/DanaNotifyAlarm.swift:29
+    ///    is the catch-all for unmapped pump alarm codes; issued
+    ///    `.timeSensitive`, so an unrecognized pump alarm reaches the user
+    ///    below critical.
     ///
     /// (basalMax/dailyMax carry warning-style copy — "contact your distributer
     /// to increase the limit" — so the N2 classification itself may warrant
     /// review; as mapped per classified.md they are gaps.)
     ///
     /// This stays green now and FAILS (prompting an update here) once a gap is
-    /// closed in the registry.
+    /// closed in DanaKit.
     private static let knownEscalationGaps: Set<String> = [
         "basalMax",
         "dailyMax",
@@ -170,7 +152,11 @@ import Testing
     ]
 
     @Test("known escalation gaps are exactly as documented") func knownEscalationGapsExact() {
-        let computed = Set(Self.rows.filter(\.isGap).map(\.alertIdentifier))
+        let computed = Set(
+            Self.rows
+                .filter { Self.severity(Self.declaredLevel($0.alertIdentifier) ?? .active) < Self.severity($0.taxonomyLevel) }
+                .map(\.alertIdentifier)
+        )
         #expect(computed == Self.knownEscalationGaps)
     }
 }

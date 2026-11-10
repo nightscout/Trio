@@ -54,6 +54,13 @@ final class NotLoopingMonitor: Injectable {
         [alertID] + warningMinutes.indices.map { warningID($0 + 1) }
     }
 
+    static var criticalAlertIdentifier: Alert.AlertIdentifier { alertID.alertIdentifier }
+
+    /// True for the escalation ladder's alerts, which are exempt from tier-wide dismissal.
+    static func owns(_ identifier: Alert.Identifier) -> Bool {
+        allIDs.contains(identifier)
+    }
+
     private var subscriptions = Set<AnyCancellable>()
 
     init(resolver: Resolver) {
