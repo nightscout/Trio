@@ -67,7 +67,7 @@ extension Home.RootView {
         }
 
         let percent = latestOverride.percentage
-        let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
+        let percentString = percent == 100 ? "" : (percent / 100).formatted(.wholePercent)
 
         let unit = state.units
         let target = (latestOverride.target ?? 0) as Decimal
@@ -159,8 +159,12 @@ extension Home.RootView {
         if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
         if target < 100, state.lowTTlowersSens, state.autosensMax > 1 { showPercentage = true }
         if showPercentage {
-            percentageString =
-                " \(Int(TempTargetCalculations.computeAdjustedPercentage(halfBasalTarget: effectiveHBT, target: target, autosensMax: state.autosensMax)))%"
+            let percentage = TempTargetCalculations.computeAdjustedPercentage(
+                halfBasalTarget: effectiveHBT,
+                target: target,
+                autosensMax: state.autosensMax
+            )
+            percentageString = " " + (percentage / 100).formatted(.wholePercent)
         }
         let targetString = target == 0 ? "" : target.formatted(withUnits: state.units) + percentageString
 
@@ -290,7 +294,7 @@ extension Home.RootView {
                     .font(.subheadline).fontWeight(.medium)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Profile at 100 %")
+                Text("Profile at \(1.0.formatted(.wholePercent))")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -535,7 +539,7 @@ extension Home.RootView {
             let gmiMmolMol = (gmiPercentage - 2.152) * 10.929
             return "\(Int(gmiMmolMol.rounded())) mmol/mol"
         }
-        return gmiPercentage.formatted(.number.precision(.fractionLength(1))) + " %"
+        return (gmiPercentage / 100).formatted(.oneDecimalPercent)
     }
 
     @ViewBuilder func statsBanner() -> some View {
@@ -546,8 +550,8 @@ extension Home.RootView {
         let averageString = stats.meanGlucose?.formatted(withUnits: state.units) ?? "--"
         let gmiValueString = gmiString(stats.meanGlucose)
         let tirString = hasData
-            ? stats.inRangePct.formatted(.number.precision(.fractionLength(0 ... 1))) + " %"
-            : "-- %"
+            ? (stats.inRangePct / 100).formatted(.upToOneDecimalPercent)
+            : "--"
         let segments: [(color: Color, fraction: CGFloat)] = hasData ? [
             (.red, CGFloat(stats.veryLowPct / 100)),
             (.orange, CGFloat(stats.lowPct / 100)),

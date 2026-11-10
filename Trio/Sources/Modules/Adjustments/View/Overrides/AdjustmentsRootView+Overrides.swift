@@ -200,12 +200,7 @@ extension Adjustments.RootView {
             }
         }()
 
-        // Same trap risk as duration above.
-        let percentageString: String = {
-            guard percentage != 100 else { return "" }
-            guard percentage.isFinite, percentage.magnitude <= Double(Int.max) else { return "" }
-            return "\(Int(percentage))%\(isfAndCrString)"
-        }()
+        let percentageString = percentage == 100 ? "" : (percentage / 100).formatted(.wholePercent) + isfAndCrString
 
         // Combine all labels into a single array, filtering out empty strings
         let labels: [String] = [

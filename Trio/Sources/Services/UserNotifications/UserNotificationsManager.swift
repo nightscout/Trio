@@ -217,7 +217,7 @@ extension BaseUserNotificationsManager: UNUserNotificationCenterDelegate {
     ) {
         let userInfo = notification.request.content.userInfo
         if userInfo[AlertUserInfoKey.managerIdentifier.rawValue] is String {
-            completionHandler([.badge, .list])
+            completionHandler([.badge, .sound, .list])
             return
         }
         completionHandler([.banner, .badge, .sound, .list])

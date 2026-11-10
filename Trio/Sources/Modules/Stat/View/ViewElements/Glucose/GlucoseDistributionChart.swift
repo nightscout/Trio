@@ -68,7 +68,7 @@ struct GlucoseDistributionChart: View {
                 AxisMarks(position: .trailing) { value in
                     if let percentage = value.as(Double.self) {
                         AxisValueLabel {
-                            Text((percentage / 100).formatted(.percent.precision(.fractionLength(0))))
+                            Text((percentage / 100).formatted(.wholePercent))
                                 .font(.footnote)
                         }
                         AxisGridLine()
