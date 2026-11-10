@@ -275,9 +275,9 @@ struct LiveActivityCompactTrailingView: View {
     var glucoseColor: Color
 
     var body: some View {
-        // Keep sign clear of island edge (iPhone Duo outer display)
+        // Keep leading +/- sign clear of the sensor cutout (iPhone Duo outer display)
         LiveActivityGlucoseDeltaLabelView(context: context, glucoseColor: glucoseColor)
-            .padding(.leading, 4)
+            .padding(.leading, 8)
             .padding(.trailing, 4)
             .lineLimit(1)
             .minimumScaleFactor(0.5)
