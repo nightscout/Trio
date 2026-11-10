@@ -307,21 +307,6 @@ extension Adjustments {
                     .tint(.white)
             }
         }
-
-        func formattedTimeRemaining(_ timeInterval: TimeInterval) -> String {
-            let totalSeconds = Int(timeInterval)
-            let hours = totalSeconds / 3600
-            let minutes = (totalSeconds % 3600) / 60
-            let seconds = totalSeconds % 60
-
-            if hours > 0 {
-                return "\(hours)h \(minutes)m \(seconds)s"
-            } else if minutes > 0 {
-                return "\(minutes)m \(seconds)s"
-            } else {
-                return "<1m"
-            }
-        }
     }
 }
 

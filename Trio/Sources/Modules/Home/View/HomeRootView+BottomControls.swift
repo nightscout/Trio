@@ -1,5 +1,4 @@
 import CoreData
-import SwiftDate
 import SwiftUI
 
 // MARK: - Zone E: bottom controls (adjustment panel / bolus progress)
@@ -57,7 +56,7 @@ extension Home.RootView {
         return nil
     }
 
-    var overrideString: String? {
+    var overrideString: (text: String, spoken: String)? {
         guard let latestOverride = latestOverride.first else {
             return nil
         }
@@ -77,22 +76,17 @@ extension Home.RootView {
             targetString = ""
         }
 
-        let duration = latestOverride.duration ?? 0
-        let addedMinutes = Int(truncating: duration)
         let date = latestOverride.date ?? Date()
-        let newDuration = max(
-            Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
-            0
-        )
+        let remaining = Duration(minutes: (latestOverride.duration ?? 0) as Decimal) + .seconds(date.timeIntervalSinceNow)
         let indefinite = latestOverride.indefinite
-        var durationString = ""
+        var durationLabel = (text: "", spoken: "")
 
         if !indefinite {
-            if newDuration >= 1 {
-                durationString = formatHrMin(Int(newDuration))
-            } else if newDuration > 0 {
-                durationString = "\(Int(newDuration * 60)) s"
-
+            if remaining > .zero {
+                durationLabel = (
+                    remaining.formattedTimeSpan(.largestTwoUnits),
+                    remaining.formattedSpokenTimeSpan(.largestTwoUnits)
+                )
             } else {
                 /// Do not show the Override anymore
                 Task {
@@ -110,42 +104,49 @@ extension Home.RootView {
         let smbToggleString = latestOverride.smbIsOff || latestOverride
             .smbIsScheduledOff ? String(localized: "SMBs Off\(smbScheduleString)") : ""
 
-        var smbMinuteString: String = ""
-        var uamMinuteString: String = ""
+        var smbMinuteLabel = (text: "", spoken: "")
+        var uamMinuteLabel = (text: "", spoken: "")
 
         if !latestOverride.smbIsOff, latestOverride.advancedSettings {
-            if let smbMinutes = latestOverride.smbMinutes,
-               smbMinutes.decimalValue != settingsManager.preferences.maxSMBBasalMinutes
+            if let smbMinutes = latestOverride.smbMinutes?.decimalValue,
+               smbMinutes != settingsManager.preferences.maxSMBBasalMinutes
             {
-                smbMinuteString = "SMB\u{00A0}\(smbMinutes)\u{00A0}" +
-                    String(localized: "m", comment: "Abbreviation for Minutes")
+                let span = Duration(minutes: smbMinutes)
+                smbMinuteLabel = (
+                    "SMB\u{00A0}" + span.formattedTimeSpan(.minutes),
+                    "SMB\u{00A0}" + span.formattedSpokenTimeSpan(.minutes)
+                )
             }
 
-            if let uamMinutes = latestOverride.uamMinutes,
-               uamMinutes.decimalValue != settingsManager.preferences.maxUAMSMBBasalMinutes
+            if let uamMinutes = latestOverride.uamMinutes?.decimalValue,
+               uamMinutes != settingsManager.preferences.maxUAMSMBBasalMinutes
             {
-                uamMinuteString = "UAM\u{00A0}\(uamMinutes)\u{00A0}" +
-                    String(localized: "m", comment: "Abbreviation for Minutes")
+                let span = Duration(minutes: uamMinutes)
+                uamMinuteLabel = (
+                    "UAM\u{00A0}" + span.formattedTimeSpan(.minutes),
+                    "UAM\u{00A0}" + span.formattedSpokenTimeSpan(.minutes)
+                )
             }
         }
 
-        let components = [durationString, percentString, targetString, smbToggleString, smbMinuteString, uamMinuteString]
+        let otherComponents = [percentString, targetString, smbToggleString]
+        let components = ([durationLabel.text] + otherComponents + [smbMinuteLabel.text, uamMinuteLabel.text])
             .filter { !$0.isEmpty }
-        return components.isEmpty ? nil : components.joined(separator: ", ")
+        let spokenComponents = ([durationLabel.spoken] + otherComponents + [smbMinuteLabel.spoken, uamMinuteLabel.spoken])
+            .filter { !$0.isEmpty }
+
+        guard !components.isEmpty else { return nil }
+        return (components.joined(separator: ", "), spokenComponents.joined(separator: ", "))
     }
 
-    var tempTargetString: String? {
+    var tempTargetString: (text: String, spoken: String)? {
         guard let latestTempTarget = latestTempTarget.first else {
             return nil
         }
-        let duration = latestTempTarget.duration
-        let addedMinutes = Int(truncating: duration ?? 0)
         let date = latestTempTarget.date ?? Date()
-        let newDuration = max(
-            Decimal(Date().distance(to: date.addingTimeInterval(addedMinutes.minutes.timeInterval)).minutes),
-            0
-        )
+        let remaining = Duration(minutes: (latestTempTarget.duration ?? 0) as Decimal) + .seconds(date.timeIntervalSinceNow)
         var durationString = ""
+        var spokenDurationString = ""
         var percentageString = ""
         let target = (latestTempTarget.target ?? 100) as Decimal
         // Use TempTargetCalculations to get effective HBT (handles both custom and auto-adjusted standard TT)
@@ -168,12 +169,9 @@ extension Home.RootView {
         }
         let targetString = target == 0 ? "" : target.formatted(withUnits: state.units) + percentageString
 
-        if newDuration >= 1 {
-            durationString =
-                "\(newDuration.formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) min"
-        } else if newDuration > 0 {
-            durationString =
-                "\((newDuration * 60).formatted(.number.grouping(.never).rounded().precision(.fractionLength(0)))) s"
+        if remaining > .zero {
+            durationString = remaining.formattedTimeSpan(.largestTwoUnits)
+            spokenDurationString = remaining.formattedSpokenTimeSpan(.largestTwoUnits)
         } else {
             /// Do not show the Temp Target anymore
             Task {
@@ -183,33 +181,37 @@ extension Home.RootView {
         }
 
         let components = [targetString, durationString].filter { !$0.isEmpty }
-        return components.isEmpty ? nil : components.joined(separator: ", ")
+        let spokenComponents = [targetString, spokenDurationString].filter { !$0.isEmpty }
+
+        guard !components.isEmpty else { return nil }
+        return (components.joined(separator: ", "), spokenComponents.joined(separator: ", "))
     }
 
-    @ViewBuilder func adjustmentsOverrideView(_ overrideString: String) -> some View {
+    @ViewBuilder func adjustmentsOverrideView(_ overrideString: (text: String, spoken: String)) -> some View {
         Group {
             adjustmentIcon("clock.arrow.2.circlepath", tint: Color.purple)
             VStack(alignment: .leading, spacing: 1) {
                 Text(latestOverride.first?.name ?? String(localized: "Custom Override"))
                     .font(.subheadline).fontWeight(.semibold)
                     .frame(alignment: .leading)
-
-                Text(overrideString)
+                Text(overrideString.text)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(overrideString.spoken)
             }
         }
     }
 
-    @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: String) -> some View {
+    @ViewBuilder func adjustmentsTempTargetView(_ tempTargetString: (text: String, spoken: String)) -> some View {
         Group {
             adjustmentIcon("target", tint: Color.loopGreen)
             VStack(alignment: .leading, spacing: 1) {
                 Text(latestTempTarget.first?.name ?? String(localized: "Temp Target"))
                     .font(.subheadline).fontWeight(.semibold)
-                Text(tempTargetString)
+                Text(tempTargetString.text)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(tempTargetString.spoken)
             }
         }
     }

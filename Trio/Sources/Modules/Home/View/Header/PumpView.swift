@@ -125,9 +125,8 @@ struct PumpView: View {
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
                 .frame(
-                    // If the string is > 6 chars, i.e., exceeds "xd yh", limit width to 80 pts
-                    // This forces the "Replace pod" string to wrap to 2 lines.
-                    maxWidth: remainingTimeString.count > 6 ? 80 : .infinity,
+                    // Narrow frame so "Replace pod" wraps to 2 lines.
+                    maxWidth: date.timeIntervalSince(timerDate) > 0 ? .infinity : 80,
                     alignment: .leading
                 )
         }
@@ -142,53 +141,15 @@ struct PumpView: View {
         guard time > 0 else {
             return String(localized: "Replace pod", comment: "View/Header when pod expired")
         }
-
-        var time = time
-        let days = Int(time / 1.days.timeInterval)
-        time -= days.days.timeInterval
-        let hours = Int(time / 1.hours.timeInterval)
-        time -= hours.hours.timeInterval
-        let minutes = Int(time / 1.minutes.timeInterval)
-
-        if days >= 1 {
-            return "\(days)" + String(localized: "d", comment: "abbreviation for days") + " \(hours)" +
-                String(localized: "h", comment: "abbreviation for hours")
-        }
-
-        if hours >= 1 {
-            var remainingHoursString = "\(hours)" + String(localized: "h", comment: "abbreviation for hours")
-            if hours < 12 {
-                remainingHoursString += " " + "\(minutes)" +
-                    String(localized: "m", comment: "abbreviation for minutes")
-            }
-            return remainingHoursString
-        }
-
-        return "\(minutes)" + String(localized: "m", comment: "abbreviation for minutes")
+        return Duration.seconds(time).formattedTimeSpan(.largestTwoUnits)
     }
 
-    /// Spoken remaining pod time — spells out days/hours/minutes so VoiceOver doesn't
-    /// read the compact "m" as "meters".
+    /// Spoken remaining pod time, so VoiceOver doesn't read the compact "m" as "meters".
     private func remainingTimeStringAccessible(time: TimeInterval) -> String {
         guard time > 0 else {
             return String(localized: "Replace pod", comment: "View/Header when pod expired")
         }
-        var time = time
-        let days = Int(time / 1.days.timeInterval)
-        time -= days.days.timeInterval
-        let hours = Int(time / 1.hours.timeInterval)
-        time -= hours.hours.timeInterval
-        let minutes = Int(time / 1.minutes.timeInterval)
-
-        if days >= 1 {
-            return String(format: String(localized: "%1$d days %2$d hours", comment: "Accessibility: pod time"), days, hours)
-        }
-        if hours >= 1 {
-            return hours < 12
-                ? String(format: String(localized: "%1$d hours %2$d minutes", comment: "Accessibility: pod time"), hours, minutes)
-                : String(format: String(localized: "%d hours", comment: "Accessibility: pod time"), hours)
-        }
-        return String(format: String(localized: "%d minutes", comment: "Accessibility: pod time"), minutes)
+        return Duration.seconds(time).formattedSpokenTimeSpan(.largestTwoUnits)
     }
 
     /// Reservoir amount plus a spoken severity word, so the color-coded low state is not lost.
