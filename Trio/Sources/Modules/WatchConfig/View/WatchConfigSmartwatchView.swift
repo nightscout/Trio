@@ -19,30 +19,16 @@ enum SmartwatchSheet: Identifiable {
 
 /// The Watch screen's sections for watches other than Apple Watch (watch
 /// plugins such as Pebble): one row per available plugin until a watch is
-/// added, then the added watch, which opens the plugin's own settings, and
-/// what it may ask Trio to do. The screen presents `sheet` (`smartwatchSheets`):
+/// added, then the added watch, which opens the plugin's own settings (where
+/// the plugin also has what the watch may ask Trio to do). The screen presents
+/// `sheet` (`smartwatchSheets`):
 /// these are several list rows, and a sheet attached to them would be
 /// attached to each, so a tap would present it more than once and close it.
 struct WatchConfigSmartwatchSections: View {
     let resolver: Resolver
     @Binding var sheet: SmartwatchSheet?
 
-    @AppStorage(UserDefaults.allowSmartwatchOverridesKey) private var allowOverrides = false
-    @AppStorage(UserDefaults.allowSmartwatchTempTargetsKey) private var allowTempTargets = false
-    @AppStorage(UserDefaults.allowSmartwatchMuteKey) private var allowMute = false
-    @AppStorage(UserDefaults.allowSmartwatchCarbsKey) private var allowCarbs = false
-    @AppStorage(UserDefaults.allowSmartwatchBolusKey) private var allowBolus = false
-
     private var host: SmartwatchHost { resolver.resolve(SmartwatchHost.self)! }
-
-    /// The remote actions the watch may ask for, one toggle each.
-    private static let remoteCapabilities: SmartwatchCapabilities = [
-        .remoteMute,
-        .remoteCarbs,
-        .remoteBolus,
-        .remoteOverride,
-        .remoteTempTarget
-    ]
 
     var body: some View {
         let manager = host.smartwatchManager
@@ -76,38 +62,6 @@ struct WatchConfigSmartwatchSections: View {
             }
         }
         .listRowBackground(Color.chart)
-
-        // Only for a watch that offers an action; each is off by default and
-        // turned off when the watch is removed or replaced.
-        if let manager, !manager.effectiveCapabilities.isDisjoint(with: Self.remoteCapabilities) {
-            Section(
-                header: Text(String(
-                    localized: "Third-Party Smartwatch Permissions",
-                    comment: "Watch screen: header above what a third-party watch may ask Trio to do"
-                )),
-                footer: Text(String(
-                    localized: "What the watch may ask Trio to do. Each is off until you turn it on, and Trio checks every request.",
-                    comment: "Watch screen: footer of the third-party watch permissions"
-                ))
-            ) {
-                if manager.effectiveCapabilities.contains(.remoteMute) {
-                    Toggle(String(localized: "Allow Snooze from Watch"), isOn: $allowMute)
-                }
-                if manager.effectiveCapabilities.contains(.remoteCarbs) {
-                    Toggle(String(localized: "Allow Carbs from Watch"), isOn: $allowCarbs)
-                }
-                if manager.effectiveCapabilities.contains(.remoteBolus) {
-                    Toggle(String(localized: "Allow Boluses from Watch"), isOn: $allowBolus)
-                }
-                if manager.effectiveCapabilities.contains(.remoteOverride) {
-                    Toggle(String(localized: "Allow Overrides from Watch"), isOn: $allowOverrides)
-                }
-                if manager.effectiveCapabilities.contains(.remoteTempTarget) {
-                    Toggle(String(localized: "Allow Temp Targets from Watch"), isOn: $allowTempTargets)
-                }
-            }
-            .listRowBackground(Color.chart)
-        }
     }
 
     private func row(title: String, image: UIImage?, subtitle: String? = nil) -> some View {
