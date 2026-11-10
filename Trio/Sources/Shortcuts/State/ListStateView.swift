@@ -12,14 +12,6 @@ struct ListStateView: View {
         return formatter
     }
 
-    private var timaAgoFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        formatter.negativePrefix = ""
-        return formatter
-    }
-
     private var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
@@ -52,15 +44,9 @@ struct ListStateView: View {
                 image
             }
             HStack {
-                let minutes = -1 * state.date.timeIntervalSinceNow / 60
-                let text = timaAgoFormatter.string(for: Double(minutes)) ?? ""
-                Text(
-                    minutes <= 1 ? "< 1 " + String(localized: "min", comment: "Short form for minutes") : (
-                        text + " " +
-                            String(localized: "min", comment: "Short form for minutes") + " "
-                    )
-                )
-                .font(.caption2).foregroundColor(.secondary)
+                Text(state.date.formattedTimeAgo())
+                    .font(.caption2).foregroundColor(.secondary)
+                    .accessibilityLabel(state.date.formattedSpokenTimeAgo())
 
                 Text(
                     state.delta

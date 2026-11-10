@@ -194,7 +194,7 @@ struct CurrentGlucoseView: View {
     /// One combined VoiceOver description for the bobble, e.g.
     /// "Glucose 79 mg/dL, in range, falling, delta -2, 1 minute ago".
     private var bobbleAccessibilityLabel: String {
-        guard let glucoseValue = glucose.last?.glucose, isReadingFresh else {
+        guard let glucoseValue = glucose.last?.glucose, let date = glucose.last?.date, isReadingFresh else {
             return String(localized: "Glucose unavailable", comment: "Accessibility: no fresh glucose")
         }
         let valueString = glucoseValue == 400
@@ -206,11 +206,11 @@ struct CurrentGlucoseView: View {
         if delta != "--" {
             parts.append(String(localized: "delta", comment: "Accessibility: glucose delta") + " \(delta)")
         }
-        parts.append(TimeAgoFormatter.minutesAgoAccessible(from: glucose.last?.date))
+        parts.append(date.formattedSpokenTimeAgo())
         // Fold in the sensor-lifecycle tag (warmup countdown, "expired", "stabilizing") so
         // it is spoken; the visual tag is a child that the ignore above would otherwise drop.
         if let tag = tagLabel, !trendIsDownward, !tag.text.isEmpty {
-            parts.append(tag.text)
+            parts.append(tag.spoken)
         }
         return parts.joined(separator: ", ")
     }
@@ -228,11 +228,10 @@ struct CurrentGlucoseView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        if isReadingFresh {
+        if let date = glucose.last?.date, isReadingFresh {
             HStack {
-                let minutesAgoString = TimeAgoFormatter.minutesAgo(from: glucose.last?.date)
                 Group {
-                    Text(minutesAgoString)
+                    Text(date.formattedTimeAgo())
                     Text(delta)
                 }
                 .font(.callout).fontWeight(.bold)
@@ -309,18 +308,21 @@ struct CurrentGlucoseView: View {
     /// Warmup → hourglass + countdown; stabilizing → hourglass + "Stabilizing"
     /// (no countdown — duration is sensor-driven); outside warmup/stabilizing
     /// the tag is gated to the same 48h window as the arc.
-    private var tagLabel: (text: String, theme: SensorStatusTagTheme, icon: String?)? {
+    private var tagLabel: (text: String, spoken: String, theme: SensorStatusTagTheme, icon: String?)? {
         if isInWarmup {
-            let text: String
             if let endsAt = cgmWarmupEndsAt {
-                text = SensorRemainingTimeFormatter.format(until: endsAt)
-            } else {
-                text = "Warming up"
+                let remaining = Duration.seconds(endsAt.timeIntervalSinceNow)
+                return (
+                    remaining.formattedTimeSpan(.largestTwoUnits),
+                    remaining.formattedSpokenTimeSpan(.largestTwoUnits),
+                    .orange,
+                    "hourglass"
+                )
             }
-            return (text, .orange, "hourglass")
+            return ("Warming up", "Warming up", .orange, "hourglass")
         }
         if isStabilizing {
-            return ("Stabilizing", .orange, "hourglass")
+            return ("Stabilizing", "Stabilizing", .orange, "hourglass")
         }
         if let status = cgmStatus {
             // Only the normal tier is gated to the arc's 48h window; a warning
@@ -330,18 +332,23 @@ struct CurrentGlucoseView: View {
             // labels ("Signal\nLoss", "Sensor\nWarmup"); we render in a
             // single-line tag, so collapse newlines to spaces here.
             let oneLine = status.localizedMessage.replacingOccurrences(of: "\n", with: " ")
-            return (oneLine, theme(for: status.status), nil)
+            return (oneLine, oneLine, theme(for: status.status), nil)
         }
         guard shouldShowArc else { return nil }
         if let expiresAt = cgmSensorExpiresAt {
-            let text = SensorRemainingTimeFormatter.format(until: expiresAt)
+            let remaining = Duration.seconds(expiresAt.timeIntervalSinceNow)
             let theme: SensorStatusTagTheme
             switch cgmProgress?.progressState {
             case .critical: theme = .red
             case .warning: theme = .orange
             default: theme = .green
             }
-            return (text, theme, nil)
+            return (
+                remaining.formattedTimeSpan(.largestTwoUnits),
+                remaining.formattedSpokenTimeSpan(.largestTwoUnits),
+                theme,
+                nil
+            )
         }
         return nil
     }
