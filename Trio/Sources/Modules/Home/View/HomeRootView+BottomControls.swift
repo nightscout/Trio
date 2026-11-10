@@ -458,11 +458,11 @@ extension Home.RootView {
         /// - TRUE:  show the pump bolus
         /// - FALSE:  do not show a progress bar at all
         if let bolusTotal = state.lastPumpBolus?.bolus?.amount {
-            let bolusFraction = progress * (bolusTotal as Decimal)
+            let bolusFraction = progress * bolusTotal.decimalValue
             let bolusString =
                 (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
-                    + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view") +
-                    (Formatter.decimalFormatterWithThreeFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
+                    + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view")
+                    + bolusTotal.decimalValue.formatted(.insulin)
                     + String(localized: " U", comment: "Insulin unit")
             let bolusLabel = state
                 .bolusStatus == .inProgress ? String(localized: "Bolusing") : String(localized: "Initiating…")

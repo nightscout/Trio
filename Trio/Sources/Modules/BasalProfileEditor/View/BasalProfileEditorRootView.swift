@@ -13,12 +13,6 @@ extension BasalProfileEditor {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var rateFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            return formatter
-        }
-
         // Chart for visualizing basal profile
         private var basalProfileChart: some View {
             Chart {
@@ -150,7 +144,7 @@ extension BasalProfileEditor {
                     Spacer()
 
                     HStack {
-                        Text(rateFormatter.string(from: state.total as NSNumber) ?? "0")
+                        Text(state.total.formatted(.insulin))
                         Text("U/day")
                             .foregroundStyle(Color.secondary)
                     }

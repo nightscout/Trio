@@ -149,15 +149,11 @@ extension Home {
         }
 
         private func basalRateLabel(_ rate: Decimal) -> String {
-            let value = Formatter.decimalFormatterWithTwoFractionDigits
-                .string(from: NSDecimalNumber(decimal: rate)) ?? "\(rate)"
-            return value + String(localized: " U/hr", comment: "Unit per hour with space")
+            rate.formatted(.insulin) + String(localized: " U/hr", comment: "Unit per hour with space")
         }
 
         private func basalRateAccessibilityLabel(_ rate: Decimal) -> String {
-            let value = Formatter.decimalFormatterWithTwoFractionDigits
-                .string(from: NSDecimalNumber(decimal: rate)) ?? "\(rate)"
-            return value + " " + UnitSpelling.spoken("U/hr")
+            rate.formatted(.insulin) + " " + UnitSpelling.spoken("U/hr")
         }
 
         @ViewBuilder private var chartInfoButton: some View {
