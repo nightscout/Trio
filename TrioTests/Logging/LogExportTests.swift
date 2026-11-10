@@ -257,6 +257,25 @@ import Testing
         #expect(all.contains("Trio [Service] upload to <nightscout-url>/api/v1/entries"))
     }
 
+    @Test("A Share account signed out before export is still replaced") func redactsSignedOutShareAccount() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = DeviceLogStore(
+            storageURL: directory.appendingPathComponent("logs/DeviceLog.sqlite"),
+            isProtectedDataAvailable: { true }
+        )
+        await Self.log(store, manager: "com.example.cgm", device: nil, message: "Signed in to Dexcom Share as share-user (us)")
+        await Self.log(store, manager: "com.example.cgm", device: nil, message: "Upload for share-user failed")
+        await Self.log(store, manager: "com.example.cgm", device: nil, message: "Signed out of Dexcom Share")
+        let export = LogExport(appLog: InMemoryLogSink(), deviceLogStore: store, pump: nil, cgm: StubCGMManager())
+
+        let text = try await Self.contents(of: .all, in: Fixture(directory: directory, export: export)).text
+        #expect(!text.contains("share-user"))
+        #expect(text.contains("Signed in to Dexcom Share as <account-1> (us)"))
+        #expect(text.contains("Upload for <account-1> failed"))
+    }
+
     @Test("Determinations in the window become Algorithm lines") func algorithmLines() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directory) }
