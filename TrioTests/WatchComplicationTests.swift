@@ -33,9 +33,9 @@ import Testing
     }
 
     @Test("Out-of-range stale minutes are clamped on decode") func staleMinutesClamped() throws {
-        #expect(try decodeSettings(#"{"watchComplicationStaleMinutes": 0}"#).watchComplicationStaleMinutes == 5)
+        #expect(try decodeSettings(#"{"watchComplicationStaleMinutes": 0}"#).watchComplicationStaleMinutes == 10)
         #expect(try decodeSettings(#"{"watchComplicationStaleMinutes": 999}"#).watchComplicationStaleMinutes == 30)
-        #expect(WatchComplicationDefaults.clampedStaleMinutes(-3) == 5)
+        #expect(WatchComplicationDefaults.clampedStaleMinutes(-3) == 10)
         #expect(WatchComplicationDefaults.clampedStaleMinutes(30) == 30)
     }
 
@@ -298,5 +298,30 @@ import Testing
         let context = [WatchMessageKeys.watchState: BaseWatchManager.watchStateToDictionary(from: state)]
         let data = try PropertyListSerialization.data(fromPropertyList: context, format: .binary, options: 0)
         #expect(!data.isEmpty)
+    }
+
+    @Test("Empty phone values become dashes") func emptyValuesBecomeDashes() {
+        #expect(ComplicationState.presentOrMissing(nil) == "--")
+        #expect(ComplicationState.presentOrMissing("") == "--")
+        #expect(ComplicationState.presentOrMissing("1.25") == "1.25")
+        var state = ComplicationState.sample(units: "mg/dL", date: now)
+        state.iob = ComplicationState.presentOrMissing("")
+        state.cob = ComplicationState.presentOrMissing("")
+        let model = makeModel(.glucose, state, at: now)
+        #expect(model.iobText == "--")
+        #expect(model.cobText == "--")
+        #expect(model.statusLine == "COB --")
+    }
+
+    @Test("Timeline has an entry when the reading and the loop go stale") func staleTransitionDates() {
+        let settings = ComplicationSlotSettings(staleMinutes: 15)
+        var state = ComplicationState.sample(units: "mg/dL", settings: settings, date: now)
+        state.loopDate = now.addingTimeInterval(-2 * 60)
+        let dates = state.staleTransitionDates(after: now, within: 2 * 60 * 60)
+        #expect(dates.contains(now.addingTimeInterval(15 * 60 + 1)))
+        #expect(dates.contains(now.addingTimeInterval(13 * 60 + 1)))
+        #expect(state.staleTransitionDates(after: now.addingTimeInterval(20 * 60), within: 2 * 60 * 60).isEmpty)
+        state.loopDate = nil
+        #expect(state.staleTransitionDates(after: now, within: 2 * 60 * 60).count == 1)
     }
 }
