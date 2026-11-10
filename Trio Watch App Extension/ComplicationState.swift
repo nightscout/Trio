@@ -150,6 +150,11 @@ struct ComplicationState: Codable, Equatable {
         }
     }
 
+    static func presentOrMissing(_ value: String?) -> String {
+        guard let value = value, !value.isEmpty else { return missingValue }
+        return value
+    }
+
     func isStale(at reference: Date) -> Bool {
         reference.timeIntervalSince(date) > staleAfter
     }
@@ -157,6 +162,13 @@ struct ComplicationState: Codable, Equatable {
     func isLoopStale(at reference: Date) -> Bool {
         guard let loopDate = loopDate else { return false }
         return reference.timeIntervalSince(loopDate) > staleAfter
+    }
+
+    func staleTransitionDates(after now: Date, within span: TimeInterval) -> [Date] {
+        let end = now.addingTimeInterval(span)
+        return [date, loopDate]
+            .compactMap { $0?.addingTimeInterval(staleAfter + 1) }
+            .filter { $0 > now && $0 < end }
     }
 
     func loopAgeText(at reference: Date) -> String {
@@ -205,19 +217,16 @@ enum ComplicationStoreError: Error {
 enum ComplicationStore {
     static let key = "ComplicationState.latest"
 
-    private static let watchBundleMarker = ".watchkitapp"
     private static let logger = os.Logger(subsystem: "org.nightscout.trio", category: "ComplicationStore")
 
     static var appGroupID: String? {
-        if let fromPlist = Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as? String,
-           !fromPlist.isEmpty, !fromPlist.hasPrefix("$(")
-        {
-            return fromPlist
+        guard let fromPlist = Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as? String,
+              !fromPlist.isEmpty, !fromPlist.hasPrefix("$(")
+        else {
+            logger.error("AppGroupID missing from Info.plist")
+            return nil
         }
-        guard let bundleID = Bundle.main.bundleIdentifier,
-              let range = bundleID.range(of: watchBundleMarker)
-        else { return nil }
-        return "group.\(bundleID[..<range.lowerBound]).trio-app-group"
+        return fromPlist
     }
 
     static let defaults: UserDefaults? = appGroupID.flatMap { UserDefaults(suiteName: $0) }

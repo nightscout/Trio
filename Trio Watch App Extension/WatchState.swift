@@ -615,10 +615,10 @@ import WidgetKit
             glucose: currentGlucose,
             glucoseColorHex: currentGlucoseColorString,
             trend: trend ?? "",
-            delta: delta ?? ComplicationState.missingValue,
-            iob: iob ?? ComplicationState.missingValue,
-            cob: cob ?? ComplicationState.missingValue,
-            lastLoopTime: lastLoopTime ?? ComplicationState.missingValue,
+            delta: ComplicationState.presentOrMissing(delta),
+            iob: ComplicationState.presentOrMissing(iob),
+            cob: ComplicationState.presentOrMissing(cob),
+            lastLoopTime: ComplicationState.presentOrMissing(lastLoopTime),
             cornerValue: complicationCornerValue,
             secondaryValue: complicationSecondaryValue,
             staleMinutes: complicationStaleMinutes,
@@ -639,11 +639,12 @@ import WidgetKit
         let dataKinds = Set(ComplicationKind.allCases.map(\.widgetKind))
         isReloadingComplications = true
         WidgetCenter.shared.getCurrentConfigurations { result in
-            DispatchQueue.main.async { self.isReloadingComplications = false }
-            guard case let .success(installed) = result else { return }
-            for kind in Set(installed.map(\.kind)).intersection(dataKinds) {
-                WidgetCenter.shared.reloadTimelines(ofKind: kind)
+            if case let .success(installed) = result {
+                for kind in Set(installed.map(\.kind)).intersection(dataKinds) {
+                    WidgetCenter.shared.reloadTimelines(ofKind: kind)
+                }
             }
+            DispatchQueue.main.async { self.isReloadingComplications = false }
         }
     }
 

@@ -2122,6 +2122,7 @@
 		DD09D6412D2B553A000D82C9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DD09D6422D2B553A000D82C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C0DE0001A5C0000000000001 /* ComplicationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationState.swift; sourceTree = "<group>"; };
+		C0DE0001A5C0000000000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C0DE0001A5C000000000000A /* ComplicationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationViews.swift; sourceTree = "<group>"; };
 		C0DE0001A5C0000000000002 /* TrioWatchApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TrioWatchApp.entitlements; sourceTree = "<group>"; };
 		C0DE0001A5C0000000000003 /* TrioWatchComplication.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TrioWatchComplication.entitlements; sourceTree = "<group>"; };
@@ -4427,6 +4428,7 @@
 			children = (
 				C0DE0001A5C0000000000001 /* ComplicationState.swift */,
 				C0DE0001A5C000000000000A /* ComplicationViews.swift */,
+				C0DE0001A5C0000000000020 /* Info.plist */,
 				C0DE0001A5C0000000000002 /* TrioWatchApp.entitlements */,
 				DDFF204D2DB2C00B00AB8A96 /* WatchStateSnapshot.swift */,
 				DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */,
@@ -7107,7 +7109,6 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Trio Watch Complication/Info.plist";
-				INFOPLIST_KEY_AppGroupID = "$(APP_GROUP_ID)";
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -7147,7 +7148,6 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Trio Watch Complication/Info.plist";
-				INFOPLIST_KEY_AppGroupID = "$(APP_GROUP_ID)";
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -7187,7 +7187,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_AppGroupID = "$(APP_GROUP_ID)";
+				INFOPLIST_FILE = "Trio Watch App Extension/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_IDENTIFIER)";
@@ -7227,7 +7227,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_AppGroupID = "$(APP_GROUP_ID)";
+				INFOPLIST_FILE = "Trio Watch App Extension/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "$(APP_DISPLAY_NAME)";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_IDENTIFIER)";
