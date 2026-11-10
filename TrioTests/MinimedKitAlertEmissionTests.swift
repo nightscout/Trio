@@ -9,7 +9,7 @@ import Testing
 /// (`MinimedKit/PumpManager/MinimedPumpManager.swift`).
 ///
 /// What this suite pins:
-///  - The level MinimedKit declares in `MinimedPumpManager.issuableAlerts` for
+///  - The level MinimedKit declares in `MinimedPumpManager.alertCatalog` for
 ///    every alert it issues, and that Trio applies the Device Alarms tiers to
 ///    each under the issued managerIdentifier "Minimed500" (its
 ///    pluginIdentifier).
@@ -41,7 +41,7 @@ import Testing
     ]
 
     private static func declaredLevel(_ alertID: String) -> Alert.InterruptionLevel? {
-        MinimedPumpManager.issuableAlerts.first { $0.identifier == alertID }?.interruptionLevel
+        MinimedPumpManager.alertCatalog.first { $0.identifier == alertID }?.interruptionLevel
     }
 
     /// Severity rank for comparing interruption levels (higher == more severe).
@@ -65,7 +65,7 @@ import Testing
     }
 
     @Test("declared alerts are exactly the pinned rows, each declared once") func declaredAlertsMatchRows() {
-        let declared = MinimedPumpManager.issuableAlerts.map(\.identifier)
+        let declared = MinimedPumpManager.alertCatalog.map(\.identifier)
         #expect(declared.count == Set(declared).count)
         #expect(Set(declared) == Set(Self.rows.map(\.alertIdentifier)))
     }

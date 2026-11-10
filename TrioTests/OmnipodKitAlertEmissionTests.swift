@@ -13,7 +13,7 @@ import Testing
 //
 // Two emission channels reach Trio:
 //   1. LoopKit Alerts issued via issueAlert. OmnipodKit sets each alert's
-//      interruptionLevel itself and declares it in OmniPumpManager.issuableAlerts;
+//      interruptionLevel itself and declares it in OmniPumpManager.alertCatalog;
 //      TrioAlertManager takes the Device Alarms tier from that issued level.
 //      This is the PRIMARY table below.
 //   2. PumpManager errors handed back through completion handlers that
@@ -48,7 +48,7 @@ import Testing
     }
 
     private static func declaredLevel(_ alertID: String) -> Alert.InterruptionLevel? {
-        OmniPumpManager.issuableAlerts.first { $0.identifier == alertID }?.interruptionLevel
+        OmniPumpManager.alertCatalog.first { $0.identifier == alertID }?.interruptionLevel
     }
 
     // MARK: - Declared level pin (PRIMARY LoopKit-Alert table)
@@ -89,7 +89,7 @@ import Testing
     }
 
     @Test("declared alerts are exactly the pinned rows, each declared once") func declaredAlertsMatchRows() {
-        let declared = OmniPumpManager.issuableAlerts.map(\.identifier)
+        let declared = OmniPumpManager.alertCatalog.map(\.identifier)
         #expect(declared.count == Set(declared).count)
         #expect(Set(declared) == Set(Self.levelRows.map(\.alertID)))
     }

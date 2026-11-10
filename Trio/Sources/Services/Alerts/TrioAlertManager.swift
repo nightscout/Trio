@@ -614,18 +614,18 @@ extension BaseTrioAlertManager: TrioModalAlertResponder, TrioUserNotificationAle
 
 extension BaseTrioAlertManager {
     /// Trio's own alerts that follow the Device Alarms tiers, like pump and CGM alerts do.
-    static let tierConfiguredAlerts: [IssuableAlert] = [
-        IssuableAlert(
+    static let tierConfiguredAlerts: [AlertCatalogEntry] = [
+        AlertCatalogEntry(
             identifier: NotLoopingMonitor.criticalAlertIdentifier,
             interruptionLevel: .critical,
             title: String(localized: "Trio Not Looping")
         ),
-        IssuableAlert(
+        AlertCatalogEntry(
             identifier: TrioAlertCategory.algorithmError.alertIdentifier,
             interruptionLevel: TrioAlertCategory.algorithmError.interruptionLevel,
             title: String(localized: "Algorithm Error")
         ),
-        IssuableAlert(
+        AlertCatalogEntry(
             identifier: TrioAlertCategory.glucoseDataStale.alertIdentifier,
             interruptionLevel: TrioAlertCategory.glucoseDataStale.interruptionLevel,
             title: String(localized: "Glucose Data Stale")

@@ -8,7 +8,7 @@ import Testing
 /// Manager-emission pins for **MedtrumKit** (`managerIdentifier`
 /// `"Medtrum"`). MedtrumKit issues its pump alarms as LoopKit Alerts
 /// (`MedtrumAlert`, via `MedtrumPumpManager.emitAlert`) at the level it sets
-/// on each and declares in `MedtrumPumpManager.issuableAlerts`.
+/// on each and declares in `MedtrumPumpManager.alertCatalog`.
 ///
 /// What this suite pins:
 ///  - `declaredLevelIsPinned`: the declared level for every alert MedtrumKit
@@ -29,7 +29,7 @@ import Testing
     }
 
     private static func declaredLevel(_ alertID: String) -> Alert.InterruptionLevel? {
-        MedtrumPumpManager.issuableAlerts.first { $0.identifier == alertID }?.interruptionLevel
+        MedtrumPumpManager.alertCatalog.first { $0.identifier == alertID }?.interruptionLevel
     }
 
     // MARK: - Declared levels (CURRENT, must be green)
@@ -55,7 +55,7 @@ import Testing
     }
 
     @Test("declared alerts are exactly the pinned rows, each declared once") func declaredAlertsMatchRows() {
-        let declared = MedtrumPumpManager.issuableAlerts.map(\.identifier)
+        let declared = MedtrumPumpManager.alertCatalog.map(\.identifier)
         #expect(declared.count == Set(declared).count)
         #expect(Set(declared) == Set(Self.levelRows.map(\.alertID)))
     }

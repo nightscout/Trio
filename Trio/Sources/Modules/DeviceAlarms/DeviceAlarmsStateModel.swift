@@ -8,13 +8,13 @@ extension DeviceAlarms {
         @Injected() var fetchGlucoseManager: FetchGlucoseManager!
 
         /// Alerts the paired pump and CGM, and Trio itself, can issue under the device tiers.
-        var issuableAlerts: [IssuableAlert] {
+        var alertCatalog: [AlertCatalogEntry] {
             var alerts = BaseTrioAlertManager.tierConfiguredAlerts
             if let pump = deviceDataManager.pumpManager {
-                alerts += type(of: pump).issuableAlerts
+                alerts += type(of: pump).alertCatalog
             }
             if let cgm = fetchGlucoseManager.cgmManager {
-                alerts += type(of: cgm).issuableAlerts
+                alerts += type(of: cgm).alertCatalog
             }
             return alerts
         }

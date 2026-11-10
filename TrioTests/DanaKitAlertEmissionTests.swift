@@ -11,7 +11,7 @@ import Testing
 /// `DanaKit/PumpManager/DanaKitPumpManager.swift`).
 ///
 /// What this suite pins:
-///  - The level DanaKit declares in `DanaKitPumpManager.issuableAlerts` for
+///  - The level DanaKit declares in `DanaKitPumpManager.alertCatalog` for
 ///    every alert it issues (the pump alarms plus the two disconnect
 ///    reminders), and that Trio applies the Device Alarms tiers to each under
 ///    the issued managerIdentifier "Dana".
@@ -90,7 +90,7 @@ import Testing
     ]
 
     private static func declaredLevel(_ alertID: String) -> Alert.InterruptionLevel? {
-        DanaKitPumpManager.issuableAlerts.first { $0.identifier == alertID }?.interruptionLevel
+        DanaKitPumpManager.alertCatalog.first { $0.identifier == alertID }?.interruptionLevel
     }
 
     /// Severity rank for comparing interruption levels (higher == more severe).
@@ -116,7 +116,7 @@ import Testing
     /// `ble5InvalidKeys` is defined but never issued (the equivalent text is an
     /// ad hoc SwiftUI string in `DanaKitScanViewModel`), so it is not declared.
     @Test("declared alerts are exactly the pinned rows, each declared once") func declaredAlertsMatchRows() {
-        let declared = DanaKitPumpManager.issuableAlerts.map(\.identifier)
+        let declared = DanaKitPumpManager.alertCatalog.map(\.identifier)
         #expect(declared.count == Set(declared).count)
         #expect(Set(declared) == Set(Self.rows.map(\.alertIdentifier)))
         #expect(!declared.contains("ble5InvalidKeys"))

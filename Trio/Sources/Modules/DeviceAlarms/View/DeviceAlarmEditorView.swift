@@ -5,7 +5,7 @@ struct DeviceAlarmEditorView: View {
     @ObservedObject var store: DeviceAlertsStore
     let configID: UUID
     let isNew: Bool
-    let issuableAlerts: [IssuableAlert]
+    let alertCatalog: [AlertCatalogEntry]
     var onDone: () -> Void
     var onCancel: () -> Void
 
@@ -18,14 +18,14 @@ struct DeviceAlarmEditorView: View {
         store: DeviceAlertsStore,
         initial: DeviceAlertSeverityConfig,
         isNew: Bool,
-        issuableAlerts: [IssuableAlert],
+        alertCatalog: [AlertCatalogEntry],
         onDone: @escaping () -> Void,
         onCancel: @escaping () -> Void = {}
     ) {
         self.store = store
         configID = initial.id
         self.isNew = isNew
-        self.issuableAlerts = issuableAlerts
+        self.alertCatalog = alertCatalog
         self.onDone = onDone
         self.onCancel = onCancel
         _working = State(initialValue: initial)
@@ -118,6 +118,6 @@ struct DeviceAlarmEditorView: View {
 
     /// Distinct titles of the paired devices' alerts that fall into this tier, sorted.
     private func titlesForTier(_ tier: DeviceAlertSeverity) -> [String] {
-        Set(issuableAlerts.filter { DeviceAlertSeverity(level: $0.interruptionLevel) == tier }.map(\.title)).sorted()
+        Set(alertCatalog.filter { DeviceAlertSeverity(level: $0.interruptionLevel) == tier }.map(\.title)).sorted()
     }
 }
