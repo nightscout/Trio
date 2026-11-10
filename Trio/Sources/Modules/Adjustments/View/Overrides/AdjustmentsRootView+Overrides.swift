@@ -199,12 +199,7 @@ extension Adjustments.RootView {
             }
         }()
 
-        // Int(_: Double) traps on NaN and huge values, so a corrupted preset would crash this screen on every open.
-        let percentageString: String = {
-            guard percentage != 100 else { return "" }
-            guard percentage.isFinite, percentage.magnitude <= Double(Int.max) else { return "" }
-            return "\(Int(percentage))%\(isfAndCrString)"
-        }()
+        let percentageString = percentage == 100 ? "" : (percentage / 100).formatted(.wholePercent) + isfAndCrString
 
         let otherLabels = [percentageString, targetString, smbString]
         let labels = ([durationLabel.text] + otherLabels + [maxSmbMins.text, maxUamMins.text])

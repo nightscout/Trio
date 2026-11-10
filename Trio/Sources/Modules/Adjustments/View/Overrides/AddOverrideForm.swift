@@ -79,7 +79,7 @@ struct AddOverrideForm: View {
                 HStack {
                     Text("Basal Rate Adjustment")
                     Spacer()
-                    Text("\(state.overridePercentage.formatted(.number)) %")
+                    Text((state.overridePercentage / 100).formatted(.wholePercent))
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                         .onTapGesture {
                             displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
@@ -92,7 +92,7 @@ struct AddOverrideForm: View {
                         VStack(alignment: .leading) {
                             // Radio buttons for step iteration
                             ForEach([1, 5], id: \.self) { step in
-                                RadioButton(isSelected: percentageStep == step, label: "\(step) %") {
+                                RadioButton(isSelected: percentageStep == step, label: step.formatted(.percent)) {
                                     percentageStep = step
                                     state.overridePercentage = Adjustments.StateModel.roundOverridePercentageToStep(
                                         state.overridePercentage,
@@ -114,7 +114,7 @@ struct AddOverrideForm: View {
                             ), label: Text("")
                         ) {
                             ForEach(Array(stride(from: 40, through: 150, by: percentageStep)), id: \.self) { percent in
-                                Text("\(percent) %").tag(percent)
+                                Text(percent.formatted(.percent)).tag(percent)
                             }
                         }
                         .pickerStyle(WheelPickerStyle())

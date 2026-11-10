@@ -3,7 +3,6 @@ import CoreData
 import CryptoKit
 import Foundation
 import HealthKit
-import LoopAlgorithm
 import LoopKit
 import LoopKitUI
 import Swinject
@@ -60,6 +59,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     private var tidepoolService: RemoteDataService? {
         didSet {
             if let tidepoolService = tidepoolService {
+                tidepoolService.remoteDataServiceDelegate = self
                 rawTidepoolManager = tidepoolService.rawValue
             } else {
                 rawTidepoolManager = nil
@@ -223,6 +223,24 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
             await uploadGlucose()
             await uploadSettings()
         }
+    }
+}
+
+extension BaseTidepoolManager: RemoteDataServiceDelegate {
+    /// Device logs are not uploaded.
+    func fetchDeviceLogs(startDate _: Date, endDate _: Date) async throws -> [StoredDeviceLogEntry] {
+        []
+    }
+
+    /// Empty on purpose: a non-empty history makes `DoseEntry.annotated(with:)` hit a `preconditionFailure`
+    /// for temp basals with unit `.units`, which is how Trio builds them.
+    func getBasalHistory(startDate _: Date, endDate _: Date) async throws -> [AbsoluteScheduleValue<Double>] {
+        []
+    }
+
+    func automationHistory(from start: Date, to end: Date) async throws -> [AbsoluteScheduleValue<Bool>] {
+        let isAutomated = settingsManager.settings.dosingMode == .closed
+        return [AbsoluteScheduleValue(startDate: start, endDate: end, value: isAutomated)]
     }
 }
 

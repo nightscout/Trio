@@ -155,13 +155,11 @@ extension Adjustments.RootView {
             tempTarget.halfBasalTarget as? Double
                 .RawValue ?? Double(state.settingHalfBasalTarget)
         )
-        let percentage = Int(
-            TempTargetCalculations.computeAdjustedPercentage(
-                halfBasalTarget: tempTargetHalfBasal,
-                target: tempTargetValue,
-                autosensMax: state.autosensMax
-            )
-        )
+        let percentageText = (TempTargetCalculations.computeAdjustedPercentage(
+            halfBasalTarget: tempTargetHalfBasal,
+            target: tempTargetValue,
+            autosensMax: state.autosensMax
+        ) / 100).formatted(.wholePercent)
         let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
         let duration = Duration(minutes: (tempTarget.duration ?? 0) as Decimal)
 
@@ -187,7 +185,7 @@ extension Adjustments.RootView {
                             .foregroundColor(.secondary)
                             .font(.caption)
                         if state.isAdjustSensEnabled(usingTarget: tempTargetValue) {
-                            Text(", \(percentage)%")
+                            Text(", " + percentageText)
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                         }
@@ -217,7 +215,7 @@ extension Adjustments.RootView {
             (target as Decimal).formatted(withUnits: state.units) + " "
                 + String(localized: "for", comment: "duration connector") + " "
                 + duration.formattedSpokenTimeSpan()
-                + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", \(percentage)%" : "")
+                + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", " + percentageText : "")
         ))
         // Only tappable rows (presets) are buttons; scheduled rows are read-only, so they get
         // neither the button trait, an activation, nor a hint.
