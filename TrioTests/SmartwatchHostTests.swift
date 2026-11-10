@@ -126,6 +126,38 @@ import Testing
         #expect(twice == .init(success: false, message: "Error! Bolus failed"))
     }
 
+    @Test("A watch bolus the pump accepted is answered as delivered, whatever happens after") func pumpOutcomeThenCancel() async {
+        // LoopKit: deliverBolus returns once the pump accepted the bolus; it may still
+        // be cancelled on the phone. Trio's enactBolus reports acceptance, then runs a
+        // determination; a cancel then (cancelBolus, its own callback) or any later
+        // report doesn't change or delay the watch's answer.
+        let start = ContinuousClock.now
+        let outcome = await BaseSmartwatchHost.pumpOutcome { callback in
+            callback(true, "Bolus enacted successfully.")
+            try? await Task.sleep(for: .seconds(30))
+            callback(false, "Bolus cancelled")
+        }
+        #expect(outcome == .init(success: true, message: "Bolus enacted successfully."))
+        #expect(ContinuousClock.now - start < .seconds(10))
+    }
+
+    @Test("Closed loop only in closed mode and without a manual temp basal") func closedLoopFlag() {
+        #expect(BaseSmartwatchHost.isClosedLoop(dosingMode: .closed, isManualTempBasal: false))
+        #expect(!BaseSmartwatchHost.isClosedLoop(dosingMode: .closed, isManualTempBasal: true))
+        for mode in [DosingMode.open, .lowGlucoseSuspend, .basalTesting] {
+            #expect(!BaseSmartwatchHost.isClosedLoop(dosingMode: mode, isManualTempBasal: false), "\(mode)")
+            #expect(!BaseSmartwatchHost.isClosedLoop(dosingMode: mode, isManualTempBasal: true), "\(mode)")
+        }
+    }
+
+    @Test("A context read is logged when its answer changes, not when it repeats") func contextRecommendationLog() {
+        var log = ContextRecommendationLog()
+        // The plugin reads 0 g after every change; only a new answer is logged,
+        // including a return to an earlier one.
+        let logged = [0, 0, 0, 1.25, 1.25, 0].map { log.shouldLog($0) }
+        #expect(logged == [true, false, false, true, false, true])
+    }
+
     @Test("Watch carbs stored while a determination ran count as in it, not twice") func carbsDuringADetermination() {
         // A loop starts calculating at 0 s (deliverAt) and fetches carbs at 2 s;
         // 40 g from the watch were stored at 1 s, so they are in its COB. The host
@@ -276,5 +308,75 @@ import Testing
 
     @Test("A reading without a date is left out") func noDate() async {
         #expect(await sample(100, direction: "Flat", date: nil) == nil)
+    }
+}
+
+/// A watch manager that records what the host tells it changed.
+private final class FakeSmartwatchManager: SmartwatchManager {
+    weak var smartwatchManagerDelegate: SmartwatchManagerDelegate?
+    @MainActor private(set) var changes: [SmartwatchHostDataChange] = []
+
+    let pluginIdentifier = "FakeSmartwatch"
+    let localizedTitle = "Fake watch"
+    let isOnboarded = true
+    let inSignalLoss = false
+    let isInoperable = false
+    var rawState: RawStateValue { [:] }
+    var debugDescription: String { "FakeSmartwatchManager" }
+
+    init() {}
+    init?(rawState _: RawStateValue) {}
+
+    @MainActor func hostDataDidChange(_ changes: SmartwatchHostDataChange) {
+        self.changes.append(changes)
+    }
+
+    func acknowledgeAlert(alertIdentifier _: Alert.AlertIdentifier) async throws {}
+    func getSoundBaseURL() -> URL? { nil }
+    func getSounds() -> [Alert.Sound] { [] }
+}
+
+@Suite("Smartwatch host: change signals") @MainActor struct SmartwatchChangeBatchTests {
+    /// Lets the main queue run the batch's delivery.
+    private func nextRunLoopTurns() async throws {
+        for _ in 0 ..< 5 {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+
+    @Test("Signals in a row reach the watch manager once, merged") func merged() async throws {
+        let manager = FakeSmartwatchManager()
+        let batch = SmartwatchChangeBatch { manager }
+        batch.signal(.glucose)
+        batch.signal(.loop)
+        batch.signal([.loop, .presets])
+        #expect(manager.changes.isEmpty, "sent on the next run loop turn")
+        try await nextRunLoopTurns()
+        #expect(manager.changes == [[.glucose, .loop, .presets]])
+
+        // A signal after delivery starts a new batch.
+        batch.signal(.settings)
+        batch.signal(.alertMute)
+        try await nextRunLoopTurns()
+        #expect(manager.changes == [[.glucose, .loop, .presets], [.settings, .alertMute]])
+    }
+
+    @Test("Nothing is sent without a watch manager, or after everything was sent") func noManagerOrDiscarded() async throws {
+        let manager = FakeSmartwatchManager()
+        var current: FakeSmartwatchManager?
+        let batch = SmartwatchChangeBatch { current }
+        batch.signal(.glucose)
+        current = manager
+        try await nextRunLoopTurns()
+        #expect(manager.changes.isEmpty, "signalled before there was a watch manager")
+
+        // refresh() tells the manager .all and drops what is pending.
+        batch.signal(.loop)
+        batch.discardPending()
+        try await nextRunLoopTurns()
+        #expect(manager.changes.isEmpty)
+        batch.signal(.presets)
+        try await nextRunLoopTurns()
+        #expect(manager.changes == [.presets])
     }
 }
