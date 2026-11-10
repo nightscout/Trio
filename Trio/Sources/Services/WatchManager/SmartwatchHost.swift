@@ -88,12 +88,12 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
 
     /// What changed since the watch manager was last told, sent on the next main
     /// run loop turn so changes that arrive together go out as one call.
-    @MainActor private var pendingChanges: SmartwatchHostDataChange = []
+    private lazy var changeBatch = SmartwatchChangeBatch { [weak self] in self?.smartwatchManager }
     /// Whether a watch bolus is being delivered, so a second one gets `inProgress`.
     @MainActor var isDeliveringWatchBolus = false
-    /// The last answer to the plugin's 0 g recommendation read, which it makes
-    /// after every change for its bolus context: logged only when it changes.
-    @MainActor var lastContextRecommendation: Double?
+    /// The answers to the plugin's 0 g recommendation read, which it makes after
+    /// every change for its bolus context: logged only when it changes.
+    @MainActor var contextRecommendationLog = ContextRecommendationLog()
     /// Carb entries from the watch that the latest determination may not count yet.
     @MainActor var watchCarbEntries: [WatchCarbEntry] = []
     /// When this host first saw the latest determination: watch carbs stored
@@ -257,6 +257,14 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
             .sink { [weak self] _ in MainActor.assumeIsolated { self?.signal(.loop) } }
             .store(in: &subscriptions)
 
+        // A manual temp basal starting or ending: Trio enacts nothing while one runs.
+        deviceDataManager.manualTempBasal
+            .removeDuplicates()
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in MainActor.assumeIsolated { self?.signal(.loop) } }
+            .store(in: &subscriptions)
+
         // A new or removed pump: the bolus volumes the watch rounds to.
         deviceDataManager.pumpDisplayState
             .dropFirst()
@@ -277,27 +285,14 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     /// Tells the watch manager that everything changed: for a new watch manager,
     /// right after its delegate is set, or one that finished onboarding.
     @MainActor func refresh() {
-        pendingChanges = []
+        changeBatch.discardPending()
         smartwatchManager?.hostDataDidChange(.all)
     }
 
     /// Tells the watch manager what changed, on the next main run loop turn
     /// together with whatever else changes until then.
     @MainActor func signal(_ changes: SmartwatchHostDataChange) {
-        guard smartwatchManager != nil else { return }
-        let isScheduled = !pendingChanges.isEmpty
-        pendingChanges.formUnion(changes)
-        guard !isScheduled else { return }
-        DispatchQueue.main.async { [weak self] in
-            MainActor.assumeIsolated { self?.sendPendingChanges() }
-        }
-    }
-
-    @MainActor private func sendPendingChanges() {
-        let changes = pendingChanges
-        pendingChanges = []
-        guard !changes.isEmpty, let manager = smartwatchManager else { return }
-        manager.hostDataDidChange(changes)
+        changeBatch.signal(changes)
     }
 
     /// A new determination: notes when this host first saw it, so the watch carbs
@@ -593,7 +588,10 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
         let lastLoop = apsManager.lastLoopDate
         return SmartwatchLoopState(
             lastLoopCompleted: lastLoop == .distantPast ? nil : lastLoop,
-            isClosedLoop: settingsManager.settings.dosingMode == .closed,
+            isClosedLoop: Self.isClosedLoop(
+                dosingMode: settingsManager.settings.dosingMode,
+                isManualTempBasal: apsManager.isManualTempBasal
+            ),
             insulinOnBoard: iobService.currentIOB.map {
                 InsulinValue(startDate: Date(), value: Double(truncating: $0 as NSNumber))
             },
@@ -606,6 +604,12 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
             },
             sensitivityRatio: determination?.sensitivityRatio
         )
+    }
+
+    /// As Trio's own loop ring (LoopView) shows it: closed only while no manual
+    /// temp basal runs, because Trio enacts nothing during one.
+    static func isClosedLoop(dosingMode: DosingMode, isManualTempBasal: Bool) -> Bool {
+        dosingMode == .closed && !isManualTempBasal
     }
 
     /// The scheduled basal rate the latest determination used.
@@ -759,6 +763,52 @@ extension BaseSmartwatchHost: SmartwatchManagerOnboardingDelegate {
     func smartwatchManagerOnboarding(didOnboardSmartwatchManager manager: SmartwatchManagerUI) {
         debug(.watch, "Watch manager \(manager.pluginIdentifier) onboarded")
         Task { @MainActor in self.refresh() }
+    }
+}
+
+/// The host's change signals for its watch manager: collected until the next main
+/// run loop turn, then handed to it as one `hostDataDidChange` with all of them.
+final class SmartwatchChangeBatch {
+    private let manager: @MainActor() -> SmartwatchManager?
+    @MainActor private var pending: SmartwatchHostDataChange = []
+
+    init(manager: @escaping @MainActor() -> SmartwatchManager?) {
+        self.manager = manager
+    }
+
+    @MainActor func signal(_ changes: SmartwatchHostDataChange) {
+        guard manager() != nil else { return }
+        let isScheduled = !pending.isEmpty
+        pending.formUnion(changes)
+        guard !isScheduled else { return }
+        DispatchQueue.main.async { [weak self] in
+            MainActor.assumeIsolated { self?.send() }
+        }
+    }
+
+    /// Drops what is pending: the watch manager is being told everything changed.
+    @MainActor func discardPending() {
+        pending = []
+    }
+
+    @MainActor private func send() {
+        let changes = pending
+        pending = []
+        guard !changes.isEmpty, let manager = manager() else { return }
+        manager.hostDataDidChange(changes)
+    }
+}
+
+/// The plugin's 0 g recommendation reads for its bolus context, made after every
+/// change: an answer is logged only when it differs from the last one.
+struct ContextRecommendationLog {
+    private var last: Double?
+
+    /// Whether `units` should be logged; it becomes the last answer.
+    mutating func shouldLog(_ units: Double) -> Bool {
+        guard units != last else { return false }
+        last = units
+        return true
     }
 }
 
