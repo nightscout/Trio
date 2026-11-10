@@ -13,12 +13,6 @@ struct PumpView: View {
 
     let NORMAL_PATCH_AGE = TimeInterval.hours(80)
 
-    private var batteryFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .percent
-        return formatter
-    }
-
     private var hourglassIcon: String {
         if activatedAtDate != nil { return "hourglass.badge.plus" }
         guard let expiration = expiresAtDate else { return "hourglass" }
@@ -100,7 +94,7 @@ struct PumpView: View {
                         Image(systemName: "battery.100")
                             .font(.callout)
                             .foregroundStyle(batteryColor)
-                        Text("\(Formatter.integerFormatter.string(for: battery.first?.percent ?? 100) ?? "100") %")
+                        Text(((battery.first?.percent ?? 100) / 100).formatted(.wholePercent))
                             .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                     .accessibilityElement(children: .ignore)
@@ -216,8 +210,7 @@ struct PumpView: View {
 
     /// Battery percentage plus a spoken severity word mirroring `batteryColor`.
     private var batteryAccessibilityValue: String {
-        let percent = Formatter.integerFormatter.string(for: battery.first?.percent ?? 100) ?? "100"
-        let value = "\(percent) %"
+        let value = ((battery.first?.percent ?? 100) / 100).formatted(.wholePercent)
         switch battery.first?.percent {
         case .some(...10):
             return value + ", " + String(localized: "low", comment: "Accessibility: battery severity")

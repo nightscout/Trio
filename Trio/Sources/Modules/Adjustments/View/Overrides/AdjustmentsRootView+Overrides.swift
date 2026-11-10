@@ -110,11 +110,12 @@ extension Adjustments.RootView {
     var stickyStopOverrideButton: some View {
         ZStack {
             Rectangle()
-                .frame(width: UIScreen.main.bounds.width, height: 65)
+                .frame(height: 65)
                 .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
                 .background(.thinMaterial)
                 .opacity(0.8)
                 .clipShape(Rectangle())
+                .ignoresSafeArea(edges: .horizontal)
 
             Button(action: {
                 showCancelOverrideConfirmDialog = true
@@ -123,7 +124,8 @@ extension Adjustments.RootView {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(10)
             })
-                .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
+                .frame(height: 40)
                 .disabled(!state.isOverrideEnabled)
                 .background(!state.isOverrideEnabled ? Color(.systemGray4) : Color(.systemRed))
                 .tint(.white)
@@ -148,7 +150,7 @@ extension Adjustments.RootView {
 
         let target: String = {
             guard let targetValue = preset.target, targetValue != 0 else { return "" }
-            return state.units == .mgdL ? targetValue.description : targetValue.decimalValue.formattedAsMmolL
+            return targetValue.decimalValue.formatted(for: state.units)
         }()
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
@@ -198,12 +200,7 @@ extension Adjustments.RootView {
             }
         }()
 
-        // Same trap risk as duration above.
-        let percentageString: String = {
-            guard percentage != 100 else { return "" }
-            guard percentage.isFinite, percentage.magnitude <= Double(Int.max) else { return "" }
-            return "\(Int(percentage))%\(isfAndCrString)"
-        }()
+        let percentageString = percentage == 100 ? "" : (percentage / 100).formatted(.wholePercent) + isfAndCrString
 
         // Combine all labels into a single array, filtering out empty strings
         let labels: [String] = [

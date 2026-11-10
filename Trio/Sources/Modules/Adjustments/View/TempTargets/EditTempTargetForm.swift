@@ -63,6 +63,8 @@ struct EditTempTargetForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
+            // iOS's default on iPhone; iPhone Duo defaults to 0, which put the first row under the sheet's bar
+            .contentMargins(.top, 35, for: .scrollContent)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden)
@@ -182,70 +184,64 @@ struct EditTempTargetForm: View {
             }
             .listRowBackground(Color.chart)
 
-            if target != TempTargetCalculations.normalTarget {
-                let computedHalfBasalTarget = Decimal(
-                    TempTargetCalculations.computeHalfBasalTarget(target: target, percentage: percentage)
-                )
-
-                if state.isAdjustSensEnabled(usingTarget: target) {
-                    Section(
-                        footer: state.percentageDescription(percentage),
-                        content: {
-                            Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
-                                ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
-                                    Text(option.rawValue).tag(option)
-                                }
-                                .pickerStyle(MenuPickerStyle())
-                                .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
-                                    if newValue == .standard {
-                                        halfBasalTarget = nil
-                                        hasChanges = true
-                                        percentage = TempTargetCalculations.computeAdjustedPercentage(
-                                            halfBasalTarget: state.settingHalfBasalTarget,
-                                            target: target,
-                                            autosensMax: state.autosensMax
-                                        )
-                                    }
-                                }
+            if state.isAdjustSensEnabled(usingTarget: target) {
+                Section(
+                    footer: state.percentageDescription(percentage),
+                    content: {
+                        Picker("Sensitivity Adjustment", selection: $tempTargetSensitivityAdjustmentType) {
+                            ForEach(TempTargetSensitivityAdjustmentType.allCases, id: \.self) { option in
+                                Text(option.rawValue).tag(option)
                             }
-
-                            Text("\(formattedPercentage(percentage))% Insulin")
-                                .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
-                                .font(.title3)
-                                .fontWeight(.bold)
-                                .frame(maxWidth: .infinity, alignment: .center)
-
-                            if tempTargetSensitivityAdjustmentType == .slider {
-                                Slider(
-                                    value: Binding(
-                                        get: {
-                                            Double(truncating: percentage as NSNumber)
-                                        },
-                                        set: { newValue in
-                                            percentage = newValue
-                                            hasChanges = true
-                                            halfBasalTarget = Decimal(TempTargetCalculations.computeHalfBasalTarget(
-                                                target: target,
-                                                percentage: percentage
-                                            ))
-                                        }
-                                    ),
-                                    in: state.computeSliderLow(usingTarget: target) ... state
-                                        .computeSliderHigh(usingTarget: target),
-                                    step: 5
-                                ) {}
-                                minimumValueLabel: {
-                                    Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
+                            .pickerStyle(MenuPickerStyle())
+                            .onChange(of: tempTargetSensitivityAdjustmentType) { _, newValue in
+                                if newValue == .standard {
+                                    halfBasalTarget = nil
+                                    hasChanges = true
+                                    percentage = TempTargetCalculations.computeAdjustedPercentage(
+                                        halfBasalTarget: state.settingHalfBasalTarget,
+                                        target: target,
+                                        autosensMax: state.autosensMax
+                                    )
                                 }
-                                maximumValueLabel: {
-                                    Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
-                                }
-                                .listRowSeparator(.hidden, edges: .top)
                             }
                         }
-                    )
-                    .listRowBackground(Color.chart)
-                }
+
+                        Text("\((percentage / 100).formatted(.wholePercent)) Insulin")
+                            .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .frame(maxWidth: .infinity, alignment: .center)
+
+                        if tempTargetSensitivityAdjustmentType == .slider {
+                            Slider(
+                                value: Binding(
+                                    get: {
+                                        Double(truncating: percentage as NSNumber)
+                                    },
+                                    set: { newValue in
+                                        percentage = newValue
+                                        hasChanges = true
+                                        halfBasalTarget = Decimal(TempTargetCalculations.computeHalfBasalTarget(
+                                            target: target,
+                                            percentage: percentage
+                                        ))
+                                    }
+                                ),
+                                in: state.computeSliderLow(usingTarget: target) ... state
+                                    .computeSliderHigh(usingTarget: target),
+                                step: 5
+                            ) {}
+                            minimumValueLabel: {
+                                Text((state.computeSliderLow(usingTarget: target) / 100).formatted(.wholePercent))
+                            }
+                            maximumValueLabel: {
+                                Text((state.computeSliderHigh(usingTarget: target) / 100).formatted(.wholePercent))
+                            }
+                            .listRowSeparator(.hidden, edges: .top)
+                        }
+                    }
+                )
+                .listRowBackground(Color.chart)
             }
 
             Section {
@@ -331,7 +327,7 @@ struct EditTempTargetForm: View {
                 saveChanges()
                 info(
                     .treatments,
-                    "Temp target edited: target \(target) mg/dL, half basal target \(halfBasalTarget.map { "\($0) mg/dL" } ?? "default"), insulin \(Int(percentage))%"
+                    "Temp target edited: target \(target) mg/dL, half basal target \(halfBasalTarget.map { "\($0) mg/dL" } ?? "default"), insulin \(Int(percentage.rounded()))%"
                 )
                 do {
                     guard let moc = tempTarget.managedObjectContext else { return }
@@ -415,39 +411,5 @@ struct EditTempTargetForm: View {
     private func totalDurationInMinutes() -> Int {
         let durationTotal = (durationHours * 60) + durationMinutes
         return max(0, durationTotal)
-    }
-
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        } else {
-            formatter.maximumFractionDigits = 0
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
-    private func formattedPercentage(_ value: Double) -> String {
-        let percentageNumber = NSNumber(value: value)
-        return formatter.string(from: percentageNumber) ?? "\(value)"
-    }
-
-    private func formattedGlucose(glucose: Decimal) -> String {
-        let formattedValue: String
-        if state.units == .mgdL {
-            formattedValue = glucoseFormatter.string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-        } else {
-            formattedValue = glucose.formattedAsMmolL
-        }
-        return "\(formattedValue) \(state.units.rawValue)"
     }
 }

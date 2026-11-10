@@ -22,15 +22,6 @@ extension Home.RootView {
         return formatter
     }
 
-    private var fetchedTargetFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        if state.units == .mmolL {
-            formatter.maximumFractionDigits = 1
-        } else { formatter.maximumFractionDigits = 0 }
-        return formatter
-    }
-
     func remainingFraction(start: Date?, durationMinutes: Decimal?, indefinite: Bool) -> Double? {
         guard !indefinite, let start = start, let durationMinutes = durationMinutes, durationMinutes > 0 else {
             return nil
@@ -76,14 +67,12 @@ extension Home.RootView {
         }
 
         let percent = latestOverride.percentage
-        let percentString = percent == 100 ? "" : "\(percent.formatted(.number)) %"
+        let percentString = percent == 100 ? "" : (percent / 100).formatted(.wholePercent)
 
         let unit = state.units
-        var target = (latestOverride.target ?? 0) as Decimal
-        target = unit == .mmolL ? target.asMmolL : target
+        let target = (latestOverride.target ?? 0) as Decimal
 
-        var targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " + unit
-            .rawValue
+        var targetString = target == 0 ? "" : target.formatted(withUnits: unit)
         if tempTargetString != nil {
             targetString = ""
         }
@@ -158,7 +147,7 @@ extension Home.RootView {
         )
         var durationString = ""
         var percentageString = ""
-        var target = (latestTempTarget.target ?? 100) as Decimal
+        let target = (latestTempTarget.target ?? 100) as Decimal
         // Use TempTargetCalculations to get effective HBT (handles both custom and auto-adjusted standard TT)
         let effectiveHBT = TempTargetCalculations.computeEffectiveHBT(
             tempTargetHalfBasalTarget: latestTempTarget.halfBasalTarget?.decimalValue,
@@ -170,12 +159,14 @@ extension Home.RootView {
         if target > 100, state.isExerciseModeActive || state.highTTraisesSens { showPercentage = true }
         if target < 100, state.lowTTlowersSens, state.autosensMax > 1 { showPercentage = true }
         if showPercentage {
-            percentageString =
-                " \(Int(TempTargetCalculations.computeAdjustedPercentage(halfBasalTarget: effectiveHBT, target: target, autosensMax: state.autosensMax)))%"
+            let percentage = TempTargetCalculations.computeAdjustedPercentage(
+                halfBasalTarget: effectiveHBT,
+                target: target,
+                autosensMax: state.autosensMax
+            )
+            percentageString = " " + (percentage / 100).formatted(.wholePercent)
         }
-        target = state.units == .mmolL ? target.asMmolL : target
-        let targetString = target == 0 ? "" : (fetchedTargetFormatter.string(from: target as NSNumber) ?? "") + " " +
-            state.units.rawValue + percentageString
+        let targetString = target == 0 ? "" : target.formatted(withUnits: state.units) + percentageString
 
         if newDuration >= 1 {
             durationString =
@@ -303,7 +294,7 @@ extension Home.RootView {
                     .font(.subheadline).fontWeight(.medium)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Profile at 100 %")
+                Text("Profile at \(1.0.formatted(.wholePercent))")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -540,14 +531,6 @@ extension Home.RootView {
         }
     }
 
-    private func averageGlucoseString(_ meanGlucose: Double?) -> String {
-        guard let mean = meanGlucose else { return "--" }
-        if state.units == .mmolL {
-            return Decimal(mean).asMmolL.formatted(.number.precision(.fractionLength(1))) + " " + GlucoseUnits.mmolL.rawValue
-        }
-        return "\(Int(mean.rounded())) " + GlucoseUnits.mgdL.rawValue
-    }
-
     private func gmiString(_ meanGlucose: Double?) -> String {
         guard let mean = meanGlucose else { return "--" }
         let gmiPercentage = 3.31 + 0.02392 * mean
@@ -556,7 +539,7 @@ extension Home.RootView {
             let gmiMmolMol = (gmiPercentage - 2.152) * 10.929
             return "\(Int(gmiMmolMol.rounded())) mmol/mol"
         }
-        return gmiPercentage.formatted(.number.precision(.fractionLength(1))) + " %"
+        return (gmiPercentage / 100).formatted(.oneDecimalPercent)
     }
 
     @ViewBuilder func statsBanner() -> some View {
@@ -564,11 +547,11 @@ extension Home.RootView {
         let range = state.homeStatsPanelRange
         let stats = state.statsPanelStats
         let hasData = stats.hasData
-        let averageString = averageGlucoseString(stats.meanGlucose)
+        let averageString = stats.meanGlucose?.formatted(withUnits: state.units) ?? "--"
         let gmiValueString = gmiString(stats.meanGlucose)
         let tirString = hasData
-            ? stats.inRangePct.formatted(.number.precision(.fractionLength(0 ... 1))) + " %"
-            : "-- %"
+            ? (stats.inRangePct / 100).formatted(.upToOneDecimalPercent)
+            : "--"
         let segments: [(color: Color, fraction: CGFloat)] = hasData ? [
             (.red, CGFloat(stats.veryLowPct / 100)),
             (.orange, CGFloat(stats.lowPct / 100)),

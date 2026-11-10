@@ -308,11 +308,10 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
         case .autosensMax,
              .autosensMin,
              .maxDeltaGlucoseThreshold:
-            return "\(decimalValue * 100) \(String(localized: "%"))"
+            return decimalValue.formatted(.wholePercent)
         case .enableSMBWithHighGlucoseTarget,
              .halfBasalTarget:
-            let displayValue = units == .mmolL ? decimalValue.asMmolL : decimalValue
-            return "\(displayValue.description) \(units.rawValue)"
+            return decimalValue.formatted(withUnits: units)
         case .maxSMBMinutes,
              .maxUAMMinutes:
             return "\(decimalValue) \(String(localized: "min"))"
@@ -330,11 +329,10 @@ struct AlgorithmSettingsSubstepView<Substep: AlgorithmSubstepProtocol & RawRepre
         case .autosensMax,
              .autosensMin,
              .maxDeltaGlucoseThreshold:
-            return "\(decimalValue * 100) \(UnitSpelling.spoken("%"))"
+            return decimalValue.formatted(.wholePercent)
         case .enableSMBWithHighGlucoseTarget,
              .halfBasalTarget:
-            let displayValue = units == .mmolL ? decimalValue.asMmolL : decimalValue
-            return "\(displayValue.description) \(units.spokenValue)"
+            return decimalValue.formatted(for: units) + " " + units.spokenValue
         case .maxSMBMinutes,
              .maxUAMMinutes:
             return "\(decimalValue) \(UnitSpelling.spoken("min"))"

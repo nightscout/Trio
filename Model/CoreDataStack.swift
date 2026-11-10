@@ -349,21 +349,21 @@ extension CoreDataStack {
             throw CoreDataError.validationError(function: callingFunction, file: callingClass)
         }
 
-        // Fetch all the objects that are older than the specified days
-        let fetchRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: objectType))
-
-        // Construct the predicate
-        var predicates: [NSPredicate] = [NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)]
-        if let isPresetKey = isPresetKey {
-            predicates.append(NSPredicate(format: "%K == NO", isPresetKey))
-        }
-        fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        fetchRequest.resultType = .managedObjectIDResultType
-
         do {
             // Execute the Fetch Request
             let objectIDs = try await taskContext.perform {
-                try taskContext.fetch(fetchRequest)
+                // Fetch all the objects that are older than the specified days
+                let fetchRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: objectType))
+
+                // Construct the predicate
+                var predicates: [NSPredicate] = [NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)]
+                if let isPresetKey = isPresetKey {
+                    predicates.append(NSPredicate(format: "%K == NO", isPresetKey))
+                }
+                fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+                fetchRequest.resultType = .managedObjectIDResultType
+
+                return try taskContext.fetch(fetchRequest)
             }
 
             // Guard check if there are NSManagedObjects older than the specified days
@@ -408,14 +408,14 @@ extension CoreDataStack {
             throw CoreDataError.validationError(function: callingFunction, file: callingClass)
         }
 
-        // Fetch Parent objects older than the target date
-        let fetchParentRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: parentType))
-        fetchParentRequest.predicate = NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)
-        fetchParentRequest.resultType = .managedObjectIDResultType
-
         do {
             let parentObjectIDs = try await taskContext.perform {
-                try taskContext.fetch(fetchParentRequest)
+                // Fetch Parent objects older than the target date
+                let fetchParentRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: parentType))
+                fetchParentRequest.predicate = NSPredicate(format: "%K < %@", dateKey, targetDate as NSDate)
+                fetchParentRequest.resultType = .managedObjectIDResultType
+
+                return try taskContext.fetch(fetchParentRequest)
             }
 
             guard !parentObjectIDs.isEmpty else {
@@ -423,13 +423,13 @@ extension CoreDataStack {
                 return
             }
 
-            // Fetch Child objects related to the fetched Parent objects
-            let fetchChildRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: childType))
-            fetchChildRequest.predicate = NSPredicate(format: "ANY %K IN %@", relationshipKey, parentObjectIDs)
-            fetchChildRequest.resultType = .managedObjectIDResultType
-
             let childObjectIDs = try await taskContext.perform {
-                try taskContext.fetch(fetchChildRequest)
+                // Fetch Child objects related to the fetched Parent objects
+                let fetchChildRequest = NSFetchRequest<NSManagedObjectID>(entityName: String(describing: childType))
+                fetchChildRequest.predicate = NSPredicate(format: "ANY %K IN %@", relationshipKey, parentObjectIDs)
+                fetchChildRequest.resultType = .managedObjectIDResultType
+
+                return try taskContext.fetch(fetchChildRequest)
             }
 
             guard !childObjectIDs.isEmpty else {
@@ -497,7 +497,7 @@ extension CoreDataStack {
                 } else {
                     return try context.fetch(request) as? [T] ?? []
                 }
-            } catch let error as NSError {
+            } catch {
                 throw CoreDataError.fetchError(
                     function: callingFunction,
                     file: callingClass

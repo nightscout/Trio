@@ -44,6 +44,14 @@ struct SensitiveValues {
             (["backupSessionToken"], .secret),
             (["peripheralIdentifier"], .device)
         ],
+        "TandemPumpManager": [
+            (["pumpState", "pumpSerial"], .pumpSerial),
+            (["pumpState", "pcbSerialNumber"], .pumpSerial),
+            (["pumpState", "peripheralUuid"], .device),
+            (["pumpState", "pincode"], .secret),
+            (["pumpState", "derivedSecret"], .secret),
+            (["pumpState", "serverNonce"], .secret)
+        ],
         "DexG5Transmitter": [(["transmitterID"], .cgmSerial)],
         "DexG6Transmitter": [(["transmitterID"], .cgmSerial)],
         "G7CGMManager": [
@@ -116,6 +124,15 @@ struct SensitiveValues {
         add(PropertyPersistentFlags.shared.telemetryInstallId, .installID)
     }
 
+    // G7 logs the Share account at sign-in; after a sign-out that line is the only record of it
+    mutating func add(deviceLogMessage message: String) {
+        let prefix = "Signed in to Dexcom Share as "
+        guard message.hasPrefix(prefix) else { return }
+        let rest = message.dropFirst(prefix.count)
+        guard let server = rest.range(of: " (", options: .backwards) else { return }
+        add(String(rest[..<server.lowerBound]), .account)
+    }
+
     mutating func add(tidepool service: TidepoolService?) {
         guard let session = service?.session else { return }
         add(session.accessToken, .secret)
@@ -151,6 +168,11 @@ struct SensitiveValues {
                 // Four digits collide with numbers, so match the code only as debugDescription prints it
                 add("\"pairingCode\": \"\(code)\"", .secret)
             }
+        case "TandemPumpManager":
+            // The pump state's debug description prints the pairing secrets as base64
+            let pump = state["pumpState"] as? [String: Any]
+            add((pump?["derivedSecret"] as? Data)?.base64EncodedString(), .secret)
+            add((pump?["serverNonce"] as? Data)?.base64EncodedString(), .secret)
         case "LibreLoopCGMManager":
             // The sensor advertises its MAC without colons; receiver IDs log as a little-endian UInt32
             add((state["bleAddress"] as? String)?.replacingOccurrences(of: ":", with: "").uppercased(), .device)

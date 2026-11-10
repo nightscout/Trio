@@ -387,6 +387,7 @@ extension Notification.Name {
             .onChange(of: showLoadingView) { _, isLoading in
                 if !isLoading {
                     presentDevelopmentBranchWarningIfNeeded()
+                    requestAlarmAuthorizationIfNeeded()
                 }
             }
             // A first-time user is still in onboarding when the loading screen goes away, so the
@@ -414,6 +415,7 @@ extension Notification.Name {
                     AppVersionChecker.shared.checkAndNotifyVersionStatus(in: rootVC)
                 }
                 presentDevelopmentBranchWarningIfNeeded()
+                requestAlarmAuthorizationIfNeeded()
                 if initState.complete {
                     performCleanupIfNecessary()
                 }
@@ -431,6 +433,16 @@ extension Notification.Name {
         }
 
         developmentBranchAlerter.alertIfNeeded()
+    }
+
+    /// Onboarding asks for AlarmKit, but users who onboarded before it existed were never asked,
+    /// leaving critical alarms on the in-app audio fallback. No-op once decided or below iOS 26.
+    @MainActor private func requestAlarmAuthorizationIfNeeded() {
+        guard initState.complete, !onboardingManager.shouldShowOnboarding else {
+            return
+        }
+
+        Task { await CriticalAlertAlarmScheduler.requestAuthorization() }
     }
 
     func configureTabBarAppearance() {
@@ -498,6 +510,7 @@ extension Notification.Name {
         async let determinationDeletion: () = coreDataStack
             .batchDeleteOlderThan(OrefDetermination.self, dateKey: "deliverAt", days: 90)
         async let batteryDeletion: () = coreDataStack.batchDeleteOlderThan(OpenAPS_Battery.self, dateKey: "date", days: 90)
+        async let pumpStatusDeletion: () = resolver.resolve(PumpStatusStorage.self)!.deleteStatuses(olderThan: 90)
         async let carbEntryDeletion: () = coreDataStack.batchDeleteOlderThan(CarbEntryStored.self, dateKey: "date", days: 90)
         async let forecastDeletion: () = coreDataStack.batchDeleteOlderThan(Forecast.self, dateKey: "date", days: 2)
         async let forecastValueDeletion: () = coreDataStack.batchDeleteOlderThan(
@@ -520,6 +533,7 @@ extension Notification.Name {
         try await tempBasalDeletion
         try await determinationDeletion
         try await batteryDeletion
+        await pumpStatusDeletion
         try await carbEntryDeletion
         try await forecastDeletion
         try await forecastValueDeletion

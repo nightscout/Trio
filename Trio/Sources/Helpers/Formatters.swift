@@ -1,20 +1,5 @@
 import Foundation
 
-enum Formatters {
-    static func percent(for number: Double) -> String {
-        let formater = NumberFormatter()
-        formater.numberStyle = .percent
-        return formater.string(for: number)!
-    }
-
-    static func timeFor(minutes: Int) -> String {
-        let formater = DateComponentsFormatter()
-        formater.unitsStyle = .abbreviated
-        formater.allowedUnits = [.hour, .minute]
-        return formater.string(from: TimeInterval(minutes * 60))!
-    }
-}
-
 extension Formatter {
     static let iso8601withFractionalSeconds: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -50,19 +35,6 @@ extension Formatter {
         return dateFormatter
     }()
 
-    static let dayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter
-    }()
-
-    static let timeForLogFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss"
-        formatter.timeZone = TimeZone.current
-        return formatter
-    }()
-
     static let decimalFormatterWithOneFractionDigit: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -77,23 +49,6 @@ extension Formatter {
         formatter.maximumFractionDigits = 0
         return formatter
     }()
-
-    static func glucoseFormatter(for units: GlucoseUnits) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.roundingMode = .halfUp
-
-        switch units {
-        case .mmolL:
-            formatter.locale = .current
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        case .mgdL:
-            formatter.maximumFractionDigits = 0
-        }
-
-        return formatter
-    }
 
     static let bolusFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -128,5 +83,36 @@ extension JSONEncoder.DateEncodingStrategy {
     static let customISO8601 = custom {
         var container = $1.singleValueContainer()
         try container.encode(Formatter.iso8601withFractionalSeconds.string(from: $0))
+    }
+}
+
+extension FormatStyle where Self == FloatingPointFormatStyle<Double>.Percent {
+    /// No decimals: 0.8 → "80%".
+    static var wholePercent: Self { roundedPercent(0 ... 0) }
+
+    /// Exactly one decimal: 0.07 → "7.0%".
+    static var oneDecimalPercent: Self { roundedPercent(1 ... 1) }
+
+    /// Up to one decimal: 0.725 → "72.5%", 0.72 → "72%".
+    static var upToOneDecimalPercent: Self { roundedPercent(0 ... 1) }
+
+    /// Up to two decimals: 0.7255 → "72.55%", 0.72 → "72%".
+    static var upToTwoDecimalPercent: Self { roundedPercent(0 ... 2) }
+
+    /// Rounds halves away from zero, like glucose.
+    private static func roundedPercent(_ fractionLength: ClosedRange<Int>) -> Self {
+        .percent.precision(.fractionLength(fractionLength)).rounded(rule: .toNearestOrAwayFromZero)
+    }
+}
+
+/// The same styles for Decimal values.
+extension FormatStyle where Self == Decimal.FormatStyle.Percent {
+    static var wholePercent: Self { roundedPercent(0 ... 0) }
+    static var oneDecimalPercent: Self { roundedPercent(1 ... 1) }
+    static var upToOneDecimalPercent: Self { roundedPercent(0 ... 1) }
+    static var upToTwoDecimalPercent: Self { roundedPercent(0 ... 2) }
+
+    private static func roundedPercent(_ fractionLength: ClosedRange<Int>) -> Self {
+        .percent.precision(.fractionLength(fractionLength)).rounded(rule: .toNearestOrAwayFromZero)
     }
 }

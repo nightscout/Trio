@@ -76,9 +76,9 @@ actor TidepoolUploadSerializer {
         // without running uploads at UI priority.
         tail = Task(priority: .utility) {
             await previous?.value
-            guard await self.begin(pipeline, generation: generation) else { return }
+            guard self.begin(pipeline, generation: generation) else { return }
             await operation(generation)
-            await self.end(generation: generation)
+            self.end(generation: generation)
         }
     }
 
@@ -172,6 +172,24 @@ extension TidepoolUploadSerializer {
             operation { result in
                 timeoutTask.cancel()
                 resumer.resume(result)
+            }
+        }
+    }
+
+    /// Async variant for uploads that throw instead of calling back; keeps the same timeout.
+    static func awaitUpload(
+        _ label: String,
+        timeout: TimeInterval = 120,
+        _ operation: @escaping @Sendable() async throws -> Void
+    ) async -> Result<Bool, Error> {
+        await awaitUpload(label, timeout: timeout) { completion in
+            Task {
+                do {
+                    try await operation()
+                    completion(.success(true))
+                } catch {
+                    completion(.failure(error))
+                }
             }
         }
     }

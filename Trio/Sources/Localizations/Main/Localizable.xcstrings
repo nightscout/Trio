@@ -1089,22 +1089,178 @@
         }
       }
     },
+    "%lld of %lld characters" : {
+
+    },
+    "Add Screenshots" : {
+
+    },
+    "Also Sent" : {
+
+    },
     "Ask on Discord" : {
 
     },
     "Ask on Facebook" : {
 
     },
+    "Attach My Logs" : {
+
+    },
+    "Build" : {
+
+    },
+    "Change Screenshots" : {
+
+    },
+    "Contact" : {
+
+    },
+    "Copy ID" : {
+
+    },
+    "Couldn't Delete Report" : {
+
+    },
+    "Couldn't Send Report" : {
+
+    },
+    "Delete Report" : {
+
+    },
+    "Delete Report?" : {
+
+    },
+    "Deleting" : {
+
+    },
+    "Deleting a report removes it and its files from the Trio team's server." : {
+
+    },
+    "Describe what happened and what you expected" : {
+
+    },
+    "Discord Name" : {
+
+    },
+    "Email" : {
+
+    },
+    "Fill in any of these so the team can follow up with you." : {
+
+    },
+    "Get help from other Trio users." : {
+
+    },
+    "GitHub Username" : {
+
+    },
+    "Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed." : {
+
+    },
+    "iOS Version" : {
+
+    },
+    "iPhone Model" : {
+
+    },
+    "One of the screenshots couldn't be read. Try choosing it again or leave it out." : {
+
+    },
     "Open a GitHub Issue" : {
+
+    },
+    "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it." : {
 
     },
     "Public. Only for bugs you can describe without personal or health data." : {
 
     },
+    "Report %@ and its files will be deleted from the Trio team's server." : {
+
+    },
     "Report a Problem" : {
 
     },
+    "Report Actions" : {
+
+    },
+    "Report Sent" : {
+
+    },
+    "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time." : {
+
+    },
     "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed." : {
+
+    },
+    "Screenshot %lld" : {
+
+    },
+    "Screenshots" : {
+
+    },
+    "Send to the Trio Team" : {
+
+    },
+    "Sending" : {
+
+    },
+    "Some files didn't reach the Trio team's server. Please try again." : {
+
+    },
+    "Sending Report" : {
+
+    },
+    "Sent Reports" : {
+
+    },
+    "Stay Anonymous" : {
+
+    },
+    "Submit" : {
+
+    },
+    "Thank you. Your report ID is %@. Mention it if you ask about this on Discord or Facebook." : {
+
+    },
+    "The report is too large. Try fewer or smaller screenshots." : {
+
+    },
+    "The report won't include your name or contact details." : {
+
+    },
+    "The Trio team's server couldn't take the report right now (error %lld)." : {
+
+    },
+    "The Trio team's server sent an answer the app doesn't understand." : {
+
+    },
+    "This build of Trio can't send reports. Please share your logs on Discord or Facebook instead." : {
+
+    },
+    "Title (optional)" : {
+
+    },
+    "Trio couldn't confirm with Apple that this copy of the app is genuine. Please try again later." : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Up to %lld screenshots or photos." : {
+
+    },
+    "You've sent several reports today. Please try again tomorrow." : {
+
+    },
+    "Your Logs" : {
+
+    },
+    "Your logs are too large to send. Turn off Attach My Logs and share them on Discord or Facebook instead." : {
+
+    },
+    "Your logs couldn't be prepared. Try again, or turn off Attach My Logs." : {
 
     },
     "Choose the preferred lower threshold for Time in Range statistics." : {
@@ -5347,6 +5503,7 @@
       }
     },
     ", %lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -7878,6 +8035,7 @@
     },
     "%" : {
       "comment" : "Percentage symbol",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8008,6 +8166,7 @@
       }
     },
     "%.0f%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9215,6 +9374,7 @@
       }
     },
     "%@ %%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -11607,132 +11767,132 @@
         }
       }
     },
-    "%@%% Insulin" : {
+    "%@ Insulin" : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Инсулин"
+            "value" : "%@ Инсулин"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Inzulín"
+            "value" : "%@ Inzulín"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulin"
+            "value" : "%@ Insulin"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulin"
+            "value" : "%@ Insulin"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulina"
+            "value" : "%@ Insulina"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Insuline %@ %%"
+            "value" : "Insuline %@"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% אינסולין"
+            "value" : "%@ אינסולין"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulina"
+            "value" : "%@ Insulina"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% 인슐린"
+            "value" : "%@ 인슐린"
           }
         },
         "nb-NO" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulin"
+            "value" : "%@ Insulin"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insuline"
+            "value" : "%@ Insuline"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulina"
+            "value" : "%@ Insulina"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulina"
+            "value" : "%@ Insulina"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%@%% Insulin"
+            "value" : "%@ Insulin"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Инсулин"
+            "value" : "%@ Инсулин"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulin"
+            "value" : "%@ Insulin"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%@%% Insulin"
+            "value" : "%@ Insulin"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulin"
+            "value" : "%@ Insulin"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% Insulin"
+            "value" : "%@ Insulin"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% 胰岛素"
+            "value" : "%@ 胰岛素"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@%% 胰島素"
+            "value" : "%@ 胰島素"
           }
         }
       }
@@ -13185,6 +13345,7 @@
       }
     },
     "%lld %%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -14095,6 +14256,7 @@
       }
     },
     "%lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -164415,14 +164577,12 @@
       "comment" : "The vertical axis label in the GRI risk grid.",
       "isCommentAutoGenerated" : true
     },
-    "Hypoglycemia %@ percent, hyperglycemia %@ percent" : {
-      "comment" : "A textual representation of the GRI risk grid, including the values for hypoglycemia and hyperglycemia.",
-      "isCommentAutoGenerated" : true,
+    "Hypoglycemia %@, hyperglycemia %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Hypoglycemia %1$@ percent, hyperglycemia %2$@ percent"
+            "value" : "Hypoglycemia %1$@, hyperglycemia %2$@"
           }
         }
       }
@@ -172209,6 +172369,12 @@
           }
         }
       }
+    },
+    "Insulin doses will be decreased by %@." : {
+      "comment" : "Adjustment footer; the value is a percentage, e.g. 20%"
+    },
+    "Insulin doses will be increased by %@." : {
+      "comment" : "Adjustment footer; the value is a percentage, e.g. 20%"
     },
     "Insulin Limit Reached" : {
       "localizations" : {
@@ -233708,6 +233874,7 @@
     },
     "percent" : {
       "comment" : "Accessibility: spoken unit",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -240958,132 +241125,132 @@
         }
       }
     },
-    "Profile at 100 %" : {
+    "Profile at %@" : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Профил при 100 %"
+            "value" : "Профил при %@"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil ve 100 %"
+            "value" : "Profil ve %@"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil ved 100 %"
+            "value" : "Profil ved %@"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil bei 100 %"
+            "value" : "Profil bei %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Perfil al 100 %"
+            "value" : "Perfil al %@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil à 100 %"
+            "value" : "Profil à %@"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Profile at 100 %"
+            "value" : "Profile at %@"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profilo al 100 %"
+            "value" : "Profilo al %@"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "100% 프로필"
+            "value" : "%@ 프로필"
           }
         },
         "nb-NO" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil på 100%"
+            "value" : "Profil på %@"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profiel op 100% %"
+            "value" : "Profiel op %@"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil na 100 %"
+            "value" : "Profil na %@"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Perfil a 100 %"
+            "value" : "Perfil a %@"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Profile at 100 %"
+            "value" : "Profile at %@"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Профиль на 100 %"
+            "value" : "Профиль на %@"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil på 100 %"
+            "value" : "Profil på %@"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Profile at 100 %"
+            "value" : "Profile at %@"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Профіль у 100%"
+            "value" : "Профіль у %@"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hồ sơ ở mức 100%"
+            "value" : "Hồ sơ ở mức %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "配置文件倍率 100%"
+            "value" : "配置文件倍率 %@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "設定檔 100 %"
+            "value" : "設定檔 %@"
           }
         }
       }

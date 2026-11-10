@@ -34,6 +34,8 @@ struct AddTempTargetForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
+            // iOS's default on iPhone; iPhone Duo defaults to 0, which put the first row under the sheet's bar
+            .contentMargins(.top, 35, for: .scrollContent)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden)
@@ -142,7 +144,7 @@ struct AddTempTargetForm: View {
                                 }
                             }
 
-                            Text("\(formattedPercentage(state.percentage))% Insulin")
+                            Text("\((state.percentage / 100).formatted(.wholePercent)) Insulin")
                                 .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
                                 .font(.title3)
                                 .fontWeight(.bold)
@@ -154,9 +156,9 @@ struct AddTempTargetForm: View {
                                     in: state.computeSliderLow() ... state.computeSliderHigh(),
                                     step: 5
                                 ) {} minimumValueLabel: {
-                                    Text("\(state.computeSliderLow(), specifier: "%.0f")%")
+                                    Text((state.computeSliderLow() / 100).formatted(.wholePercent))
                                 } maximumValueLabel: {
-                                    Text("\(state.computeSliderHigh(), specifier: "%.0f")%")
+                                    Text((state.computeSliderHigh() / 100).formatted(.wholePercent))
                                 } onEditingChanged: { editing in
                                     isUsingSlider = editing
                                     state.halfBasalTarget = Decimal(TempTargetCalculations.computeHalfBasalTarget(
@@ -322,21 +324,6 @@ struct AddTempTargetForm: View {
     private func totalDurationInMinutes() -> Int {
         let durationTotal = (durationHours * 60) + durationMinutes
         return max(0, durationTotal)
-    }
-
-    private func formattedPercentage(_ value: Double) -> String {
-        let percentageNumber = NSNumber(value: value)
-        return Formatter.integerFormatter.string(from: percentageNumber) ?? "\(value)"
-    }
-
-    private func formattedGlucose(glucose: Decimal) -> String {
-        let formattedValue: String
-        if state.units == .mgdL {
-            formattedValue = Formatter.glucoseFormatter(for: state.units).string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-        } else {
-            formattedValue = glucose.formattedAsMmolL
-        }
-        return "\(formattedValue) \(state.units.rawValue)"
     }
 
     private func roundTargetToStep(_ target: Decimal, _ step: Decimal) -> Decimal {
