@@ -286,8 +286,7 @@ enum UnitSpelling {
         "U": String(localized: "units", comment: "Accessibility: spoken unit"),
         "g": String(localized: "grams", comment: "Accessibility: spoken unit"),
         "hr": String(localized: "hour", comment: "Accessibility: spoken unit"),
-        "min": String(localized: "minutes", comment: "Accessibility: spoken unit"),
-        "%": String(localized: "percent", comment: "Accessibility: spoken unit")
+        "min": String(localized: "minutes", comment: "Accessibility: spoken unit")
     ]
 
     /// Returns a spoken form of a unit string, e.g. "mg/dL/U" -> "milligrams per deciliter per units".

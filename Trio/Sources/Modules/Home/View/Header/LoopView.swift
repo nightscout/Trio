@@ -136,13 +136,13 @@ struct LoopView: View {
             age = lastDeviceDate.map {
                 String(
                     format: String(localized: "last device communication %@", comment: "Accessibility: device age"),
-                    TimeAgoFormatter.minutesAgoAccessible(from: $0)
+                    $0.formattedSpokenTimeAgo()
                 )
             } ?? ""
         } else if determination.first?.deliverAt != nil, timeString != "--" {
             age = String(
                 format: String(localized: "last loop %@", comment: "Accessibility: loop age"),
-                TimeAgoFormatter.minutesAgoAccessible(from: lastLoopDate)
+                lastLoopDate.formattedSpokenTimeAgo()
             )
         } else {
             age = ""
@@ -199,12 +199,7 @@ struct LoopView: View {
     }
 
     private var timeString: String {
-        let minutesAgo = TimeAgoFormatter.minutesAgoValue(from: lastLoopDate)
-        if minutesAgo > 1440 {
-            return "--"
-        } else {
-            return TimeAgoFormatter.minutesAgo(from: lastLoopDate)
-        }
+        lastLoopDate.timeIntervalSinceNow < -24 * 60 * 60 ? "--" : lastLoopDate.formattedTimeAgo()
     }
 
     private var color: Color {
