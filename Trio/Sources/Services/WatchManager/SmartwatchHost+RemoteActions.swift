@@ -170,9 +170,8 @@ extension BaseSmartwatchHost {
         // Rounded as a bolus is rounded.
         let units = deviceDataManager.pumpManager?.roundToSupportedBolusVolume(units: recommended) ?? recommended
         let maximumBolus = Double(truncating: settingsManager.pumpSettings.maxBolus as NSNumber)
-        if isContextRead {
-            guard units != lastContextRecommendation else { return units }
-            lastContextRecommendation = units
+        if isContextRead, !contextRecommendationLog.shouldLog(units) {
+            return units
         }
         if deliveredSince > 0 {
             log(manager, .delegateResponse, String(
