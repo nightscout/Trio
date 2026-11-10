@@ -837,6 +837,8 @@
 		CE82E02528E867BA00473A9C /* AlertStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE82E02428E867BA00473A9C /* AlertStorage.swift */; };
 		CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */; };
 		E01885D82D856FBCC3C4EE4C /* SmartwatchHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8DC9695DAFB6EA2C4A5B821 /* SmartwatchHost.swift */; };
+		5A7C0FFE00000000000000B2 /* SmartwatchHost+RemoteActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7C0FFE00000000000000B1 /* SmartwatchHost+RemoteActions.swift */; };
+		5A7C0FFE00000000000000B4 /* SmartwatchHost+AlertForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7C0FFE00000000000000B3 /* SmartwatchHost+AlertForwarder.swift */; };
 		CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94597F29E9E3BD0047C9C6 /* WatchConfigDataFlow.swift */; };
 		CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94598129E9E3D30047C9C6 /* WatchConfigProvider.swift */; };
 		CE94598429E9E3E60047C9C6 /* WatchConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94598329E9E3E60047C9C6 /* WatchConfigStateModel.swift */; };
@@ -2085,6 +2087,8 @@
 		CE94597929E9DF7B0047C9C6 /* ConnectIQ.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ConnectIQ.framework; path = "Dependencies/ios-armv7_arm64/ConnectIQ.framework"; sourceTree = "<group>"; };
 		CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminManager.swift; sourceTree = "<group>"; };
 		C8DC9695DAFB6EA2C4A5B821 /* SmartwatchHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartwatchHost.swift; sourceTree = "<group>"; };
+		5A7C0FFE00000000000000B1 /* SmartwatchHost+RemoteActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SmartwatchHost+RemoteActions.swift"; sourceTree = "<group>"; };
+		5A7C0FFE00000000000000B3 /* SmartwatchHost+AlertForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SmartwatchHost+AlertForwarder.swift"; sourceTree = "<group>"; };
 		CE94597F29E9E3BD0047C9C6 /* WatchConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigDataFlow.swift; sourceTree = "<group>"; };
 		CE94598129E9E3D30047C9C6 /* WatchConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigProvider.swift; sourceTree = "<group>"; };
 		CE94598329E9E3E60047C9C6 /* WatchConfigStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigStateModel.swift; sourceTree = "<group>"; };
@@ -3526,6 +3530,8 @@
 				BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */,
 				CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */,
 				C8DC9695DAFB6EA2C4A5B821 /* SmartwatchHost.swift */,
+				5A7C0FFE00000000000000B1 /* SmartwatchHost+RemoteActions.swift */,
+				5A7C0FFE00000000000000B3 /* SmartwatchHost+AlertForwarder.swift */,
 			);
 			path = WatchManager;
 			sourceTree = "<group>";
@@ -5847,6 +5853,8 @@
 				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
 				E01885D82D856FBCC3C4EE4C /* SmartwatchHost.swift in Sources */,
+				5A7C0FFE00000000000000B2 /* SmartwatchHost+RemoteActions.swift in Sources */,
+				5A7C0FFE00000000000000B4 /* SmartwatchHost+AlertForwarder.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
 				DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */,
