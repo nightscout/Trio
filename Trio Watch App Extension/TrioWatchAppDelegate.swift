@@ -54,8 +54,7 @@ final class TrioWatchAppDelegate: NSObject, WKApplicationDelegate {
                 }
                 if Thread.isMainThread { expire() } else { DispatchQueue.main.sync(execute: expire) }
             }
-            // a reading in this wake arrives through the CGM delegate; the wake itself only checks
-            WatchCGMHost.shared.recheckAcquisition()
+            // the sensor's own wake: its link callbacks drive acquisition, as in Loop's ExtensionDelegate
             DispatchQueue.main.asyncAfter(deadline: .now() + Self.bluetoothHold) { self.release(task) }
         }
     }
