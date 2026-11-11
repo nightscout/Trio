@@ -152,7 +152,7 @@ extension PluginSource: CGMManagerDelegate {
         await glucoseManager?.deleteGlucoseSource()
     }
 
-    func cgmManager(_: CGMManager, hasNew readingResult: CGMReadingResult) {
+    func cgmManager(_ manager: CGMManager, hasNew readingResult: CGMReadingResult) {
         processQueue.async { [weak self] in
             guard let self = self else { return }
 
@@ -163,6 +163,14 @@ extension PluginSource: CGMManagerDelegate {
                 self.glucoseManager?.newGlucoseFromCgmManager(newGlucose: glucose)
             case let .failure(error):
                 debug(.cgm, "CGM reading not usable: \(error.localizedDescription)")
+                // the G7 sent a value it marks unreliable: shown greyed, never used
+                if UnsureGlucoseStore.isEnabled,
+                   let g7 = manager as? G7CGMManager, let message = g7.latestReading, !message.hasReliableGlucose,
+                   let glucose = message.glucose, let date = g7.latestReadingTimestamp
+                {
+                    UnsureGlucoseStore.shared.add(UnsureGlucose(date: date, mgdl: Int(glucose)))
+                    debug(.cgm, "G7 reading \(glucose) mg/dL marked \(message.algorithmState): shown greyed with a warning, not used")
+                }
             }
 
             self.glucoseManager?.reportCGMSensorObservation(self.currentSensorObservation())
@@ -358,5 +366,84 @@ extension PluginSource: CGMManagerDelegate {
 extension PluginSource {
     func sourceInfo() -> [String: Any]? {
         [GlucoseSourceKey.description.rawValue: "Plugin CGM source"]
+    }
+}
+
+/// A G7 reading the sensor itself marks unreliable (for example during a "Brief sensor issue", which can last over an
+/// hour while the values still follow the trend). Never stored as glucose, looped on, alarmed on or sent to Health:
+/// with "Show Unreliable G7 Readings" on, Home shows it in orange with a warning sign, the chart as hollow orange dots,
+/// the watch the same way, and it is uploaded to Nightscout as an "Unreliable Glucose" treatment for followers.
+struct UnsureGlucose: Codable, Equatable {
+    let date: Date
+    let mgdl: Int
+}
+
+final class UnsureGlucoseStore: ObservableObject {
+    static let shared = UnsureGlucoseStore()
+
+    /// Kept as long as the chart reaches back.
+    static let keep: TimeInterval = 24 * 60 * 60
+    /// Shown on Home and the watch while this fresh, as a reliable reading would be.
+    static let freshFor: TimeInterval = 12 * 60
+
+    /// The flagged readings, oldest first; kept across restarts and new builds.
+    @Published private(set) var readings: [UnsureGlucose] = [] {
+        didSet {
+            if let data = try? JSONEncoder().encode(readings) { UserDefaults.standard.set(data, forKey: Self.storageKey) }
+            snapshotLock.withLock { snapshotStorage = readings }
+        }
+    }
+
+    /// `readings` for code off the main thread (the watch state is built on a background context).
+    var snapshot: [UnsureGlucose] { snapshotLock.withLock { snapshotStorage } }
+    private let snapshotLock = NSLock()
+    private var snapshotStorage: [UnsureGlucose] = []
+
+    private static let storageKey = "trio.unsureGlucose"
+
+    /// "Show Unreliable G7 Readings" on the CGM page; off unless turned on. Off, none are kept, shown or uploaded,
+    /// and the watch, told with every state update, shows none of its own either.
+    static let enabledKey = "trio.showUnreliableG7"
+    static var isEnabled: Bool { UserDefaults.standard.bool(forKey: enabledKey) }
+
+    /// Turning it off drops what is kept; either way the empty set tells the watch at once.
+    func setEnabled(_ on: Bool) {
+        UserDefaults.standard.set(on, forKey: Self.enabledKey)
+        DispatchQueue.main.async { self.readings = [] }
+    }
+
+    init() {
+        guard Self.isEnabled else {
+            UserDefaults.standard.removeObject(forKey: Self.storageKey)
+            return
+        }
+        if let data = UserDefaults.standard.data(forKey: Self.storageKey),
+           let saved = try? JSONDecoder().decode([UnsureGlucose].self, from: data)
+        {
+            let now = Date()
+            readings = saved.filter { now.timeIntervalSince($0.date) < Self.keep }
+            snapshotStorage = readings
+        }
+    }
+
+    var latest: UnsureGlucose? { readings.last }
+
+    /// The newest flagged reading while fresh and newer than the newest reliable one.
+    func current(after reliable: Date?, now: Date = Date()) -> UnsureGlucose? {
+        guard let latest, now.timeIntervalSince(latest.date) < Self.freshFor,
+              latest.date > (reliable ?? .distantPast)
+        else { return nil }
+        return latest
+    }
+
+    func add(_ reading: UnsureGlucose) {
+        guard Self.isEnabled else { return }
+        DispatchQueue.main.async {
+            guard !self.readings.contains(where: { abs($0.date.timeIntervalSince(reading.date)) < 60 }) else { return }
+            let now = Date()
+            self.readings = (self.readings + [reading])
+                .filter { now.timeIntervalSince($0.date) < Self.keep }
+                .sorted { $0.date < $1.date }
+        }
     }
 }

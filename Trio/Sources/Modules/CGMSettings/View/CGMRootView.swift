@@ -16,6 +16,7 @@ extension CGMSettings {
         @State private var booleanPlaceholder: Bool = false
         @State var showCGMSelection: Bool = false
         @State private var pendingCGM: CGMCatalogEntry?
+        @State private var showUnreliableG7 = UnsureGlucoseStore.isEnabled
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
@@ -90,6 +91,52 @@ extension CGMSettings {
                             label: { Text("Libre Calibrations") }
                         )
                     }.listRowBackground(Color.chart)
+                }
+
+                if state.cgmCurrent.type == .plugin && state.cgmCurrent.id.contains("G7") {
+                    SettingInputSection(
+                        decimalValue: $decimalPlaceholder,
+                        booleanValue: Binding(
+                            get: { showUnreliableG7 },
+                            set: {
+                                showUnreliableG7 = $0
+                                UnsureGlucoseStore.shared.setEnabled($0)
+                            }
+                        ),
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0.map { AnyView($0) }
+                                hintLabel = String(localized: "Show Unreliable G7 Readings")
+                            }
+                        ),
+                        units: state.units,
+                        type: .boolean,
+                        label: String(localized: "Show Unreliable G7 Readings"),
+                        miniHint: String(localized: "Show readings the G7 marks as not reliable, never used for looping."),
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+
+                            Text(
+                                "During a sensor issue the G7 can still send a value but marks it as not reliable. Trio never loops, alarms or doses on such a value, and by default does not show it either."
+                            )
+
+                            Text("When this feature is enabled:")
+
+                            VStack(alignment: .leading) {
+                                Text(
+                                    "• Home shows the value in orange with a warning sign and \"Sensor issue: not reliable\"; the chart shows it as a hollow orange dot."
+                                )
+                                Text("• The Apple Watch shows it the same way, on its face and as hollow dots on its graph.")
+                                Text(
+                                    "• It is uploaded to Nightscout as an \"Unreliable Glucose\" treatment, so LoopFollow can show it. It is never uploaded as a glucose value."
+                                )
+                            }
+
+                            Text("Only for Trio's own Dexcom G7 connection.")
+                        }
+                    )
                 }
 
                 if state.cgmCurrent.type == .plugin,

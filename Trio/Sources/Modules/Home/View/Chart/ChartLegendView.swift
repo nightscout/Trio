@@ -146,6 +146,23 @@ struct ChartLegendView: View {
                                 iconString: "drop.fill"
                             )
 
+                            // only while "Show Unreliable G7 Readings" is on (CGM page)
+                            if UnsureGlucoseStore.isEnabled {
+                                DefinitionRow(
+                                    term: String(localized: "Unreliable Sensor Reading"),
+                                    definition: VStack(alignment: .leading, spacing: 10) {
+                                        Text(
+                                            "A value the G7 sent during a sensor issue, marked by the sensor itself as unreliable. Shown as a rough guide only."
+                                        )
+                                        Text(
+                                            "It is never used for dosing, alarms or statistics, and is not stored as a glucose reading."
+                                        )
+                                    },
+                                    color: Color.orange,
+                                    iconString: "circle"
+                                )
+                            }
+
                             DefinitionRow(
                                 term: String(localized: "Bolus"),
                                 definition: Text(

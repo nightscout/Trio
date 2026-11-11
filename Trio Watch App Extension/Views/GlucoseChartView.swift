@@ -52,6 +52,12 @@ struct GlucoseChartView: View {
         return glucoseValues.filter { $0.date >= cutoffDate }
     }
 
+    /// G7 readings the sensor marked unreliable in the window: hollow orange dots, as on the phone's chart.
+    private var filteredUnsureValues: [(date: Date, glucose: Double)] {
+        let cutoffDate = Date().addingTimeInterval(pastOffset)
+        return state.unsureGlucoseValues.filter { $0.date >= cutoffDate }
+    }
+
     struct ForecastConePoint: Identifiable {
         var id: Date { date }
         var date: Date
@@ -110,8 +116,14 @@ struct GlucoseChartView: View {
         }
     }
 
+    /// About the size of a reliable reading's dot at this window.
+    var unsurePointDiameter: CGFloat {
+        (glucosePointSize / .pi).squareRoot() * 2
+    }
+
     private var yAxisBounds: (min: Double, max: Double)? {
         let values = filteredValues.map(\.glucose) +
+            filteredUnsureValues.map(\.glucose) +
             forecastConePoints.flatMap { [$0.min, $0.max] } +
             forecastLinePoints.map(\.value)
 
@@ -151,7 +163,7 @@ struct GlucoseChartView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if filteredValues.isEmpty {
+            if filteredValues.isEmpty, filteredUnsureValues.isEmpty {
                 Text("No glucose readings.").font(.headline)
                 Text("Check phone and CGM connectivity.").font(.caption)
             } else {
@@ -163,6 +175,18 @@ struct GlucoseChartView: View {
                         )
                         .foregroundStyle(reading.color)
                         .symbolSize(glucosePointSize)
+                    }
+
+                    ForEach(filteredUnsureValues, id: \.date) { reading in
+                        PointMark(
+                            x: .value("Time", reading.date),
+                            y: .value("Glucose", reading.glucose)
+                        )
+                        .symbol {
+                            Circle()
+                                .strokeBorder(Color.orange, lineWidth: 1)
+                                .frame(width: unsurePointDiameter, height: unsurePointDiameter)
+                        }
                     }
 
                     if state.showForecast {

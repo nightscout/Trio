@@ -19,9 +19,16 @@ struct SensorStatusTagView: View {
                 .fontWeight(.bold)
                 .fontDesign(.rounded)
                 .foregroundStyle(theme.textColor)
-                .lineLimit(1)
+                // one line for the short tags; a tag with a line break ("Sensor issue:" / "not reliable") gets two
+                .lineLimit(text.contains("\n") ? 2 : 1)
+                .multilineTextAlignment(.center)
         }
         .padding(.bottom, -16)
+        // placed by its first line, so a second line goes down below the bobble, not up into it
+        .alignmentGuide(.bottom) { d in
+            let lines = CGFloat(max(1, text.components(separatedBy: "\n").count))
+            return d[.bottom] - (lines - 1) * (d.height + 16) / lines
+        }
     }
 }
 

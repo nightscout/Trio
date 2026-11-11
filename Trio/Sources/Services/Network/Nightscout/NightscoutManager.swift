@@ -305,6 +305,15 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     /// before ending their background task. Uploads are serialized per pipeline, so these
     /// may fire alongside the Core Data triggers for the same change without double-uploading.
     func setupNotification() {
+        // the G7's unreliable readings go up as their own treatments, for LoopFollow to show greyed
+        UnsureGlucoseStore.shared.$readings
+            .dropFirst()
+            .sink { [weak self] readings in
+                guard let self = self else { return }
+                Task { await self.uploadUnsureGlucose(readings) }
+            }
+            .store(in: &subscriptions)
+
         Foundation.NotificationCenter.default.publisher(for: .willUpdateOverrideConfiguration)
             .sink { [weak self] _ in
                 guard let self = self else { return }
@@ -1332,6 +1341,35 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
             } catch let error as NSError {
                 warning(.storage, "Failed to mark temp target runs as uploaded to Nightscout", error: error)
             }
+        }
+    }
+
+    private static let unsureUploadedKey = "trio.unsureGlucoseUploadedUntil"
+
+    /// Readings the G7 marks unreliable, each as an "Unreliable Glucose" treatment: followers such as LoopFollow
+    /// can show them greyed with a warning sign. Not entries: LoopFollow reads every entry but calibrations as a glucose
+    /// value, so an entry would show as a real reading in every LoopFollow; an unknown treatment type it skips.
+    /// Never in Nightscout's glucose, statistics or anything Trio downloads.
+    private func uploadUnsureGlucose(_ readings: [UnsureGlucose]) async {
+        guard isUploadEnabled, isUploadGlucoseEnabled, UnsureGlucoseStore.isEnabled else { return }
+        let uploadedUntil = UserDefaults.standard.object(forKey: Self.unsureUploadedKey) as? Date ?? .distantPast
+        let pending = readings.filter { $0.date > uploadedUntil }
+        guard let newest = pending.last?.date else { return }
+        let treatments = pending.map { reading in
+            NightscoutTreatment(
+                eventType: .nsUnreliableGlucose,
+                createdAt: reading.date,
+                enteredBy: NightscoutTreatment.local,
+                notes: String(localized: "Unreliable G7 reading (sensor issue): \(reading.mgdl) mg/dL"),
+                targetTop: nil,
+                targetBottom: nil,
+                glucoseType: "Sensor",
+                glucose: String(reading.mgdl),
+                units: "mg/dl"
+            )
+        }
+        if await uploadNonCoreDataTreatments(treatments) {
+            UserDefaults.standard.set(newest, forKey: Self.unsureUploadedKey)
         }
     }
 
