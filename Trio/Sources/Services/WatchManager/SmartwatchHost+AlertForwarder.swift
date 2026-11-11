@@ -89,7 +89,7 @@ extension BaseSmartwatchHost: TrioAlertForwarder {
             return
         }
         let issuedAt = Date()
-        Task { @MainActor in
+        watchAlertOrder.enqueue {
             self.restoredAlerts.forwarded.insert(alert.identifier.value)
             manager.watchAlertDidIssue(alert, glucoseAlertType: glucoseAlertType, issuedAt: issuedAt)
         }
@@ -97,9 +97,29 @@ extension BaseSmartwatchHost: TrioAlertForwarder {
 
     func alertManager(didRetract identifier: Alert.Identifier) {
         guard let manager = smartwatchManager, Self.glucoseAlertType(of: identifier) != nil else { return }
-        Task { @MainActor in
+        watchAlertOrder.enqueue {
             self.restoredAlerts.forwarded.remove(identifier.value)
             manager.watchAlertDidRetract(identifier)
+        }
+    }
+}
+
+/// Runs main-actor work in the order it was handed in, from any thread. Trio
+/// issues and retracts alerts on any thread; each forward waits for the one
+/// before it, so a retraction never reaches the watch before its alert.
+final class WatchAlertForwardOrder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var last: Task<Void, Never>?
+
+    @discardableResult func enqueue(_ work: @escaping @MainActor() -> Void) -> Task<Void, Never> {
+        lock.withLock {
+            let previous = last
+            let task = Task { @MainActor in
+                await previous?.value
+                work()
+            }
+            last = task
+            return task
         }
     }
 }

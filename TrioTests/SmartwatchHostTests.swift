@@ -20,6 +20,24 @@ import Testing
         #expect(BaseSmartwatchHost.glucoseAlertType(of: identifier("glucose.forecastedLow.\(uuid)")) == .predictedLow)
     }
 
+    @MainActor @Test("Alerts and retractions reach the watch in the order Trio made them, from any thread") func watchAlertOrder() async {
+        let order = WatchAlertForwardOrder()
+        let received = Received()
+        let last = await Task.detached {
+            var last: Task<Void, Never>?
+            for index in 0 ..< 200 {
+                last = order.enqueue { received.values.append(index) }
+            }
+            return last
+        }.value
+        await last?.value
+        #expect(received.values == Array(0 ..< 200))
+    }
+
+    @MainActor private final class Received {
+        var values: [Int] = []
+    }
+
     @Test("Other alerts are not glucose alerts") func otherAlerts() {
         let uuid = UUID().uuidString
         #expect(BaseSmartwatchHost.glucoseAlertType(of: identifier("glucose.carbsRequired.\(uuid)")) == nil)
