@@ -82,7 +82,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
             .store(in: &subscriptions)
 
-        // G7 readings marked unreliable (or the setting turned off) go to the watch too
+        // readings marked unreliable (or the setting turned off) go to the watch too
         UnsureGlucoseStore.shared.$readings
             .dropFirst()
             .receive(on: DispatchQueue.global(qos: .background))

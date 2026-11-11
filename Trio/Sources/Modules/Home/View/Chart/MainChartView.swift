@@ -308,7 +308,7 @@ extension MainChartView {
         return state.glucoseFromPersistence.first { $0.date.map(range.contains) ?? false }
     }
 
-    /// A reading the G7 marked unreliable under the scrub, where no stored reading is: the scrub stops on it as on
+    /// A reading the sensor marked unreliable under the scrub, where no stored reading is: the scrub stops on it as on
     /// any other, and Home's readout shows it with its warning sign.
     var selectedUnsure: UnsureGlucose? {
         guard selectedGlucose == nil, let selection = selection else { return nil }
@@ -394,7 +394,7 @@ extension MainChartView {
         }
     }
 
-    /// Where the selection's marker sits: a stored reading, or else a reading the G7 marked unreliable (hollow,
+    /// Where the selection's marker sits: a stored reading, or else a reading the sensor marked unreliable (hollow,
     /// orange, as it is drawn).
     private var selectionPoint: (date: Date, y: CGFloat, color: Color, unsure: Bool)? {
         if let selectedGlucose, let date = selectedGlucose.date {
@@ -858,7 +858,7 @@ struct MainChartCanvas: View {
 
     @State var basalProfiles: [BasalProfile] = []
     @State var preparedTempBasals: [PreparedTempBasal] = []
-    /// The G7's unreliable readings, drawn as hollow dots. Observed here, in the canvas that draws them: its
+    /// The sensor's unreliable readings, drawn as hollow dots. Observed here, in the canvas that draws them: its
     /// `.equatable()` skips updates from the parent, while this object's changes still redraw it.
     @ObservedObject var unsureStore = UnsureGlucoseStore.shared
     /// Cached, not computed: Swift Charts reads this once per mark, so rescanning both series per read is quadratic.

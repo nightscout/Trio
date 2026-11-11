@@ -50,7 +50,7 @@ enum ChartSelectionLookup {
         return readings.first { $0.date.map(range.contains) ?? false }
     }
 
-    /// A reading the G7 marked unreliable under the scrub.
+    /// A reading the sensor marked unreliable under the scrub.
     static func unsure(at date: Date, in readings: [UnsureGlucose]) -> UnsureGlucose? {
         let range = date.addingTimeInterval(-window) ... date.addingTimeInterval(window)
         return readings.last { range.contains($0.date) }
@@ -70,7 +70,7 @@ enum ChartSelectionLookup {
 /// the meal slot is always on screen and its live values are superseded anyway, so taking it
 /// over reflows nothing.
 struct ChartSelectionRow: View {
-    /// The stored reading, or nil where only a reading the G7 marked unreliable is: then `unsure` shows, greyed
+    /// The stored reading, or nil where only a reading the sensor marked unreliable is: then `unsure` shows, greyed
     /// with its warning sign.
     let selectedGlucose: GlucoseStored?
     var unsure: UnsureGlucose? = nil

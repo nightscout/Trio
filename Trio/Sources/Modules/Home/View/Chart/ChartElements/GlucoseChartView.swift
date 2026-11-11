@@ -10,7 +10,7 @@ struct GlucoseChartView: ChartContent {
     let currentGlucoseTarget: Decimal
     let isSmoothingEnabled: Bool
     let glucoseColorScheme: GlucoseColorScheme
-    /// Readings the G7 marked unreliable: hollow orange dots, apart from the stored readings.
+    /// Readings the sensor marked unreliable: hollow orange dots, apart from the stored readings.
     var unsureData: [UnsureGlucose] = []
 
     var body: some ChartContent {

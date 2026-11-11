@@ -23,7 +23,7 @@ extension Home.RootView {
             // Renders from the last resolved selection, which is deliberately not cleared on
             // decay: the row has to keep its values to fade out with, and it is invisible
             // (and untouchable) for as long as no readout is showing.
-            // a reading the G7 marked unreliable counts where no stored reading is
+            // a reading the sensor marked unreliable counts where no stored reading is
             if let readoutDate = chartReadoutDate, let readout = chartReadoutGlucose(at: readoutDate) {
                 ChartSelectionRow(
                     selectedGlucose: readout.glucose,
@@ -45,7 +45,7 @@ extension Home.RootView {
         }
     }
 
-    /// The stored reading at the scrub, or else a reading the G7 marked unreliable there; nil with neither.
+    /// The stored reading at the scrub, or else a reading the sensor marked unreliable there; nil with neither.
     func chartReadoutGlucose(at date: Date) -> (glucose: GlucoseStored?, unsure: UnsureGlucose?)? {
         if let glucose = ChartSelectionLookup.glucose(at: date, in: state.glucoseFromPersistence) {
             return (glucose, nil)

@@ -22,7 +22,7 @@ struct CurrentGlucoseView: View {
     /// Wall-clock end of the warmup window. Drives the warmup countdown tag.
     var cgmWarmupEndsAt: Date?
 
-    /// A reading the G7 marks unreliable, shown greyed with a warning when it's newer than the last reliable one.
+    /// A reading the sensor marks unreliable, shown greyed with a warning when it's newer than the last reliable one.
     @ObservedObject var unsureStore = UnsureGlucoseStore.shared
     /// One line of the sensor tag's callout text.
     private static let tagLineHeight: CGFloat = 20
@@ -209,7 +209,10 @@ struct CurrentGlucoseView: View {
         if let unsure = unsureReading {
             return String(localized: "Glucose", comment: "Accessibility: glucose label") +
                 " \(Decimal(unsure.mgdl).formatted(for: units)) \(units.rawValue), " +
-                String(localized: "not reliable: the sensor reports an issue", comment: "Accessibility: unreliable G7 reading") +
+                String(
+                    localized: "not reliable: the sensor reports an issue",
+                    comment: "Accessibility: unreliable sensor reading"
+                ) +
                 ", " + unsure.date.formattedSpokenTimeAgo()
         }
         guard let glucoseValue = glucose.last?.glucose, let date = glucose.last?.date, isReadingFresh else {

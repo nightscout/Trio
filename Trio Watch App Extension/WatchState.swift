@@ -20,7 +20,7 @@ import WatchConnectivity
     var trend: String? = ""
     var delta: String? = "--"
     var glucoseValues: [(date: Date, glucose: Double, color: Color)] = []
-    /// G7 readings the sensor marked unreliable, in the user's units: hollow orange dots on the chart, and the newest
+    /// Readings the sensor marked unreliable, in the user's units: hollow orange dots on the chart, and the newest
     /// in orange with a warning sign while it is newer than the last reliable reading. Never used.
     var unsureGlucoseValues: [(date: Date, glucose: Double)] = []
     var minYAxisValue: Decimal = 39

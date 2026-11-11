@@ -35,7 +35,7 @@ struct GlucoseTrendView: View {
         }
     }
 
-    /// A reading the G7 marked unreliable, fresh and newer than the last reliable one: shown in orange with a warning
+    /// A reading the sensor marked unreliable, fresh and newer than the last reliable one: shown in orange with a warning
     /// sign instead of the reliable value, as on the phone's Home.
     private var unsureReading: (date: Date, glucose: Double)? {
         guard !isWatchStateDated, let latest = state.unsureGlucoseValues.last,
@@ -156,7 +156,7 @@ struct GlucoseTrendView: View {
                                 .font(currentGlucoseFontSize)
                                 .foregroundStyle(.orange)
                         }
-                        Text("Not reliable", comment: "Under a glucose value the Dexcom G7 itself marks unreliable")
+                        Text("Not reliable", comment: "Under a glucose value the sensor itself marks unreliable")
                             .fontWeight(.semibold)
                             .font(.system(.caption2))
                             .foregroundStyle(.orange)
@@ -179,7 +179,7 @@ struct GlucoseTrendView: View {
                     unsureReading.map {
                         Text(
                             "Glucose \(formattedUnsure($0.glucose)), not reliable: the sensor reports an issue",
-                            comment: "Accessibility: a glucose value the Dexcom G7 itself marks unreliable"
+                            comment: "Accessibility: a glucose value the sensor itself marks unreliable"
                         )
                     } ?? Text(isWatchStateDated ? "--" : state.currentGlucose)
                 )

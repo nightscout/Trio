@@ -16,7 +16,7 @@ extension CGMSettings {
         @State private var booleanPlaceholder: Bool = false
         @State var showCGMSelection: Bool = false
         @State private var pendingCGM: CGMCatalogEntry?
-        @State private var showUnreliableG7 = UnsureGlucoseStore.isEnabled
+        @State private var showUnreliableReadings = UnsureGlucoseStore.isEnabled
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
@@ -93,13 +93,13 @@ extension CGMSettings {
                     }.listRowBackground(Color.chart)
                 }
 
-                if state.cgmCurrent.type == .plugin && state.cgmCurrent.id.contains("G7") {
+                if state.cgmCurrent.type == .plugin, state.fetchGlucoseManager?.cgmManager is UnreliableReadingSource {
                     SettingInputSection(
                         decimalValue: $decimalPlaceholder,
                         booleanValue: Binding(
-                            get: { showUnreliableG7 },
+                            get: { showUnreliableReadings },
                             set: {
-                                showUnreliableG7 = $0
+                                showUnreliableReadings = $0
                                 UnsureGlucoseStore.shared.setEnabled($0)
                             }
                         ),
@@ -108,18 +108,18 @@ extension CGMSettings {
                             get: { selectedVerboseHint },
                             set: {
                                 selectedVerboseHint = $0.map { AnyView($0) }
-                                hintLabel = String(localized: "Show Unreliable G7 Readings")
+                                hintLabel = String(localized: "Show Unreliable Sensor Readings")
                             }
                         ),
                         units: state.units,
                         type: .boolean,
-                        label: String(localized: "Show Unreliable G7 Readings"),
-                        miniHint: String(localized: "Show readings the G7 marks as not reliable, never used for looping."),
+                        label: String(localized: "Show Unreliable Sensor Readings"),
+                        miniHint: String(localized: "Show readings the sensor marks as not reliable, never used for looping."),
                         verboseHint: VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
 
                             Text(
-                                "During a sensor issue the G7 can still send a value but marks it as not reliable. Trio never loops, alarms or doses on such a value, and by default does not show it either."
+                                "During a sensor issue some sensors can still send a value but mark it as not reliable. Trio never loops, alarms or doses on such a value, and by default does not show it either."
                             )
 
                             Text("When this feature is enabled:")
@@ -134,7 +134,9 @@ extension CGMSettings {
                                 )
                             }
 
-                            Text("Only for Trio's own Dexcom G7 connection.")
+                            Text(
+                                "For CGMs that report such readings: currently Dexcom G7, ONE+ and Stelo through Trio's own connection."
+                            )
                         }
                     )
                 }

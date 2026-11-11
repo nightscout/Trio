@@ -305,7 +305,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     /// before ending their background task. Uploads are serialized per pipeline, so these
     /// may fire alongside the Core Data triggers for the same change without double-uploading.
     func setupNotification() {
-        // the G7's unreliable readings go up as their own treatments, for LoopFollow to show greyed
+        // the sensor's unreliable readings go up as their own treatments, for LoopFollow to show greyed
         UnsureGlucoseStore.shared.$readings
             .dropFirst()
             .sink { [weak self] readings in
@@ -1346,7 +1346,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     private static let unsureUploadedKey = "trio.unsureGlucoseUploadedUntil"
 
-    /// Readings the G7 marks unreliable, each as an "Unreliable Glucose" treatment: followers such as LoopFollow
+    /// Readings the sensor marks unreliable, each as an "Unreliable Glucose" treatment: followers such as LoopFollow
     /// can show them greyed with a warning sign. Not entries: LoopFollow reads every entry but calibrations as a glucose
     /// value, so an entry would show as a real reading in every LoopFollow; an unknown treatment type it skips.
     /// Never in Nightscout's glucose, statistics or anything Trio downloads.
@@ -1360,7 +1360,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 eventType: .nsUnreliableGlucose,
                 createdAt: reading.date,
                 enteredBy: NightscoutTreatment.local,
-                notes: String(localized: "Unreliable G7 reading (sensor issue): \(reading.mgdl) mg/dL"),
+                notes: String(localized: "Unreliable reading (sensor issue): \(reading.mgdl) mg/dL"),
                 targetTop: nil,
                 targetBottom: nil,
                 glucoseType: "Sensor",

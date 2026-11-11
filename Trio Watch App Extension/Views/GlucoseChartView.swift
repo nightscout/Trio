@@ -52,7 +52,7 @@ struct GlucoseChartView: View {
         return glucoseValues.filter { $0.date >= cutoffDate }
     }
 
-    /// G7 readings the sensor marked unreliable in the window: hollow orange dots, as on the phone's chart.
+    /// Readings the sensor marked unreliable in the window: hollow orange dots, as on the phone's chart.
     private var filteredUnsureValues: [(date: Date, glucose: Double)] {
         let cutoffDate = Date().addingTimeInterval(pastOffset)
         return state.unsureGlucoseValues.filter { $0.date >= cutoffDate }

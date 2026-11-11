@@ -163,16 +163,13 @@ extension PluginSource: CGMManagerDelegate {
                 self.glucoseManager?.newGlucoseFromCgmManager(newGlucose: glucose)
             case let .failure(error):
                 debug(.cgm, "CGM reading not usable: \(error.localizedDescription)")
-                // the G7 sent a value it marks unreliable: shown greyed, never used
+                // the sensor sent a value it marks unreliable: shown greyed, never used
                 if UnsureGlucoseStore.isEnabled,
-                   let g7 = manager as? G7CGMManager, let message = g7.latestReading, !message.hasReliableGlucose,
-                   let glucose = message.glucose, let date = g7.latestReadingTimestamp
+                   let source = manager as? UnreliableReadingSource,
+                   let reading = source.latestUnreliableReading
                 {
-                    UnsureGlucoseStore.shared.add(UnsureGlucose(date: date, mgdl: Int(glucose)))
-                    debug(
-                        .cgm,
-                        "G7 reading \(glucose) mg/dL marked \(message.algorithmState): shown greyed with a warning, not used"
-                    )
+                    UnsureGlucoseStore.shared.add(reading)
+                    debug(.cgm, "Reading \(reading.mgdl) mg/dL marked unreliable by the sensor: shown with a warning, not used")
                 }
             }
 
@@ -372,13 +369,31 @@ extension PluginSource {
     }
 }
 
-/// A G7 reading the sensor itself marks unreliable (for example during a "Brief sensor issue", which can last over an
+/// A reading the sensor itself marks unreliable (for example during a "Brief sensor issue", which can last over an
 /// hour while the values still follow the trend). Never stored as glucose, looped on, alarmed on or sent to Health:
-/// with "Show Unreliable G7 Readings" on, Home shows it in orange with a warning sign, the chart as hollow orange dots,
+/// with "Show Unreliable Sensor Readings" on, Home shows it in orange with a warning sign, the chart as hollow orange dots,
 /// the watch the same way, and it is uploaded to Nightscout as an "Unreliable Glucose" treatment for followers.
 struct UnsureGlucose: Codable, Equatable {
     let date: Date
     let mgdl: Int
+}
+
+/// A CGM whose sensor can send a value it marks unreliable, which the CGM then reports as not usable. Everything that
+/// shows such readings (Home, chart, watch, Nightscout) goes through this, so another CGM joins by conforming; the
+/// setting appears for every CGM that does.
+protocol UnreliableReadingSource {
+    /// The value behind the CGM's latest "not usable" result, when the sensor still sent one; nil otherwise.
+    var latestUnreliableReading: UnsureGlucose? { get }
+}
+
+/// Dexcom G7, ONE+ and Stelo, all through G7SensorKit: the sensor's algorithm state says whether its value is reliable.
+extension G7CGMManager: UnreliableReadingSource {
+    var latestUnreliableReading: UnsureGlucose? {
+        guard let message = latestReading, !message.hasReliableGlucose,
+              let glucose = message.glucose, let date = latestReadingTimestamp
+        else { return nil }
+        return UnsureGlucose(date: date, mgdl: Int(glucose))
+    }
 }
 
 final class UnsureGlucoseStore: ObservableObject {
@@ -404,9 +419,9 @@ final class UnsureGlucoseStore: ObservableObject {
 
     private static let storageKey = "trio.unsureGlucose"
 
-    /// "Show Unreliable G7 Readings" on the CGM page; off unless turned on. Off, none are kept, shown or uploaded,
+    /// "Show Unreliable Sensor Readings" on the CGM page; off unless turned on. Off, none are kept, shown or uploaded,
     /// and the watch, told with every state update, shows none of its own either.
-    static let enabledKey = "trio.showUnreliableG7"
+    static let enabledKey = "trio.showUnreliableReadings"
     static var isEnabled: Bool { UserDefaults.standard.bool(forKey: enabledKey) }
 
     /// Turning it off drops what is kept; either way the empty set tells the watch at once.
