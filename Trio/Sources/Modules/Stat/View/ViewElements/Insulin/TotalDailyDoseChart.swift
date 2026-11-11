@@ -244,8 +244,7 @@ private struct TDDSelectionPopover: View {
 
     private var timeText: String {
         if selectedInterval == .day {
-            let hour = Calendar.current.component(.hour, from: selectedDate)
-            return selectedDate.formatted(.dateTime.month().day().weekday()) + "\n" + "\(hour):00-\(hour + 1):00"
+            return selectedDate.formatted(.dateTime.month().day().weekday()) + "\n" + selectedDate.formattedHourRange()
         } else {
             return selectedDate.formatted(.dateTime.month().day().weekday())
         }

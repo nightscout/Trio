@@ -12,12 +12,6 @@ struct ListStateView: View {
         return formatter
     }
 
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }
-
     var body: some View {
         HStack(alignment: .center) {
             Spacer()

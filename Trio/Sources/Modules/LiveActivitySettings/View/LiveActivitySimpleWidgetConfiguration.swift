@@ -79,7 +79,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
                 HStack {
                     Text("Updated:")
                         .foregroundStyle(.secondary)
-                    Text(previewTimeText)
+                    Text(Date(), format: .timeOfDay)
                         .bold()
                         .foregroundStyle(.secondary)
                 }
@@ -104,13 +104,6 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
 
     private var previewDeltaText: String {
         Decimal(Self.previewDelta).formattedDelta(for: state.units)
-    }
-
-    private var previewTimeText: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .none
-        formatter.timeStyle = .short
-        return formatter.string(from: Date())
     }
 
     private var previewReadingColor: Color {

@@ -102,7 +102,7 @@ extension History.RootView {
                 Text(item.type ?? "Pump Event")
             }
             Spacer()
-            Text(Formatter.dateFormatter.string(from: item.timestamp ?? Date())).moveDisabled(true)
+            Text(item.timestamp ?? Date(), format: .timeOfDay).moveDisabled(true)
         }
         .contextMenu {
             if item.bolus != nil {

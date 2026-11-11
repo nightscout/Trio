@@ -15,12 +15,6 @@ final class DeviceLogStore: @unchecked Sendable {
         let date: Date
     }
 
-    private static let queuedDateFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-
     private let queue = DispatchQueue(label: "DeviceLogStore.queue", qos: .utility)
     private let storageURL: URL
     private let maxAge: TimeInterval
@@ -205,7 +199,7 @@ final class DeviceLogStore: @unchecked Sendable {
                 managerIdentifier: entry.managerIdentifier,
                 deviceIdentifier: entry.deviceIdentifier,
                 type: entry.type,
-                message: "[queued \(Self.queuedDateFormatter.string(from: entry.date))] \(entry.message)"
+                message: "[queued \(Formatter.iso8601withFractionalSeconds.string(from: entry.date))] \(entry.message)"
             )
         }
         buffer.removeAll()

@@ -57,7 +57,7 @@ struct LoopStatusView: View {
 
                 if let errorMessage = state.errorMessage, let date = state.errorDate {
                     Group {
-                        Text("Loop at \(Formatter.dateFormatter.string(from: date)) failed.").font(.headline)
+                        Text("Loop at \(date.formatted(.timeOfDay)) failed.").font(.headline)
                             .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(errorMessage).font(.caption).fixedSize(horizontal: false, vertical: true)
@@ -205,7 +205,7 @@ struct LoopStatusView: View {
                 : String(localized: "Trio has not looped in \(roundedMinutes) minutes.")
         }
 
-        let time = Formatter.dateFormatter.string(from: deliverAt)
+        let time = deliverAt.formatted(.timeOfDay)
         return isOpenLoop
             ? String(localized: "Determined at \(time)")
             : String(localized: "Enacted at \(time)")

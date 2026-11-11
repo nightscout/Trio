@@ -32,14 +32,6 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         injectServices(resolver)
     }
 
-    private var dateFormatter: DateFormatter {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .short
-        dateFormatter.timeStyle = .short
-        dateFormatter.locale = Locale.current
-        return dateFormatter
-    }
-
     func fetchLastCreatedOverride() async throws -> [NSManagedObjectID] {
         let context = makeContext()
         context.name = "fetchLastCreatedOverride"
@@ -133,8 +125,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
             if !override.name.isEmpty {
                 newOverride.name = override.name
             } else {
-                let formattedDate = self.dateFormatter.string(from: Date())
-                newOverride.name = "Override \(formattedDate)"
+                newOverride.name = "Override \(Date().formatted(.dateAndTime))"
             }
             newOverride.id = UUID().uuidString
             newOverride.date = override.date
@@ -321,10 +312,7 @@ final class BaseOverrideStorage: @preconcurrency OverrideStorage, Injectable {
         newDuration: Int?,
         using nightscout: NightscoutAPI
     ) async throws {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-
-        guard let jsonDate = formatter.date(from: createdAtString) else {
+        guard let jsonDate = Formatter.iso8601withFractionalSeconds.date(from: createdAtString) else {
             warning(.nightscout, "Parsing override creation date '\(createdAtString)' failed")
             return
         }

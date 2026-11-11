@@ -198,17 +198,9 @@ struct AGPSelectionPopover: View {
 
     @Environment(\.colorScheme) var colorScheme
 
-    private var timeText: String {
-        if let hour = Calendar.current.dateComponents([.hour], from: time).hour {
-            return "\(hour):00-\(hour + 1):00"
-        } else {
-            return time.formatted(.dateTime.hour().minute())
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(timeText).bold().font(.subheadline)
+            Text(time.formattedHourRange()).bold().font(.subheadline)
 
             Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
                 GridRow {

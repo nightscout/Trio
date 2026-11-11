@@ -87,8 +87,7 @@ extension History.RootView {
     }
 
     @ViewBuilder fileprivate func adjustmentView(for item: AdjustmentItem) -> some View {
-        let formattedDates =
-            "\(Formatter.dateFormatter.string(from: item.startDate)) - \(Formatter.dateFormatter.string(from: item.endDate))"
+        let formattedDates = item.startDate.formattedTimeRange(to: item.endDate)
 
         let targetDescription: String = {
             guard let target = item.target, target != 0 else {

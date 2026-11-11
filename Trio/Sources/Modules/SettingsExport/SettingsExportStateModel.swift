@@ -256,7 +256,7 @@ extension SettingsExport {
                         addSetting(
                             category: therapyCategory,
                             subcategory: glucoseTargetsSubcategory,
-                            name: String(localized: "Target (\(entry.start.formattedHourMinuteFromTimeString()))"),
+                            name: String(localized: "Target (\(Date(minuteOfDay: entry.offset).formatted(.timeOfDay)))"),
                             value: String(describing: targetValue),
                             unit: trioSettings.units.rawValue
                         )
@@ -269,7 +269,7 @@ extension SettingsExport {
                     addSetting(
                         category: therapyCategory,
                         subcategory: basalRatesSubcategory,
-                        name: String(localized: "Basal Rate (\(entry.start.formattedHourMinuteFromTimeString()))"),
+                        name: String(localized: "Basal Rate (\(Date(minuteOfDay: entry.minutes).formatted(.timeOfDay)))"),
                         value: String(describing: entry.rate),
                         unit: String(localized: "U/hr", comment: "Insulin unit per hour abbreviation")
                     )
@@ -282,7 +282,7 @@ extension SettingsExport {
                         addSetting(
                             category: therapyCategory,
                             subcategory: carbRatiosSubcategory,
-                            name: String(localized: "Carb Ratio (\(entry.start.formattedHourMinuteFromTimeString()))"),
+                            name: String(localized: "Carb Ratio (\(Date(minuteOfDay: entry.offset).formatted(.timeOfDay)))"),
                             value: String(describing: entry.ratio),
                             unit: String(localized: "g/U")
                         )
@@ -297,7 +297,7 @@ extension SettingsExport {
                         addSetting(
                             category: therapyCategory,
                             subcategory: insulinSensitivitiesSubcategory,
-                            name: String(localized: "ISF (\(entry.start.formattedHourMinuteFromTimeString()))"),
+                            name: String(localized: "ISF (\(Date(minuteOfDay: entry.offset).formatted(.timeOfDay)))"),
                             value: String(describing: isfValue),
                             unit: trioSettings.units.rawValue
                         )

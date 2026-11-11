@@ -78,7 +78,7 @@ struct GlucoseDailyDistributionChart: View {
                 .frame(height: 200)
 
             // Date label with transition
-            Text(selectedDate.map { formattedDate(for: $0) } ?? StatChartUtils.formatVisibleDateRange(
+            Text(selectedDate.map { $0.formatted(date: .complete, time: .omitted) } ?? StatChartUtils.formatVisibleDateRange(
                 from: visibleDateRange.start,
                 to: visibleDateRange.end,
                 for: selectedInterval
@@ -124,13 +124,6 @@ struct GlucoseDailyDistributionChart: View {
             isDaySelected = false
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
-    }
-
-    /// Formatted date string for display
-    private func formattedDate(for date: Date) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "EEEE, MMMM d, yyyy"
-        return dateFormatter.string(from: date)
     }
 
     /// The main chart visualization showing glucose distribution by day

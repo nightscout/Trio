@@ -49,13 +49,6 @@ struct EditTempTargetForm: View {
         _percentage = State(initialValue: calcPercentage)
     }
 
-    private var dateFormatter: DateFormatter {
-        let f = DateFormatter()
-        f.dateStyle = .short
-        f.timeStyle = .short
-        return f
-    }
-
     var body: some View {
         NavigationView {
             List {
@@ -125,17 +118,8 @@ struct EditTempTargetForm: View {
 
     private func formattedEndTime(startDate: Date, totalDuration: Decimal) -> String {
         let endDate = calculatedEndDate(from: startDate, totalDuration: totalDuration)
-        let formatter = DateFormatter()
-
-        if Calendar.current.isDateInToday(endDate) {
-            formatter.dateStyle = .none
-            formatter.timeStyle = .short // show only the time
-        } else {
-            formatter.dateStyle = .short
-            formatter.timeStyle = .short // show Date and time
-        }
-
-        return formatter.string(from: endDate)
+        let isDateInToday = Calendar.current.isDateInToday(endDate)
+        return endDate.formatted(isDateInToday ? .timeOfDay : .dateAndTime)
     }
 
     @ViewBuilder private func editTempTarget() -> some View {

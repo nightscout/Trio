@@ -42,13 +42,13 @@ extension History.RootView {
 
                         Spacer()
 
-                        Text(Formatter.dateFormatter.string(from: glucose.date ?? Date()))
+                        Text(glucose.date ?? Date(), format: .timeOfDay)
                     }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text(
                         Decimal(glucose.glucose).formatted(for: state.units)
                             + ", " + manualOrTrend
-                            + ", " + Formatter.dateFormatter.string(from: glucose.date ?? Date())
+                            + ", " + (glucose.date ?? Date()).formatted(.timeOfDay)
                     ))
                     .contextMenu {
                         Button(
