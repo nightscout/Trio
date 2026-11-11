@@ -169,7 +169,10 @@ extension PluginSource: CGMManagerDelegate {
                    let glucose = message.glucose, let date = g7.latestReadingTimestamp
                 {
                     UnsureGlucoseStore.shared.add(UnsureGlucose(date: date, mgdl: Int(glucose)))
-                    debug(.cgm, "G7 reading \(glucose) mg/dL marked \(message.algorithmState): shown greyed with a warning, not used")
+                    debug(
+                        .cgm,
+                        "G7 reading \(glucose) mg/dL marked \(message.algorithmState): shown greyed with a warning, not used"
+                    )
                 }
             }
 
@@ -431,7 +434,7 @@ final class UnsureGlucoseStore: ObservableObject {
     /// The newest flagged reading while fresh and newer than the newest reliable one.
     func current(after reliable: Date?, now: Date = Date()) -> UnsureGlucose? {
         guard let latest, now.timeIntervalSince(latest.date) < Self.freshFor,
-              latest.date > (reliable ?? .distantPast)
+              (reliable ?? .distantPast) < latest.date
         else { return nil }
         return latest
     }
