@@ -251,6 +251,52 @@ struct StatChartUtils {
         return sorted[length / 2]
     }
 
+    /// Formats the display label for a glucose distribution range bucket (e.g. "70-180 mg/dL"),
+    /// shared by the on-screen daily distribution chart and its static PDF-export counterpart.
+    static func glucoseDistributionRangeLabel(
+        _ rangeName: String,
+        highLimit: Decimal,
+        units: GlucoseUnits,
+        timeInRangeType: TimeInRangeType
+    ) -> String {
+        switch rangeName {
+        case "veryLow":
+            return "<\(Decimal(54).formatted(for: units))"
+        case "low":
+            return "\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold - 1).formatted(for: units))"
+        case "inSmallRange":
+            return "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))"
+        case "inRange":
+            return "\(Decimal(timeInRangeType.topThreshold + 1).formatted(for: units))-\(highLimit.formatted(for: units))"
+        case "high":
+            return "\((highLimit + 1).formatted(for: units))-\(Decimal(250).formatted(for: units))"
+        case "veryHigh":
+            return ">\(Decimal(250).formatted(for: units))"
+        default:
+            return "error"
+        }
+    }
+
+    /// Computes the Y-axis domain for glucose percentile ("boxplot") charts from the highest
+    /// observed value in the given daily stats, shared by the on-screen percentile chart and its
+    /// static PDF-export counterpart.
+    static func glucosePercentileYScaleDomain(
+        for dailyStats: [GlucoseDailyPercentileStats],
+        highLimit: Decimal,
+        units: GlucoseUnits
+    ) -> ClosedRange<Double> {
+        let padding = units == .mgdL ? 20.0 : 1.0
+        let bottomLimit = 40.0.asUnit(units)
+        let topLimit = 400.0.asUnit(units)
+
+        let allValues = dailyStats.filter { $0.minimum > 0 }.map { $0.maximum.asUnit(units) }
+        guard let maxValue = allValues.max() else {
+            return bottomLimit ... topLimit
+        }
+
+        return bottomLimit ... max(Double(highLimit.asUnit(units)), maxValue + padding)
+    }
+
     /// Creates a legend item view for use in a chart legend.
     ///
     /// - Parameters:
@@ -263,5 +309,44 @@ struct StatChartUtils {
                 .accessibilityHidden(true)
             Text(label).foregroundStyle(Color.secondary)
         }.font(.caption)
+    }
+
+    /// Builds the shared per-mark axis label content for stat bar charts: labels every 6th hour
+    /// in `.day` view, every first-weekday mark in `.month`, every month-start mark in `.total`,
+    /// and every mark otherwise (`.week`, or by-day charts whose data is already one bar per day).
+    /// - Parameters:
+    ///   - date: The date of the axis value currently being drawn.
+    ///   - selectedInterval: The selected time interval for statistics.
+    ///   - font: The font to apply to the axis label.
+    @AxisMarkBuilder static func axisMarkContent(
+        for date: Date,
+        selectedInterval: Stat.StateModel.StatsTimeInterval,
+        font: Font
+    ) -> some AxisMark {
+        let calendar = Calendar.current
+        switch selectedInterval {
+        case .day:
+            if calendar.component(.hour, from: date) % 6 == 0 {
+                AxisValueLabel(format: dateFormat(for: selectedInterval), centered: true)
+                    .font(font)
+                AxisGridLine()
+            }
+        case .month:
+            if calendar.component(.weekday, from: date) == calendar.firstWeekday {
+                AxisValueLabel(format: dateFormat(for: selectedInterval), centered: true)
+                    .font(font)
+                AxisGridLine()
+            }
+        case .total:
+            if calendar.component(.day, from: date) == 1 {
+                AxisValueLabel(format: dateFormat(for: selectedInterval), centered: true)
+                    .font(font)
+                AxisGridLine()
+            }
+        default:
+            AxisValueLabel(format: dateFormat(for: selectedInterval), centered: true)
+                .font(font)
+            AxisGridLine()
+        }
     }
 }
