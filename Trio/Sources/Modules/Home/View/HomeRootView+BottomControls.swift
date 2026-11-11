@@ -517,6 +517,58 @@ extension Home.RootView {
         }
     }
 
+    /// In-app mirror of the meal-time reminder alarm: a live countdown until the user can eat, with the
+    /// meal summary and a cancel button.
+    @ViewBuilder func mealTimeReminderCountdownView(_ reminder: PendingMealTimeReminder) -> some View {
+        // Empty when neither half is present, matching the reminder body's wording; then only the
+        // countdown is shown.
+        let summary = MealTimeReminderSummary.compact(
+            carbs: NSDecimalNumber(decimal: reminder.carbs).doubleValue,
+            bolusAmount: NSDecimalNumber(decimal: reminder.bolusAmount).doubleValue
+        )
+        let mealSummary: String? = summary.isEmpty ? nil : summary
+
+        HStack {
+            Image(systemName: "fork.knife")
+                .font(.system(size: 25))
+                .accessibilityHidden(true)
+
+            Spacer()
+
+            VStack {
+                Text("Meal-Time Reminder")
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let mealSummary {
+                    Text(mealSummary)
+                        .font(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }.padding(.leading, 5)
+
+            Spacer()
+
+            // `max` keeps the range valid if this renders after the fire date but before expiry clears it.
+            Text(timerInterval: Date.now ... max(Date.now, reminder.fireDate), countsDown: true)
+                .font(.title3.monospacedDigit())
+                .foregroundStyle(.orange)
+                .accessibilityLabel(Text("Time until you can eat"))
+
+            Button {
+                state.cancelMealTimeReminder()
+            } label: {
+                Image(systemName: "stop.fill")
+                    .font(.system(size: 25))
+            }
+            .accessibilityLabel(Text("Stop meal-time reminder"))
+        }
+        .padding(.horizontal, 10)
+        .padding(.trailing, 8)
+        .frame(height: HomeLayout.statsBannerHeight)
+        .glassPanel(tint: .orange, tintOpacity: 0.18, strokeOpacity: 0.30)
+        .padding(.horizontal, 10)
+    }
+
     func statsDistributionBar(_ segments: [(color: Color, fraction: CGFloat)]) -> some View {
         GeometryReader { g in
             let spacing: CGFloat = 2
@@ -646,6 +698,7 @@ extension Home.RootView {
             pumpTimeMismatch: state.pumpStatusBadgeImage != nil,
             lastGlucoseDate: state.glucoseFromPersistence.last?.date,
             maxIOB: state.maxIOB,
+            pendingMealTimeReminder: state.pendingMealTimeReminder,
             hasUnacknowledgedReleaseNotes: releaseNotesService.hasUnacknowledgedNotes,
             dosingMode: state.dosingMode,
             now: state.timerDate
@@ -765,6 +818,8 @@ extension Home.RootView {
             ) {
                 openDosingModeSetting()
             }
+        case let .mealTimeReminderCountdown(reminder):
+            mealTimeReminderCountdownView(reminder)
         case .stats:
             statsBanner()
         }

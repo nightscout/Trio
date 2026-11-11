@@ -19,6 +19,7 @@ extension Treatments {
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() var bolusCalculationManager: BolusCalculationManager!
+        @ObservationIgnored @Injected() var mealTimeReminderService: MealTimeReminderService!
 
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
@@ -88,8 +89,15 @@ extension Treatments {
 
         var sweetMeals: Bool = false
         var sweetMealFactor: Decimal = 0
+        var mealTimeReminderEnabled: Bool = false
         var useSuperBolus: Bool = false
         var superBolusInsulin: Decimal = 0
+
+        var mealTimeReminderMinutes: Decimal = 0
+
+        /// Preset lead times offered as quick buttons next to the picker; configured in the
+        /// bolus calculator settings.
+        var mealTimeReminderPresets: [Decimal] = [15, 30]
 
         var meal: [CarbsEntry]?
         var carbs: Decimal = 0
@@ -242,6 +250,10 @@ extension Treatments {
 
             broadcaster?.unregister(DeterminationObserver.self, observer: self)
             broadcaster?.unregister(BolusFailureObserver.self, observer: self)
+
+            // Leave any scheduled alarm alone: this runs on dismissal, when a just-set
+            // meal-time reminder starts counting down.
+            mealTimeReminderMinutes = 0
         }
 
         private func setupBolusStateConcurrently() {
@@ -296,6 +308,9 @@ extension Treatments {
             Task {
                 await apsManager.cancelBolus(nil)
                 try? await apsManager.determineBasalSync()
+                // The reminder was scheduled for the full requested amount; an interrupted bolus
+                // doesn't deliver that, and the carbs are already logged regardless, so just drop it.
+                await mealTimeReminderService.cancelPendingReminders()
             }
         }
 
@@ -351,6 +366,10 @@ extension Treatments {
             fattyMealFactor = settings.settings.fattyMealFactor
             sweetMeals = settings.settings.sweetMeals
             sweetMealFactor = settings.settings.sweetMealFactor
+            mealTimeReminderEnabled = settings.settings.mealTimeReminderEnabled
+            mealTimeReminderMinutes = 0
+
+            mealTimeReminderPresets = TrioSettings.normalizedMealTimeReminderPresets(settings.settings.mealTimeReminderPresets)
             displayPresets = settings.settings.displayPresets
             confirmBolus = settings.settings.confirmBolus
             forecastDisplayType = settings.settings.forecastDisplayType
@@ -494,14 +513,36 @@ extension Treatments {
                 let isCarbsPresent = carbs > 0
                 let isFatPresent = fat > 0
                 let isProteinPresent = protein > 0
+                let reminderArmed = mealTimeReminderMinutes > 0
+
+                let leadTime = TimeInterval(Double(mealTimeReminderMinutes) * 60)
 
                 if isCarbsPresent || isFatPresent || isProteinPresent {
-                    await saveMeal()
+                    await saveMeal(reminderArmed: reminderArmed)
                 }
 
                 if isInsulinGiven {
-                    await handleInsulin(isExternal: externalInsulin)
+                    let delivered = await handleInsulin(isExternal: externalInsulin)
+
+                    // Only once the bolus command was accepted does anything get scheduled: an
+                    // alarm after a failed bolus would tell the user to eat uncovered carbs.
+                    if delivered, reminderArmed {
+                        await mealTimeReminderService.scheduleEatReminder(
+                            after: leadTime,
+                            carbs: carbs,
+                            bolusAmount: amount
+                        )
+                    }
                 } else {
+                    // No insulin: with the reminder set this is a standalone timer over the
+                    // entered meal (or no meal at all), so start it right away.
+                    if reminderArmed {
+                        await mealTimeReminderService.scheduleEatReminder(
+                            after: leadTime,
+                            carbs: carbs,
+                            bolusAmount: 0
+                        )
+                    }
                     hideModal()
                     return
                 }
@@ -525,11 +566,12 @@ extension Treatments {
 
         // MARK: - Insulin
 
-        private func handleInsulin(isExternal: Bool) async {
+        /// - Returns: `true` if the insulin was delivered (pump) or logged (external).
+        private func handleInsulin(isExternal: Bool) async -> Bool {
             if !isExternal {
-                await addPumpInsulin()
+                return await addPumpInsulin()
             } else {
-                await addExternalInsulin()
+                return await addExternalInsulin()
             }
         }
 
@@ -618,10 +660,11 @@ extension Treatments {
             }
         }
 
-        func addPumpInsulin() async {
+        /// - Returns: `true` if the pump reported the bolus as enacted.
+        @discardableResult func addPumpInsulin() async -> Bool {
             guard amount > 0 else {
                 showModal(for: nil)
-                return
+                return false
             }
 
             let maxAmount = Double(min(amount, maxBolus))
@@ -634,7 +677,12 @@ extension Treatments {
                         self.isAwaitingDeterminationResult = true
                     }
                     info(.bolus, "Bolus of \(maxAmount) U requested")
-                    await apsManager.enactBolus(amount: maxAmount, isSMB: false, callback: nil)
+
+                    var enacted = false
+                    await apsManager.enactBolus(amount: maxAmount, isSMB: false) { success, _ in
+                        enacted = success
+                    }
+                    return enacted
                 }
             } catch {
                 warning(.bolus, "Authentication for bolus failed", error: error)
@@ -645,20 +693,23 @@ extension Treatments {
                     self.determinationFailureMessage = parseAuthenticationError(from: error)
                 }
             }
+            return false
         }
 
         // MARK: - EXTERNAL INSULIN
 
-        func addExternalInsulin() async {
+        /// - Returns: `true` once the external dose has been logged.
+        @discardableResult func addExternalInsulin() async -> Bool {
             guard amount > 0 else {
                 showModal(for: nil)
-                return
+                return false
             }
 
             await MainActor.run {
                 self.amount = min(self.amount, self.maxBolus * 3)
             }
 
+            var logged = false
             do {
                 let authenticated = try await unlockmanager.unlock()
                 if authenticated {
@@ -669,6 +720,7 @@ extension Treatments {
                     // store external dose to pump history
                     await pumpHistoryStorage.storeExternalInsulinEvent(amount: amount, timestamp: date)
                     info(.bolus, "External insulin of \(amount) U logged")
+                    logged = true
                     // perform determine basal sync
                     try await apsManager.determineBasalSync()
                 }
@@ -680,11 +732,25 @@ extension Treatments {
                     self.determinationFailureMessage = parseAuthenticationError(from: error)
                 }
             }
+            return logged
         }
 
         // MARK: - Carbs
 
-        func saveMeal() async {
+        /// The meal note with the meal-time reminder lead time prefixed onto it.
+        ///
+        /// The alarm is local and leaves no trace, so the note is what makes the timing visible
+        /// later in the history and in Nightscout. `reminderArmed` reflects the entered lead time
+        /// (the meal is saved before the bolus outcome is known), not whether the alarm actually
+        /// ended up scheduled — a failed bolus still leaves this prefix on the note even though no
+        /// alarm fires for it.
+        func noteWithMealTimeReminder(reminderArmed: Bool) -> String {
+            guard reminderArmed, mealTimeReminderMinutes > 0 else { return note }
+            let prefix = String(localized: "Meal-time reminder: \(Int(mealTimeReminderMinutes)) min")
+            return note.isEmpty ? prefix : "\(prefix). \(note)"
+        }
+
+        func saveMeal(reminderArmed: Bool) async {
             do {
                 guard carbs > 0 || fat > 0 || protein > 0 else { return }
 
@@ -702,7 +768,7 @@ extension Treatments {
                     carbs: carbs,
                     fat: fat,
                     protein: protein,
-                    note: note,
+                    note: noteWithMealTimeReminder(reminderArmed: reminderArmed),
                     enteredBy: CarbsEntry.local,
                     isFPU: false,
                     fpuID: fat > 0 || protein > 0 ? UUID().uuidString : nil

@@ -48,15 +48,15 @@ final class TrioModalAlertScheduler: ObservableObject {
         remove(identifier: identifier)
     }
 
-    /// Drops every active non-critical banner. Called from `applySnooze` so
-    /// banners visible at the moment a global snooze starts disappear too —
-    /// otherwise they'd outlive the alarm they advertised.
+    /// Drops every active banner that doesn't pierce snooze. Called from `applySnooze` so
+    /// banners visible at the moment a global snooze starts disappear too — otherwise they'd
+    /// outlive the alarm they advertised.
     func clearNonCriticalBanners() {
         guard Thread.isMainThread else {
             DispatchQueue.main.async { [weak self] in self?.clearNonCriticalBanners() }
             return
         }
-        active.removeAll { $0.interruptionLevel != .critical }
+        active.removeAll { !$0.piercesSnooze }
     }
 
     func snooze(identifier: LoopKit.Alert.Identifier, duration: TimeInterval) {
@@ -115,17 +115,17 @@ final class TrioModalAlertScheduler: ObservableObject {
     }
 
     /// Pure decision for what a timer fire should do, given the alert's
-    /// interruption level and the manager's current active/snooze state.
+    /// snooze-piercing status and the manager's current active/snooze state.
     /// - `dropStale`: alert no longer tracked — skip and drop pending.
-    /// - `suppressKeepPending`: non-critical banner muted by global snooze.
+    /// - `suppressKeepPending`: non-piercing banner muted by global snooze.
     /// - `insert`: present the banner.
     static func shouldInsertOnFire(
-        interruptionLevel: LoopKit.Alert.InterruptionLevel,
+        piercesSnooze: Bool,
         isAlertActive: Bool,
         isSnoozeActive: Bool
     ) -> FireDecision {
         guard isAlertActive else { return .dropStale }
-        if interruptionLevel != .critical, isSnoozeActive { return .suppressKeepPending }
+        if !piercesSnooze, isSnoozeActive { return .suppressKeepPending }
         return .insert
     }
 
@@ -138,10 +138,10 @@ final class TrioModalAlertScheduler: ObservableObject {
                 // than `interval`; on resume the timer fires immediately
                 // even if the underlying alert was already retracted).
                 let isAlertActive = self.responder?.isAlertActive(identifier: alert.identifier) ?? true
-                // Honor active global snooze for non-critical banners.
+                // Honor active global snooze, except for alerts that pierce it.
                 let isSnoozeActive = self.responder?.isSnoozeActive(at: Date()) == true
                 switch Self.shouldInsertOnFire(
-                    interruptionLevel: alert.interruptionLevel,
+                    piercesSnooze: alert.piercesSnooze,
                     isAlertActive: isAlertActive,
                     isSnoozeActive: isSnoozeActive
                 ) {
