@@ -346,7 +346,7 @@ struct ContactPicture: View {
         let view = GlucoseBobbleContactView(
             glucoseText: state.glucose ?? "– –",
             minutesAgoText: hasReading && contact.bobbleShowMinutesAgo
-                ? TimeAgoFormatter.minutesAgo(from: state.glucoseDate) : nil,
+                ? state.glucoseDate?.formattedTimeAgo() : nil,
             deltaText: hasReading && contact.bobbleShowDelta ? state.delta : nil,
             glucoseColor: hasReading
                 ? (contact.colorMode == .color ? dynamicGlucoseColor(for: state) : .white)

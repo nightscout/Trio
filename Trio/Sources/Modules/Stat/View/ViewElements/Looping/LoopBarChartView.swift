@@ -49,7 +49,7 @@ struct LoopBarChartView: View {
                     if let percentage = value.as(Double.self) {
                         if selectedInterval != .custom || spansMultipleDays {
                             AxisValueLabel(anchor: .top) {
-                                Text("\(Int(percentage))%")
+                                Text((percentage / 100).formatted(.wholePercent))
                                     .font(.footnote)
                             }
                         }
