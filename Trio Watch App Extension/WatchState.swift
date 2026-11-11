@@ -94,7 +94,15 @@ import WidgetKit
 
     /// Work item to schedule finalizing the pending data.
     private var finalizeWorkItem: DispatchWorkItem?
-    private var isReloadingComplications = false
+    private let complicationReloader = ComplicationReloader(
+        fetchInstalledKinds: { completion in
+            WidgetCenter.shared.getCurrentConfigurations { result in
+                let installedKinds = (try? result.get())?.map(\.kind) ?? []
+                DispatchQueue.main.async { completion(installedKinds) }
+            }
+        },
+        reloadTimelines: { WidgetCenter.shared.reloadTimelines(ofKind: $0) }
+    )
 
     /// A flag to tell the UI we’re still updating.
     var showSyncingAnimation: Bool = false
@@ -114,7 +122,7 @@ import WidgetKit
     var isAwaitingDelivery: Bool {
         guard let session else { return false }
         return session.activationState != .activated || session.hasContentPending || !pendingData.isEmpty ||
-            isReloadingComplications
+            complicationReloader.isReloading
     }
 
     /// Configures the WatchConnectivity session if supported on the device
@@ -636,16 +644,7 @@ import WidgetKit
     }
 
     private func reloadInstalledComplications() {
-        let dataKinds = Set(ComplicationKind.allCases.map(\.widgetKind))
-        isReloadingComplications = true
-        WidgetCenter.shared.getCurrentConfigurations { result in
-            if case let .success(installed) = result {
-                for kind in Set(installed.map(\.kind)).intersection(dataKinds) {
-                    WidgetCenter.shared.reloadTimelines(ofKind: kind)
-                }
-            }
-            DispatchQueue.main.async { self.isReloadingComplications = false }
-        }
+        complicationReloader.reload(Set(ComplicationKind.allCases.map(\.widgetKind)))
     }
 
     private func complicationHistory(until end: Date) -> [ComplicationPoint] {

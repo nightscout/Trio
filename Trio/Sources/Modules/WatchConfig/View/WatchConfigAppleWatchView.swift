@@ -2,6 +2,10 @@ import SwiftUI
 import Swinject
 
 struct WatchConfigAppleWatchView: BaseView {
+    static let complicationSettingsFooter = String(
+        localized: "Grey Out After applies to every complication: once the reading is older than this, the glucose shows -- with the reading's age, and IOB and COB show -- when the loop has not run within that time. With the watch app closed, Apple limits how often complications refresh, so expect them to lag the phone by up to about 15 minutes; the Contact Image updates with every reading. Corner Label is the curved text on Trio Glucose corner slots. Small Line is the text under the glucose on Trio Glucose circular slots, beside the ring on Trio Gauge rectangular slots, and the second line of Trio Chart. Trio IOB has a fixed layout."
+    )
+
     let resolver: Resolver
     @ObservedObject var state: WatchConfig.StateModel
 
@@ -81,9 +85,7 @@ struct WatchConfigAppleWatchView: BaseView {
 
             Section(
                 header: Text("Complication Settings"),
-                footer: Text(
-                    "Grey Out After applies to every complication: once the reading is older than this, the glucose shows -- with the reading's age, and IOB and COB show -- when the loop has not run within that time. With the watch app closed, Apple limits how often complications refresh, so expect them to lag the phone by up to about 15 minutes; the Contact Image updates with every reading. Corner Label is the curved text on Trio Glucose corner slots. Small Line is the text under the glucose on Trio Glucose circular slots, beside the ring on Trio Gauge rectangular slots, and the second line of Trio Chart. Trio IOB has a fixed layout."
-                ),
+                footer: Text(Self.complicationSettingsFooter),
                 content: {
                     Picker("Corner Label", selection: $state.complicationCornerValue) {
                         ForEach(WatchComplicationValue.allCases) { value in
@@ -98,7 +100,7 @@ struct WatchConfigAppleWatchView: BaseView {
                     Stepper(
                         value: $state.complicationStaleMinutes,
                         in: WatchComplicationDefaults.staleMinutesRange,
-                        step: 5
+                        step: WatchComplicationDefaults.staleMinutesStep
                     ) {
                         HStack {
                             Text("Grey Out After")

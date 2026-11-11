@@ -1,6 +1,5 @@
 import Combine
 import Foundation
-import LoopAlgorithm
 import LoopKit
 import LoopKitUI
 
