@@ -131900,6 +131900,9 @@
         }
       }
     },
+    "Entry expired after 2 minutes. Nothing was sent. Please enter it again." : {
+      "comment" : "Watch message when a carbs or bolus entry was too old to send"
+    },
     "Error" : {
       "comment" : "Error title",
       "localizations" : {
@@ -132558,6 +132561,9 @@
           }
         }
       }
+    },
+    "Error! Bolus amount must be greater than 0 U." : {
+      "comment" : "Error message when a bolus of zero or less is requested"
     },
     "Error! Bolus cancellation failed with error: %@" : {
       "comment" : "Error message for canceling a bolus",
@@ -176363,6 +176369,9 @@
         }
       }
     },
+    "iPhone not reachable. Nothing was sent." : {
+      "comment" : "Watch message when a request could not be sent to the phone"
+    },
     "is running" : {
       "localizations" : {
         "bg" : {
@@ -211049,6 +211058,9 @@
           }
         }
       }
+    },
+    "No answer from iPhone. Check Trio on your iPhone before trying again." : {
+      "comment" : "Watch message when the phone did not confirm a request"
     },
     "No Bolus Data" : {
       "localizations" : {
