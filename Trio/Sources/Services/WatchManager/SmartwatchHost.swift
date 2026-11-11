@@ -530,7 +530,8 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
 // MARK: - Observers
 
 extension BaseSmartwatchHost: SettingsObserver {
-    /// Units, Max Carbs or the dosing mode (closed loop) may have changed.
+    /// Units, Max Carbs, the glucose display limits or the dosing mode (closed
+    /// loop) may have changed.
     func settingsDidChange(_: TrioSettings) {
         Task { @MainActor in self.signal([.settings, .loop]) }
     }
@@ -635,6 +636,19 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
         guard let target = (try? await latestDetermination())?.target else { return nil }
         let quantity = LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: target)
         return quantity ... quantity
+    }
+
+    /// The low and high Trio's statistics and home screen show glucose against
+    /// (not its glucose alarms' thresholds, which are the alarms' own).
+    func smartwatchManagerGlucoseDisplayLimits(_: SmartwatchManager) async -> SmartwatchGlucoseDisplayLimits? {
+        Self.displayLimits(low: settingsManager.settings.low, high: settingsManager.settings.high)
+    }
+
+    static func displayLimits(low: Decimal, high: Decimal) -> SmartwatchGlucoseDisplayLimits? {
+        SmartwatchGlucoseDisplayLimits(
+            low: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(truncating: low as NSNumber)),
+            high: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(truncating: high as NSNumber))
+        )
     }
 
     func smartwatchManagerOverridePresets(_ manager: SmartwatchManager) async -> [TemporaryPreset] {

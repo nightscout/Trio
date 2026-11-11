@@ -336,6 +336,19 @@ private final class FakeSmartwatchManager: SmartwatchManager {
     func getSounds() -> [Alert.Sound] { [] }
 }
 
+@Suite("Smartwatch host: glucose display limits") struct SmartwatchDisplayLimitsTests {
+    @Test("The display limits are Trio's low and high") func lowAndHigh() {
+        let limits = BaseSmartwatchHost.displayLimits(low: 70, high: 180)
+        #expect(limits?.low == LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: 70))
+        #expect(limits?.high == LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: 180))
+    }
+
+    @Test("No display limits when low isn't below high") func lowNotBelowHigh() {
+        #expect(BaseSmartwatchHost.displayLimits(low: 180, high: 180) == nil)
+        #expect(BaseSmartwatchHost.displayLimits(low: 200, high: 100) == nil)
+    }
+}
+
 @Suite("Smartwatch host: change signals") @MainActor struct SmartwatchChangeBatchTests {
     /// Lets the main queue run the batch's delivery.
     private func nextRunLoopTurns() async throws {
