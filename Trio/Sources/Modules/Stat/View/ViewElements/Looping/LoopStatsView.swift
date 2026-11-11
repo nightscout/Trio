@@ -29,8 +29,7 @@ struct LoopStatsView: View {
                 Spacer()
                 StatChartUtils.statView(
                     title: String(localized: "Success"),
-                    value: (successfulStats.percentage / 100)
-                        .formatted(.percent.grouping(.never).rounded().precision(.fractionLength(1)))
+                    value: (successfulStats.percentage / 100).formatted(.upToOneDecimalPercent)
                 )
                 Spacer()
                 StatChartUtils.statView(

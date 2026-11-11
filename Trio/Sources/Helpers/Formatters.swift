@@ -58,14 +58,76 @@ extension Formatter {
         formatter.maximumFractionDigits = 2
         return formatter
     }()
+}
 
-    static let timaAgoFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        formatter.negativePrefix = ""
-        return formatter
-    }()
+extension Duration {
+    /// Minutes as overrides and temp targets store them. Clamped because those values come from
+    /// Core Data and Nightscout unchecked, and NaN or 1e30 would trap; Int32.max minutes is ~4,000 years.
+    init(minutes: Decimal) {
+        let minutes = Double(minutes)
+        self = minutes.isNaN ? .zero : .seconds(min(max(minutes, 0), Double(Int32.max)) * 60)
+    }
+
+    /// Which units a span shows. All round down.
+    enum SpanStyle {
+        /// Days, hours and minutes, for stored values: "1d 1h 30m".
+        case exact
+        /// Hours and minutes under a day, days and hours from a day on, for countdowns and ages: "2d 16h".
+        case largestTwoUnits
+        /// Minutes only, for settings counted in minutes: "90m".
+        case minutes
+    }
+
+    /// Compact span, rounded down: "45m", "1h 30m", "5d 14h", "< 1m".
+    func formattedTimeSpan(_ style: SpanStyle = .exact, locale: Locale = .autoupdatingCurrent) -> String {
+        if isUnderAMinute {
+            return "<\u{00A0}" + Duration.seconds(60).timeSpan(style, width: .narrow, locale: locale)
+        }
+        return timeSpan(style, width: .narrow, locale: locale)
+    }
+
+    /// VoiceOver form of `formattedTimeSpan`: "1 hour, 30 minutes", "less than a minute".
+    /// `locale` formats the units; "less than a minute" follows the app language.
+    func formattedSpokenTimeSpan(_ style: SpanStyle = .exact, locale: Locale = .autoupdatingCurrent) -> String {
+        if isUnderAMinute {
+            return String(localized: "less than a minute", comment: "Accessibility: a duration under one minute")
+        }
+        return timeSpan(style, width: .wide, locale: locale)
+    }
+
+    /// Zero is an exact length, like an unset duration picker, so it stays "0m" rather than "< 1m".
+    var isUnderAMinute: Bool { self < .seconds(60) && self != .zero }
+
+    private func timeSpan(_ style: SpanStyle, width: UnitsFormatStyle.UnitWidth, locale: Locale) -> String {
+        let units: Set<UnitsFormatStyle.Unit> = switch style {
+        case .exact: [.days, .hours, .minutes]
+        case .largestTwoUnits: self < .seconds(86400) ? [.hours, .minutes] : [.days, .hours]
+        case .minutes: [.minutes]
+        }
+        return formatted(.units(allowed: units, width: width, fractionalPart: .hide(rounded: .down)).locale(locale))
+    }
+}
+
+extension Date {
+    /// Time since this date, rounded down: "7m", "1h 30m", "< 1m".
+    func formattedTimeAgo(locale: Locale = .autoupdatingCurrent) -> String {
+        Duration.seconds(-timeIntervalSinceNow).formattedTimeSpan(.largestTwoUnits, locale: locale)
+    }
+
+    /// VoiceOver form of `formattedTimeAgo`: "1 hour, 59 minutes ago", "less than a minute ago".
+    /// `locale` formats the duration; the words around it follow the app language, like `String(localized:locale:)`.
+    func formattedSpokenTimeAgo(locale: Locale = .autoupdatingCurrent) -> String {
+        let elapsed = Duration.seconds(-timeIntervalSinceNow)
+        // One phrase rather than span + "ago", so translators can get its grammar right.
+        if elapsed.isUnderAMinute {
+            return String(localized: "less than a minute ago", comment: "Accessibility: elapsed time")
+        }
+
+        return String(
+            localized: "\(elapsed.formattedSpokenTimeSpan(.largestTwoUnits, locale: locale)) ago",
+            comment: "Accessibility: elapsed time; %@ is a duration like \"1 hour, 59 minutes\". Word it so %@ stays unchanged (German: \"%@ her\")."
+        )
+    }
 }
 
 extension JSONDecoder.DateDecodingStrategy {
@@ -83,5 +145,36 @@ extension JSONEncoder.DateEncodingStrategy {
     static let customISO8601 = custom {
         var container = $1.singleValueContainer()
         try container.encode(Formatter.iso8601withFractionalSeconds.string(from: $0))
+    }
+}
+
+extension FormatStyle where Self == FloatingPointFormatStyle<Double>.Percent {
+    /// No decimals: 0.8 → "80%".
+    static var wholePercent: Self { roundedPercent(0 ... 0) }
+
+    /// Exactly one decimal: 0.07 → "7.0%".
+    static var oneDecimalPercent: Self { roundedPercent(1 ... 1) }
+
+    /// Up to one decimal: 0.725 → "72.5%", 0.72 → "72%".
+    static var upToOneDecimalPercent: Self { roundedPercent(0 ... 1) }
+
+    /// Up to two decimals: 0.7255 → "72.55%", 0.72 → "72%".
+    static var upToTwoDecimalPercent: Self { roundedPercent(0 ... 2) }
+
+    /// Rounds halves away from zero, like glucose.
+    private static func roundedPercent(_ fractionLength: ClosedRange<Int>) -> Self {
+        .percent.precision(.fractionLength(fractionLength)).rounded(rule: .toNearestOrAwayFromZero)
+    }
+}
+
+/// The same styles for Decimal values.
+extension FormatStyle where Self == Decimal.FormatStyle.Percent {
+    static var wholePercent: Self { roundedPercent(0 ... 0) }
+    static var oneDecimalPercent: Self { roundedPercent(1 ... 1) }
+    static var upToOneDecimalPercent: Self { roundedPercent(0 ... 1) }
+    static var upToTwoDecimalPercent: Self { roundedPercent(0 ... 2) }
+
+    private static func roundedPercent(_ fractionLength: ClosedRange<Int>) -> Self {
+        .percent.precision(.fractionLength(fractionLength)).rounded(rule: .toNearestOrAwayFromZero)
     }
 }

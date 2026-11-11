@@ -78,8 +78,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 trioAlertManager?.unregister(managerIdentifier: oldValue.pluginIdentifier)
             }
             if let pumpManager = pumpManager {
-                pumpManager.pumpManagerDelegate = self
+                // Queue before delegate, so no delegate call lands on the default main queue
                 pumpManager.delegateQueue = processQueue
+                pumpManager.pumpManagerDelegate = self
 
                 // Re-apply the latest CGM-aligned heartbeat request to a freshly set pump
                 if let heartbeatRequest = lastPumpHeartbeatRequest {
