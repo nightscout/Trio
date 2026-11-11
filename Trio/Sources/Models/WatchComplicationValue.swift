@@ -25,6 +25,7 @@ enum WatchComplicationDefaults {
     static let secondaryValue: WatchComplicationValue = .delta
     static let staleMinutes = 15
     static let staleMinutesRange = 10 ... 30
+    static let staleMinutesStep = 5
 
     static func clampedStaleMinutes(_ minutes: Int) -> Int {
         min(max(minutes, staleMinutesRange.lowerBound), staleMinutesRange.upperBound)

@@ -10,10 +10,27 @@ protocol WatchManager {
     func setupWatchState() async -> WatchState
 }
 
+protocol WatchStateTransport: AnyObject {
+    var isPaired: Bool { get }
+    var isWatchAppInstalled: Bool { get }
+    var isReachable: Bool { get }
+    var isComplicationEnabled: Bool { get }
+    var activationState: WCSessionActivationState { get }
+    var remainingComplicationUserInfoTransfers: Int { get }
+    var outstandingUserInfoTransfers: [WCSessionUserInfoTransfer] { get }
+    func activate()
+    func sendMessage(_ message: [String: Any], replyHandler: (([String: Any]) -> Void)?, errorHandler: ((Error) -> Void)?)
+    func updateApplicationContext(_ applicationContext: [String: Any]) throws
+    @discardableResult func transferUserInfo(_ userInfo: [String: Any]) -> WCSessionUserInfoTransfer
+    @discardableResult func transferCurrentComplicationUserInfo(_ userInfo: [String: Any]) -> WCSessionUserInfoTransfer
+}
+
+extension WCSession: WatchStateTransport {}
+
 /// Main implementation of the Watch communication manager
 /// Handles bidirectional communication between iPhone and Apple Watch
 final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchManager {
-    private var session: WCSession?
+    var session: WatchStateTransport?
 
     @Injected() var broadcaster: Broadcaster!
     @Injected() private var apsManager: APSManager!
@@ -40,16 +57,29 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private let queue = DispatchQueue(label: "BaseWatchManagerManager.queue", qos: .utility)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
-    private let watchStateUpdateRequests = PassthroughSubject<Void, Never>()
-    private static let watchStateUpdateDebounce: DispatchQueue.SchedulerTimeType.Stride = .seconds(2)
+    private var watchStateUpdates: WatchStateUpdateCoalescer<DispatchQueue>?
 
     typealias PumpEvent = PumpEventStored.EventType
 
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-    init(resolver: Resolver) {
+    init(
+        resolver: Resolver,
+        entityChanges: AnyPublisher<Set<NSManagedObjectID>, Never> = CoreDataStack.shared.entityChangePublisher,
+        watchStateDebounce: DispatchQueue.SchedulerTimeType.Stride = .seconds(2)
+    ) {
         super.init()
         injectServices(resolver)
+        watchStateUpdates = WatchStateUpdateCoalescer(
+            interval: watchStateDebounce,
+            scheduler: DispatchQueue.global(qos: .background)
+        ) { [weak self] in
+            guard let self = self else { return }
+            Task {
+                let state = await self.setupWatchState()
+                await self.sendDataToWatch(state)
+            }
+        }
         setupWatchSession()
 
         units = settingsManager.settings.units
@@ -65,7 +95,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         // Observer for OrefDetermination and adjustments
         coreDataPublisher =
-            CoreDataStack.shared.entityChangePublisher
+            entityChanges
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
@@ -87,23 +117,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             }
             .store(in: &subscriptions)
 
-        watchStateUpdateRequests
-            .debounce(for: Self.watchStateUpdateDebounce, scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                Task {
-                    let state = await self.setupWatchState()
-                    await self.sendDataToWatch(state)
-                }
-            }
-            .store(in: &subscriptions)
-
         registerHandlers()
     }
 
     private func requestWatchStateUpdate() {
         guard let session = session, session.isPaired, session.isWatchAppInstalled else { return }
-        watchStateUpdateRequests.send()
+        watchStateUpdates?.request()
     }
 
     private func registerHandlers() {
@@ -603,7 +622,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         WatchStateSnapshot.saveLatestDateToDisk(state.date)
     }
 
-    private func publishToUnreachableWatch(_ session: WCSession, message: [String: Any], at date: Date) {
+    private func publishToUnreachableWatch(_ session: WatchStateTransport, message: [String: Any], at date: Date) {
         session.outstandingUserInfoTransfers
             .filter { $0.userInfo[WatchMessageKeys.watchState] != nil && !$0.isCurrentComplicationInfo }
             .forEach { $0.cancel() }
@@ -795,7 +814,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                     if let session = self.session, session.isReachable {
                         debug(.watch, "Sending recommended bolus \(result.insulinCalculated) U to watch")
-                        session.sendMessage(recommendationMessage, replyHandler: nil)
+                        session.sendMessage(recommendationMessage, replyHandler: nil, errorHandler: nil)
                     }
                 }
                 return
@@ -1106,7 +1125,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 extension BaseWatchManager: SettingsObserver, PumpSettingsObserver {
     // to update maxBolus
     func pumpSettingsDidChange(_: PumpSettings) {
-        self.requestWatchStateUpdate()
+        requestWatchStateUpdate()
     }
 
     // to update the rest
@@ -1116,13 +1135,13 @@ extension BaseWatchManager: SettingsObserver, PumpSettingsObserver {
         lowGlucose = settingsManager.settings.low
         highGlucose = settingsManager.settings.high
 
-        self.requestWatchStateUpdate()
+        requestWatchStateUpdate()
     }
 }
 
 extension BaseWatchManager: SnoozeObserver {
     @MainActor func snoozeDidChange(_: Date) {
-        self.requestWatchStateUpdate()
+        requestWatchStateUpdate()
     }
 }
 
@@ -1202,5 +1221,18 @@ enum ComplicationTransferBudget {
         guard remainingTransfers > 0, let endOfDay = calendar.dateInterval(of: .day, for: date)?.end else { return false }
         let spreadInterval = endOfDay.timeIntervalSince(date) / Double(remainingTransfers)
         return date.timeIntervalSince(lastTransfer) >= max(spreadInterval, minimumInterval)
+    }
+}
+
+final class WatchStateUpdateCoalescer<S: Scheduler> {
+    private let requests = PassthroughSubject<Void, Never>()
+    private let subscription: AnyCancellable
+
+    init(interval: S.SchedulerTimeType.Stride, scheduler: S, perform: @escaping () -> Void) {
+        subscription = requests.debounce(for: interval, scheduler: scheduler).sink { perform() }
+    }
+
+    func request() {
+        requests.send()
     }
 }

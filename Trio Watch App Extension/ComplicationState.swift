@@ -210,6 +210,27 @@ struct ComplicationState: Codable, Equatable {
     }
 }
 
+final class ComplicationReloader {
+    typealias InstalledKindsFetch = (@escaping ([String]) -> Void) -> Void
+
+    private(set) var isReloading = false
+    private let fetchInstalledKinds: InstalledKindsFetch
+    private let reloadTimelines: (String) -> Void
+
+    init(fetchInstalledKinds: @escaping InstalledKindsFetch, reloadTimelines: @escaping (String) -> Void) {
+        self.fetchInstalledKinds = fetchInstalledKinds
+        self.reloadTimelines = reloadTimelines
+    }
+
+    func reload(_ kinds: Set<String>) {
+        isReloading = true
+        fetchInstalledKinds { [self] installedKinds in
+            Set(installedKinds).intersection(kinds).forEach(reloadTimelines)
+            isReloading = false
+        }
+    }
+}
+
 enum ComplicationStoreError: Error {
     case noAppGroup
 }
@@ -220,7 +241,11 @@ enum ComplicationStore {
     private static let logger = os.Logger(subsystem: "org.nightscout.trio", category: "ComplicationStore")
 
     static var appGroupID: String? {
-        guard let fromPlist = Bundle.main.object(forInfoDictionaryKey: "AppGroupID") as? String,
+        appGroupID(from: Bundle.main.object(forInfoDictionaryKey: "AppGroupID"))
+    }
+
+    static func appGroupID(from plistValue: Any?) -> String? {
+        guard let fromPlist = plistValue as? String,
               !fromPlist.isEmpty, !fromPlist.hasPrefix("$(")
         else {
             logger.error("AppGroupID missing from Info.plist")
