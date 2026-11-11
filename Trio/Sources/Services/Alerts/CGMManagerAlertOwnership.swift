@@ -1,10 +1,9 @@
 import CGMBLEKit
 import G7SensorKit
-import LibreTransmitter
 import LoopKit
 
-/// Trio-side stand-in for LoopKit next-dev's `CGMManager.providesOwnGlucoseAlerts`.
-/// Collapses to `manager?.providesOwnGlucoseAlerts ?? false` once the fork bumps.
+/// Trio-side stand-in for `CGMManager.providesOwnGlucoseAlerts`, which the
+/// Dexcom kits don't set for eavesdropped sessions.
 enum CGMManagerAlertOwnership {
     struct OwningApp {
         let name: String
@@ -37,8 +36,6 @@ enum CGMManagerAlertOwnership {
             // pairing requires that app to be gone, so nothing else alerts.
             guard manager.sessionMode == .eavesdropping else { return nil }
             return OwningApp(name: "Dexcom G7 / One+", deepLink: URL(string: "dexcomg7://"))
-        case is LibreTransmitterManagerV3:
-            return OwningApp(name: "FreeStyle Libre", deepLink: nil)
         default:
             return nil
         }

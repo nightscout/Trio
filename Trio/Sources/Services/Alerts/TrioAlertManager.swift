@@ -375,8 +375,10 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     private func acknowledgeOnDevice(identifier: Alert.Identifier) {
         guard let responder = queue.sync(execute: { responders[identifier.managerIdentifier]?.ref as? AlertResponder })
         else { return }
-        responder.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier) { error in
-            if let error = error {
+        Task {
+            do {
+                try await responder.acknowledgeAlert(alertIdentifier: identifier.alertIdentifier)
+            } catch {
                 warning(.alerts, "Acknowledging alert \(identifier.value) on device failed", error: error)
             }
         }
