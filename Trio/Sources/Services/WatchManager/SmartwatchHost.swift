@@ -101,6 +101,8 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
     @MainActor var determinationSighting = DeterminationSighting()
     /// Glucose alerts the plugin restored from before a relaunch that Trio doesn't issue again.
     @MainActor var restoredAlerts = RestoredWatchAlerts(launchedAt: Date())
+    /// Keeps forwarded alerts and retractions in Trio's order.
+    let watchAlertOrder = WatchAlertForwardOrder()
 
     private(set) var smartwatchManager: SmartwatchManagerUI? {
         didSet {
