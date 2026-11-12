@@ -248,53 +248,7 @@ extension MainChartCanvas {
         timeBegin: TimeInterval,
         timeEnd: TimeInterval
     ) async -> [BasalProfile] {
-        guard timeBegin < timeEnd else { return [] }
-
-        let beginDate = Date(timeIntervalSince1970: timeBegin)
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: beginDate)
-        let profile = state.basalProfile
-        var basalPoints: [BasalProfile] = []
-        var lastEntryBeforeRange: (amount: Double, date: Date)?
-
-        // Calendar days can be 23 or 25 hours across daylight-saving transitions.
-        for dayOffset in 0 ..< 3 {
-            guard let day = calendar.date(byAdding: .day, value: dayOffset, to: startOfDay) else { continue }
-            for entry in profile {
-                // Profile minutes describe a wall-clock time, not elapsed time since midnight.
-                guard let basalTime = calendar.date(
-                    bySettingHour: entry.minutes / 60,
-                    minute: entry.minutes % 60,
-                    second: 0,
-                    of: day
-                ) else { continue }
-                let basalTimeInterval = basalTime.timeIntervalSince1970
-
-                if basalTimeInterval < timeBegin {
-                    // Track the last profile entry before the visible range
-                    if lastEntryBeforeRange == nil || basalTime > lastEntryBeforeRange!.date {
-                        lastEntryBeforeRange = (amount: Double(entry.rate), date: basalTime)
-                    }
-                } else if basalTimeInterval < timeEnd {
-                    basalPoints.append(BasalProfile(
-                        amount: Double(entry.rate),
-                        isOverwritten: false,
-                        startDate: basalTime
-                    ))
-                }
-            }
-        }
-
-        // Include the active profile entry at timeBegin so the line starts at the chart's left edge
-        if let lastBefore = lastEntryBeforeRange {
-            basalPoints.append(BasalProfile(
-                amount: lastBefore.amount,
-                isOverwritten: false,
-                startDate: beginDate
-            ))
-        }
-
-        return basalPoints
+        BasalProfile.scheduledPoints(profile: state.basalProfile, timeBegin: timeBegin, timeEnd: timeEnd)
     }
 
     func calculateBasals() {
@@ -362,4 +316,61 @@ extension MainChartCanvas {
             }
         }
     }
+}
+
+// Pure schedule projection shared by the chart and its calendar regression tests.
+extension BasalProfile {
+    static func scheduledPoints(
+        profile: [BasalProfileEntry],
+        timeBegin: TimeInterval,
+        timeEnd: TimeInterval,
+        calendar: Calendar = .current
+    ) -> [BasalProfile] {
+        guard timeBegin < timeEnd else { return [] }
+
+        let beginDate = Date(timeIntervalSince1970: timeBegin)
+        let startOfDay = calendar.startOfDay(for: beginDate)
+        var basalPoints: [BasalProfile] = []
+        var lastEntryBeforeRange: (amount: Double, date: Date)?
+
+        // Calendar days can be 23 or 25 hours across daylight-saving transitions.
+        for dayOffset in 0 ..< 3 {
+            guard let day = calendar.date(byAdding: .day, value: dayOffset, to: startOfDay) else { continue }
+            for entry in profile {
+                // Profile minutes describe a wall-clock time, not elapsed time since midnight.
+                guard let basalTime = calendar.date(
+                    bySettingHour: entry.minutes / 60,
+                    minute: entry.minutes % 60,
+                    second: 0,
+                    of: day
+                ) else { continue }
+                let basalTimeInterval = basalTime.timeIntervalSince1970
+
+                if basalTimeInterval < timeBegin {
+                    // Track the last profile entry before the visible range
+                    if lastEntryBeforeRange == nil || basalTime > lastEntryBeforeRange!.date {
+                        lastEntryBeforeRange = (amount: Double(entry.rate), date: basalTime)
+                    }
+                } else if basalTimeInterval < timeEnd {
+                    basalPoints.append(BasalProfile(
+                        amount: Double(entry.rate),
+                        isOverwritten: false,
+                        startDate: basalTime
+                    ))
+                }
+            }
+        }
+
+        // Include the active profile entry at timeBegin so the line starts at the chart's left edge
+        if let lastBefore = lastEntryBeforeRange {
+            basalPoints.append(BasalProfile(
+                amount: lastBefore.amount,
+                isOverwritten: false,
+                startDate: beginDate
+            ))
+        }
+
+        return basalPoints
+    }
+
 }

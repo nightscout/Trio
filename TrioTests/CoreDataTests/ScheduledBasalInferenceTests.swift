@@ -344,3 +344,57 @@ import Testing
         #expect(result == .temp(1.1))
     }
 }
+
+@Suite("Basal Schedule Chart Tests") struct BasalScheduleChartTests {
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Berlin")!
+        return calendar
+    }
+
+    private var profile: [BasalProfileEntry] {
+        [
+            BasalProfileEntry(start: "00:00", minutes: 0, rate: 0.5),
+            BasalProfileEntry(start: "06:00", minutes: 360, rate: 1),
+            BasalProfileEntry(start: "13:00", minutes: 780, rate: 0.7)
+        ]
+    }
+
+    private func date(month: Int, day: Int, hour: Int = 0, minute: Int = 0) -> Date {
+        calendar.date(from: DateComponents(year: 2026, month: month, day: day, hour: hour, minute: minute))!
+    }
+
+    @Test("Schedule boundaries retain wall-clock times across both DST transitions", arguments: [3, 10])
+    func daylightSavingBoundaries(month: Int) {
+        let transitionDay = month == 3 ? 29 : 25
+        let start = date(month: month, day: transitionDay - 1)
+        let end = date(month: month, day: transitionDay + 2)
+        let points = BasalProfile.scheduledPoints(
+            profile: profile,
+            timeBegin: start.timeIntervalSince1970,
+            timeEnd: end.timeIntervalSince1970,
+            calendar: calendar
+        ).sorted { $0.startDate < $1.startDate }
+        let expected = (transitionDay - 1 ... transitionDay + 1).flatMap { day in
+            [0, 6, 13].map { date(month: month, day: day, hour: $0) }
+        }
+
+        #expect(points.map(\.startDate) == expected)
+        #expect(points.map(\.amount) == Array(repeating: [0.5, 1.0, 0.7], count: 3).flatMap { $0 })
+    }
+
+    @Test("Clipped schedule retains the active rate at the left edge")
+    func clippedSchedule() {
+        let start = date(month: 10, day: 25, hour: 6, minute: 30)
+        let end = date(month: 10, day: 25, hour: 14)
+        let points = BasalProfile.scheduledPoints(
+            profile: profile,
+            timeBegin: start.timeIntervalSince1970,
+            timeEnd: end.timeIntervalSince1970,
+            calendar: calendar
+        ).sorted { $0.startDate < $1.startDate }
+
+        #expect(points.map(\.startDate) == [start, date(month: 10, day: 25, hour: 13)])
+        #expect(points.map(\.amount) == [1.0, 0.7])
+    }
+}
