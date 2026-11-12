@@ -37,11 +37,11 @@ struct ComplicationState: Codable, Equatable {
     var history: [ComplicationPoint]
     var loopDate: Date?
     var limits: ClosedRange<Double>?
+    var ringStops: [ComplicationRingStop]?
 
     static let missingValue = "--"
     static let defaultUnits = "mg/dL"
 
-    private static let mgPerDlPerMmol = 18.0182
     private static let sampleReadingSpacing: TimeInterval = 5 * 60
     private static let maxLoopAgeMinutes = 1440
     private static let sampleMmolCurve: [Double] = [
@@ -66,12 +66,14 @@ struct ComplicationState: Codable, Equatable {
         glucoseValue: nil,
         history: [],
         loopDate: nil,
-        limits: nil
+        limits: nil,
+        ringStops: nil
     )
 
     static func sample(
         units: String,
         settings: ComplicationSlotSettings = ComplicationSlotSettings(),
+        ringStops: [ComplicationRingStop]? = nil,
         date: Date = Date()
     ) -> ComplicationState {
         let mmol = Self.isMmol(units)
@@ -92,12 +94,13 @@ struct ComplicationState: Codable, Equatable {
             glucoseValue: history.last?.glucose,
             history: history,
             loopDate: date.addingTimeInterval(-2 * 60),
-            limits: typicalBand(isMmol: mmol)
+            limits: typicalBand(isMmol: mmol),
+            ringStops: ringStops
         )
     }
 
     private static func sampleHistory(isMmol: Bool, endingAt date: Date) -> [ComplicationPoint] {
-        let curve = isMmol ? sampleMmolCurve : sampleMmolCurve.map { ($0 * mgPerDlPerMmol).rounded() }
+        let curve = isMmol ? sampleMmolCurve : sampleMmolCurve.map { ($0 * WatchComplicationDefaults.mgdlPerMmol).rounded() }
         let start = date.timeIntervalSince1970 - TimeInterval(curve.count - 1) * sampleReadingSpacing
         return curve.enumerated().map { index, glucose in
             ComplicationPoint(timestamp: start + TimeInterval(index) * sampleReadingSpacing, glucose: glucose)
@@ -119,7 +122,7 @@ struct ComplicationState: Codable, Equatable {
     var staleAfter: TimeInterval { TimeInterval(staleMinutes) * 60 }
 
     var gaugeRange: ClosedRange<Double> {
-        isMmol ? 2.5 ... 16.0 : 45 ... 290
+        isMmol ? WatchComplicationDefaults.gaugeRangeMmol : WatchComplicationDefaults.gaugeRangeMgdl
     }
 
     var inRangeBand: ClosedRange<Double> {
@@ -181,28 +184,29 @@ struct ComplicationState: Codable, Equatable {
         max(0, Int(reference.timeIntervalSince(date) / 60))
     }
 
-    func labelledText(for value: WatchComplicationValue) -> String {
+    func labelledText(for value: WatchComplicationValue, withArrow: Bool = true) -> String {
         switch value {
         case .nothing: return ""
         case .iob: return "IOB \(iob)"
         case .cob: return "COB \(cob)"
-        case .delta: return deltaText
+        case .delta: return deltaText(withArrow: withArrow)
         case .loopAge: return "Loop \(lastLoopTime)"
         }
     }
 
-    func plainText(for value: WatchComplicationValue) -> String {
+    func plainText(for value: WatchComplicationValue, withArrow: Bool = true) -> String {
         switch value {
         case .nothing: return ""
         case .iob: return iob
         case .cob: return cob
-        case .delta: return deltaText
+        case .delta: return deltaText(withArrow: withArrow)
         case .loopAge: return lastLoopTime
         }
     }
 
-    private var deltaText: String {
-        "\(trendArrow) \(delta)".trimmingCharacters(in: .whitespaces)
+    private func deltaText(withArrow: Bool) -> String {
+        guard withArrow else { return delta }
+        return "\(trendArrow) \(delta)".trimmingCharacters(in: .whitespaces)
     }
 
     var glucoseColor: Color {

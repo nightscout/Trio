@@ -43,16 +43,25 @@ import WatchConnectivity
         #expect(WatchComplicationDefaults.clampedStaleMinutes(30) == 30)
     }
 
-    @Test("Grey Out After steps from 15 to exactly 10 and 30 and the footer explains the stale face") func greyOutAfterJourney() {
+    @Test("Mark Stale After steps from 15 to exactly 10 and 30 and its hint explains the stale face") func markStaleAfterJourney() {
         let range = WatchComplicationDefaults.staleMinutesRange
         let step = WatchComplicationDefaults.staleMinutesStep
         #expect(WatchComplicationDefaults.staleMinutes == 15)
         #expect(range == 10 ... 30)
         #expect(Array(stride(from: range.lowerBound, through: range.upperBound, by: step)) == [10, 15, 20, 25, 30])
-        let footer = WatchConfigAppleWatchView.complicationSettingsFooter
-        #expect(footer.contains("the glucose shows -- with the reading's age"))
-        #expect(footer.contains("With the watch app closed"))
-        #expect(footer.contains("the Contact Image updates with every reading"))
+        let hint = WatchConfigAppleWatchView.markStaleAfterHint
+        #expect(hint.contains("the glucose shows -- with the reading's age"))
+        #expect(hint.contains("Complications can fall behind the phone, sometimes by a lot"))
+        #expect(hint.contains("The Contact Image updates with every reading"))
+        #expect(!hint.contains("15 minutes"))
+    }
+
+    @Test("Renaming the stale setting keeps its stored key") func staleSettingKeyUnchanged() throws {
+        var settings = try decodeSettings("{}")
+        settings.watchComplicationStaleMinutes = 25
+        let encoded = try JSONSerialization.jsonObject(with: JSONEncoder().encode(settings)) as? [String: Any]
+        #expect((encoded?["watchComplicationStaleMinutes"] as? NSNumber)?.intValue == 25)
+        #expect(WatchMessageKeys.complicationStaleMinutes == "complicationStaleMinutes")
     }
 
     @Test("Clamping stays within 10 to 30 and is idempotent", arguments: -5 ... 40) func clampProperty(minutes: Int) {
@@ -78,11 +87,12 @@ import WatchConnectivity
 
     @Test("Units decide the gauge range and clamp the value") func gaugeRange() {
         var state = ComplicationState.sample(units: "mmol/L", date: now)
-        #expect(state.gaugeRange == 2.5 ... 16.0)
+        #expect(abs(state.gaugeRange.lowerBound - 2.5) < 0.01)
+        #expect(abs(state.gaugeRange.upperBound - 16.1) < 0.01)
         state.glucoseValue = 25
-        #expect(state.gaugeValue == 16.0)
+        #expect(state.gaugeValue == state.gaugeRange.upperBound)
         state.glucoseValue = 1
-        #expect(state.gaugeValue == 2.5)
+        #expect(state.gaugeValue == state.gaugeRange.lowerBound)
 
         state = ComplicationState.sample(units: "mg/dL", date: now)
         #expect(state.gaugeRange == 45 ... 290)
@@ -151,6 +161,8 @@ import WatchConnectivity
         #expect(state.plainText(for: .iob) == "1.25")
         #expect(state.labelledText(for: .cob) == "COB 12")
         #expect(state.labelledText(for: .delta) == "↗︎ +0.3")
+        #expect(state.labelledText(for: .delta, withArrow: false) == "+0.3")
+        #expect(state.plainText(for: .delta, withArrow: false) == "+0.3")
         #expect(state.labelledText(for: .loopAge) == "Loop 2 min")
         state.trend = "Unknown"
         #expect(state.trendArrow == "")
@@ -224,9 +236,112 @@ import WatchConnectivity
         #expect(state.inRangeBand == 80 ... 160)
         state.limits = nil
         #expect(state.inRangeBand == 70 ... 180)
-        let model = makeModel(.gauge, state, at: state.date)
-        #expect(model.gaugeGradient.stops.first?.color == .red)
-        #expect(model.gaugeGradient.stops.count == 5)
+    }
+
+    @Test("Without ring stops the gauge ring is one neutral colour") func ringFallback() throws {
+        let state = ComplicationState.sample(units: "mg/dL", date: now)
+        #expect(state.ringStops == nil)
+        #expect(makeModel(.gauge, state, at: now).gaugeGradient == Gradient(colors: [.white, .white]))
+        var stored = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any]
+        stored?.removeValue(forKey: "ringStops")
+        let legacy = try JSONSerialization.data(withJSONObject: stored ?? [:])
+        let decoded = try JSONDecoder().decode(ComplicationState.self, from: legacy)
+        #expect(decoded.ringStops == nil)
+        #expect(makeModel(.gauge, decoded, at: now).gaugeGradient == Gradient(colors: [.white, .white]))
+    }
+
+    @Test("The gauge ring draws the stops the phone sent") func ringFollowsPhoneStops() {
+        let stops = [
+            ComplicationRingStop(location: 0, colorHex: "#E65C5C"),
+            ComplicationRingStop(location: 0.5, colorHex: "#5CE65C"),
+            ComplicationRingStop(location: 1, colorHex: "#A35CE6")
+        ]
+        let state = ComplicationState.sample(units: "mmol/L", ringStops: stops, date: now)
+        let gradient = makeModel(.gauge, state, at: now).gaugeGradient
+        #expect(gradient.stops.map(\.location) == [0, 0.5, 1])
+        #expect(gradient.stops.map(\.color) == stops.compactMap { Color(complicationHex: $0.colorHex) })
+        let tinted = ComplicationModel(
+            kind: .gauge,
+            state: state,
+            rendering: ComplicationRendering(referenceDate: now, fullColor: false)
+        )
+        #expect(tinted.gaugeGradient == Gradient(colors: [.gray, .gray]))
+        #expect(makeModel(.gauge, state, at: now.addingTimeInterval(16 * 60)).gaugeGradient == Gradient(colors: [.gray, .gray]))
+    }
+
+    @Test("Static ring stops are Trio's three bands with edges at the limits") func staticRingStops() {
+        let stops = complicationRingStops(
+            highGlucoseColorValue: 180,
+            lowGlucoseColorValue: 70,
+            targetGlucose: 100,
+            glucoseColorScheme: .staticColor
+        )
+        let range = WatchComplicationDefaults.gaugeRangeMgdl
+        let lowEdge = (70 - range.lowerBound) / (range.upperBound - range.lowerBound)
+        let highEdge = (180 - range.lowerBound) / (range.upperBound - range.lowerBound)
+        #expect(stops.map(\.location) == [0, lowEdge, lowEdge, highEdge, highEdge, 1])
+        let low = Color.staticLow.toHexString()
+        let inRange = Color.staticInRange.toHexString()
+        let high = Color.staticHigh.toHexString()
+        #expect(stops.map(\.colorHex) == [low, low, inRange, inRange, high, high])
+    }
+
+    @Test("Dynamic ring stops match the reading colour along the gauge") func dynamicRingStops() {
+        let stops = complicationRingStops(
+            highGlucoseColorValue: 220,
+            lowGlucoseColorValue: 55,
+            targetGlucose: 100,
+            glucoseColorScheme: .dynamicColor
+        )
+        let range = WatchComplicationDefaults.gaugeRangeMgdl
+        #expect(stops.count == 13)
+        #expect(stops.first?.location == 0)
+        #expect(stops.last?.location == 1)
+        for stop in stops {
+            let glucose = Decimal(range.lowerBound + stop.location * (range.upperBound - range.lowerBound))
+            let expected = getDynamicGlucoseColor(
+                glucoseValue: glucose,
+                highGlucoseColorValue: 220,
+                lowGlucoseColorValue: 55,
+                targetGlucose: 100,
+                glucoseColorScheme: .dynamicColor
+            ).toHexString()
+            #expect(stop.colorHex == expected)
+        }
+        #expect(stops.first?.colorHex == Color.dynamicRed.toHexString())
+        #expect(stops.last?.colorHex == Color.dynamicPurple.toHexString())
+    }
+
+    @Test("Ring stops travel to the watch in the payload") func ringStopsInPayload() {
+        var state = WatchState(date: now)
+        state.complicationRingStops = [ComplicationRingStop(location: 0.25, colorHex: "#5CE65C")]
+        let payload = BaseWatchManager.watchStateToDictionary(from: state)
+        let sent = payload[WatchMessageKeys.complicationRingStops] as? [[String: Any]]
+        #expect(sent?.compactMap(ComplicationRingStop.init(payload:)) == state.complicationRingStops)
+    }
+
+    @Test("One trend arrow per layout", arguments: [WatchComplicationValue.delta, .iob]) func oneArrowPerLayout(
+        value: WatchComplicationValue
+    ) {
+        var state = ComplicationState.sample(
+            units: "mg/dL",
+            settings: ComplicationSlotSettings(cornerValue: value, secondaryValue: value),
+            date: now
+        )
+        state.trend = "FortyFiveUp"
+        state.delta = "+5"
+        let arrow = state.trendArrow
+        func arrows(_ text: String) -> Int { text.components(separatedBy: arrow).count - 1 }
+        let glucose = makeModel(.glucose, state, at: now)
+        let chart = makeModel(.chart, state, at: now)
+        let gauge = makeModel(.gauge, state, at: now)
+        #expect(arrows(chart.glucoseWithArrow + chart.secondaryTextBesideArrow) == 1)
+        #expect(arrows(glucose.cornerMainText + glucose.cornerText) == 1)
+        #expect(arrows(glucose.glucoseText + glucose.secondaryText) == (value == .delta ? 1 : 0))
+        #expect(arrows(gauge.glucoseText + gauge.secondaryText) == (value == .delta ? 1 : 0))
+        state.trend = "Unknown"
+        let unknown = makeModel(.glucose, state, at: now)
+        #expect(arrows(unknown.cornerMainText + unknown.cornerText) == 0)
     }
 
     @Test("Placeholder has no reading and a neutral colour") func placeholder() {

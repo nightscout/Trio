@@ -40,7 +40,7 @@ enum ComplicationKind: String, CaseIterable, Identifiable {
             )
         case .iob:
             return String(
-                localized: "Insulin on board first, with COB and glucose alongside. Fixed layout; only Grey Out After applies.",
+                localized: "Insulin on board first, with COB and glucose alongside. Fixed layout; only Mark Stale After applies.",
                 comment: "Description of the insulin on board watch complication"
             )
         case .chart:
@@ -75,7 +75,7 @@ struct ComplicationRendering {
 }
 
 struct ComplicationModel {
-    private static let highWarningSpan = 0.15
+    static let neutralRing = Gradient(colors: [.white, .white])
 
     let kind: ComplicationKind
     let displayedState: ComplicationState
@@ -149,8 +149,12 @@ struct ComplicationModel {
         isStale ? ageText : displayedState.plainText(for: displayedState.secondaryValue)
     }
 
+    var secondaryTextBesideArrow: String {
+        isStale ? ageText : displayedState.plainText(for: displayedState.secondaryValue, withArrow: trendArrow.isEmpty)
+    }
+
     var cornerText: String {
-        isStale ? ageText : displayedState.labelledText(for: displayedState.cornerValue)
+        isStale ? ageText : displayedState.labelledText(for: displayedState.cornerValue, withArrow: trendArrow.isEmpty)
     }
 
     var gaugeValue: Double {
@@ -161,24 +165,11 @@ struct ComplicationModel {
         if isStale || !fullColor || displayedState.gaugeValue == nil {
             return Gradient(colors: [.gray, .gray])
         }
-        return Gradient(stops: ringStops)
-    }
-
-    private var ringStops: [Gradient.Stop] {
-        let range = displayedState.gaugeRange
-        let span = range.upperBound - range.lowerBound
-        let fraction: (Double) -> Double = { value in
-            min(max((value - range.lowerBound) / span, 0), 1)
+        let stops = (displayedState.ringStops ?? []).compactMap { stop in
+            Color(complicationHex: stop.colorHex).map { Gradient.Stop(color: $0, location: stop.location) }
         }
-        let low = fraction(displayedState.inRangeBand.lowerBound)
-        let high = fraction(displayedState.inRangeBand.upperBound)
-        return [
-            .init(color: .red, location: 0),
-            .init(color: .green, location: low),
-            .init(color: .green, location: high),
-            .init(color: .orange, location: min(high + Self.highWarningSpan, 1)),
-            .init(color: .red, location: 1)
-        ]
+        guard !stops.isEmpty else { return Self.neutralRing }
+        return Gradient(stops: stops)
     }
 }
 
@@ -407,7 +398,7 @@ struct ComplicationRectangularContent: View {
                 Text(model.glucoseWithArrow)
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(model.glucoseColor)
-                Text(model.secondaryText)
+                Text(model.secondaryTextBesideArrow)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(model.dimColor)
                 Text(

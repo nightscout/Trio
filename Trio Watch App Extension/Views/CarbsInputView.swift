@@ -94,7 +94,7 @@ struct CarbsInputView: View {
                     state.carbsAmount = Int(min(carbsAmount, effectiveCarbsLimit))
                     navigationPath.append(NavigationDestinations.bolusInput)
                 } else {
-                    state.sendCarbsRequest(Int(min(carbsAmount, effectiveCarbsLimit)))
+                    state.sendCarbsEntry(Int(min(carbsAmount, effectiveCarbsLimit)))
                     navigationPath.append(NavigationDestinations.acknowledgmentPending)
                 }
             }
@@ -103,6 +103,9 @@ struct CarbsInputView: View {
             .disabled(!(carbsAmount > 0.0) || carbsAmount > effectiveCarbsLimit)
         }
         .background(trioBackgroundColor)
+        // The entry's 2 min clock restarts whenever the user touches it
+        .onAppear { state.markEntryEdited() }
+        .onChange(of: carbsAmount) { state.markEntryEdited() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Image(systemName: "fork.knife")

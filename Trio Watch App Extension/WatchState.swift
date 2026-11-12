@@ -37,6 +37,14 @@ import WidgetKit
     var proteinAmount: Int = 0
     var bolusAmount: Double = 0.0
     var confirmationProgress: Double = 0.0
+    /// Last time the user opened or changed a carbs/bolus entry; nil when no entry is in progress
+    @ObservationIgnored private(set) var entryEditedAt: Date?
+    /// An entry left alone for longer than this is cleared and never sent
+    static let entryLifetime: TimeInterval = 2 * 60
+    static let entryExpiredMessage = String(
+        localized: "Entry expired after 2 minutes. Nothing was sent. Please enter it again.",
+        comment: "Watch message when a carbs or bolus entry was too old to send"
+    )
 
     // Safety limits
     var maxBolus: Decimal = 10
@@ -51,6 +59,7 @@ import WidgetKit
     var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
     var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
     var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+    var complicationRingStops: [ComplicationRingStop] = []
     var glucoseUnits: String = ComplicationState.defaultUnits
     var lastLoopDate: Date?
     var lowGlucoseLimit: Double?
@@ -70,6 +79,22 @@ import WidgetKit
     var acknowledgementStatus: AcknowledgementStatus = .pending
     var acknowledgmentMessage: String = ""
     var shouldNavigateToRoot: Bool = true
+    @ObservationIgnored private var acknowledgmentTimeoutWorkItem: DispatchWorkItem?
+
+    /// Long enough for a pump to accept a bolus, short enough that the user isn't left guessing
+    static let acknowledgmentTimeout: TimeInterval = 15
+    static let noAnswerMessage = String(
+        localized: "No answer from iPhone. Check Trio on your iPhone before trying again.",
+        comment: "Watch message when the phone did not confirm a request"
+    )
+    static let phoneUnreachableMessage = String(
+        localized: "iPhone not reachable. Nothing was sent.",
+        comment: "Watch message when a request could not be sent to the phone"
+    )
+    static let invalidBolusAmountMessage = String(
+        localized: "Error! Bolus amount must be greater than 0 U.",
+        comment: "Error message when a bolus of zero or less is requested"
+    )
 
     // Bolus calculation progress
     var showBolusCalculationProgress: Bool = false
@@ -138,9 +163,72 @@ import WidgetKit
         }
     }
 
+    // MARK: - Entry lifetime
+
+    /// Starts or restarts the entry's clock. Call when an input screen appears and on every amount change.
+    func markEntryEdited(at now: Date = Date()) {
+        entryEditedAt = now
+    }
+
+    /// True only for an entry changed within `entryLifetime`; an entry with no recorded edit is never fresh
+    func isEntryFresh(at now: Date = Date()) -> Bool {
+        guard let entryEditedAt else { return false }
+        return now.timeIntervalSince(entryEditedAt) <= Self.entryLifetime
+    }
+
+    /// Ends the entry: clears amounts, the recommendation and the confirmation progress
+    func clearEntry() {
+        bolusAmount = 0
+        carbsAmount = 0
+        fatAmount = 0
+        proteinAmount = 0
+        recommendedBolus = 0
+        confirmationProgress = 0
+        entryEditedAt = nil
+    }
+
+    /// Clears an entry older than `entryLifetime`. Returns true when it did, so the caller can
+    /// leave the input screens.
+    @discardableResult func expireStaleEntry(at now: Date = Date()) -> Bool {
+        guard entryEditedAt != nil, !isEntryFresh(at: now) else { return false }
+        WatchLogger.shared.info(.treatments, "Entry older than \(Int(Self.entryLifetime / 60)) min cleared")
+        clearEntry()
+        return true
+    }
+
     // MARK: – Handle Acknowledgement Messages FROM Phone
 
+    /// Shows "Processing…" and starts the clock for the phone's answer
+    func beginAwaitingAcknowledgment(timeout: TimeInterval = WatchState.acknowledgmentTimeout) {
+        acknowledgmentTimeoutWorkItem?.cancel()
+        acknowledgementStatus = .pending
+        showCommsAnimation = true
+
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.handleMissingAcknowledgment()
+        }
+        acknowledgmentTimeoutWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeout, execute: workItem)
+    }
+
+    /// No answer arrived in time, or sending reported an error. Sending can report an error and
+    /// still deliver the request, so this tells the user to check the phone rather than claiming
+    /// the request failed.
+    func handleMissingAcknowledgment() {
+        guard showCommsAnimation else { return }
+        WatchLogger.shared.warning(.treatments, "No answer from the phone for the last request")
+        handleAcknowledgment(success: false, message: Self.noAnswerMessage)
+    }
+
+    /// The request was refused on the watch and never sent
+    func handleRequestNotSent(_ message: String) {
+        handleAcknowledgment(success: false, message: message)
+    }
+
     func handleAcknowledgment(success: Bool, message: String, isFinal: Bool = true) {
+        acknowledgmentTimeoutWorkItem?.cancel()
+        acknowledgmentTimeoutWorkItem = nil
+
         if success {
             acknowledgementStatus = .success
             acknowledgmentMessage = message
@@ -292,21 +380,22 @@ import WidgetKit
     /// Called when the reachability status of the paired iPhone changes
     /// Updates the local reachability status
     func sessionReachabilityDidChange(_ session: WCSession) {
+        let isReachable = session.isReachable
         DispatchQueue.main.async {
-            if WatchLogger.shared.shouldLog("reachability", state: "\(session.isReachable)") {
-                WatchLogger.shared.debug(.connectivity, "Phone reachable: \(session.isReachable)")
-            }
+            self.handleReachabilityChange(isReachable: isReachable)
+        }
+    }
 
-            if session.isReachable {
-                self.forceConditionalWatchStateUpdate()
+    /// Reachability flips on every wrist raise, so this must leave entries in progress alone:
+    /// clearing `bolusAmount` here turned a confirmed bolus into a 0 U request.
+    /// The main view resets the entry fields when it appears.
+    func handleReachabilityChange(isReachable: Bool) {
+        if WatchLogger.shared.shouldLog("reachability", state: "\(isReachable)") {
+            WatchLogger.shared.debug(.connectivity, "Phone reachable: \(isReachable)")
+        }
 
-                // reset input amounts
-                self.bolusAmount = 0
-                self.carbsAmount = 0
-
-                // reset auth progress
-                self.confirmationProgress = 0
-            }
+        if isReachable {
+            forceConditionalWatchStateUpdate()
         }
     }
 
@@ -566,6 +655,10 @@ import WidgetKit
             glucoseUnits = units
         }
 
+        if let stops = message[WatchMessageKeys.complicationRingStops] as? [[String: Any]] {
+            complicationRingStops = stops.compactMap(ComplicationRingStop.init(payload:))
+        }
+
         if let loopTimestamp = (message[WatchMessageKeys.lastLoopDate] as? NSNumber)?.doubleValue {
             lastLoopDate = Date(timeIntervalSince1970: loopTimestamp)
         }
@@ -634,7 +727,8 @@ import WidgetKit
             glucoseValue: glucoseValue,
             history: complicationHistory(until: readingDate),
             loopDate: lastLoopDate,
-            limits: complicationLimits
+            limits: complicationLimits,
+            ringStops: complicationRingStops.isEmpty ? nil : complicationRingStops
         )
     }
 
