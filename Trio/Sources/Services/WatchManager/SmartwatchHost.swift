@@ -324,6 +324,10 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
         var target: Double?
         var scheduledBasal: Double?
         var minPredBG: Decimal?
+        /// oref's forecast curves by type (`iob`, `zt`, `cob`, `uam`), mg/dL, 5 min apart.
+        var forecasts: [String: [Int]] = [:]
+        /// When the forecasts start, as Trio's charts anchor them: `deliverAt`, else `timestamp`.
+        var forecastStart: Date?
     }
 
     /// The newest determination from the last 30 minutes, enacted or suggested.
@@ -349,7 +353,12 @@ final class BaseSmartwatchHost: SmartwatchHost, Injectable {
                 sensitivityRatio: double(determination.sensitivityRatio),
                 target: double(determination.currentTarget),
                 scheduledBasal: double(determination.scheduledBasal),
-                minPredBG: determination.minPredBGFromReason
+                minPredBG: determination.minPredBGFromReason,
+                forecasts: (determination.forecasts ?? []).reduce(into: [:]) { forecasts, forecast in
+                    guard let type = forecast.type else { return }
+                    forecasts[type] = forecast.forecastValuesArray.map { Int($0.value) }
+                },
+                forecastStart: determination.deliverAt ?? determination.timestamp
             )
         }
     }
@@ -577,9 +586,9 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
         try await fetchGlucoseSamples(since: date)
     }
 
-    /// From the newest determination of the last 30 minutes: COB, eventual BG and
-    /// the sensitivity ratio. IOB is Trio's current IOB, as on the Home screen.
-    /// Trio's forecast lines aren't sent: the watch shows none, as before.
+    /// From the newest determination of the last 30 minutes: COB, eventual BG, the
+    /// sensitivity ratio and oref's forecast curves. IOB is Trio's current IOB, as
+    /// on the Home screen.
     func smartwatchManagerLoopState(_ manager: SmartwatchManager) async -> SmartwatchLoopState {
         let determination: DeterminationValues?
         do {
@@ -601,12 +610,31 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
             carbsOnBoard: determination.flatMap { determination in
                 determination.cob.map { CarbValue(startDate: determination.calculatedAt ?? Date(), value: $0) }
             },
-            predictedGlucose: [],
+            predictedGlucose: determination.map { Self.forecastCurves($0.forecasts, start: $0.forecastStart) } ?? [],
             eventualGlucose: determination?.eventualGlucose.map {
                 LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: $0)
             },
             sensitivityRatio: determination?.sensitivityRatio
         )
+    }
+
+    /// oref's forecast curves, one per type, in a fixed order (IOB, ZT, COB, UAM, as
+    /// Trio's Apple Watch cone takes them; any other type after, by name), each
+    /// point 5 min after the one before from `start`, in mg/dL. Types oref didn't
+    /// compute this time (COB without carbs, UAM when off) are left out.
+    static func forecastCurves(_ forecasts: [String: [Int]], start: Date?) -> [[PredictedGlucoseValue]] {
+        guard let start else { return [] }
+        let known = ["iob", "zt", "cob", "uam"]
+        let types = known.filter { forecasts[$0] != nil } + forecasts.keys.filter { !known.contains($0) }.sorted()
+        return types.compactMap { type in
+            guard let values = forecasts[type], !values.isEmpty else { return nil }
+            return values.enumerated().map { index, value in
+                PredictedGlucoseValue(
+                    startDate: start.addingTimeInterval(Double(index) * 5 * 60),
+                    quantity: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(value))
+                )
+            }
+        }
     }
 
     /// As Trio's own loop ring (LoopView) shows it: closed only while no manual
