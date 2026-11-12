@@ -19,6 +19,7 @@ extension Treatments {
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() var bolusCalculationManager: BolusCalculationManager!
+        @ObservationIgnored @Injected() var iobService: IOBService!
 
         var lowGlucose: Decimal = 70
         var highGlucose: Decimal = 180
@@ -51,6 +52,8 @@ extension Treatments {
         var target: Decimal = 0
         var cob: Int16 = 0
         var iob: Decimal = 0
+        /// Display-only value from the same service used by Home.
+        var currentIOB: Decimal?
 
         var currentBG: Decimal = 0
         var fifteenMinInsulin: Decimal = 0
@@ -215,6 +218,14 @@ extension Treatments {
 
             setupBolusStateConcurrently()
             subscribeToBolusProgress()
+
+            iobService.iobPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self = self else { return }
+                    self.currentIOB = self.iobService.currentIOB
+                }
+                .store(in: &subscriptions)
         }
 
         private var hasCleanedUp = false

@@ -219,6 +219,19 @@ extension Treatments {
 
         /// Own view for Reduced Bolus / Super Bolus toggles, the recommendation readout and the Bolus field
         @ViewBuilder private var bolusSection: some View {
+            HStack {
+                Text("Insulin On Board (IOB)")
+                Spacer()
+                if let iob = state.currentIOB {
+                    Text(iob.formatted(.number.precision(.fractionLength(0 ... 2))))
+                    Text("U").foregroundStyle(.secondary)
+                } else {
+                    Text("--")
+                        .accessibilityLabel(Text("Unavailable"))
+                }
+            }
+            .accessibilityElement(children: .combine)
+
             if state.fattyMeals || state.sweetMeals {
                 HStack(spacing: 10) {
                     if state.fattyMeals {
