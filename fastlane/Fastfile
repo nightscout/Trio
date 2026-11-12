@@ -52,7 +52,7 @@ ENV["BUNDLE_ID"] = xcconfig["BUNDLE_IDENTIFIER"]
 # Plain-text excerpt of the newest release notes that scripts/capture-release-notes.sh bundled
 # into the IPA. Mirrors the in-app sheet (ReleaseNotes.swift): summary, callouts, then highlights.
 def bundled_release_notes(ipa_path)
-  json = IO.popen(["unzip", "-p", ipa_path, "Payload/Trio.app/BundledReleaseNotes.json"], err: File::NULL, &:read)
+  json = IO.popen(["unzip", "-p", ipa_path, "Payload/Trio.app/BundledReleaseNotes.json"], err: File::NULL, &:read).force_encoding("UTF-8")
   release = JSON.parse(json).first
   return nil unless release
 
@@ -212,14 +212,20 @@ platform :ios do
 
     # APP_DEV_VERSION only has a 4th component off main (e.g. 1.0.2.33 on dev)
     dev_version = xcconfig["APP_DEV_VERSION"].to_s
-    version_note = dev_version.split(".").length == 4 ? " "+dev_version : ""
+    on_main = dev_version.split(".").length != 4
+    version_note = on_main ? "" : " "+dev_version
     notes = git_branch+version_note+" "+last_git_commit[:abbreviated_commit_hash]
-    release_notes = bundled_release_notes("#{GITHUB_WORKSPACE}/Trio.ipa")
+    release_notes = on_main && bundled_release_notes("#{GITHUB_WORKSPACE}/Trio.ipa")
     notes += "\n\n"+release_notes if release_notes
 
     # changelog alone only updates existing "What to Test" notes, so name the primary locale to create one.
     # Keep changelog too: without it, skip_waiting_for_build_processing returns before notes are set.
-    primary_locale = Spaceship::ConnectAPI::App.find(ENV["BUNDLE_ID"])&.primary_locale || "en-US"
+    primary_locale = begin
+      Spaceship::ConnectAPI::App.find(ENV["BUNDLE_ID"])&.primary_locale
+    rescue StandardError => e
+      UI.important("Could not look up primary locale, using en-US: #{e}")
+      nil
+    end || "en-US"
 
     upload_to_testflight(
       api_key: api_key,
