@@ -620,15 +620,17 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
 
     /// oref's forecast curves, one per type, in a fixed order (IOB, ZT, COB, UAM, as
     /// Trio's Apple Watch cone takes them; any other type after, by name), each
-    /// point 5 min after the one before from `start`, in mg/dL. Types oref didn't
+    /// point 5 min after the one before from `start`, in mg/dL, up to
+    /// `SmartwatchLoopState.forecastHorizon` after `start`. Types oref didn't
     /// compute this time (COB without carbs, UAM when off) are left out.
     static func forecastCurves(_ forecasts: [String: [Int]], start: Date?) -> [[PredictedGlucoseValue]] {
         guard let start else { return [] }
         let known = ["iob", "zt", "cob", "uam"]
         let types = known.filter { forecasts[$0] != nil } + forecasts.keys.filter { !known.contains($0) }.sorted()
+        let points = Int(SmartwatchLoopState.forecastHorizon / (5 * 60)) + 1
         return types.compactMap { type in
             guard let values = forecasts[type], !values.isEmpty else { return nil }
-            return values.enumerated().map { index, value in
+            return values.prefix(points).enumerated().map { index, value in
                 PredictedGlucoseValue(
                     startDate: start.addingTimeInterval(Double(index) * 5 * 60),
                     quantity: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(value))

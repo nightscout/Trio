@@ -83,6 +83,13 @@ import Testing
         #expect(BaseSmartwatchHost.forecastCurves(["iob": [120]], start: nil).isEmpty)
     }
 
+    @Test("Curves reach at most forecastHorizon past their start") func forecastCurvesHorizon() {
+        let start = Date(timeIntervalSinceReferenceDate: 0)
+        let curves = BaseSmartwatchHost.forecastCurves(["iob": Array(repeating: 120, count: 60), "zt": [118, 117]], start: start)
+        #expect(curves.map(\.count) == [49, 2])
+        #expect(curves[0].last?.startDate == start.addingTimeInterval(SmartwatchLoopState.forecastHorizon))
+    }
+
     @Test("Restored watch alerts are cleared once, after Trio has had time to issue them again") func restoredAlertsTiming() {
         let launch = Date()
         var restored = BaseSmartwatchHost.RestoredWatchAlerts(launchedAt: launch)
