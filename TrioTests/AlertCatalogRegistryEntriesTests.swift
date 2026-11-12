@@ -246,6 +246,13 @@ import Testing
         }
     }
 
+    @Test("Tidepool re-login alert is a Normal-tier Services entry") func tidepoolLoginEntry() {
+        let entry = AlertCatalogRegistry.lookup(id("TidepoolService", "authentication-needed"))
+        #expect(entry?.interruptionLevel == .active)
+        #expect(entry?.category == "Services")
+        #expect(entry?.concept == .tidepoolLoginRequired)
+    }
+
     // MARK: - K: Trio-internal Profiles entries
 
     @Test(
