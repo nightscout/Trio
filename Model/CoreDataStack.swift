@@ -31,7 +31,7 @@ class CoreDataStack: ObservableObject {
         entityChangeSubject.eraseToAnyPublisher()
     }
 
-    /// Like `entityChangePublisher`, without updates that only set upload flags.
+    /// Ignores updates of upload flags only.
     private let contentChangeSubject = PassthroughSubject<Set<NSManagedObjectID>, Never>()
     var contentChangePublisher: AnyPublisher<Set<NSManagedObjectID>, Never> {
         contentChangeSubject.eraseToAnyPublisher()

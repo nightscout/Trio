@@ -5,8 +5,7 @@ import WatchConnectivity
 /// WatchState manages the communication between the Watch app and the iPhone app using WatchConnectivity.
 /// It handles glucose data synchronization and sending treatment requests (bolus, carbs) to the phone.
 @Observable final class WatchState: NSObject, WCSessionDelegate {
-    /// Shared, not created in a view: every throwaway instance from a view re-init would take over the
-    /// (weak) session delegate and then be released, leaving nothing to receive from the phone.
+    /// One instance keeps the session delegate.
     static let shared = WatchState()
 
     // MARK: - Properties
@@ -104,11 +103,12 @@ import WatchConnectivity
     /// `didReceiveUserInfo`.
     private static let maxAcceptableMessageAgeInMinutes: TimeInterval = 15 * 60
 
-    /// In memory only: the UI starts empty on every launch, so a payload must never be dropped as a
-    /// duplicate of one a previous launch displayed.
+    /// In memory, so relaunches accept any payload.
     private var lastAcceptedStateDate: Date?
 
     private static let syncingAnimationTimeout: TimeInterval = 10
+    /// Set while a request awaits its reply.
+    private var syncTimeout: DispatchWorkItem?
 
     // MARK: - Debouncing and batch processing helpers
 
@@ -118,8 +118,7 @@ import WatchConnectivity
     /// Work item to schedule finalizing the pending data.
     private var finalizeWorkItem: DispatchWorkItem?
 
-    /// Whether the app is in the foreground. Only there is the debounce reliable: in the background the app
-    /// is suspended within moments of a delivery.
+    /// Debounce only in the foreground.
     private var isAppActive = false
 
     /// A flag to tell the UI we’re still updating.
@@ -139,7 +138,7 @@ import WatchConnectivity
             session.delegate = self
             self.session = session
             if session.activationState == .activated {
-                // Activated before this delegate was installed: the activation callback won't come.
+                // Already active: no activation callback comes.
                 DispatchQueue.main.async {
                     self.handleSessionActivated(session)
                 }
@@ -339,8 +338,7 @@ import WatchConnectivity
         }
     }
 
-    /// Doesn't end the syncing animation when a payload is rejected: a stale or duplicate payload can
-    /// arrive while a request is still in flight.
+    /// Rejections leave the syncing animation alone.
     @discardableResult func acceptWatchStatePayload(_ dictionary: [String: Any]) -> Bool {
         guard let payload = dictionary[WatchMessageKeys.watchState] as? [String: Any],
               let timestamp = payload[WatchMessageKeys.date] as? TimeInterval
@@ -361,7 +359,7 @@ import WatchConnectivity
             return false
         }
 
-        // The same state can arrive both as a message and as the application context.
+        // Same state via message and context.
         if let lastAccepted = lastAcceptedStateDate, date <= lastAccepted {
             if WatchLogger.shared.shouldLog("duplicateState") {
                 WatchLogger.shared.debug(.data, "Duplicate watch state from \(date) skipped")
@@ -374,7 +372,7 @@ import WatchConnectivity
         return true
     }
 
-    /// A stale payload's IOB, COB and trend are outdated, but its glucose readings are not.
+    /// Stale states still bring valid readings.
     private func adoptGlucoseValues(fromStale payload: [String: Any]) {
         guard let readings = Self.glucoseValues(from: payload),
               let newest = readings.last?.date,
@@ -385,7 +383,7 @@ import WatchConnectivity
         glucoseValues = readings
     }
 
-    /// The phone's readings as it shows them: its values in the display units and its colors; oldest first.
+    /// The phone's readings, oldest first.
     private static func glucoseValues(from payload: [String: Any]) -> [(date: Date, glucose: Double, color: Color)]? {
         guard let glucoseData = payload[WatchMessageKeys.glucoseValues] as? [[String: Any]] else { return nil }
         return glucoseData.compactMap { data in
@@ -439,13 +437,13 @@ import WatchConnectivity
     ///  - If `lastWatchStateUpdate` is `nil` (meaning there has never been an update), or
     ///  - If more than 15 seconds have passed,
     ///
-    /// it will request a new watch state update from the iPhone app and, if the request could be sent, show a syncing animation.
+    /// it will show a syncing animation and request a new watch state update from the iPhone app.
     private func forceConditionalWatchStateUpdate() {
         guard let lastUpdateTimestamp = lastWatchStateUpdate else {
             WatchLogger.shared.debug(.data, "No watch state yet, requesting one")
 
             // If there's no recorded timestamp, we must force a fresh update immediately.
-            requestWatchStateUpdateWithSyncingAnimation()
+            syncWithPhone()
             return
         }
 
@@ -455,20 +453,28 @@ import WatchConnectivity
         // If more than 15 seconds have elapsed since the last update, force an(other) update.
         if secondsSinceUpdate > 15 {
             WatchLogger.shared.debug(.data, "Watch state \(Int(secondsSinceUpdate)) s old, requesting update")
-            requestWatchStateUpdateWithSyncingAnimation()
+            syncWithPhone()
             return
         }
     }
 
-    private func requestWatchStateUpdateWithSyncingAnimation() {
-        guard requestWatchStateUpdate() else { return }
+    private func syncWithPhone() {
+        guard syncTimeout == nil, requestWatchStateUpdate() else { return }
 
         showSyncingAnimation = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.syncingAnimationTimeout) {
-            guard self.showSyncingAnimation, self.pendingData.isEmpty else { return }
-            self.showSyncingAnimation = false
+        let timeout = DispatchWorkItem { [self] in
             WatchLogger.shared.debug(.connectivity, "No watch state answer from the phone, syncing animation hidden")
+            endSync(hidingAnimation: pendingData.isEmpty)
         }
+        syncTimeout = timeout
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.syncingAnimationTimeout, execute: timeout)
+    }
+
+    /// Ends the request in flight.
+    func endSync(hidingAnimation: Bool) {
+        syncTimeout?.cancel()
+        syncTimeout = nil
+        if hidingAnimation { showSyncingAnimation = false }
     }
 
     /// Handles incoming messages that either contain an acknowledgement or fresh watchState data  (<15 min)
@@ -513,20 +519,11 @@ import WatchConnectivity
 
     /// Accumulate new data, set isSyncing, and debounce final update
     private func scheduleUIUpdate(with newData: [String: Any]) {
-        if let incomingTimestamp = newData[WatchMessageKeys.date] as? TimeInterval,
-           let lastTimestamp = lastWatchStateUpdate,
-           incomingTimestamp <= lastTimestamp
-        {
-            WatchLogger.shared.debug(.data, "Outdated watch state skipped")
-            return
-        }
-
         pendingData.merge(newData) { _, newVal in newVal }
         finalizeWorkItem?.cancel()
         finalizeWorkItem = nil
 
-        // In the background watchOS suspends the app right after a delivery, before a delayed work item
-        // runs; the state would only show on the next wake, one push late. Apply it right away there.
+        // Background: apply now, before suspension.
         guard isAppActive else {
             finalizePendingData()
             return
@@ -545,7 +542,7 @@ import WatchConnectivity
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4, execute: workItem)
     }
 
-    /// Tracks the scene phase; on leaving the foreground, applies a debounced state before the app is suspended.
+    /// Applies a pending state before suspension.
     func setAppActive(_ isActive: Bool) {
         isAppActive = isActive
         guard !isActive, finalizeWorkItem != nil else { return }

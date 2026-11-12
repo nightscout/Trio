@@ -207,15 +207,14 @@ extension WatchState {
 
             session.sendMessage(message, replyHandler: { reply in
                 DispatchQueue.main.async {
-                    // Empty reply: the phone could not build a state.
-                    if reply.isEmpty || !self.acceptWatchStatePayload(reply) {
-                        self.showSyncingAnimation = false
-                    }
+                    // Empty reply: the phone had no state.
+                    let accepted = !reply.isEmpty && self.acceptWatchStatePayload(reply)
+                    self.endSync(hidingAnimation: !accepted)
                 }
             }, errorHandler: { error in
                 WatchLogger.shared.warning(.connectivity, "Requesting a state update failed", error: error)
                 DispatchQueue.main.async {
-                    self.showSyncingAnimation = false
+                    self.endSync(hidingAnimation: true)
                 }
             })
             return true
