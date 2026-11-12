@@ -14,6 +14,10 @@ import WatchKit
     @ObservationIgnored private var statusObserver: NSObjectProtocol?
     /// The export's `state` the manager was built from; a different one builds a new manager.
     @ObservationIgnored private var builtFrom: [String: Any]?
+    /// Replacing or dropping the manager, until the old one has let go of the sensor.
+    @ObservationIgnored private var swap: Task<Void, Never>?
+    /// A pairing's Bluetooth bond never finished (the app was in the background); the kit retracts it on a reading.
+    @ObservationIgnored private var pairingUnfinished = false
 
     /// For the glucose bubble.
     private(set) var isReadingDirectly = false
@@ -35,13 +39,18 @@ import WatchKit
     /// The phone's settings arrived. Builds a manager when its export names a different sensor or code, lets go of
     /// the sensor when the phone stopped sharing, and otherwise treats it as a wake.
     func update(from state: WatchState) {
+        // a state arriving mid-swap is dropped; the phone sends the next within minutes
+        guard swap == nil else { return }
         guard state.watchReadsSensor, let data = state.sensorConfiguration,
               let raw = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
               let configuration = SharedDeviceConfiguration(rawValue: raw)
         else {
             if cgmManager != nil {
                 WatchLogger.shared.info(.data, "The phone stopped sharing its CGM; letting go of the sensor")
-                remove()
+                swap = Task {
+                    await remove()
+                    swap = nil
+                }
             }
             return
         }
@@ -52,12 +61,21 @@ import WatchKit
         if cgmManager != nil {
             WatchLogger.shared.info(.data, "The phone's CGM changed (a new sensor or code): building the watch's manager again")
         }
+        // The old manager goes first: both centrals share one restore identifier, and a new one built beside the
+        // old never powered on, so the watch stopped acquiring until relaunched.
+        swap = Task {
+            await remove()
+            build(from: configuration)
+            swap = nil
+        }
+    }
+
+    private func build(from configuration: SharedDeviceConfiguration) {
         guard let manager = watchCGMManager(adopting: configuration, localState: nil) else {
             WatchLogger.shared.warning(.data, "The phone's CGM (\(configuration.managerIdentifier)) can't be read from the watch")
             return
         }
         WatchLogger.shared.info(.data, "CGM manager built from the phone's configuration (\(configuration.managerIdentifier))")
-        remove()
         builtFrom = configuration.state
         install(manager)
         save(manager)
@@ -82,16 +100,18 @@ import WatchKit
         updateStatus()
     }
 
-    private func remove() {
+    /// Returns once the manager has let go of the sensor.
+    private func remove() async {
         guard let previous = cgmManager else { return }
         previous.cgmManagerDelegate = nil
-        Task { await previous.delete() }
         statusObserver.map(NotificationCenter.default.removeObserver)
         statusObserver = nil
         cgmManager = nil
         builtFrom = nil
+        pairingUnfinished = false
         UserDefaults.standard.removeObject(forKey: Self.storageKey)
         updateStatus()
+        await previous.delete()
     }
 
     private func save(_ manager: any WatchReadableCGM) {
@@ -102,7 +122,9 @@ import WatchKit
 
     private func updateStatus() {
         isReadingDirectly = cgmManager != nil
-        sensorStateText = cgmManager?.watchSensorStateText
+        sensorStateText = pairingUnfinished
+            ? String(localized: "Pairing: keep Trio open at the next reading")
+            : cgmManager?.watchSensorStateText
         noteSensorProblem(cgmManager?.watchHasSensorProblem ?? false)
     }
 
@@ -216,9 +238,19 @@ extension WatchCGMHost: CGMManagerDelegate {
     // The phone issues the sensor's alerts; the watch only logs them.
     nonisolated func issueAlert(_ alert: Alert) async {
         WatchLogger.shared.info(.data, "Alert from the watch's CGM, not shown: \(alert.identifier.value)")
+        await setPairingUnfinished(alert.identifier, true)
     }
 
-    nonisolated func retractAlert(identifier _: Alert.Identifier) async {}
+    nonisolated func retractAlert(identifier: Alert.Identifier) async {
+        await setPairingUnfinished(identifier, false)
+    }
+
+    /// The one alert the watch keeps as a note: a pairing it must finish with the app open.
+    private func setPairingUnfinished(_ identifier: Alert.Identifier, _ unfinished: Bool) {
+        guard identifier.alertIdentifier == "pairingUnfinished", cgmManager != nil else { return }
+        pairingUnfinished = unfinished
+        updateStatus()
+    }
 
     nonisolated func doesIssuedAlertExist(identifier _: Alert.Identifier) async throws -> Bool { false }
 
