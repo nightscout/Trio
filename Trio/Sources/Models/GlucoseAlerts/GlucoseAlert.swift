@@ -9,6 +9,9 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
     var name: String
     var isEnabled: Bool
     var thresholdMgDL: Decimal
+    /// Rate alarms only: Falling Fast fires at or below, Rising Fast at or
+    /// above this glucose. Nil for level types.
+    var glucoseLimitMgDL: Decimal?
     var soundFilename: String
     /// When false, the alarm fires the banner / notification but no sound.
     /// iOS still drives haptics from the interruption level.
@@ -22,12 +25,13 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
     /// Per-alarm snooze. Distinct from the global mute on `AlertMuter`.
     var snoozedUntil: Date?
 
-    init(type: GlucoseAlertType) {
+    init(type: GlucoseAlertType, units: GlucoseUnits = .mgdL) {
         id = UUID()
         self.type = type
         name = type.displayName
         isEnabled = true
-        thresholdMgDL = type.defaultThresholdMgDL
+        thresholdMgDL = type.defaultThresholdMgDL(for: units)
+        glucoseLimitMgDL = type.defaultGlucoseLimitMgDL
         soundFilename = type.defaultSoundFilename
         playsSound = true
         overridesSilenceAndDND = type.defaultOverridesSilenceAndDND
@@ -51,6 +55,7 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
         case name
         case isEnabled
         case thresholdMgDL
+        case glucoseLimitMgDL
         case soundFilename
         case playsSound
         case overridesSilenceAndDND
@@ -65,6 +70,7 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
         name = try container.decode(String.self, forKey: .name)
         isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true
         thresholdMgDL = try container.decode(Decimal.self, forKey: .thresholdMgDL)
+        glucoseLimitMgDL = try container.decodeIfPresent(Decimal.self, forKey: .glucoseLimitMgDL) ?? type.defaultGlucoseLimitMgDL
         soundFilename = try container.decodeIfPresent(String.self, forKey: .soundFilename) ?? type.defaultSoundFilename
         playsSound = try container.decodeIfPresent(Bool.self, forKey: .playsSound) ?? true
         overridesSilenceAndDND = try container.decodeIfPresent(

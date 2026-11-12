@@ -148,6 +148,7 @@ extension GlucoseAlerts {
             }
             .onAppear {
                 configureView()
+                store.applyUnitDefaults(state.units)
                 state.refreshCGMOwnership()
             }
         }
@@ -156,7 +157,7 @@ extension GlucoseAlerts {
             guard let type = pendingNewType else { return }
             pendingNewType = nil
             DispatchQueue.main.async {
-                var seed = GlucoseAlert(type: type)
+                var seed = GlucoseAlert(type: type, units: state.units)
                 // Default new alarm to the first available window so it
                 // doesn't overlap with whatever is already configured.
                 let available = store.availableActiveOptions(forNewAlarmOfType: type)
@@ -310,7 +311,10 @@ extension GlucoseAlerts {
                     return "\(alarm.thresholdMgDL) \(String(localized: "g", comment: "gram of carbs"))"
                 }
                 if alarm.type.isRateDriven {
-                    return GlucoseAlertType.formattedRate(alarm.thresholdMgDL, units: state.units)
+                    let rate = GlucoseAlertType.formattedRate(alarm.thresholdMgDL, units: state.units)
+                    guard let limit = alarm.glucoseLimitMgDL else { return rate }
+                    let side = alarm.type == .fallingFast ? String(localized: "below") : String(localized: "above")
+                    return "\(rate) • \(side.localizedCapitalized) \(limit.formatted(for: state.units)) \(state.units.rawValue)"
                 }
                 return "\(alarm.thresholdMgDL.formatted(for: state.units)) \(state.units.rawValue)"
             }()

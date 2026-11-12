@@ -9,11 +9,11 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
     case urgentLow
     case low
     /// Glucose rate of change, not a level. `thresholdMgDL` stores the fall
-    /// rate in mg/dL/min.
+    /// rate in mg/dL per 5 minutes.
     case fallingFast
     case forecastedLow
     case high
-    /// Mirror of `fallingFast`; `thresholdMgDL` stores the rise rate in mg/dL/min.
+    /// Mirror of `fallingFast`; `thresholdMgDL` stores the rise rate in mg/dL per 5 minutes.
     case risingFast
     /// Driven by `Determination.carbsReq`, not by a glucose reading. Stored
     /// alongside the other glucose alarms so the user has one place to
@@ -81,17 +81,29 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
     }
 
     /// Default threshold when adding a new alarm. Mg/dL for glucose types,
-    /// mg/dL/min for `fallingFast` / `risingFast`, grams for `carbsRequired`.
+    /// mg/dL per 5 minutes for `fallingFast` / `risingFast`, grams for `carbsRequired`.
     var defaultThresholdMgDL: Decimal {
         switch self {
         case .urgentLow: return 54
         case .low: return 72
-        case .fallingFast: return 3
+        case .fallingFast: return 10
         case .forecastedLow: return 72
         case .high: return 270
-        case .risingFast: return 3
+        case .risingFast: return 10
         case .carbsRequired: return 10
         }
+    }
+
+    /// Default threshold in the user's units. 10 mg/dL shows as 0.6 mmol/L,
+    /// so mmol/L users get 9 mg/dL (0.5 mmol/L) for the rate alarms.
+    func defaultThresholdMgDL(for units: GlucoseUnits) -> Decimal {
+        isRateDriven && units == .mmolL ? 9 : defaultThresholdMgDL
+    }
+
+    /// Default "Only When Below" (`fallingFast`) / "Only When Above"
+    /// (`risingFast`) glucose, the top of the tight range. Nil for level types.
+    var defaultGlucoseLimitMgDL: Decimal? {
+        isRateDriven ? 140 : nil
     }
 
     /// Default bundled sound filename. See `Trio/Resources/Sounds/`.
@@ -122,22 +134,17 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
         self == .fallingFast || self == .risingFast
     }
 
-    /// Rates offered for `fallingFast` / `risingFast`, in mg/dL/min (Dexcom's choices).
-    static let rateThresholds: [Decimal] = [2, 3]
+    /// Rates offered for `fallingFast` / `risingFast`, in mg/dL per 5 minutes.
+    static let rateRange: ClosedRange<Decimal> = 5 ... 30
 
-    /// A mg/dL/min rate in the user's units, e.g. "3 mg/dL/min" or "0.17 mmol/L/min".
-    static func formattedRate(_ mgDLPerMinute: Decimal, units: GlucoseUnits) -> String {
-        let value: String
-        switch units {
-        case .mgdL:
-            value = Double(truncating: mgDLPerMinute as NSNumber).formatted(.number.precision(.fractionLength(0)))
-        case .mmolL:
-            value = Double(truncating: (mgDLPerMinute * GlucoseUnits.exchangeRate) as NSNumber)
-                .formatted(.number.precision(.fractionLength(2)))
-        }
-        return String(
-            format: String(localized: "%1$@ %2$@/min", comment: "Glucose rate, e.g. 3 mg/dL/min"),
-            value,
+    /// Glucose limits offered for `fallingFast` / `risingFast`, in mg/dL.
+    static let glucoseLimitRange: ClosedRange<Decimal> = 70 ... 180
+
+    /// A mg/dL per 5 minutes rate in the user's units, e.g. "10 mg/dL/5 min" or "0.5 mmol/L/5 min".
+    static func formattedRate(_ mgDLPer5Minutes: Decimal, units: GlucoseUnits) -> String {
+        String(
+            format: String(localized: "%1$@ %2$@/5 min", comment: "Glucose rate, e.g. 10 mg/dL/5 min"),
+            mgDLPer5Minutes.formatted(for: units),
             units.rawValue
         )
     }
