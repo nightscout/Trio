@@ -26,8 +26,15 @@ enum WatchComplicationDefaults {
     static let staleMinutes = 15
     static let staleMinutesRange = 10 ... 30
     static let staleMinutesStep = 5
+    static let gaugeRangeMgdl = 45.0 ... 290.0
+    static let gaugeRangeMmol = 2.5 ... 16.0
 
     static func clampedStaleMinutes(_ minutes: Int) -> Int {
         min(max(minutes, staleMinutesRange.lowerBound), staleMinutesRange.upperBound)
     }
+}
+
+struct ComplicationRingStop: Codable, Hashable, Sendable {
+    var location: Double
+    var colorHex: String
 }

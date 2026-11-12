@@ -80,3 +80,49 @@ public extension Color {
     static let staticInRange = Color.dynamicGreen
     static let staticHigh = Color.dynamicPurple
 }
+
+func complicationRingStops(
+    highGlucoseColorValue: Decimal,
+    lowGlucoseColorValue: Decimal,
+    targetGlucose: Decimal,
+    glucoseColorScheme: GlucoseColorScheme,
+    sampleCount: Int = 13
+) -> [ComplicationRingStop] {
+    let range = WatchComplicationDefaults.gaugeRangeMgdl
+    let span = range.upperBound - range.lowerBound
+    func location(of glucose: Decimal) -> Double {
+        min(max((Double(truncating: glucose as NSNumber) - range.lowerBound) / span, 0), 1)
+    }
+    func colorHex(at glucose: Decimal) -> String {
+        getDynamicGlucoseColor(
+            glucoseValue: glucose,
+            highGlucoseColorValue: highGlucoseColorValue,
+            lowGlucoseColorValue: lowGlucoseColorValue,
+            targetGlucose: targetGlucose,
+            glucoseColorScheme: glucoseColorScheme
+        ).toHexString()
+    }
+
+    if glucoseColorScheme == .staticColor {
+        let low = colorHex(at: lowGlucoseColorValue)
+        let inRange = colorHex(at: (lowGlucoseColorValue + highGlucoseColorValue) / 2)
+        let high = colorHex(at: highGlucoseColorValue)
+        let lowEdge = location(of: lowGlucoseColorValue)
+        let highEdge = location(of: highGlucoseColorValue)
+        return [
+            ComplicationRingStop(location: 0, colorHex: low),
+            ComplicationRingStop(location: lowEdge, colorHex: low),
+            ComplicationRingStop(location: lowEdge, colorHex: inRange),
+            ComplicationRingStop(location: highEdge, colorHex: inRange),
+            ComplicationRingStop(location: highEdge, colorHex: high),
+            ComplicationRingStop(location: 1, colorHex: high)
+        ]
+    }
+
+    let steps = max(sampleCount - 1, 1)
+    return (0 ... steps).map { index in
+        let fraction = Double(index) / Double(steps)
+        let glucose = Decimal(range.lowerBound + fraction * span)
+        return ComplicationRingStop(location: fraction, colorHex: colorHex(at: glucose))
+    }
+}

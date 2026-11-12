@@ -59,6 +59,7 @@ import WidgetKit
     var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
     var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
     var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+    var complicationRingStops: [ComplicationRingStop] = []
     var glucoseUnits: String = ComplicationState.defaultUnits
     var lastLoopDate: Date?
     var lowGlucoseLimit: Double?
@@ -654,6 +655,10 @@ import WidgetKit
             glucoseUnits = units
         }
 
+        if let stops = message[WatchMessageKeys.complicationRingStops] as? [[String: Any]] {
+            complicationRingStops = Self.ringStops(from: stops)
+        }
+
         if let loopTimestamp = (message[WatchMessageKeys.lastLoopDate] as? NSNumber)?.doubleValue {
             lastLoopDate = Date(timeIntervalSince1970: loopTimestamp)
         }
@@ -722,8 +727,18 @@ import WidgetKit
             glucoseValue: glucoseValue,
             history: complicationHistory(until: readingDate),
             loopDate: lastLoopDate,
-            limits: complicationLimits
+            limits: complicationLimits,
+            ringStops: complicationRingStops.isEmpty ? nil : complicationRingStops
         )
+    }
+
+    static func ringStops(from payload: [[String: Any]]) -> [ComplicationRingStop] {
+        payload.compactMap { entry in
+            guard let location = (entry["location"] as? NSNumber)?.doubleValue, location.isFinite,
+                  let colorHex = entry["color"] as? String, Color(complicationHex: colorHex) != nil
+            else { return nil }
+            return ComplicationRingStop(location: min(max(location, 0), 1), colorHex: colorHex)
+        }
     }
 
     private var complicationLimits: ClosedRange<Double>? {
