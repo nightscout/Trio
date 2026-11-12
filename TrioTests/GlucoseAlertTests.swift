@@ -129,6 +129,30 @@ import Testing
         #expect(decoded.activeOption == .always)
         #expect(decoded.snoozedUntil == nil)
         #expect(decoded.isEnabled == true)
+        #expect(decoded.glucoseLimitMgDL == nil)
+    }
+
+    @Test("Rate alarm without glucoseLimitMgDL decodes the type default") func decodeRateAlarmGlucoseLimitDefault() throws {
+        let json = """
+        {
+            "id": "55555555-5555-5555-5555-555555555555",
+            "type": "fallingFast",
+            "name": "Falling Fast",
+            "thresholdMgDL": 10
+        }
+        """
+        let decoded = try JSONDecoder().decode(GlucoseAlert.self, from: Data(json.utf8))
+        #expect(decoded.glucoseLimitMgDL == 140)
+    }
+
+    @Test("Rate alarms default to 10 mg/dL or 0.5 mmol/L per 5 min; level types ignore units") func rateDefaultsPerUnits() {
+        for type in [GlucoseAlertType.fallingFast, .risingFast] {
+            #expect(GlucoseAlert(type: type).thresholdMgDL == 10)
+            #expect(GlucoseAlert(type: type, units: .mmolL).thresholdMgDL == 9)
+        }
+        #expect(Decimal(9).formatted(for: .mmolL, locale: Locale(identifier: "en_US")) == "0.5")
+        #expect(GlucoseAlert(type: .high, units: .mmolL).thresholdMgDL == 270)
+        #expect(GlucoseAlert(type: .high).glucoseLimitMgDL == nil)
     }
 
     @Test("urgentLow with overridesSilenceAndDND omitted uses type defaults") func decodeUrgentLowOverrideDefault() throws {
@@ -152,6 +176,7 @@ import Testing
         original.name = "Custom Low Alarm"
         original.isEnabled = false
         original.thresholdMgDL = 65
+        original.glucoseLimitMgDL = 120
         original.soundFilename = "custom_sound.caf"
         original.playsSound = false
         original.overridesSilenceAndDND = true

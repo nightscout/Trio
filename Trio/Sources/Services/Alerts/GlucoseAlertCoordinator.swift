@@ -14,7 +14,7 @@ import Swinject
 ///      For each enabled alarm matching the current day/night window:
 ///        - urgentLow / low: latest ≤ threshold (+ optional persistence)
 ///        - high: latest ≥ threshold (+ optional persistence)
-///        - fallingFast / risingFast: rate over the last 15 min ≥ threshold mg/dL/min
+///        - fallingFast / risingFast: rate over the last 15 min ≥ threshold mg/dL per 5 min, within the glucose limit
 ///   2. Determination update → blend forecast at the alarm's predictive horizon
 ///      (forecastedLow: fixed 20 min) and compare to threshold.
 ///
@@ -84,33 +84,42 @@ final class GlucoseAlertCoordinator: Injectable {
     static let rateWindow: TimeInterval = 15 * 60
     /// Shortest span the rate is computed over. Rejects single-reading jumps.
     static let minimumRateSpan: TimeInterval = 10 * 60
-    /// 1 mg/dL/min recovery margin before a fired rate alert retracts.
-    static let rateRecoveryMarginMgDLPerMinute: Decimal = 1
+    /// 5 mg/dL per 5 minutes recovery margin before a fired rate alert retracts.
+    static let rateRecoveryMarginMgDLPer5Minutes: Decimal = 5
 
-    /// Glucose rate of change in mg/dL/min (negative = falling) between the
+    /// Glucose rate of change in mg/dL per 5 minutes (negative = falling) between the
     /// newest reading and the oldest one within `rateWindow` of it. Nil with
     /// fewer than 3 readings, a span under `minimumRateSpan`, or when the
     /// latest reading no longer moves in the rate's direction. `readings` is
     /// newest first.
-    static func rateMgDLPerMinute(readings: [(date: Date, glucose: Decimal)]) -> Decimal? {
+    static func rateMgDLPer5Minutes(readings: [(date: Date, glucose: Decimal)]) -> Decimal? {
         guard let newest = readings.first else { return nil }
         let windowed = readings.filter { newest.date.timeIntervalSince($0.date) <= rateWindow }
         guard windowed.count >= 3, let oldest = windowed.last else { return nil }
         let span = newest.date.timeIntervalSince(oldest.date)
         guard span >= minimumRateSpan else { return nil }
-        let rate = (newest.glucose - oldest.glucose) / Decimal(span / 60)
+        let rate = (newest.glucose - oldest.glucose) / Decimal(span / (5 * 60))
         let latestDelta = windowed[0].glucose - windowed[1].glucose
         guard rate != 0, latestDelta != 0, (rate > 0) == (latestDelta > 0) else { return nil }
         return rate
     }
 
-    /// Falling Fast breaches at or below -threshold, Rising Fast at or above
-    /// threshold. Level-driven types never breach here.
-    static func rateBreached(type: GlucoseAlertType, rateMgDLPerMinute: Decimal?, thresholdMgDLPerMinute: Decimal) -> Bool {
-        guard let rateMgDLPerMinute else { return false }
+    /// Falling Fast breaches at or below -threshold while glucose is at or
+    /// below its limit, Rising Fast at or above threshold while glucose is at
+    /// or above its limit. Level-driven types never breach here.
+    static func rateBreached(
+        type: GlucoseAlertType,
+        rateMgDLPer5Minutes: Decimal?,
+        thresholdMgDLPer5Minutes: Decimal,
+        latestMgDL: Decimal,
+        glucoseLimitMgDL: Decimal?
+    ) -> Bool {
+        guard let rateMgDLPer5Minutes else { return false }
         switch type {
-        case .fallingFast: return rateMgDLPerMinute <= -thresholdMgDLPerMinute
-        case .risingFast: return rateMgDLPerMinute >= thresholdMgDLPerMinute
+        case .fallingFast:
+            return rateMgDLPer5Minutes <= -thresholdMgDLPer5Minutes && latestMgDL <= (glucoseLimitMgDL ?? latestMgDL)
+        case .risingFast:
+            return rateMgDLPer5Minutes >= thresholdMgDLPer5Minutes && latestMgDL >= (glucoseLimitMgDL ?? latestMgDL)
         default: return false
         }
     }
@@ -119,13 +128,13 @@ final class GlucoseAlertCoordinator: Injectable {
     /// computed.
     static func rateShouldRetract(
         type: GlucoseAlertType,
-        rateMgDLPerMinute: Decimal?,
-        thresholdMgDLPerMinute: Decimal
+        rateMgDLPer5Minutes: Decimal?,
+        thresholdMgDLPer5Minutes: Decimal
     ) -> Bool {
-        guard let rateMgDLPerMinute else { return true }
+        guard let rateMgDLPer5Minutes else { return true }
         switch type {
-        case .fallingFast: return rateMgDLPerMinute > -thresholdMgDLPerMinute + rateRecoveryMarginMgDLPerMinute
-        case .risingFast: return rateMgDLPerMinute < thresholdMgDLPerMinute - rateRecoveryMarginMgDLPerMinute
+        case .fallingFast: return rateMgDLPer5Minutes > -thresholdMgDLPer5Minutes + rateRecoveryMarginMgDLPer5Minutes
+        case .risingFast: return rateMgDLPer5Minutes < thresholdMgDLPer5Minutes - rateRecoveryMarginMgDLPer5Minutes
         default: return false
         }
     }
@@ -196,7 +205,7 @@ final class GlucoseAlertCoordinator: Injectable {
         guard let latest = readings.first,
               Date().timeIntervalSince(latest.date) <= Self.readingFreshnessWindow
         else { return }
-        let rate = Self.rateMgDLPerMinute(
+        let rate = Self.rateMgDLPer5Minutes(
             readings: readings.filter { !$0.isManual }.map { (date: $0.date, glucose: $0.glucose) }
         )
         let snapshot = alertsSnapshot
@@ -205,7 +214,7 @@ final class GlucoseAlertCoordinator: Injectable {
         evaluationQueue.async { [weak self] in
             self?.applyReadingBasedEvaluation(
                 latestValue: latest.glucose,
-                rateMgDLPerMinute: rate,
+                rateMgDLPer5Minutes: rate,
                 snapshot: snapshot,
                 configuration: configuration,
                 now: now
@@ -215,7 +224,7 @@ final class GlucoseAlertCoordinator: Injectable {
 
     private func applyReadingBasedEvaluation(
         latestValue: Decimal,
-        rateMgDLPerMinute: Decimal?,
+        rateMgDLPer5Minutes: Decimal?,
         snapshot: [GlucoseAlert],
         configuration: GlucoseAlertConfiguration,
         now: Date
@@ -247,7 +256,7 @@ final class GlucoseAlertCoordinator: Injectable {
             evaluateReadingBased(
                 alarm,
                 latestMgDL: latestValue,
-                rateMgDLPerMinute: rateMgDLPerMinute,
+                rateMgDLPer5Minutes: rateMgDLPer5Minutes,
                 now: now,
                 configuration: configuration
             )
@@ -266,7 +275,7 @@ final class GlucoseAlertCoordinator: Injectable {
     private func evaluateReadingBased(
         _ alarm: GlucoseAlert,
         latestMgDL: Decimal,
-        rateMgDLPerMinute: Decimal?,
+        rateMgDLPer5Minutes: Decimal?,
         now: Date,
         configuration: GlucoseAlertConfiguration
     ) {
@@ -283,15 +292,17 @@ final class GlucoseAlertCoordinator: Injectable {
         if alarm.type.isRateDriven {
             if Self.rateBreached(
                 type: alarm.type,
-                rateMgDLPerMinute: rateMgDLPerMinute,
-                thresholdMgDLPerMinute: alarm.thresholdMgDL
+                rateMgDLPer5Minutes: rateMgDLPer5Minutes,
+                thresholdMgDLPer5Minutes: alarm.thresholdMgDL,
+                latestMgDL: latestMgDL,
+                glucoseLimitMgDL: alarm.glucoseLimitMgDL
             ) {
                 fireIfNeeded(alarm, valueMgDL: latestMgDL)
             } else if firingAlertIDs.contains(alarm.id),
                       Self.rateShouldRetract(
                           type: alarm.type,
-                          rateMgDLPerMinute: rateMgDLPerMinute,
-                          thresholdMgDLPerMinute: alarm.thresholdMgDL
+                          rateMgDLPer5Minutes: rateMgDLPer5Minutes,
+                          thresholdMgDLPer5Minutes: alarm.thresholdMgDL
                       )
             {
                 retractIfFiring(alarm)
