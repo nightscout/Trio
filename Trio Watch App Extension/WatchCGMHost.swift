@@ -21,9 +21,17 @@ import WatchKit
 
     /// For the glucose bubble.
     private(set) var isReadingDirectly = false
+    /// The watch's link to the sensor is up: the radio waves of the left indicator.
+    private(set) var isTalkingToSensor = false
     private(set) var sensorStateText: String?
+    /// After the reading's age while the loop is on time: a state that needs nothing done.
+    private(set) var sensorNote: String?
+    /// While the sensor warms up, its end: counted down under the bubble.
+    private(set) var warmupEndsAt: Date?
     /// The sensor needs a look; set by its lifecycle and by a reading the sensor marks unreliable.
     private(set) var hasSensorProblem = false
+    /// The sensor gives no more readings (failed, expired).
+    private(set) var sensorHasEnded = false
 
     /// A background refresh this long after each reading re-checks acquisition, in case watchOS froze the app before
     /// it lodged the next connect. Past the G7's 35 s tail clearance, so a connect never lands in its advertising tail.
@@ -109,6 +117,7 @@ import WatchKit
         cgmManager = nil
         builtFrom = nil
         pairingUnfinished = false
+        isTalkingToSensor = false
         UserDefaults.standard.removeObject(forKey: Self.storageKey)
         updateStatus()
         await previous.delete()
@@ -125,6 +134,9 @@ import WatchKit
         sensorStateText = pairingUnfinished
             ? String(localized: "Pairing: keep Trio open at the next reading")
             : cgmManager?.watchSensorStateText
+        sensorNote = cgmManager?.watchSensorNote
+        sensorHasEnded = cgmManager?.watchSensorHasEnded ?? false
+        warmupEndsAt = pairingUnfinished ? nil : cgmManager?.watchWarmupEndsAt
         noteSensorProblem(cgmManager?.watchHasSensorProblem ?? false)
     }
 
@@ -231,6 +243,16 @@ extension WatchCGMHost: CGMManagerDelegate {
     ) {
         WatchLogger.shared.debug(.data, "CGM \(type): \(message)")
         completion?(nil)
+        guard type == .connection else { return }
+        // in order with the manager's other news, which comes on main
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated { self.noteLink(afterLog: message) }
+        }
+    }
+
+    private func noteLink(afterLog message: String) {
+        guard let cgmManager, let linkIsUp = type(of: cgmManager).watchLinkIsUp(afterLog: message) else { return }
+        isTalkingToSensor = linkIsUp
     }
 
     nonisolated func deviceManager(_: DeviceManager, recordAnalyticsEvent _: String, properties _: [AnyHashable: Any]?) {}

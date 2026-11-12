@@ -41,6 +41,26 @@ struct TrioMainWatchView: View {
         return secondsSinceUpdate > 5 * 60
     }
 
+    /// Left of the bubble: the phone while it syncs; the watch with waves while its link to the sensor is up; the
+    /// watch alone while the bubble shows a fresh reading of its own, not merely a sensor it was given. The watch is
+    /// yellow while the sensor needs a look (warmup, grace period, an unreliable reading), red once it has failed or
+    /// expired, and then always shown.
+    private var linkIndicator: (symbol: String, waves: Bool, tint: Color)? {
+        if state.showSyncingAnimation { return ("iphone.radiowaves.left.and.right", true, .primary) }
+        let host = WatchCGMHost.shared
+        let tint = host.sensorHasEnded ? Color.loopRed : host.hasSensorProblem ? Color.yellow : .primary
+        if host.isTalkingToSensor { return ("applewatch.radiowaves.left.and.right", true, tint) }
+        if state.newestReadingIsOwn || host.hasSensorProblem { return ("applewatch", false, tint) }
+        return nil
+    }
+
+    /// The phone sends its state after each loop, so it is often a few seconds past 5 min old: the loop's age is
+    /// counted on for two cycles before it counts as unknown.
+    private var isPhoneStateDated: Bool {
+        guard let lastUpdate = state.lastWatchStateUpdate else { return true }
+        return now.timeIntervalSince1970 - lastUpdate > 10 * 60
+    }
+
     var isSessionUnreachable: Bool {
         guard let session = state.session else {
             return true // No session at all => unreachable
@@ -78,18 +98,16 @@ struct TrioMainWatchView: View {
                         state: state,
                         rotationDegrees: rotationDegrees,
                         isWatchStateDated: isReadingDated,
-                        sensorStateText: WatchCGMHost.shared.sensorStateText
+                        sensorStateText: WatchCGMHost.shared.sensorStateText,
+                        isPhoneStateDated: isPhoneStateDated,
+                        now: now
                     )
 
-                    if state.showSyncingAnimation {
-                        Image(systemName: "iphone.radiowaves.left.and.right")
+                    if let linkIndicator {
+                        Image(systemName: linkIndicator.symbol)
                             .symbolRenderingMode(.palette)
-                            .foregroundStyle(Color.primary, Color.tabBar, Color.clear)
-                            .symbolEffect(
-                                .variableColor.iterative,
-                                options: .repeating,
-                                value: state.showSyncingAnimation
-                            )
+                            .foregroundStyle(linkIndicator.tint, Color.tabBar, Color.clear)
+                            .symbolEffect(.variableColor.iterative, options: .repeating, isActive: linkIndicator.waves)
                             .position(
                                 x: 20,
                                 y: (WKInterfaceDevice.current().screenBounds.height / 4) -
@@ -242,6 +260,8 @@ struct TrioMainWatchView: View {
                 }
             }
             .onChange(of: scenePhase) { _, newPhase in
+                // the ages tick every 30 s, and not at all while the app is in the background
+                if newPhase == .active { now = Date() }
                 // An entry left for more than 2 min (wrist down, app in the background) is
                 // cleared and the input screens are closed, so a stale amount can't be confirmed
                 if newPhase == .active, state.expireStaleEntry() {

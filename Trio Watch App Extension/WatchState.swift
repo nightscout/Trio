@@ -29,6 +29,8 @@ import WatchConnectivity
     var cob: String? = "--"
     var iob: String? = "--"
     var lastLoopTime: String? = "--"
+    /// When the phone last looped; the watch ages it itself.
+    var lastLoopDate: Date?
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
     var snoozeUntilDate: Date = .distantPast
@@ -584,6 +586,10 @@ import WatchConnectivity
 
         if let lastLoopTime = message[WatchMessageKeys.lastLoopTime] as? String {
             self.lastLoopTime = lastLoopTime
+        }
+
+        if let lastLoopDate = message[WatchMessageKeys.lastLoopDate] as? TimeInterval {
+            self.lastLoopDate = lastLoopDate > 0 ? Date(timeIntervalSince1970: lastLoopDate) : nil
         }
 
         if let glucoseData = message[WatchMessageKeys.glucoseValues] as? [[String: Any]] {

@@ -219,6 +219,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     watchState.lastLoopTime = "--"
                 } else {
                     watchState.lastLoopTime = "\(lastLoopMinutes) min"
+                    watchState.lastLoopDate = self.apsManager.lastLoopDate
                 }
 
                 // Set IOB and COB from latest determination
@@ -524,6 +525,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.iob: state.iob ?? "",
             WatchMessageKeys.cob: state.cob ?? "",
             WatchMessageKeys.lastLoopTime: state.lastLoopTime ?? "",
+            WatchMessageKeys.lastLoopDate: state.lastLoopDate?.timeIntervalSince1970 ?? 0,
             WatchMessageKeys.glucoseValues: state.glucoseValues.map { value in
                 [
                     "glucose": value.glucose,

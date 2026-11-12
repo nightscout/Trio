@@ -12,10 +12,18 @@ protocol WatchReadableCGM: CGMManager & DeviceConfigurationSharing {
     static var statusDidChange: Notification.Name { get }
     /// Shown in place of the minutes under the glucose bubble: why no readings come (a code, a search, warmup).
     var watchSensorStateText: String? { get }
-    /// The sensor itself needs a look: the yellow triangle in the glucose bubble.
+    /// Shown after the reading's age: a state that needs nothing done (the grace period).
+    var watchSensorNote: String? { get }
+    /// While warming up, its end: counted down in place of the minutes.
+    var watchWarmupEndsAt: Date? { get }
+    /// The sensor itself needs a look: the left watch icon in yellow.
     var watchHasSensorProblem: Bool { get }
+    /// The sensor gives no more readings (failed, expired): the icon and its text in red.
+    var watchSensorHasEnded: Bool { get }
     /// A wake that is not the sensor's own: its acquisition re-checks itself.
     func recheckAcquisition()
+    /// The sensor link came up (true) or went down (false), as this log line of the manager's tells; nil otherwise.
+    static func watchLinkIsUp(afterLog message: String) -> Bool?
 }
 
 /// Keyed by each manager's `pluginIdentifier`, which is what its export carries. Stated, as Trio's device catalog
@@ -44,10 +52,29 @@ extension G7CGMManager: WatchReadableCGM {
         switch lifecycleState {
         case .warmup: return String(localized: "Sensor warmup")
         case .failed: return String(localized: "Sensor failed")
-        case .gracePeriod: return String(localized: "Sensor grace period")
         case .expired: return String(localized: "Sensor expired")
         default: return nil
         }
+    }
+
+    var watchSensorNote: String? {
+        lifecycleState == .gracePeriod ? String(localized: "Grace period") : nil
+    }
+
+    var watchSensorHasEnded: Bool {
+        lifecycleState == .failed || lifecycleState == .expired
+    }
+
+    var watchWarmupEndsAt: Date? {
+        lifecycleState == .warmup ? sensorFinishesWarmupAt : nil
+    }
+
+    // ponytail: the kit tells its observers of scans only, so its connect and disconnect are read from its log
+    // lines; a kit status for the link would replace this.
+    static func watchLinkIsUp(afterLog message: String) -> Bool? {
+        if message == "Sensor connected" { return true }
+        if message.hasPrefix("Sensor disconnected") { return false }
+        return nil
     }
 
     var watchHasSensorProblem: Bool {
