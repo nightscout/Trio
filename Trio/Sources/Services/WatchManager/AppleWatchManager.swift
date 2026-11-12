@@ -209,7 +209,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             )
             let overridePresetIds = try await overrideStorage.fetchForOverridePresets()
             let tempTargetPresetIds = try await tempTargetStorage.fetchForTempTargetPresets()
-            // Read per build: it follows the time of day, and the watch colors the readings by it.
+            // Read per build: it follows the time of day, and the readings are colored by it.
             let currentGlucoseTarget = await getCurrentGlucoseTarget() ?? Decimal(100)
 
             // Get NSManagedObjects
@@ -251,8 +251,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                         isEnabled: override.enabled
                     )
                 }
-
-                // the watch colors the readings itself, as `getDynamicGlucoseColor` does here
 
                 guard let latestGlucose = glucoseObjects.first else {
                     return watchState
@@ -524,6 +522,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.iob: state.iob ?? "",
             WatchMessageKeys.cob: state.cob ?? "",
             WatchMessageKeys.lastLoopTime: state.lastLoopTime ?? "",
+            WatchMessageKeys.glucoseValues: state.glucoseValues.map { value in
+                [
+                    "glucose": value.glucose,
+                    "date": value.date.timeIntervalSince1970,
+                    "color": value.color
+                ]
+            },
             WatchMessageKeys.minYAxisValue: state.minYAxisValue,
             WatchMessageKeys.maxYAxisValue: state.maxYAxisValue,
             WatchMessageKeys.overridePresets: state.overridePresets.map { preset in
@@ -549,14 +554,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.isForecastCone: state.isForecastCone,
             WatchMessageKeys.snoozeUntilDate: state.snoozeUntilDate.timeIntervalSince1970
         ]
-
-        // the whole window every time: compact, it is small enough that nothing needs syncing
-        dictionary[WatchMessageKeys.glucoseTrace] = WatchGlucoseTrace.encode(
-            state.glucoseValues.map {
-                WatchGlucoseTrace.Reading(date: $0.date, glucose: $0.glucose, color: WatchGlucoseTrace.rgb(hex: $0.color))
-            },
-            scale: state.units == .mgdL ? 1 : 10
-        )
 
         var forecastData: [String: Any] = [
             WatchMessageKeys.forecastConeMin: state.forecastConeMin,
@@ -675,8 +672,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
         transferredBytes[route, default: 0] += data.count
         let watchState = payload[WatchMessageKeys.watchState] as? [String: Any]
-        let trace = watchState?[WatchMessageKeys.glucoseTrace] as? [String: Any]
-        let readings = (trace?[WatchGlucoseTrace.timesKey] as? [Any])?.count ?? 0
+        let readings = (watchState?[WatchMessageKeys.glucoseValues] as? [Any])?.count ?? 0
         debug(
             .watch,
             "\(route): \(data.count) B, \(readings) glucose readings; since launch: \(transferredBytes[route] ?? 0) B"

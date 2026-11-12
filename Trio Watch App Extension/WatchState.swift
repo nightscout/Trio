@@ -270,7 +270,7 @@ import WatchConnectivity
             if WatchLogger.shared.shouldLog("staleState") {
                 WatchLogger.shared.debug(.data, "Stale watch state from \(date) skipped")
             }
-            adoptGlucoseTrace(fromStale: payload)
+            adoptGlucoseValues(fromStale: payload)
             return false
         }
 
@@ -288,29 +288,32 @@ import WatchConnectivity
     }
 
     /// A stale payload's IOB, COB and trend are outdated, but its glucose readings are not.
-    private func adoptGlucoseTrace(fromStale payload: [String: Any]) {
-        guard let trace = payload[WatchMessageKeys.glucoseTrace] as? [String: Any],
-              let newest = WatchGlucoseTrace.decode(trace)?.last?.date,
+    private func adoptGlucoseValues(fromStale payload: [String: Any]) {
+        guard let readings = Self.glucoseValues(from: payload),
+              let newest = readings.last?.date,
               newest > glucoseValues.last?.date ?? .distantPast
         else { return }
 
         WatchLogger.shared.debug(.data, "Glucose readings taken over from a stale watch state")
-        applyGlucoseTrace(trace)
+        glucoseValues = readings
     }
 
-    /// The phone's readings as it shows them: its values in the display units and its colors.
-    private func applyGlucoseTrace(_ trace: [String: Any]) {
-        guard let readings = WatchGlucoseTrace.decode(trace) else { return }
-        glucoseValues = readings.map { (date: $0.date, glucose: $0.glucose, color: Self.color(rgb: $0.color)) }
-    }
+    /// The phone's readings as it shows them: its values in the display units and its colors; oldest first.
+    private static func glucoseValues(from payload: [String: Any]) -> [(date: Date, glucose: Double, color: Color)]? {
+        guard let glucoseData = payload[WatchMessageKeys.glucoseValues] as? [[String: Any]] else { return nil }
+        return glucoseData.compactMap { data in
+            guard let glucose = data["glucose"] as? Double,
+                  let timestamp = data["date"] as? TimeInterval,
+                  let colorString = data["color"] as? String
+            else { return nil }
 
-    /// A color as the trace sends it, 0xRRGGBB.
-    static func color(rgb: Int) -> Color {
-        Color(
-            red: Double((rgb >> 16) & 0xFF) / 255,
-            green: Double((rgb >> 8) & 0xFF) / 255,
-            blue: Double(rgb & 0xFF) / 255
-        )
+            return (
+                Date(timeIntervalSince1970: timestamp),
+                glucose,
+                colorString.toColor() // Convert colorString to Color
+            )
+        }
+        .sorted { $0.date < $1.date }
     }
 
     func session(_: WCSession, didFinish _: WCSessionUserInfoTransfer, error: (any Error)?) {
@@ -523,8 +526,8 @@ import WatchConnectivity
             self.lastLoopTime = lastLoopTime
         }
 
-        if let trace = message[WatchMessageKeys.glucoseTrace] as? [String: Any] {
-            applyGlucoseTrace(trace)
+        if let glucoseValues = Self.glucoseValues(from: message) {
+            self.glucoseValues = glucoseValues
         }
 
         if let minYAxisValue = message[WatchMessageKeys.minYAxisValue] {
