@@ -122,7 +122,8 @@ private actor LoopGuard {
 
 final class BaseAPSManager: APSManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseAPSManager.processQueue")
-    private let resolver: Resolver
+    private let therapyProfileManagerLock = NSLock()
+    private var resolvedTherapyProfileManager: TherapyProfileManager?
     @Injected() private var storage: FileStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var alertHistoryStorage: AlertHistoryStorage!
@@ -195,8 +196,18 @@ final class BaseAPSManager: APSManager, Injectable {
         set { settingsManager.settings = newValue }
     }
 
+    /// The profile manager depends on this manager, so it is resolved on first use, through the app's locked resolver:
+    /// the loop runs on several threads, and Swinject's container is not safe to use from more than one at a time.
+    private var therapyProfileManager: TherapyProfileManager? {
+        therapyProfileManagerLock.lock()
+        defer { therapyProfileManagerLock.unlock() }
+        if resolvedTherapyProfileManager == nil {
+            resolvedTherapyProfileManager = TrioApp.resolver.resolve(TherapyProfileManager.self)
+        }
+        return resolvedTherapyProfileManager
+    }
+
     init(resolver: Resolver) {
-        self.resolver = resolver
         injectServices(resolver)
         openAPS = OpenAPS(storage: storage, tddStorage: tddStorage, glucoseStorage: glucoseStorage, carbsStorage: carbsStorage)
         lastDosingMode = settingsManager.settings.dosingMode
@@ -310,9 +321,8 @@ final class BaseAPSManager: APSManager, Injectable {
                 return
             }
 
-            // Before the loop starts, so the loop doses with the new profile. Resolved here because the profile manager
-            // depends on this manager.
-            await self.resolver.resolve(TherapyProfileManager.self)?.runDueScheduledSwitch()
+            // Before the loop starts, so the loop doses with the new profile.
+            await self.therapyProfileManager?.runDueScheduledSwitch()
 
             // Atomic check-and-set via actor — eliminates the race between
             // checking isLooping.value and sending isLooping(true).
