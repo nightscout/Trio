@@ -251,16 +251,23 @@ extension MainChartCanvas {
         guard timeBegin < timeEnd else { return [] }
 
         let beginDate = Date(timeIntervalSince1970: timeBegin)
-        let startOfDay = Calendar.current.startOfDay(for: beginDate)
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: beginDate)
         let profile = state.basalProfile
         var basalPoints: [BasalProfile] = []
         var lastEntryBeforeRange: (amount: Double, date: Date)?
 
-        // Iterate over the next three days, multiplying the time intervals
+        // Calendar days can be 23 or 25 hours across daylight-saving transitions.
         for dayOffset in 0 ..< 3 {
-            let dayTimeOffset = TimeInterval(dayOffset * 24 * 60 * 60) // One Day in seconds
+            guard let day = calendar.date(byAdding: .day, value: dayOffset, to: startOfDay) else { continue }
             for entry in profile {
-                let basalTime = startOfDay.addingTimeInterval(entry.minutes.minutes.timeInterval + dayTimeOffset)
+                // Profile minutes describe a wall-clock time, not elapsed time since midnight.
+                guard let basalTime = calendar.date(
+                    bySettingHour: entry.minutes / 60,
+                    minute: entry.minutes % 60,
+                    second: 0,
+                    of: day
+                ) else { continue }
                 let basalTimeInterval = basalTime.timeIntervalSince1970
 
                 if basalTimeInterval < timeBegin {
