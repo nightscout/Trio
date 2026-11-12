@@ -42,7 +42,6 @@ struct ComplicationState: Codable, Equatable {
     static let missingValue = "--"
     static let defaultUnits = "mg/dL"
 
-    private static let mgPerDlPerMmol = 18.0182
     private static let sampleReadingSpacing: TimeInterval = 5 * 60
     private static let maxLoopAgeMinutes = 1440
     private static let sampleMmolCurve: [Double] = [
@@ -101,7 +100,7 @@ struct ComplicationState: Codable, Equatable {
     }
 
     private static func sampleHistory(isMmol: Bool, endingAt date: Date) -> [ComplicationPoint] {
-        let curve = isMmol ? sampleMmolCurve : sampleMmolCurve.map { ($0 * mgPerDlPerMmol).rounded() }
+        let curve = isMmol ? sampleMmolCurve : sampleMmolCurve.map { ($0 * WatchComplicationDefaults.mgdlPerMmol).rounded() }
         let start = date.timeIntervalSince1970 - TimeInterval(curve.count - 1) * sampleReadingSpacing
         return curve.enumerated().map { index, glucose in
             ComplicationPoint(timestamp: start + TimeInterval(index) * sampleReadingSpacing, glucose: glucose)

@@ -275,13 +275,14 @@ import Testing
     }
 
     @Test("Ring stops from the phone are kept only when well formed") func ringStopsFromPhone() {
-        let stops = WatchState.ringStops(from: [
+        let payload: [[String: Any]] = [
             ["location": 0.0, "color": "#E65C5C"],
             ["location": 1.5, "color": "#A35CE6"],
             ["location": 0.5, "color": "not a colour"],
             ["location": Double.nan, "color": "#5CE65C"],
             ["color": "#5CE65C"]
-        ])
+        ]
+        let stops = payload.compactMap(ComplicationRingStop.init(payload:))
         #expect(stops == [
             ComplicationRingStop(location: 0, colorHex: "#E65C5C"),
             ComplicationRingStop(location: 1, colorHex: "#A35CE6")

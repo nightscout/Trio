@@ -75,6 +75,8 @@ struct ComplicationRendering {
 }
 
 struct ComplicationModel {
+    static let neutralRing = Gradient(colors: [.white, .white])
+
     let kind: ComplicationKind
     let displayedState: ComplicationState
     let isStale: Bool
@@ -164,9 +166,9 @@ struct ComplicationModel {
             return Gradient(colors: [.gray, .gray])
         }
         let stops = (displayedState.ringStops ?? []).compactMap { stop in
-            Color(complicationHex: stop.colorHex).map { Gradient.Stop(color: $0, location: min(max(stop.location, 0), 1)) }
+            Color(complicationHex: stop.colorHex).map { Gradient.Stop(color: $0, location: stop.location) }
         }
-        guard !stops.isEmpty else { return Gradient(colors: [.white, .white]) }
+        guard !stops.isEmpty else { return Self.neutralRing }
         return Gradient(stops: stops)
     }
 }

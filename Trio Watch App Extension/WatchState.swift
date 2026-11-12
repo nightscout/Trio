@@ -656,7 +656,7 @@ import WidgetKit
         }
 
         if let stops = message[WatchMessageKeys.complicationRingStops] as? [[String: Any]] {
-            complicationRingStops = Self.ringStops(from: stops)
+            complicationRingStops = stops.compactMap(ComplicationRingStop.init(payload:))
         }
 
         if let loopTimestamp = (message[WatchMessageKeys.lastLoopDate] as? NSNumber)?.doubleValue {
@@ -730,15 +730,6 @@ import WidgetKit
             limits: complicationLimits,
             ringStops: complicationRingStops.isEmpty ? nil : complicationRingStops
         )
-    }
-
-    static func ringStops(from payload: [[String: Any]]) -> [ComplicationRingStop] {
-        payload.compactMap { entry in
-            guard let location = (entry["location"] as? NSNumber)?.doubleValue, location.isFinite,
-                  let colorHex = entry["color"] as? String, Color(complicationHex: colorHex) != nil
-            else { return nil }
-            return ComplicationRingStop(location: min(max(location, 0), 1), colorHex: colorHex)
-        }
     }
 
     private var complicationLimits: ClosedRange<Double>? {

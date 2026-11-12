@@ -85,8 +85,7 @@ func complicationRingStops(
     highGlucoseColorValue: Decimal,
     lowGlucoseColorValue: Decimal,
     targetGlucose: Decimal,
-    glucoseColorScheme: GlucoseColorScheme,
-    sampleCount: Int = 13
+    glucoseColorScheme: GlucoseColorScheme
 ) -> [ComplicationRingStop] {
     let range = WatchComplicationDefaults.gaugeRangeMgdl
     let span = range.upperBound - range.lowerBound
@@ -119,7 +118,7 @@ func complicationRingStops(
         ]
     }
 
-    let steps = max(sampleCount - 1, 1)
+    let steps = 12
     return (0 ... steps).map { index in
         let fraction = Double(index) / Double(steps)
         let glucose = Decimal(range.lowerBound + fraction * span)

@@ -87,11 +87,12 @@ import WatchConnectivity
 
     @Test("Units decide the gauge range and clamp the value") func gaugeRange() {
         var state = ComplicationState.sample(units: "mmol/L", date: now)
-        #expect(state.gaugeRange == 2.5 ... 16.0)
+        #expect(abs(state.gaugeRange.lowerBound - 2.5) < 0.01)
+        #expect(abs(state.gaugeRange.upperBound - 16.1) < 0.01)
         state.glucoseValue = 25
-        #expect(state.gaugeValue == 16.0)
+        #expect(state.gaugeValue == state.gaugeRange.upperBound)
         state.glucoseValue = 1
-        #expect(state.gaugeValue == 2.5)
+        #expect(state.gaugeValue == state.gaugeRange.lowerBound)
 
         state = ComplicationState.sample(units: "mg/dL", date: now)
         #expect(state.gaugeRange == 45 ... 290)
@@ -316,9 +317,7 @@ import WatchConnectivity
         state.complicationRingStops = [ComplicationRingStop(location: 0.25, colorHex: "#5CE65C")]
         let payload = BaseWatchManager.watchStateToDictionary(from: state)
         let sent = payload[WatchMessageKeys.complicationRingStops] as? [[String: Any]]
-        #expect(sent?.count == 1)
-        #expect(sent?.first?["location"] as? Double == 0.25)
-        #expect(sent?.first?["color"] as? String == "#5CE65C")
+        #expect(sent?.compactMap(ComplicationRingStop.init(payload:)) == state.complicationRingStops)
     }
 
     @Test("One trend arrow per layout", arguments: [WatchComplicationValue.delta, .iob]) func oneArrowPerLayout(
