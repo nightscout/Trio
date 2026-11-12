@@ -753,6 +753,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         Task { @MainActor [weak self] in
             guard let self else { return }
 
+            // A watch app not yet updated asks without a reply handler: push the state, even if unchanged.
+            if message[WatchMessageKeys.requestWatchUpdate] as? String == WatchMessageKeys.watchState {
+                debug(.watch, "Watch requested a state update without a reply handler")
+                self.lastMessageContent = nil
+                await self.pushWatchState()
+                return
+            }
+
             if let snoozeMinutes = message[WatchMessageKeys.snoozeDuration] as? Int {
                 info(.watch, "Watch requested alert snooze for \(snoozeMinutes) min")
                 await self.notificationsManager.applySnooze(for: TimeInterval(snoozeMinutes * 60))

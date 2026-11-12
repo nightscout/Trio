@@ -24,13 +24,17 @@ struct TrioMainWatchView: View {
     /// Advanced by a timer, so the view goes stale even when nothing new arrives.
     @State private var now = Date()
 
-    /// Dated by the newest reading, or by the last update when there is none. The extra minute covers the
-    /// next reading's delivery; unchanged messages are not resent, so the last update alone would go stale.
+    /// The BG bubble is dated by its newest reading (the extra minute covers the next one's delivery), or like the
+    /// rest when there is none. A CGM gap only dates the bubble, not IOB, COB and the treatment buttons.
+    private var isReadingDated: Bool {
+        guard let newestReading = state.glucoseValues.last?.date else { return isWatchStateDated }
+        return now.timeIntervalSince(newestReading) > 6 * 60
+    }
+
     var isWatchStateDated: Bool {
-        if let newestReading = state.glucoseValues.last?.date {
-            return now.timeIntervalSince(newestReading) > 6 * 60
-        }
+        // If `lastWatchStateUpdate` is nil, treat as "dated"
         guard let lastUpdateTimestamp = state.lastWatchStateUpdate else { return true }
+        // Return true if last update older than 5 min, so 1 loop cycle
         return now.timeIntervalSince1970 - lastUpdateTimestamp > 5 * 60
     }
 
@@ -70,7 +74,7 @@ struct TrioMainWatchView: View {
                     GlucoseTrendView(
                         state: state,
                         rotationDegrees: rotationDegrees,
-                        isWatchStateDated: isWatchStateDated || isSessionUnreachable
+                        isWatchStateDated: isReadingDated || isSessionUnreachable
                     )
 
                     if state.showSyncingAnimation {
