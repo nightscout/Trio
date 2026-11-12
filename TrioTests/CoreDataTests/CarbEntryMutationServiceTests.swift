@@ -264,6 +264,7 @@ private final class StubTidepoolManager: TidepoolManager {
     func addTidepoolService(service _: Service) {}
     func getTidepoolServiceUI() -> ServiceUI? { nil }
     func getTidepoolPluginHost() -> PluginHost? { nil }
+    let tidepoolLoginRequired = CurrentValueSubject<Bool, Never>(false)
     func uploadCarbs() async {}
     func deleteCarbs(withSyncId _: UUID, carbs _: Decimal, at _: Date, enteredBy _: String) {}
     func uploadInsulin() async {}
