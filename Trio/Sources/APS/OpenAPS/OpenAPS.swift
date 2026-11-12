@@ -101,11 +101,14 @@ final class OpenAPS {
         }
     }
 
-    private func fetchPumpHistoryObjectIDs(on context: NSManagedObjectContext) async throws -> [NSManagedObjectID]? {
+    private func fetchPumpHistoryObjectIDs(
+        on context: NSManagedObjectContext,
+        predicate: NSPredicate = .pumpHistoryLast1440Minutes
+    ) async throws -> [NSManagedObjectID]? {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
-            predicate: NSPredicate.pumpHistoryLast1440Minutes,
+            predicate: predicate,
             key: "timestamp",
             ascending: false,
             batchSize: 50
@@ -123,7 +126,8 @@ final class OpenAPS {
     private func parsePumpHistory(
         on context: NSManagedObjectContext,
         _ pumpHistoryObjectIDs: [NSManagedObjectID],
-        simulatedBolusAmount: Decimal? = nil
+        simulatedBolusAmount: Decimal? = nil,
+        resumeLookbackHours: Double = 48
     ) async throws -> [PumpHistoryEvent] {
         // Empty history returns an empty array, which also drops any simulated bolus.
         guard !pumpHistoryObjectIDs.isEmpty else { return [] }
@@ -134,7 +138,7 @@ final class OpenAPS {
         // the oldest event in pump history can be a resume with no preceding pump
         // activity. oref interprets this as the end of a suspend that never started,
         // which drives negative IOB and can cause excessive insulin delivery.
-        let orphanedResumes = try await fetchOrphanedResumes(on: context)
+        let orphanedResumes = try await Self.fetchOrphanedResumes(on: context, lookbackHours: resumeLookbackHours)
 
         // Execute all operations on the background context
         return await context.perform {
@@ -183,11 +187,17 @@ final class OpenAPS {
     }
 
     /// Detects a cold-start orphaned resume: returns the resume's object ID if it's an orphaned resume
-    private func fetchOrphanedResumes(on context: NSManagedObjectContext) async throws -> [NSManagedObjectID] {
+    static func fetchOrphanedResumes(
+        on context: NSManagedObjectContext,
+        lookbackHours: Double = 48
+    ) async throws -> [NSManagedObjectID] {
         let results = try await CoreDataStack.shared.fetchEntitiesAsync(
             ofType: PumpEventStored.self,
             onContext: context,
-            predicate: NSPredicate.pumpHistoryLast48h,
+            predicate: NSPredicate(
+                format: "timestamp >= %@ AND \(NSPredicate.notScheduledBasal)",
+                (Date() - TimeInterval(hours: lookbackHours)) as NSDate
+            ),
             key: "timestamp",
             ascending: true,
             batchSize: 250
@@ -203,8 +213,8 @@ final class OpenAPS {
 
             // we define an orphaned resume as one without a paired suspend within
             // the most recent 24 hours.
-            // **Important**: we pick 48 hours because the standard pump history
-            // is 24 hours + 24 hours of inspection for resumes.
+            // Inspect 24 hours before the input history: 48 hours for the standard
+            // 24-hour input, or 60 hours for Autosens' 36-hour input.
             let orphanedResumes = zip(pumpEventResults, pumpEventResults.dropFirst())
                 .compactMap { (prev, curr) -> PumpEventStored? in
                     guard let prevTimestamp = prev.timestamp, let currTimestamp = curr.timestamp else {
@@ -438,7 +448,8 @@ final class OpenAPS {
         let context = newContext("autosense")
 
         // Perform asynchronous calls in parallel
-        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs(on: context) ?? []
+        // The oldest glucose samples still depend on insulin delivered before the glucose window.
+        async let pumpHistoryObjectIDs = fetchPumpHistoryObjectIDs(on: context, predicate: .pumpHistoryForAutosens) ?? []
         async let carbsFetch = carbsStorage.getCarbsForAlgorithm(additionalCarbs: nil, carbsDate: nil)
         // Autosens needs the full 24h window for its sensitivity algorithm.
         async let glucoseFetch = glucoseStorage.getGlucoseForAlgorithm(
@@ -451,7 +462,7 @@ final class OpenAPS {
 
         // Await the results of asynchronous tasks
         let (pumpHistory, carbs, glucose, rawProfile, rawBasalProfile, rawTempTargets) = await (
-            try parsePumpHistory(on: context, await pumpHistoryObjectIDs),
+            try parsePumpHistory(on: context, await pumpHistoryObjectIDs, resumeLookbackHours: 60),
             try carbsFetch,
             try glucoseFetch,
             getProfile,

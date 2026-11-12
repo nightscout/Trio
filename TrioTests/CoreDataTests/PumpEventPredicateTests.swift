@@ -114,6 +114,55 @@ import Testing
 
     // MARK: - Tests
 
+    @Test("Autosens retains a resume with a paired suspend before the old inspection window")
+    func testAutosensResumeInspectionWindow() async throws {
+        let now = Date()
+        let resumeID = try await testContext.perform {
+            let suspend = PumpEventStored(context: self.testContext)
+            suspend.id = "suspend-50"
+            suspend.timestamp = now.addingTimeInterval(-50 * 3600)
+            suspend.type = PumpEvent.pumpSuspend.rawValue
+            let resume = PumpEventStored(context: self.testContext)
+            resume.id = "resume-30"
+            resume.timestamp = now.addingTimeInterval(-30 * 3600)
+            resume.type = PumpEvent.pumpResume.rawValue
+            try self.testContext.save()
+            return resume.objectID
+        }
+
+        let orphanedResumes = try await OpenAPS.fetchOrphanedResumes(on: testContext, lookbackHours: 60)
+        #expect(!orphanedResumes.contains(resumeID))
+
+        let shorterWindow = try await OpenAPS.fetchOrphanedResumes(on: testContext)
+        #expect(shorterWindow.contains(resumeID), "The original window misses this resume's matching suspend")
+    }
+
+    @Test("Autosens includes insulin before its 24-hour glucose window") func testAutosensHistoryWindow() async throws {
+        let now = Date()
+        try await testContext.perform {
+            for hoursAgo in [1, 25, 35, 37] {
+                let event = PumpEventStored(context: self.testContext)
+                event.id = "history-\(hoursAgo)"
+                event.timestamp = now.addingTimeInterval(-Double(hoursAgo) * 3600)
+                event.type = PumpEvent.bolus.rawValue
+            }
+            let scheduledEvent = PumpEventStored(context: self.testContext)
+            scheduledEvent.id = "scheduled-25"
+            scheduledEvent.timestamp = now.addingTimeInterval(-25 * 3600)
+            scheduledEvent.type = PumpEvent.tempBasal.rawValue
+            let scheduledBasal = TempBasalStored(context: self.testContext)
+            scheduledBasal.isScheduledBasal = true
+            scheduledBasal.pumpEvent = scheduledEvent
+            try self.testContext.save()
+
+            let events = try self.testContext.fetch(PumpEventStored.fetch(.pumpHistoryForAutosens, ascending: false))
+            #expect(Set(events.compactMap(\.id)) == ["history-1", "history-25", "history-35"])
+
+            let ordinaryEvents = try self.testContext.fetch(PumpEventStored.fetch(.pumpHistoryLast1440Minutes, ascending: false))
+            #expect(ordinaryEvents.compactMap(\.id) == ["history-1"])
+        }
+    }
+
     @Test("Bolus rows survive the scheduled-basal exclusion in the oref fetch window") func testBolusSurvivesOrefPredicate(
     ) async throws {
         let date = Date().addingTimeInterval(-5.minutes.timeInterval)

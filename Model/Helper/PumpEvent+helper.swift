@@ -95,6 +95,12 @@ extension NSPredicate {
         return NSPredicate(format: "timestamp >= %@ AND \(notScheduledBasal)", date as NSDate)
     }
 
+    static var pumpHistoryForAutosens: NSPredicate {
+        // 24h of glucose plus the maximum selectable DIA (10h) and a 2h buffer.
+        let date = Date() - TimeInterval(hours: 36)
+        return NSPredicate(format: "timestamp >= %@ AND \(notScheduledBasal)", date as NSDate)
+    }
+
     static var pumpHistoryLast24h: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(format: "timestamp >= %@", date as NSDate)
