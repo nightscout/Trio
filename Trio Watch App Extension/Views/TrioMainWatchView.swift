@@ -3,6 +3,7 @@ import SwiftUI
 import WatchKit
 
 struct TrioMainWatchView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @Bindable var state: WatchState
 
     // misc
@@ -226,6 +227,15 @@ struct TrioMainWatchView: View {
                 if newPath.isEmpty {
                     // Reset conditional view navigation when returning to root view
                     continueToBolus = false
+                    // Back on the main screen, so no entry is in progress
+                    state.clearEntry()
+                }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                // An entry left for more than 2 min (wrist down, app in the background) is
+                // cleared and the input screens are closed, so a stale amount can't be confirmed
+                if newPhase == .active, state.expireStaleEntry() {
+                    navigationPath = NavigationPath()
                 }
             }
         }
