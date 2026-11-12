@@ -544,6 +544,16 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
         // Calculate the end date based on the event duration
         let endDate = event.timestamp.addingTimeInterval(TimeInterval(minutes: Double(event.duration ?? 0)))
 
+        // HealthKit raises an uncatchable exception for a sample that ends before it starts, which
+        // terminates the app, so one misdated row would crash every upload attempt.
+        guard endDate >= event.timestamp else {
+            warning(
+                .healthKit,
+                "Skipping insulin sample \(event.id): ends \(endDate) before it starts \(event.timestamp)"
+            )
+            return nil
+        }
+
         // Create the HealthKit quantity sample with the appropriate metadata
         let sample = HKQuantitySample(
             type: sampleType,
@@ -578,6 +588,15 @@ final class BaseHealthKitManager: HealthKitManager, Injectable {
 
         // Check if the predecessor temp basal overlaps with the next event
         if predecessorEndDate > nextEventTimestamp {
+            // Same uncatchable-exception guard as `createSample`: the adjustment can only shorten
+            // the span, never invert it.
+            guard nextEventTimestamp >= predecessorTimestamp else {
+                warning(
+                    .healthKit,
+                    "Skipping temporary basal \(predecessorEntryId): ends \(nextEventTimestamp) before it starts \(predecessorTimestamp)"
+                )
+                return nil
+            }
             // Adjust the end date to the start of the next event to prevent overlap
             let adjustedEndDate = nextEventTimestamp
             // Precise duration in seconds

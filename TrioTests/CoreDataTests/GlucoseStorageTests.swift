@@ -202,6 +202,58 @@ import Testing
         #expect(clampedEntries?.count == 1, "Sub-39 backfilled glucose should be clamped and stored as 39")
     }
 
+    @Test("Manual glucose does not advance CGM sync dates") func testSyncDateIgnoresManualGlucose() async throws {
+        // Given a CGM reading followed by a manual entry 3 minutes later
+        let cgmDate = Date().addingTimeInterval(-5 * 60)
+        try await storage.storeGlucose([
+            BloodGlucose(direction: BloodGlucose.Direction.flat, date: 789, dateString: cgmDate, glucose: 110)
+        ])
+        try await insertManualGlucose(112, at: cgmDate.addingTimeInterval(3 * 60))
+
+        // When
+        let syncDate = storage.syncDate()
+
+        // Then the next CGM reading is not filtered as too frequent
+        #expect(abs(syncDate.timeIntervalSince(cgmDate)) < 1, "syncDate should be the last CGM reading")
+        let lastDate = try #require(storage.lastGlucoseDate())
+        #expect(abs(lastDate.timeIntervalSince(cgmDate)) < 1, "lastGlucoseDate should be the last CGM reading")
+        let next = BloodGlucose(direction: .flat, date: 790, dateString: cgmDate.addingTimeInterval(5 * 60), glucose: 108)
+        #expect(storage.filterTooFrequentGlucose([next], at: syncDate).count == 1)
+    }
+
+    @Test("Backfill is not deduplicated against manual glucose") func testBackfillIgnoresManualGlucose() async throws {
+        // Given a manual entry 1 minute after a missed CGM reading
+        let backfillDate = Date().addingTimeInterval(-20 * 60)
+        try await insertManualGlucose(150, at: backfillDate.addingTimeInterval(60))
+
+        // When
+        try await storage.backfillGlucose([
+            BloodGlucose(direction: BloodGlucose.Direction.flat, date: 791, dateString: backfillDate, glucose: 147)
+        ])
+
+        // Then the backfilled CGM reading is stored
+        let backfilled = try await coreDataStack.fetchEntitiesAsync(
+            ofType: GlucoseStored.self,
+            onContext: testContext,
+            predicate: NSPredicate(format: "glucose == 147 AND isManual == NO"),
+            key: "date",
+            ascending: false
+        ) as? [GlucoseStored]
+
+        #expect(backfilled?.count == 1, "Backfilled CGM reading near a manual entry should be stored")
+    }
+
+    private func insertManualGlucose(_ glucose: Int16, at date: Date) async throws {
+        try await testContext.perform {
+            let manualGlucose = GlucoseStored(context: testContext)
+            manualGlucose.id = UUID()
+            manualGlucose.date = date
+            manualGlucose.glucose = glucose
+            manualGlucose.isManual = true
+            try testContext.save()
+        }
+    }
+
     @Test(
         "Test glucose alarms",
         .enabled(if: false, "Flaky test, disabled while investigating")

@@ -132,9 +132,9 @@ struct GlucosePercentileChart: View {
                     ("10-90%", Color.blue.opacity(0.3)),
                     ("25-75%", Color.blue.opacity(0.5)),
                     (String(localized: "Median"), Color.blue),
-                    (String(localized: "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))"), Color.staticLow),
-                    (String(localized: "\(timeInRangeType.topThreshold.formatted(withUnits: units))"), Color.staticInRange),
-                    (String(localized: "\(highLimit.formatted(withUnits: units))"), Color.staticHigh)
+                    (timeInRangeType.bottomThreshold.formatted(withUnits: units), Color.staticLow),
+                    (timeInRangeType.topThreshold.formatted(withUnits: units), Color.staticInRange),
+                    (highLimit.formatted(withUnits: units), Color.staticHigh)
                 ]
 
                 let columns = [GridItem(.adaptive(minimum: 100), spacing: 4)]

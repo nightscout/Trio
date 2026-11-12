@@ -35,7 +35,6 @@ extension Home {
         @State var showSnoozeSheet: Bool = false
         @State var showManualGlucose: Bool = false
         @State var showReleaseNotes: Bool = false
-        @State var alarmsSnoozeUntil: Date = .distantPast
         @ObservedObject var releaseNotesService = ReleaseNotesService.shared
         // Pull-down-to-force-loop (see HomeRootView+Refresh.swift)
         @State var pullOffset: CGFloat = 0
@@ -269,14 +268,9 @@ extension Home {
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .onAppear {
                 configureView()
-                refreshAlarmsSnooze()
             }
             .task {
                 await releaseNotesService.load()
-            }
-            // UserDefaults changes don't invalidate views; refresh on sheet dismissal
-            .onChange(of: showSnoozeSheet) {
-                if !showSnoozeSheet { refreshAlarmsSnooze() }
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
@@ -628,22 +622,6 @@ func is24HourFormat() -> Bool {
     let dateString = formatter.string(from: Date())
 
     return !dateString.contains("AM") && !dateString.contains("PM")
-}
-
-/// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
-func formatHrMin(_ durationInMinutes: Int) -> String {
-    let hours = durationInMinutes / 60
-    let minutes = durationInMinutes % 60
-
-    switch (hours, minutes) {
-    case let (0, m):
-        return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-    case let (h, 0):
-        return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
-    default:
-        return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
-            .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-    }
 }
 
 // Helper function to convert a start and end hour to either 24-hour or AM/PM format

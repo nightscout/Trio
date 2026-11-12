@@ -199,12 +199,8 @@ extension Int {
         Trio.rounded(Decimal(self) * GlucoseUnits.exchangeRate, scale: 1, roundingMode: .plain)
     }
 
-    var formattedAsMmolL: String {
-        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
-    }
-
     func formatted(for units: GlucoseUnits) -> String {
-        units == .mgdL ? description : formattedAsMmolL
+        Decimal(self).formatted(for: units)
     }
 
     func formatted(withUnits units: GlucoseUnits) -> String {
@@ -225,16 +221,34 @@ extension Decimal {
         Trio.rounded(self / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 
-    var formattedAsMmolL: String {
-        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
+    func formatted(for units: GlucoseUnits, locale: Locale = .autoupdatingCurrent) -> String {
+        converted(to: units).formatted(Self.glucoseStyle(for: units).locale(locale))
     }
 
-    func formatted(for units: GlucoseUnits) -> String {
-        units == .mgdL ? description : formattedAsMmolL
+    func formattedDelta(for units: GlucoseUnits, locale: Locale = .autoupdatingCurrent) -> String {
+        converted(to: units).formatted(Self.glucoseStyle(for: units).locale(locale).sign(strategy: .always(includingZero: true)))
+    }
+
+    func formattedISF(for units: GlucoseUnits, locale: Locale = .autoupdatingCurrent) -> String {
+        converted(to: units).formatted(Self.glucoseStyle(for: units, mgdLFractionLength: 0 ... 1).locale(locale))
     }
 
     func formatted(withUnits units: GlucoseUnits) -> String {
         formatted(for: units) + " \(units.rawValue)"
+    }
+
+    private func converted(to units: GlucoseUnits) -> Decimal {
+        units == .mgdL ? self : self * GlucoseUnits.exchangeRate
+    }
+
+    private static func glucoseStyle(
+        for units: GlucoseUnits,
+        mgdLFractionLength: ClosedRange<Int> = 0 ... 0
+    ) -> Decimal.FormatStyle {
+        .number
+            .precision(.fractionLength(units == .mgdL ? mgdLFractionLength : 1 ... 1))
+            .grouping(.never)
+            .rounded(rule: .toNearestOrAwayFromZero)
     }
 }
 
@@ -251,28 +265,13 @@ extension Double {
         Trio.rounded(Decimal(self) / GlucoseUnits.exchangeRate, scale: 0, roundingMode: .plain)
     }
 
-    var formattedAsMmolL: String {
-        NumberFormatter.glucoseFormatter.string(from: asMmolL as NSDecimalNumber) ?? "\(asMmolL)"
-    }
-
     func formatted(for units: GlucoseUnits) -> String {
-        units == .mgdL ? description : formattedAsMmolL
+        Decimal(self).formatted(for: units)
     }
 
     func formatted(withUnits units: GlucoseUnits) -> String {
         formatted(for: units) + " \(units.rawValue)"
     }
-}
-
-extension NumberFormatter {
-    static let glucoseFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.locale = Locale.current
-        formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 1
-        formatter.maximumFractionDigits = 1
-        return formatter
-    }()
 }
 
 /// Spells out compact unit abbreviations for VoiceOver so screen readers don't voice
@@ -287,8 +286,7 @@ enum UnitSpelling {
         "U": String(localized: "units", comment: "Accessibility: spoken unit"),
         "g": String(localized: "grams", comment: "Accessibility: spoken unit"),
         "hr": String(localized: "hour", comment: "Accessibility: spoken unit"),
-        "min": String(localized: "minutes", comment: "Accessibility: spoken unit"),
-        "%": String(localized: "percent", comment: "Accessibility: spoken unit")
+        "min": String(localized: "minutes", comment: "Accessibility: spoken unit")
     ]
 
     /// Returns a spoken form of a unit string, e.g. "mg/dL/U" -> "milligrams per deciliter per units".

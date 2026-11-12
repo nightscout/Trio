@@ -26,26 +26,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     private var subscriptions = Set<AnyCancellable>()
     private var previousDeterminationId: NSManagedObjectID?
 
-    private var glucoseFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        if settingsManager.settings.units == .mmolL {
-            formatter.minimumFractionDigits = 1
-            formatter.maximumFractionDigits = 1
-        }
-        formatter.roundingMode = .halfUp
-        return formatter
-    }
-
-    private var deltaFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        formatter.positivePrefix = "+"
-        return formatter
-    }
-
     private var iobFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -262,16 +242,10 @@ final class BaseCalendarManager: CalendarManager, Injectable {
                 glucoseIcon = freshLoop > 15 ? "🚫" : glucoseIcon
             }
 
-            let glucoseText = glucoseFormatter
-                .string(from: Double(
-                    settingsManager.settings.units == .mmolL ? Int(lastGlucoseValue)
-                        .asMmolL : Decimal(lastGlucoseValue)
-                ) as NSNumber)!
-
+            let glucoseText = Decimal(lastGlucoseValue).formatted(for: settingsManager.settings.units)
             let directionText = lastGlucoseObject.directionEnum?.symbol ?? "↔︎"
 
-            let deltaValue = settingsManager.settings.units == .mmolL ? delta.asMmolL : delta
-            let deltaText = deltaFormatter.string(from: deltaValue as NSNumber) ?? "--"
+            let deltaText = delta.formattedDelta(for: settingsManager.settings.units)
 
             let iobText = iobFormatter.string(from: (iobService.currentIOB ?? 0) as NSNumber) ?? ""
             let cobText = cobFormatter.string(from: determinationObject.cob as NSNumber) ?? ""

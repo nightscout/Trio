@@ -37,17 +37,6 @@ extension Adjustments {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        func formattedGlucose(glucose: Decimal) -> String {
-            let formattedValue: String
-            if state.units == .mgdL {
-                formattedValue = Formatter.glucoseFormatter(for: state.units)
-                    .string(from: glucose as NSDecimalNumber) ?? "\(glucose)"
-            } else {
-                formattedValue = glucose.formattedAsMmolL
-            }
-            return "\(formattedValue) \(state.units.rawValue)"
-        }
-
         var body: some View {
             tempTargetDeleteConfirmation(overrideDeleteConfirmation(mainContent))
         }
@@ -316,21 +305,6 @@ extension Adjustments {
                     .disabled(!state.isTempTargetEnabled)
                     .listRowBackground(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
                     .tint(.white)
-            }
-        }
-
-        func formattedTimeRemaining(_ timeInterval: TimeInterval) -> String {
-            let totalSeconds = Int(timeInterval)
-            let hours = totalSeconds / 3600
-            let minutes = (totalSeconds % 3600) / 60
-            let seconds = totalSeconds % 60
-
-            if hours > 0 {
-                return "\(hours)h \(minutes)m \(seconds)s"
-            } else if minutes > 0 {
-                return "\(minutes)m \(seconds)s"
-            } else {
-                return "<1m"
             }
         }
     }

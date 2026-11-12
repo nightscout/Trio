@@ -1,11 +1,9 @@
 import LoopKit
 
-/// Trio-side bridge of the upstream `AlertCatalogVendor` protocol. Pump
-/// plugins don't currently set `interruptionLevel` on the alerts they issue
-/// — every emission lands at LoopKit's default (`.timeSensitive`). Trio
-/// overrides the level by looking up the alert's identifier in this
-/// registry. As plugins adopt `AlertCatalogVendor` upstream, their entries
-/// move out of here and into the plugin repo.
+/// Trio's own catalog of the alerts device plugins issue. Pump plugins don't
+/// currently set `interruptionLevel` on the alerts they issue — every
+/// emission lands at LoopKit's default (`.timeSensitive`). Trio overrides the
+/// level by looking up the alert's identifier in this registry.
 ///
 /// Scope covers pump + CGM-issued alerts (LibreLoop sensor expiry / attention
 /// / reconnect, G7 sensor lifecycle). G5/G6/One don't go through `issueAlert`
@@ -15,7 +13,7 @@ import LoopKit
 enum AlertCatalogRegistry {
     static let entries: [Alert.CatalogEntry] =
         omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + g7Entries
-            + syaiEntries + trioAlgorithmEntries
+            + syaiEntries + trioAlgorithmEntries + tidepoolEntries
 
     static func lookup(_ identifier: Alert.Identifier) -> Alert.CatalogEntry? {
         if let exact = entries.first(where: { $0.identifier == identifier }) {
@@ -349,6 +347,21 @@ private extension AlertCatalogRegistry {
         addEntry("trio.aps", "loop.notActive", .critical, "Trio Not Looping", "Algorithm", .notLooping),
         addEntry("trio.aps", "algorithmError", .active, "Algorithm Error", "Algorithm", .algorithmError),
         addEntry("trio.aps", "glucoseDataStale", .timeSensitive, "Glucose Data Stale", "Algorithm", .glucoseDataStale)
+    ]
+}
+
+// MARK: - Tidepool
+
+private extension AlertCatalogRegistry {
+    static let tidepoolEntries: [Alert.CatalogEntry] = [
+        addEntry(
+            "TidepoolService",
+            "authentication-needed",
+            .active,
+            "Tidepool Service Authorization",
+            "Services",
+            .tidepoolLoginRequired
+        )
     ]
 }
 

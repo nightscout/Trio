@@ -2,10 +2,11 @@ import SwiftUI
 
 struct GRIChartView: View {
     let result: GRICalculator.Result?
+    let units: GlucoseUnits
 
     var body: some View {
         VStack(spacing: 16) {
-            GRIView(result: result)
+            GRIView(result: result, units: units)
             if let result {
                 GRIRiskGridView(result: result)
             } else {
@@ -17,6 +18,7 @@ struct GRIChartView: View {
 
 struct GRIView: View {
     let result: GRICalculator.Result?
+    let units: GlucoseUnits
     @State private var showingDetails = false
     @Environment(\.colorScheme) private var colorScheme
 
@@ -63,7 +65,7 @@ struct GRIView: View {
                         } else {
                             ContentUnavailableView("No Glucose Data", systemImage: "chart.bar.fill")
                         }
-                        GRIExplanationView(result: result)
+                        GRIExplanationView(result: result, units: units)
                     }
                     .padding()
                 }
@@ -84,6 +86,7 @@ struct GRIView: View {
 
 struct GRIExplanationView: View {
     let result: GRICalculator.Result?
+    let units: GlucoseUnits
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -104,7 +107,7 @@ struct GRIExplanationView: View {
             Divider()
             if let result {
                 DisclosureGroup("Score calculation") {
-                    GRIScoreBreakdownView(result: result)
+                    GRIScoreBreakdownView(result: result, units: units)
                         .padding(.top, 8)
                 }
             }
@@ -113,7 +116,7 @@ struct GRIExplanationView: View {
     }
 
     private func component(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(1))) + "%"
+        (value / 100).formatted(.oneDecimalPercent)
     }
 }
 
@@ -128,6 +131,7 @@ private enum GRICalculationColors {
 
 private struct GRIScoreBreakdownView: View {
     let result: GRICalculator.Result
+    let units: GlucoseUnits
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -135,16 +139,16 @@ private struct GRIScoreBreakdownView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
 
-            LabeledContent("Below 54 mg/dL") {
+            LabeledContent("Below \(54.formatted(withUnits: units))") {
                 Text(patientValue(percentage(result.veryLowPercentage), color: GRICalculationColors.veryLow))
             }
-            LabeledContent("54 to below 70 mg/dL") {
+            LabeledContent("\(54.formatted(for: units)) to below \(70.formatted(withUnits: units))") {
                 Text(patientValue(percentage(result.lowPercentage), color: GRICalculationColors.low))
             }
-            LabeledContent("Above 180 through 250 mg/dL") {
+            LabeledContent("Above \(180.formatted(for: units)) through \(250.formatted(withUnits: units))") {
                 Text(patientValue(percentage(result.highPercentage), color: GRICalculationColors.high))
             }
-            LabeledContent("Above 250 mg/dL") {
+            LabeledContent("Above \(250.formatted(withUnits: units))") {
                 Text(patientValue(percentage(result.veryHighPercentage), color: GRICalculationColors.veryHigh))
             }
 
@@ -217,7 +221,7 @@ private struct GRIScoreBreakdownView: View {
     }
 
     private func percentage(_ value: Double) -> String {
-        (value / 100).formatted(.percent.precision(.fractionLength(1)))
+        (value / 100).formatted(.oneDecimalPercent)
     }
 }
 
@@ -330,7 +334,7 @@ private struct GRIRiskGridView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("GRI risk grid, zone \(result.zone)")
         .accessibilityValue(
-            "Hypoglycemia \(result.hypoComponent.formatted()) percent, hyperglycemia \(result.hyperComponent.formatted()) percent"
+            "Hypoglycemia \((result.hypoComponent / 100).formatted(.oneDecimalPercent)), hyperglycemia \((result.hyperComponent / 100).formatted(.oneDecimalPercent))"
         )
     }
 }
