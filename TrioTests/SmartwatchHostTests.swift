@@ -63,6 +63,26 @@ import Testing
         #expect(BaseSmartwatchHost.uncountedWatchCarbs([old], determinationDate: nil, now: now).isEmpty)
     }
 
+    @Test("oref's forecasts become one curve per type, 5 minutes apart, in a fixed order") func forecastCurves() {
+        let start = Date(timeIntervalSinceReferenceDate: 0)
+        let curves = BaseSmartwatchHost.forecastCurves(
+            ["uam": [140, 141], "cob": [140, 142, 145], "iob": [140, 137, 133], "zt": [140, 135]],
+            start: start
+        )
+        let mgdL = { (curve: [PredictedGlucoseValue]) in curve.map { $0.quantity.doubleValue(for: .milligramsPerDeciliter) } }
+        #expect(curves.map(mgdL) == [[140, 137, 133], [140, 135], [140, 142, 145], [140, 141]])
+        #expect(curves[0].map(\.startDate) == [start, start.addingTimeInterval(300), start.addingTimeInterval(600)])
+    }
+
+    @Test("Forecasts oref didn't compute, or without a start, give no curves") func forecastCurvesMissing() {
+        let start = Date(timeIntervalSinceReferenceDate: 0)
+        // No COB without carbs, UAM off: only what oref computed.
+        #expect(BaseSmartwatchHost.forecastCurves(["iob": [120], "zt": [118]], start: start).count == 2)
+        #expect(BaseSmartwatchHost.forecastCurves(["iob": [], "zt": [118]], start: start).count == 1)
+        #expect(BaseSmartwatchHost.forecastCurves([:], start: start).isEmpty)
+        #expect(BaseSmartwatchHost.forecastCurves(["iob": [120]], start: nil).isEmpty)
+    }
+
     @Test("Restored watch alerts are cleared once, after Trio has had time to issue them again") func restoredAlertsTiming() {
         let launch = Date()
         var restored = BaseSmartwatchHost.RestoredWatchAlerts(launchedAt: launch)
