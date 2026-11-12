@@ -1,43 +1,55 @@
 [submodule "LoopKit"]
 	path = LoopKit
 	url = https://github.com/loopandlearn/LoopKit.git
+	branch = trio-next-dev
 [submodule "CGMBLEKit"]
 	path = CGMBLEKit
 	url = https://github.com/loopandlearn/CGMBLEKit.git
+	branch = trio-next-dev
 [submodule "dexcom-share-client-swift"]
 	path = dexcom-share-client-swift
 	url = https://github.com/loopandlearn/dexcom-share-client-swift.git
+	branch = next-dev
 [submodule "RileyLinkKit"]
 	path = RileyLinkKit
 	url = https://github.com/loopandlearn/RileyLinkKit
+	branch = trio-next-dev
 [submodule "G7SensorKit"]
 	path = G7SensorKit
 	url = https://github.com/loopandlearn/G7SensorKit.git
-	branch = feat/trio-g7-direct
+	branch = trio-next-dev
 [submodule "MinimedKit"]
 	path = MinimedKit
 	url = https://github.com/loopandlearn/MinimedKit.git
+	branch = trio-next-dev
 [submodule "LibreTransmitter"]
 	path = LibreTransmitter
 	url = https://github.com/loopandlearn/LibreTransmitter.git
+	branch = trio-next-dev
 [submodule "TidepoolService"]
 	path = TidepoolService
 	url = https://github.com/loopandlearn/TidepoolService.git
+	branch = trio-next-dev
 [submodule "DanaKit"]
 	path = DanaKit
 	url = https://github.com/loopandlearn/DanaKit
+	branch = trio-next-dev
 [submodule "MedtrumKit"]
 	path = MedtrumKit
 	url = https://github.com/loopandlearn/MedtrumKit
+	branch = trio-next-dev
 [submodule "OmnipodKit"]
 	path = OmnipodKit
 	url = https://github.com/loopandlearn/OmnipodKit
+	branch = next-dev
 [submodule "AccuChekKit"]
 	path = AccuChekKit
 	url = https://github.com/loopandlearn/AccuChekKit
+	branch = trio-next-dev
 [submodule "EversenseKit"]
 	path = EversenseKit
 	url = https://github.com/loopandlearn/EversenseKit
+	branch = trio-next-dev
 [submodule "RoundWhiteDiscKit"]
 	path = RoundWhiteDiscKit
 	url = https://github.com/loopandlearn/RoundWhiteDiscKit.git
@@ -45,10 +57,8 @@
 [submodule "LibreLoop"]
 	path = LibreLoop
 	url = https://github.com/loopandlearn/LibreLoop.git
-	branch = legacy-loopkit-compat
-[submodule "LoopAlgorithm"]
-	path = LoopAlgorithm
-	url = https://github.com/loopandlearn/LoopAlgorithm.git
+	branch = trio-next-dev
 [submodule "SyaiKit"]
 	path = SyaiKit
 	url = https://github.com/nightscout/SyaiKit
+	branch = trio-next-dev

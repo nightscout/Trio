@@ -13,6 +13,7 @@ protocol TidepoolManager {
     func addTidepoolService(service: Service)
     func getTidepoolServiceUI() -> ServiceUI?
     func getTidepoolPluginHost() -> PluginHost?
+    var tidepoolLoginRequired: CurrentValueSubject<Bool, Never> { get }
     func uploadCarbs() async
     func deleteCarbs(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String)
     func uploadInsulin() async
@@ -32,6 +33,13 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var notificationCenter: NotificationCenter!
+    @Injected() private var trioAlertManager: TrioAlertManager!
+
+    /// Raised by `TidepoolService` when its login session is cleared
+    static let authenticationAlertIdentifier = LoopKit.Alert.Identifier(
+        managerIdentifier: TidepoolService.serviceIdentifier,
+        alertIdentifier: "authentication-needed"
+    )
 
     // Lazy access to avoid circular dependency (TidepoolManager ↔ FetchGlucoseManager)
     private var resolver: Resolver?
@@ -59,6 +67,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     private var tidepoolService: RemoteDataService? {
         didSet {
             if let tidepoolService = tidepoolService {
+                tidepoolService.remoteDataServiceDelegate = self
                 rawTidepoolManager = tidepoolService.rawValue
             } else {
                 rawTidepoolManager = nil
@@ -69,6 +78,8 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     private var subscriptions = Set<AnyCancellable>()
+    private var sessionSubscription: AnyCancellable?
+    let tidepoolLoginRequired = CurrentValueSubject<Bool, Never>(false)
 
     // MARK: - Upload triggers
 
@@ -129,6 +140,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     }()
 
     @PersistedProperty(key: "TidepoolState") var rawTidepoolManager: Service.RawValue?
+    @PersistedProperty(key: "TidepoolLoginRequired") var persistedLoginRequired: Bool?
 
     init(resolver: Resolver) {
         self.resolver = resolver
@@ -174,13 +186,33 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         broadcaster.register(PreferencesObserver.self, observer: self)
     }
 
+    /// Persisted because `TidepoolService` can't be restored without a session, so the flag must outlive a relaunch
+    private func setLoginRequired(_ required: Bool) {
+        persistedLoginRequired = required ? true : nil
+        tidepoolLoginRequired.send(required)
+    }
+
     /// Loads the Tidepool service from saved state
     fileprivate func loadTidepoolManager() {
+        tidepoolLoginRequired.send(persistedLoginRequired ?? false)
         if let rawTidepoolManager = rawTidepoolManager {
             tidepoolService = tidepoolServiceFromRaw(rawTidepoolManager)
             tidepoolService?.serviceDelegate = self
             tidepoolService?.stateDelegate = self
+            observeTidepoolSession()
         }
+    }
+
+    /// Tracks whether the Tidepool service lost its login; retracts the re-login alert once it is back
+    private func observeTidepoolSession() {
+        sessionSubscription = (tidepoolService as? TidepoolService)?.$session
+            .sink { [weak self] session in
+                guard let self else { return }
+                self.setLoginRequired(session == nil)
+                if session != nil {
+                    self.trioAlertManager.retractAlert(identifier: Self.authenticationAlertIdentifier)
+                }
+            }
     }
 
     /// Returns the Tidepool service UI if available
@@ -196,6 +228,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     /// Adds a Tidepool service
     func addTidepoolService(service: Service) {
         tidepoolService = service as? RemoteDataService
+        tidepoolService?.serviceDelegate = self
+        tidepoolService?.stateDelegate = self
+        observeTidepoolSession()
     }
 
     /// Loads the Tidepool service from raw stored data
@@ -225,6 +260,24 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     }
 }
 
+extension BaseTidepoolManager: RemoteDataServiceDelegate {
+    /// Device logs are not uploaded.
+    func fetchDeviceLogs(startDate _: Date, endDate _: Date) async throws -> [StoredDeviceLogEntry] {
+        []
+    }
+
+    /// Empty on purpose: a non-empty history makes `DoseEntry.annotated(with:)` hit a `preconditionFailure`
+    /// for temp basals with unit `.units`, which is how Trio builds them.
+    func getBasalHistory(startDate _: Date, endDate _: Date) async throws -> [AbsoluteScheduleValue<Double>] {
+        []
+    }
+
+    func automationHistory(from start: Date, to end: Date) async throws -> [AbsoluteScheduleValue<Bool>] {
+        let isAutomated = settingsManager.settings.dosingMode == .closed
+        return [AbsoluteScheduleValue(startDate: start, endDate: end, value: isAutomated)]
+    }
+}
+
 extension BaseTidepoolManager: ServiceDelegate {
     var hostIdentifier: String {
         "org.nightscout.Trio"
@@ -242,9 +295,13 @@ extension BaseTidepoolManager: ServiceDelegate {
         return semanticVersion
     }
 
-    func issueAlert(_: LoopKit.Alert) {}
+    func issueAlert(_ alert: LoopKit.Alert) {
+        trioAlertManager.issueAlert(alert)
+    }
 
-    func retractAlert(identifier _: LoopKit.Alert.Identifier) {}
+    func retractAlert(identifier: LoopKit.Alert.Identifier) {
+        trioAlertManager.retractAlert(identifier: identifier)
+    }
 
     func enactRemoteOverride(name _: String, durationTime _: TimeInterval?, remoteAddress _: String) async throws {}
 
@@ -257,7 +314,7 @@ extension BaseTidepoolManager: ServiceDelegate {
         startDate _: Date?
     ) async throws {}
 
-    func deliverRemoteBolus(amountInUnits _: Double) async throws {}
+    func deliverRemoteBolus(amountInUnits _: Double, decisionId _: UUID?) async throws {}
 }
 
 /// Carb Upload and Deletion Functionality
@@ -287,8 +344,8 @@ extension BaseTidepoolManager {
 
             let syncCarb: [SyncCarbObject] = Array(chunk).map { $0.convertSyncCarb() }
 
-            let result = await TidepoolUploadSerializer.awaitUpload("carbs") { completion in
-                tidepoolService.uploadCarbData(created: syncCarb, updated: [], deleted: [], completion: completion)
+            let result = await TidepoolUploadSerializer.awaitUpload("carbs") {
+                try await tidepoolService.uploadCarbData(created: syncCarb, updated: [], deleted: [])
             }
 
             switch result {
@@ -347,8 +404,8 @@ extension BaseTidepoolManager {
 
         Task { [weak self] in
             await self?.uploadSerializer.enqueue(.carbsDelete) { _ in
-                let result = await TidepoolUploadSerializer.awaitUpload("carbs-delete") { completion in
-                    tidepoolService.uploadCarbData(created: [], updated: [], deleted: syncCarb, completion: completion)
+                let result = await TidepoolUploadSerializer.awaitUpload("carbs-delete") {
+                    try await tidepoolService.uploadCarbData(created: [], updated: [], deleted: syncCarb)
                 }
                 switch result {
                 case .success:
@@ -426,6 +483,7 @@ extension BaseTidepoolManager {
                                 endDate: event.timestamp,
                                 value: Double(programmed),
                                 unit: .units,
+                                decisionId: nil,
                                 deliveredUnits: Double(amount),
                                 syncIdentifier: event.id,
                                 scheduledBasalRate: nil,
@@ -471,8 +529,8 @@ extension BaseTidepoolManager {
                     return (insulinDoseEvents, pumpEvents)
                 }
 
-            let doseResult = await TidepoolUploadSerializer.awaitUpload("dose") { completion in
-                tidepoolService.uploadDoseData(created: insulinDoseEvents, deleted: [], completion: completion)
+            let doseResult = await TidepoolUploadSerializer.awaitUpload("dose") {
+                try await tidepoolService.uploadDoseData(created: insulinDoseEvents, deleted: [])
             }
             switch doseResult {
             case .success:
@@ -487,8 +545,8 @@ extension BaseTidepoolManager {
 
             guard await uploadSerializer.isCurrent(generation) else { return }
 
-            let pumpResult = await TidepoolUploadSerializer.awaitUpload("pumpEvents") { completion in
-                tidepoolService.uploadPumpEventData(pumpEvents, completion: completion)
+            let pumpResult = await TidepoolUploadSerializer.awaitUpload("pumpEvents") {
+                try await tidepoolService.uploadPumpEventData(pumpEvents)
             }
             switch pumpResult {
             case .success:
@@ -534,13 +592,14 @@ extension BaseTidepoolManager {
             startDate: at,
             value: Double(amount),
             unit: .units,
+            decisionId: nil,
             syncIdentifier: id
         )]
 
         Task { [weak self] in
             await self?.uploadSerializer.enqueue(.doseDelete) { _ in
-                let result = await TidepoolUploadSerializer.awaitUpload("dose-delete") { completion in
-                    tidepoolService.uploadDoseData(created: [], deleted: doseDataToDelete, completion: completion)
+                let result = await TidepoolUploadSerializer.awaitUpload("dose-delete") {
+                    try await tidepoolService.uploadDoseData(created: [], deleted: doseDataToDelete)
                 }
                 switch result {
                 case .success:
@@ -616,6 +675,7 @@ extension BaseTidepoolManager {
                             endDate: adjustedEndDate,
                             value: adjustedDeliveredUnits,
                             unit: .units,
+                            decisionId: nil,
                             deliveredUnits: adjustedDeliveredUnits,
                             syncIdentifier: predecessorEntrySyncIdentifier,
                             insulinType: insulinType(for: predecessorEntry.insulinType),
@@ -637,9 +697,10 @@ extension BaseTidepoolManager {
                 endDate: currentEndDate,
                 value: Double(value),
                 unit: .units,
+                decisionId: nil,
                 deliveredUnits: Double(value),
                 syncIdentifier: event.id,
-                scheduledBasalRate: HKQuantity(
+                scheduledBasalRate: LoopQuantity(
                     unit: .internationalUnitsPerHour,
                     doubleValue: Double(currentBasalRate.rate)
                 ),
@@ -731,8 +792,8 @@ extension BaseTidepoolManager {
         for chunk in glucose.chunks(ofCount: tidepoolService.glucoseDataLimit ?? 100) {
             guard await uploadSerializer.isCurrent(generation) else { return }
 
-            let result = await TidepoolUploadSerializer.awaitUpload("glucose") { completion in
-                tidepoolService.uploadGlucoseData(chunk, completion: completion)
+            let result = await TidepoolUploadSerializer.awaitUpload("glucose") {
+                try await tidepoolService.uploadGlucoseData(chunk)
             }
 
             switch result {
@@ -815,8 +876,8 @@ extension BaseTidepoolManager {
             return
         }
 
-        let result = await TidepoolUploadSerializer.awaitUpload("settings") { completion in
-            tidepoolService.uploadSettingsData([settings], completion: completion)
+        let result = await TidepoolUploadSerializer.awaitUpload("settings") {
+            try await tidepoolService.uploadSettingsData([settings])
         }
         switch result {
         case .success:
@@ -854,7 +915,12 @@ extension BaseTidepoolManager: StatefulPluggableDelegate {
     func pluginDidUpdateState(_: LoopKit.StatefulPluggable) {}
 
     func pluginWantsDeletion(_: LoopKit.StatefulPluggable) {
+        // deleteService() logs out right after, which would raise the re-login alert
+        tidepoolService?.serviceDelegate = nil
         tidepoolService = nil
+        sessionSubscription = nil
+        setLoginRequired(false)
+        trioAlertManager.retractAlert(identifier: Self.authenticationAlertIdentifier)
     }
 }
 
@@ -886,7 +952,7 @@ extension BaseTidepoolManager {
         let glucoseTargetRangeSchedule = convertBGTargets(bgTargets)
 
         let pumpDevice = apsManager.pumpManager?.status.device
-        let bgUnit: HKUnit = settingsManager.settings.units == .mmolL ? .millimolesPerLiter : .milligramsPerDeciliter
+        let bgUnit: LoopUnit = settingsManager.settings.units == .mmolL ? .millimolesPerLiter : .milligramsPerDeciliter
 
         // threshold_setting is always stored in mg/dL; TidepoolServiceKit calls
         // convertTo(unit:) internally, so we pass it through in its native unit
@@ -901,10 +967,7 @@ extension BaseTidepoolManager {
             dosingEnabled: settingsManager.settings.dosingMode.automation != .off,
             glucoseTargetRangeSchedule: glucoseTargetRangeSchedule,
             preMealTargetRange: nil,
-            workoutTargetRange: nil,
-            overridePresets: nil,
-            scheduleOverride: nil,
-            preMealOverride: nil,
+            overridePresets: [],
             maximumBasalRatePerHour: Double(pumpSettings.maxBasal),
             maximumBolus: Double(pumpSettings.maxBolus),
             suspendThreshold: suspendThreshold,
@@ -943,12 +1006,12 @@ extension BaseTidepoolManager {
             let startTime = TimeInterval(entry.offset * 60)
             return RepeatingScheduleValue(startTime: startTime, value: Double(entry.ratio))
         }
-        return CarbRatioSchedule(unit: .gram(), dailyItems: items, timeZone: TimeZone.current)
+        return CarbRatioSchedule(unit: .gram, dailyItems: items, timeZone: TimeZone.current)
     }
 
     private func convertInsulinSensitivities(_ sensitivities: InsulinSensitivities) -> InsulinSensitivitySchedule? {
         // sensitivities.units comes from the data model itself, not the user's display preference
-        let unit: HKUnit = sensitivities.units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+        let unit: LoopUnit = sensitivities.units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
         let items = sensitivities.sensitivities.map { entry in
             let startTime = TimeInterval(entry.offset * 60)
             return RepeatingScheduleValue(startTime: startTime, value: Double(entry.sensitivity))
@@ -958,7 +1021,7 @@ extension BaseTidepoolManager {
 
     private func convertBGTargets(_ bgTargets: BGTargets) -> GlucoseRangeSchedule? {
         // bgTargets.units comes from the data model itself, not the user's display preference
-        let unit: HKUnit = bgTargets.units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+        let unit: LoopUnit = bgTargets.units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
         let items = bgTargets.targets.map { entry in
             let startTime = TimeInterval(entry.offset * 60)
             let minValue = Double(entry.low)

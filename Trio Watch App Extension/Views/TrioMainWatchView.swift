@@ -3,6 +3,7 @@ import SwiftUI
 import WatchKit
 
 struct TrioMainWatchView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var state = WatchState.shared
 
     // misc
@@ -22,7 +23,6 @@ struct TrioMainWatchView: View {
 
     /// Advanced by a timer, so the view goes stale even when nothing new arrives.
     @State private var now = Date()
-    @Environment(\.scenePhase) private var scenePhase
 
     /// Dated by the newest reading, or by the last update when there is none. The extra minute covers the
     /// next reading's delivery; unchanged messages are not resent, so the last update alone would go stale.
@@ -229,14 +229,21 @@ struct TrioMainWatchView: View {
                 if newPath.isEmpty {
                     // Reset conditional view navigation when returning to root view
                     continueToBolus = false
+                    // Back on the main screen, so no entry is in progress
+                    state.clearEntry()
+                }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active { now = Date() }
+                // An entry left for more than 2 min (wrist down, app in the background) is
+                // cleared and the input screens are closed, so a stale amount can't be confirmed
+                if newPhase == .active, state.expireStaleEntry() {
+                    navigationPath = NavigationPath()
                 }
             }
         }
         .ignoresSafeArea()
         .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { now = $0 }
-        .onChange(of: scenePhase) { _, phase in
-            if phase == .active { now = Date() }
-        }
     }
 
     private func updateRotation(for trend: String?) {

@@ -22,6 +22,7 @@ extension Home {
         @ObservationIgnored @Injected() var pluginCGMManager: PluginManager!
         @ObservationIgnored @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
+        @ObservationIgnored @Injected() var tidepoolManager: TidepoolManager!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
@@ -125,6 +126,7 @@ extension Home {
         var pumpStatusHighlightMessage: String?
         var pumpStatusBadgeImage: UIImage?
         var pumpStatusBadgeColor: Color?
+        var tidepoolLoginRequired = false
         var cgmAvailable: Bool = false
         var cgmDisplayState: CgmDisplayState?
         var cgmProgressHighlight: DeviceLifecycleProgress?
@@ -645,6 +647,11 @@ extension Home {
                 .weakAssign(to: \.lastLoopDate, on: self)
                 .store(in: &lifetime)
 
+            tidepoolManager.tidepoolLoginRequired
+                .receive(on: DispatchQueue.main)
+                .weakAssign(to: \.tidepoolLoginRequired, on: self)
+                .store(in: &lifetime)
+
             apsManager.pumpName
                 .receive(on: DispatchQueue.main)
                 .weakAssign(to: \.pumpName, on: self)
@@ -861,7 +868,11 @@ extension Home {
 
                 if let schedule = BasalRateSchedule(
                     dailyItems: basalProfile
-                        .map { RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate)) }
+                        .map {
+                            RepeatingScheduleValue(
+                                startTime: TimeInterval($0.minutes * 60),
+                                value: Double($0.rate).roundedDouble(toPlaces: 3)
+                            ) }
                 ) {
                     self.pumpInitialSettings.basalSchedule = schedule
                 }
@@ -1082,7 +1093,7 @@ extension Home.StateModel:
         }
     }
 
-    func pumpReservoirDidChange(_: Decimal) {
+    func pumpReservoirDidChange(_: Decimal?) {
         setupReservoir()
         displayPumpStatusHighlightMessage()
         displayPumpStatusBadge()

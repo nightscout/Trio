@@ -452,11 +452,6 @@ final class BaseAPSManager: APSManager, Injectable {
             return APSError.invalidPumpState(message: String(localized: "Pump suspended"))
         }
 
-        let reservoir = storage.retrieve(OpenAPS.Monitor.reservoir, as: Decimal.self) ?? 100
-        guard reservoir >= 0 else {
-            return APSError.invalidPumpState(message: String(localized: "Reservoir is empty"))
-        }
-
         return nil
     }
 
@@ -638,7 +633,10 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
-        if amount <= 0 {
+        // Answer every caller: a silent return here left the watch waiting on "Processing…" forever
+        guard amount > 0 else {
+            warning(.bolus, "Bolus of \(amount) U not enacted, amount must be above 0")
+            callback?(false, Self.invalidBolusAmountMessage)
             return
         }
 
@@ -662,6 +660,12 @@ final class BaseAPSManager: APSManager, Injectable {
         }
 
         let roundedAmount = pump.roundToSupportedBolusVolume(units: amount)
+
+        guard roundedAmount > 0 else {
+            warning(.bolus, "Bolus of \(amount) U not enacted, rounds to 0 U on this pump")
+            callback?(false, Self.invalidBolusAmountMessage)
+            return
+        }
 
         debug(.bolus, "Enacting bolus \(roundedAmount) U, \(isSMB ? "automatic" : "manual")")
 
@@ -700,6 +704,11 @@ final class BaseAPSManager: APSManager, Injectable {
             )
         }
     }
+
+    static let invalidBolusAmountMessage = String(
+        localized: "Error! Bolus amount must be greater than 0 U.",
+        comment: "Error message when a bolus of zero or less is requested"
+    )
 
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async {
         guard let pump = pumpManager, pump.status.pumpStatus.bolusing else { return }
@@ -758,7 +767,8 @@ final class BaseAPSManager: APSManager, Injectable {
         guard let state = pumpManager?.status.basalDeliveryState else { return fetchedTempBasal }
 
         switch state {
-        case .active:
+        case .active,
+             .pumpInoperable:
             return TempBasal(duration: 0, rate: 0, temp: .absolute, timestamp: date)
         case let .tempBasal(dose):
             let rate = Decimal(dose.unitsPerHour)
@@ -1427,7 +1437,7 @@ final class BaseAPSManager: APSManager, Injectable {
 private extension PumpManager {
     func enactTempBasal(unitsPerHour: Double, for duration: TimeInterval) async throws {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            self.enactTempBasal(unitsPerHour: unitsPerHour, for: duration) { error in
+            self.enactTempBasal(decisionId: nil, unitsPerHour: unitsPerHour, for: duration) { error in
                 if let error = error {
                     debug(.pump, "Temp basal command failed: \(unitsPerHour) U/h for \(Int(duration / 60)) min")
                     continuation.resume(throwing: error)
@@ -1442,7 +1452,7 @@ private extension PumpManager {
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             let automaticValue = automatic ? BolusActivationType.automatic : BolusActivationType.manualRecommendationAccepted
 
-            self.enactBolus(units: units, activationType: automaticValue) { error in
+            self.enactBolus(decisionId: nil, units: units, activationType: automaticValue) { error in
                 if let error = error {
                     debug(.pump, "Bolus command failed: \(units) U")
                     continuation.resume(throwing: error)
@@ -1572,7 +1582,8 @@ extension BaseAPSManager: DoseProgressObserver {
 extension PumpManagerStatus {
     var pumpStatus: PumpStatus {
         let bolusing = bolusState != .noBolus
-        let suspended = basalDeliveryState?.isSuspended ?? true
+        // A halted patch or faulted pod reports .pumpInoperable; never loop against it.
+        let suspended = basalDeliveryState.map { $0.isSuspended || $0 == .pumpInoperable } ?? true
         let type = suspended ? StatusType.suspended : (bolusing ? .bolusing : .normal)
         return PumpStatus(status: type, bolusing: bolusing, suspended: suspended, timestamp: Date())
     }

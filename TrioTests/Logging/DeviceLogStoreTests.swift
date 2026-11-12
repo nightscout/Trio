@@ -146,7 +146,7 @@ import UIKit
                 timestamp: $0
             )
         }
-        #expect(PersistentDeviceLog(storageFile: file).addStoredDeviceLogEntries(entries: seeded) == nil)
+        try await PersistentDeviceLog(storageFile: file).addStoredDeviceLogEntries(entries: seeded)
 
         let store = DeviceLogStore(
             storageURL: file,
