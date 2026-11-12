@@ -49,7 +49,6 @@ struct LiveActivity: Widget {
             .widgetURL(URL(string: "Trio://"))
             .keylineTint(glucoseColor)
             .contentMargins(.horizontal, 0, for: .minimal)
-            .contentMargins(.leading, 0, for: .compactTrailing)
         }
 
         if #available(iOS 18.0, *) {
