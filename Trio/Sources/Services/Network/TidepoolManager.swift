@@ -3,7 +3,6 @@ import CoreData
 import CryptoKit
 import Foundation
 import HealthKit
-import LoopAlgorithm
 import LoopKit
 import LoopKitUI
 import Swinject
@@ -14,6 +13,7 @@ protocol TidepoolManager {
     func addTidepoolService(service: Service)
     func getTidepoolServiceUI() -> ServiceUI?
     func getTidepoolPluginHost() -> PluginHost?
+    var tidepoolLoginRequired: CurrentValueSubject<Bool, Never> { get }
     func uploadCarbs() async
     func deleteCarbs(withSyncId id: UUID, carbs: Decimal, at: Date, enteredBy: String)
     func uploadInsulin() async
@@ -33,6 +33,13 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var notificationCenter: NotificationCenter!
+    @Injected() private var trioAlertManager: TrioAlertManager!
+
+    /// Raised by `TidepoolService` when its login session is cleared
+    static let authenticationAlertIdentifier = LoopKit.Alert.Identifier(
+        managerIdentifier: TidepoolService.serviceIdentifier,
+        alertIdentifier: "authentication-needed"
+    )
 
     // Lazy access to avoid circular dependency (TidepoolManager ↔ FetchGlucoseManager)
     private var resolver: Resolver?
@@ -60,6 +67,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     private var tidepoolService: RemoteDataService? {
         didSet {
             if let tidepoolService = tidepoolService {
+                tidepoolService.remoteDataServiceDelegate = self
                 rawTidepoolManager = tidepoolService.rawValue
             } else {
                 rawTidepoolManager = nil
@@ -70,6 +78,8 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
     private var subscriptions = Set<AnyCancellable>()
+    private var sessionSubscription: AnyCancellable?
+    let tidepoolLoginRequired = CurrentValueSubject<Bool, Never>(false)
 
     // MARK: - Upload triggers
 
@@ -130,6 +140,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     }()
 
     @PersistedProperty(key: "TidepoolState") var rawTidepoolManager: Service.RawValue?
+    @PersistedProperty(key: "TidepoolLoginRequired") var persistedLoginRequired: Bool?
 
     init(resolver: Resolver) {
         self.resolver = resolver
@@ -175,13 +186,33 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
         broadcaster.register(PreferencesObserver.self, observer: self)
     }
 
+    /// Persisted because `TidepoolService` can't be restored without a session, so the flag must outlive a relaunch
+    private func setLoginRequired(_ required: Bool) {
+        persistedLoginRequired = required ? true : nil
+        tidepoolLoginRequired.send(required)
+    }
+
     /// Loads the Tidepool service from saved state
     fileprivate func loadTidepoolManager() {
+        tidepoolLoginRequired.send(persistedLoginRequired ?? false)
         if let rawTidepoolManager = rawTidepoolManager {
             tidepoolService = tidepoolServiceFromRaw(rawTidepoolManager)
             tidepoolService?.serviceDelegate = self
             tidepoolService?.stateDelegate = self
+            observeTidepoolSession()
         }
+    }
+
+    /// Tracks whether the Tidepool service lost its login; retracts the re-login alert once it is back
+    private func observeTidepoolSession() {
+        sessionSubscription = (tidepoolService as? TidepoolService)?.$session
+            .sink { [weak self] session in
+                guard let self else { return }
+                self.setLoginRequired(session == nil)
+                if session != nil {
+                    self.trioAlertManager.retractAlert(identifier: Self.authenticationAlertIdentifier)
+                }
+            }
     }
 
     /// Returns the Tidepool service UI if available
@@ -197,6 +228,9 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     /// Adds a Tidepool service
     func addTidepoolService(service: Service) {
         tidepoolService = service as? RemoteDataService
+        tidepoolService?.serviceDelegate = self
+        tidepoolService?.stateDelegate = self
+        observeTidepoolSession()
     }
 
     /// Loads the Tidepool service from raw stored data
@@ -226,6 +260,24 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     }
 }
 
+extension BaseTidepoolManager: RemoteDataServiceDelegate {
+    /// Device logs are not uploaded.
+    func fetchDeviceLogs(startDate _: Date, endDate _: Date) async throws -> [StoredDeviceLogEntry] {
+        []
+    }
+
+    /// Empty on purpose: a non-empty history makes `DoseEntry.annotated(with:)` hit a `preconditionFailure`
+    /// for temp basals with unit `.units`, which is how Trio builds them.
+    func getBasalHistory(startDate _: Date, endDate _: Date) async throws -> [AbsoluteScheduleValue<Double>] {
+        []
+    }
+
+    func automationHistory(from start: Date, to end: Date) async throws -> [AbsoluteScheduleValue<Bool>] {
+        let isAutomated = settingsManager.settings.dosingMode == .closed
+        return [AbsoluteScheduleValue(startDate: start, endDate: end, value: isAutomated)]
+    }
+}
+
 extension BaseTidepoolManager: ServiceDelegate {
     var hostIdentifier: String {
         "org.nightscout.Trio"
@@ -243,9 +295,13 @@ extension BaseTidepoolManager: ServiceDelegate {
         return semanticVersion
     }
 
-    func issueAlert(_: LoopKit.Alert) {}
+    func issueAlert(_ alert: LoopKit.Alert) {
+        trioAlertManager.issueAlert(alert)
+    }
 
-    func retractAlert(identifier _: LoopKit.Alert.Identifier) {}
+    func retractAlert(identifier: LoopKit.Alert.Identifier) {
+        trioAlertManager.retractAlert(identifier: identifier)
+    }
 
     func enactRemoteOverride(name _: String, durationTime _: TimeInterval?, remoteAddress _: String) async throws {}
 
@@ -859,7 +915,12 @@ extension BaseTidepoolManager: StatefulPluggableDelegate {
     func pluginDidUpdateState(_: LoopKit.StatefulPluggable) {}
 
     func pluginWantsDeletion(_: LoopKit.StatefulPluggable) {
+        // deleteService() logs out right after, which would raise the re-login alert
+        tidepoolService?.serviceDelegate = nil
         tidepoolService = nil
+        sessionSubscription = nil
+        setLoginRequired(false)
+        trioAlertManager.retractAlert(identifier: Self.authenticationAlertIdentifier)
     }
 }
 

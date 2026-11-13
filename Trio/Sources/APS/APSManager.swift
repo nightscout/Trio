@@ -452,11 +452,6 @@ final class BaseAPSManager: APSManager, Injectable {
             return APSError.invalidPumpState(message: String(localized: "Pump suspended"))
         }
 
-        let reservoir = storage.retrieve(OpenAPS.Monitor.reservoir, as: Decimal.self) ?? 100
-        guard reservoir >= 0 else {
-            return APSError.invalidPumpState(message: String(localized: "Reservoir is empty"))
-        }
-
         return nil
     }
 
@@ -638,7 +633,10 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
-        if amount <= 0 {
+        // Answer every caller: a silent return here left the watch waiting on "Processing…" forever
+        guard amount > 0 else {
+            warning(.bolus, "Bolus of \(amount) U not enacted, amount must be above 0")
+            callback?(false, Self.invalidBolusAmountMessage)
             return
         }
 
@@ -662,6 +660,12 @@ final class BaseAPSManager: APSManager, Injectable {
         }
 
         let roundedAmount = pump.roundToSupportedBolusVolume(units: amount)
+
+        guard roundedAmount > 0 else {
+            warning(.bolus, "Bolus of \(amount) U not enacted, rounds to 0 U on this pump")
+            callback?(false, Self.invalidBolusAmountMessage)
+            return
+        }
 
         debug(.bolus, "Enacting bolus \(roundedAmount) U, \(isSMB ? "automatic" : "manual")")
 
@@ -700,6 +704,11 @@ final class BaseAPSManager: APSManager, Injectable {
             )
         }
     }
+
+    static let invalidBolusAmountMessage = String(
+        localized: "Error! Bolus amount must be greater than 0 U.",
+        comment: "Error message when a bolus of zero or less is requested"
+    )
 
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async {
         guard let pump = pumpManager, pump.status.pumpStatus.bolusing else { return }

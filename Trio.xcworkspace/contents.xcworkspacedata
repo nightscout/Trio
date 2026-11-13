@@ -32,9 +32,6 @@
       location = "group:RoundWhiteDiscKit">
    </FileRef>
    <FileRef
-      location = "group:LoopAlgorithm">
-   </FileRef>
-   <FileRef
       location = "group:dexcom-share-client-swift/ShareClient.xcodeproj">
    </FileRef>
    <FileRef
