@@ -1,6 +1,7 @@
 name: zzz [DO NOT RUN] Close Inactive Issues
 # Called from upstream_automation.yml; see that file for why there is a single dispatcher.
-# Runs daily at 01:30 UTC (schedule lives in the caller).
+# Runs after each push to `dev` (trigger lives in the caller; no cron, so forks
+# never get a daily run).
 on:
   workflow_call:
 
