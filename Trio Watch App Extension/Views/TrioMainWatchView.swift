@@ -230,6 +230,18 @@ struct TrioMainWatchView: View {
                     continueToBolus = false
                 }
             }
+            .onChange(of: state.watchUsageMode) { _, newMode in
+                // Close screens for actions the new mode no longer allows, instead of letting the user
+                // complete them only to have the phone reject the request
+                if !newMode.allowsTreatments {
+                    showingTreatmentMenuSheet = false
+                    navigationPath.removeLast(navigationPath.count)
+                }
+                if !newMode.allowsAdjustments {
+                    showingOverrideSheet = false
+                    showingTempTargetSheet = false
+                }
+            }
         }
         .ignoresSafeArea()
     }

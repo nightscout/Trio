@@ -54,6 +54,25 @@ import WatchConnectivity
         WatchUsageMode(rawValue: UserDefaults.standard.string(forKey: watchUsageModeKey) ?? "") ?? .companion
     }
 
+    /// When the phone sent the applied mode, so an older queued watch state cannot undo a newer mode
+    /// that arrived as application context (the two are not delivered in a guaranteed order)
+    @ObservationIgnored private var watchUsageModeSentAt: TimeInterval = 0
+
+    /// Applies a Watch Usage Mode sent by the phone in a watch state or as application context
+    private func applyWatchUsageMode(from dictionary: [String: Any]) {
+        guard let rawValue = dictionary[WatchMessageKeys.watchUsageMode] as? String,
+              let watchUsageMode = WatchUsageMode(rawValue: rawValue)
+        else { return }
+
+        let sentAt = dictionary[WatchMessageKeys.date] as? TimeInterval ?? 0
+        guard sentAt >= watchUsageModeSentAt else { return }
+        watchUsageModeSentAt = sentAt
+
+        guard watchUsageMode != self.watchUsageMode else { return }
+        self.watchUsageMode = watchUsageMode
+        UserDefaults.standard.set(rawValue, forKey: Self.watchUsageModeKey)
+    }
+
     // Forecast options
     var showForecast: Bool = false
     var isForecastCone: Bool = false
@@ -160,6 +179,7 @@ import WatchConnectivity
             if activationState == .activated {
                 WatchLogger.shared.info(.connectivity, "Session activated, phone reachable: \(session.isReachable)")
 
+                self.applyWatchUsageMode(from: session.receivedApplicationContext)
                 self.forceConditionalWatchStateUpdate()
 
                 self.isReachable = session.isReachable
@@ -199,6 +219,13 @@ import WatchConnectivity
         }
 
         handleIncomingWatchStatePayload(message)
+    }
+
+    /// The phone queues the Watch Usage Mode as application context so a change also reaches a backgrounded watch app
+    func session(_: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        DispatchQueue.main.async {
+            self.applyWatchUsageMode(from: applicationContext)
+        }
     }
 
     func session(_: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
@@ -516,12 +543,7 @@ import WatchConnectivity
             }
         }
 
-        if let rawValue = message[WatchMessageKeys.watchUsageMode] as? String,
-           let watchUsageMode = WatchUsageMode(rawValue: rawValue)
-        {
-            self.watchUsageMode = watchUsageMode
-            UserDefaults.standard.set(rawValue, forKey: Self.watchUsageModeKey)
-        }
+        applyWatchUsageMode(from: message)
 
         if let showForecast = message[WatchMessageKeys.showForecastWatch] as? Bool {
             self.showForecast = showForecast

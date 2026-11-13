@@ -537,7 +537,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxProtein: state.maxProtein,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
-            WatchMessageKeys.watchUsageMode: state.watchUsageMode.rawValue,
+            // Read from the settings so fallback states (e.g. no recent glucose) carry the current mode too
+            WatchMessageKeys.watchUsageMode: settingsManager.settings.watchUsageMode.rawValue,
             WatchMessageKeys.units: state.units.rawValue,
             WatchMessageKeys.showForecastWatch: state.showForecast,
             WatchMessageKeys.isForecastCone: state.isForecastCone
@@ -585,9 +586,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         var state = state
         state.date = Date()
 
-        // Set here so fallback states (e.g. no recent glucose) never re-enable restricted watch actions
-        state.watchUsageMode = settingsManager.settings.watchUsageMode
-
         let message: [String: Any] = watchStateToDictionary(from: state)
 
         // if session is reachable, it means watch App is in the foreground -> send watchState as message
@@ -601,6 +599,21 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             debug(.watch, "Watch state queued for background transfer")
         }
         WatchStateSnapshot.saveLatestDateToDisk(state.date)
+    }
+
+    /// Queues the Watch Usage Mode as application context, which the system delivers even while the
+    /// watch app is in the background, so a mode change is not delayed until the next watch state push
+    private func sendWatchUsageModeContext() {
+        guard let session = session, session.activationState == .activated, session.isPaired,
+              session.isWatchAppInstalled else { return }
+        do {
+            try session.updateApplicationContext([
+                WatchMessageKeys.watchUsageMode: settingsManager.settings.watchUsageMode.rawValue,
+                WatchMessageKeys.date: Date().timeIntervalSince1970
+            ])
+        } catch {
+            warning(.watch, "Queueing watch usage mode for the watch failed", error: error)
+        }
     }
 
     func sendAcknowledgment(toWatch success: Bool, message: String = "", ackCode: AcknowledgmentCode) {
@@ -630,6 +643,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         info(.watch, "Watch session activated, state \(activationState.rawValue), reachable: \(session.isReachable)")
 
+        sendWatchUsageModeContext()
+
         // Try to send initial data after activation
         Task {
             let state = await self.setupWatchState()
@@ -658,11 +673,6 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     let state = await self.setupWatchState()
                     await self.sendDataToWatch(state)
                 }
-                return
-            }
-
-            guard self.settingsManager.settings.watchUsageMode.allows(watchMessage: message) else {
-                self.rejectDisallowedWatchRequest(message)
                 return
             }
 
@@ -826,25 +836,29 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
     }
 
-    /// Rejects a request from the Watch that the Watch Usage Mode in the Apple Watch settings does not allow
-    private func rejectDisallowedWatchRequest(_ message: [String: Any]) {
-        info(
-            .watch,
-            "Rejected watch request in watch usage mode \(settingsManager.settings.watchUsageMode.rawValue), keys: \(message.keys.sorted().joined(separator: ", "))"
-        )
-        sendAcknowledgment(
-            toWatch: false,
-            message: String(
-                localized: "Not allowed by the Watch Usage Mode in Trio settings.",
-                comment: "Failure message sent to watch when the watch usage mode does not allow the requested action"
-            ),
-            ackCode: .genericFailure
-        )
+    /// Checks the Watch Usage Mode before a watch action runs and rejects the request if it is not allowed.
+    /// Every handler for an action requested by the Watch must call this first, naming the permission it needs.
+    private func isWatchActionAllowed(_ permission: KeyPath<WatchUsageMode, Bool>, action: String) -> Bool {
+        let mode = settingsManager.settings.watchUsageMode
+        guard mode[keyPath: permission] else {
+            info(.watch, "Rejected watch \(action) request in watch usage mode \(mode.rawValue)")
+            sendAcknowledgment(
+                toWatch: false,
+                message: String(
+                    localized: "Not allowed by the Watch Usage Mode in Trio settings.",
+                    comment: "Failure message sent to watch when the watch usage mode does not allow the requested action"
+                ),
+                ackCode: .genericFailure
+            )
+            return false
+        }
+        return true
     }
 
     /// Processes bolus requests received from the Watch
     /// - Parameter amount: The requested bolus amount in units
     private func handleBolusRequest(_ amount: Decimal) {
+        guard isWatchActionAllowed(\.allowsTreatments, action: "bolus") else { return }
         Task {
             await apsManager.enactBolus(amount: Double(amount), isSMB: false) { success, message in
                 // Acknowledge success or error of bolus
@@ -863,6 +877,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     ///   - amount: The carbs amount in grams
     ///   - date: Timestamp for the carbs entry
     private func handleCarbsRequest(_ amount: Int, _ date: Date) {
+        guard isWatchActionAllowed(\.allowsTreatments, action: "carbs") else { return }
         Task {
             let context = CoreDataStack.shared.newTaskContext()
 
@@ -915,6 +930,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     ///   - carbsAmount: The carbs amount in grams
     ///   - date: Timestamp for the carbs entry
     private func handleCombinedRequest(bolusAmount: Decimal, carbsAmount: Decimal, date: Date) {
+        guard isWatchActionAllowed(\.allowsTreatments, action: "meal bolus") else { return }
         Task {
             let context = CoreDataStack.shared.newTaskContext()
 
@@ -993,6 +1009,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func handleCancelOverride() {
+        guard isWatchActionAllowed(\.allowsAdjustments, action: "override cancel") else { return }
         Task {
             do {
                 let outcome = try await adjustmentManager.cancelOverride(source: .watch)
@@ -1018,6 +1035,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func handleActivateOverride(_ presetName: String) {
+        guard isWatchActionAllowed(\.allowsAdjustments, action: "override") else { return }
         Task {
             do {
                 let outcome = try await adjustmentManager.activateOverride(.presetName(presetName), source: .watch)
@@ -1046,6 +1064,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func handleActivateTempTarget(_ presetName: String) {
+        guard isWatchActionAllowed(\.allowsAdjustments, action: "temp target") else { return }
         Task {
             do {
                 let outcome = try await adjustmentManager.activateTempTarget(.presetName(presetName), source: .watch)
@@ -1074,6 +1093,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func handleCancelTempTarget() {
+        guard isWatchActionAllowed(\.allowsAdjustments, action: "temp target cancel") else { return }
         Task {
             do {
                 let outcome = try await adjustmentManager.cancelTempTarget(source: .watch)
@@ -1117,6 +1137,9 @@ extension BaseWatchManager: SettingsObserver, PumpSettingsObserver {
         glucoseColorScheme = settingsManager.settings.glucoseColorScheme
         lowGlucose = settingsManager.settings.low
         highGlucose = settingsManager.settings.high
+
+        // Queued even when the watch app is in the background, unlike the watch state below
+        sendWatchUsageModeContext()
 
         // Skip if no watch is paired or app not installed
         guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }

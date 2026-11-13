@@ -11,11 +11,11 @@ enum WatchUsageMode: String, CaseIterable, Identifiable, Codable, Hashable {
     var displayName: String {
         switch self {
         case .companion:
-            return String(localized: "Companion")
+            return String(localized: "watch_usage_mode_companion", defaultValue: "Companion", comment: "Watch usage mode")
         case .adjustments:
-            return String(localized: "Adjustments")
+            return String(localized: "watch_usage_mode_adjustments", defaultValue: "Adjustments", comment: "Watch usage mode")
         case .view:
-            return String(localized: "View")
+            return String(localized: "watch_usage_mode_view", defaultValue: "View", comment: "Watch usage mode")
         }
     }
 
@@ -27,19 +27,5 @@ enum WatchUsageMode: String, CaseIterable, Identifiable, Codable, Hashable {
     /// Overrides and temp targets
     var allowsAdjustments: Bool {
         self != .view
-    }
-
-    /// Whether this mode allows the action requested by a message from the Watch.
-    /// Counts every message the iPhone's handlers would act on (and malformed bolus messages) as a request.
-    /// Messages that only request data (state updates, bolus recommendations without a date) or snooze alerts
-    /// are always allowed.
-    func allows(watchMessage message: [String: Any]) -> Bool {
-        let isTreatment = message[WatchMessageKeys.bolus] as? Double != nil ||
-            (message[WatchMessageKeys.carbs] as? Int != nil && message[WatchMessageKeys.date] as? TimeInterval != nil)
-        let isAdjustment = message[WatchMessageKeys.cancelOverride] as? Bool == true ||
-            message[WatchMessageKeys.activateOverride] as? String != nil ||
-            message[WatchMessageKeys.activateTempTarget] as? String != nil ||
-            message[WatchMessageKeys.cancelTempTarget] as? Bool == true
-        return (!isTreatment || allowsTreatments) && (!isAdjustment || allowsAdjustments)
     }
 }

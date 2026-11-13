@@ -84045,9 +84045,6 @@
         }
       }
     },
-    "Companion" : {
-
-    },
     "Companion (Default):" : {
 
     },
@@ -215000,6 +214997,9 @@
         }
       }
     },
+    "No treatments, overrides or temp targets. Alerts can still be snoozed from the watch." : {
+
+    },
     "No URL available" : {
       "localizations" : {
         "bg" : {
@@ -248230,9 +248230,6 @@
           }
         }
       }
-    },
-    "Read-only. No treatments, overrides or temp targets." : {
-
     },
     "Readings" : {
       "comment" : "CGM readings in statView",
@@ -340209,6 +340206,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "手錶/Carplay 小工具樣式"
+          }
+        }
+      }
+    },
+    "watch_usage_mode_adjustments" : {
+      "comment" : "Watch usage mode",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Adjustments"
+          }
+        }
+      }
+    },
+    "watch_usage_mode_companion" : {
+      "comment" : "Watch usage mode",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Companion"
+          }
+        }
+      }
+    },
+    "watch_usage_mode_view" : {
+      "comment" : "Watch usage mode",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "View"
           }
         }
       }

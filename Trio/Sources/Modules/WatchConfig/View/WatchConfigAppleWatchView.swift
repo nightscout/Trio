@@ -83,7 +83,9 @@ struct WatchConfigAppleWatchView: BaseView {
                                             }
                                             VStack(alignment: .leading, spacing: 5) {
                                                 Text("View:").bold()
-                                                Text("Read-only. No treatments, overrides or temp targets.")
+                                                Text(
+                                                    "No treatments, overrides or temp targets. Alerts can still be snoozed from the watch."
+                                                )
                                             }
                                         }
                                     )
