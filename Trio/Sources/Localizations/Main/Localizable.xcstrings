@@ -1098,10 +1098,37 @@
     "Also Sent" : {
 
     },
+    "Answers are created on your iPhone from the Trio documentation and can be incomplete or wrong. They are not medical advice. Talk to your diabetes care team before you change your therapy settings." : {
+      "comment" : "Disclaimer below every answer of the on-device docs assistant"
+    },
+    "Answers on this device need Apple Intelligence, which isn't available here." : {
+      "comment" : "Docs assistant error"
+    },
+    "Apple Intelligence doesn't support this language yet. Try asking in English." : {
+      "comment" : "Docs assistant error"
+    },
+    "Apple Intelligence is busy right now. Please try again in a moment." : {
+      "comment" : "Docs assistant error"
+    },
+    "Apple Intelligence is still preparing its model. Please try again in a little while." : {
+      "comment" : "Docs assistant error"
+    },
+    "Apple Intelligence isn't available" : {
+      "comment" : "Docs assistant unavailable heading"
+    },
+    "Ask" : {
+
+    },
+    "Ask another question" : {
+      "comment" : "Placeholder of the docs assistant input field"
+    },
     "Ask on Discord" : {
 
     },
     "Ask on Facebook" : {
+
+    },
+    "Ask Trio Docs" : {
 
     },
     "Attach My Logs" : {
@@ -1149,6 +1176,12 @@
     "Fill in any of these so the team can follow up with you." : {
 
     },
+    "From the Trio documentation" : {
+      "comment" : "Heading above the documentation sections an answer was based on"
+    },
+    "Get an answer to »%@« on this iPhone, based on the Trio documentation." : {
+
+    },
     "Get help from other Trio users." : {
 
     },
@@ -1164,11 +1197,17 @@
     "iPhone Model" : {
 
     },
+    "Nothing in the Trio documentation matches this question. Try different words, or search Trio Docs on the web." : {
+      "comment" : "Docs assistant error"
+    },
     "One of the screenshots couldn't be read. Try choosing it again or leave it out." : {
 
     },
     "Open a GitHub Issue" : {
 
+    },
+    "Open Trio Docs in the browser" : {
+      "comment" : "Link shown when the on-device assistant is unavailable"
     },
     "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it." : {
 
@@ -1200,6 +1239,9 @@
     "Screenshots" : {
 
     },
+    "Searching the Trio documentation…" : {
+
+    },
     "Send to the Trio Team" : {
 
     },
@@ -1223,6 +1265,12 @@
     },
     "Thank you. Your report ID is %@. Mention it if you ask about this on Discord or Facebook." : {
 
+    },
+    "The built-in copy of the Trio documentation couldn't be loaded." : {
+      "comment" : "Docs assistant error"
+    },
+    "The on-device model declined to answer this question. Try rephrasing it, or look it up in Trio Docs on the web." : {
+      "comment" : "Docs assistant error"
     },
     "The report is too large. Try fewer or smaller screenshots." : {
 
@@ -1251,10 +1299,16 @@
     "Try Again" : {
 
     },
+    "Turn on Apple Intelligence in the iOS Settings app to get answers on this device." : {
+      "comment" : "Docs assistant error"
+    },
     "Up to %lld screenshots or photos." : {
 
     },
     "Uploads to Tidepool are paused. Tap to log in." : {
+
+    },
+    "Writing the answer" : {
 
     },
     "You've sent several reports today. Please try again tomorrow." : {

@@ -21,6 +21,8 @@ extension Settings {
         @State private var searchText: String = ""
         @State var hintDetent = PresentationDetent.large
         @State private var hintPayload: HintPayload?
+        @State private var docsQuery: DocsAssistantQuery?
+        @State private var docsAssistantStatus = DocsAssistantSupport.status
 
         private struct HintPayload: Identifiable {
             let id = UUID()
@@ -126,6 +128,13 @@ extension Settings {
                     }
                 }
             }
+        }
+
+        /// Hands the search text to the on-device docs assistant. Pressing return in the search field does the same.
+        private func askDocsAssistant() {
+            let question = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard docsAssistantStatus.isOffered, !question.isEmpty else { return }
+            docsQuery = DocsAssistantQuery(question: question)
         }
 
         private func copyVersionInfo(_ text: String) {
@@ -342,6 +351,44 @@ extension Settings {
                     ).listRowBackground(Color.chart)
 
                 } else {
+                    if docsAssistantStatus.isOffered {
+                        Section(
+                            header: Text("Trio Docs"),
+                            content: {
+                                Button {
+                                    askDocsAssistant()
+                                } label: {
+                                    HStack(alignment: .top, spacing: 12) {
+                                        Image(systemName: "sparkles")
+                                            .foregroundColor(.accentColor)
+                                            .padding(.top, 2)
+                                            .accessibilityHidden(true)
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Ask Trio Docs")
+                                                .bold()
+                                                .foregroundColor(.primary)
+                                            Text(
+                                                "Get an answer to »\(searchText)« on this iPhone, based on the Trio documentation."
+                                            )
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        }
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundColor(.secondary)
+                                            .accessibilityHidden(true)
+                                    }
+                                }
+                            }
+                        )
+                        .listRowBackground(Color.chart)
+                        .onAppear {
+                            docsAssistantStatus = DocsAssistantSupport.status
+                            DocsAssistantSupport.prewarm()
+                        }
+                    }
+
                     Section(
                         header: Text("Search Results"),
                         content: {
@@ -394,6 +441,9 @@ extension Settings {
                     sheetTitle: String(localized: "Help", comment: "Help sheet title")
                 )
             }
+            .sheet(item: $docsQuery) { query in
+                DocsAssistantView(initialQuestion: query.question)
+            }
             .onAppear(perform: configureView)
             .task {
                 await releaseNotesService.load()
@@ -418,6 +468,7 @@ extension Settings {
                 }
             }
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+            .onSubmit(of: .search, askDocsAssistant)
             .navigationDestination(for: SearchResultTarget.self) { target in
                 state.view(for: target.screen)
                     .onAppear {
