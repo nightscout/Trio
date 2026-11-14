@@ -12,6 +12,7 @@ import OmnipodKit
 import ShareClient
 import SwiftDate
 import Swinject
+import TandemKit
 import UserNotifications
 
 protocol DeviceDataManager {
@@ -711,6 +712,8 @@ extension PumpManager {
             return dana.state.pumpTime == nil ? nil : Decimal(dana.state.reservoirLevel)
         case let minimed as MinimedPumpManager:
             return minimed.state.lastReservoirReading.map { Decimal($0.units) }
+        case let tandem as TandemPumpManager:
+            return tandem.reservoirLevel.map { Decimal($0.unitVolume) }
         case let mock as MockPumpManager:
             return Decimal(mock.state.reservoirUnitsRemaining)
         default:
