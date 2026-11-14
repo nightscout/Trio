@@ -83,6 +83,14 @@ import Testing
         #expect(!GlucoseAlertType.carbsRequired.isReadingDriven)
     }
 
+    /// `thresholdRange` bounds both the editor picker and the quick-adjust
+    /// sliders in the snooze sheet
+    @Test("Default threshold lies inside thresholdRange for every type") func defaultThresholdWithinRange() {
+        for type in GlucoseAlertType.allCases {
+            #expect(type.thresholdRange.contains(type.defaultThresholdMgDL), "\(type)")
+        }
+    }
+
     // MARK: - Group B: decoder defaults
 
     @Test("Omitted isEnabled defaults to true") func decodeOmittedIsEnabledDefaultsTrue() throws {
