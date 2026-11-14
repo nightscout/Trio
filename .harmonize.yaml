@@ -1,0 +1,21 @@
+excludes:
+  - AccuChekKit
+  - AlgorithmPackage # its Sources and OpenAPSSwiftTests are symlinks into the tree: every algorithm file would parse twice
+  - BuildTools
+  - CGMBLEKit
+  - DanaKit
+  - dexcom-share-client-swift
+  - EversenseKit
+  - G7SensorKit
+  - HarmonizeRules
+  - LibreLoop
+  - LibreTransmitter
+  - LoopAlgorithm
+  - LoopKit
+  - MedtrumKit
+  - MinimedKit
+  - OmnipodKit
+  - RileyLinkKit
+  - RoundWhiteDiscKit
+  - TidepoolService
+  - trio-oref
