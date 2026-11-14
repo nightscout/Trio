@@ -5,6 +5,15 @@ import Swinject
 import UIKit
 import UserNotifications
 
+/// Receives Trio's alerts as they are delivered, for example a watch plugin
+/// that shows and buzzes them. An alert reaches the forwarders only if Trio
+/// delivers it: muted alerts don't, except critical ones, which pierce the mute.
+protocol TrioAlertForwarder: AnyObject {
+    func alertManager(didIssue alert: Alert, muted: Bool)
+    /// The alert was retracted or acknowledged on the phone.
+    func alertManager(didRetract identifier: Alert.Identifier)
+}
+
 protocol TrioAlertManager: AnyObject {
     func issueAlert(_ alert: Alert)
     func retractAlert(identifier: Alert.Identifier)
@@ -16,6 +25,7 @@ protocol TrioAlertManager: AnyObject {
     func register(responder: AlertResponder, for managerIdentifier: String)
     func register(soundVendor: AlertSoundVendor, for managerIdentifier: String)
     func unregister(managerIdentifier: String)
+    func addAlertForwarder(_ forwarder: TrioAlertForwarder)
 
     func handleAcknowledgement(identifier: Alert.Identifier)
     func handleNotificationResponse(_ response: UNNotificationResponse)
@@ -74,6 +84,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
     private var responders: [String: WeakRef] = [:]
     private var soundVendors: [String: WeakRef] = [:]
     private var liveAlerts: [Alert.Identifier: Alert] = [:]
+    private var alertForwarders: [WeakRef] = []
 
     init(resolver: Resolver) {
         muter = AlertMuter()
@@ -288,6 +299,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         if case .immediate = effective.trigger {
             playCriticalAudioFallbackIfNeeded(effective, muted: muted)
         }
+        forwarders.forEach { $0.alertManager(didIssue: effective, muted: muted) }
     }
 
     /// Overlays the user's Device Alarms tier config onto a catalog-known
@@ -326,6 +338,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             alarmScheduler?.cancelAlarm(for: identifier)
         }
         alertHistoryStorage.removeAlert(identifier: identifier.alertIdentifier)
+        forwarders.forEach { $0.alertManager(didRetract: identifier) }
     }
 
     /// Cold-start replay. Deliberately skips `recordIssued` (entry already
@@ -375,6 +388,7 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             self.liveAlerts.removeValue(forKey: identifier)
         }
         acknowledgeOnDevice(identifier: identifier)
+        forwarders.forEach { $0.alertManager(didRetract: identifier) }
     }
 
     /// Forwards the user's response to the issuing device manager — pump alerts
@@ -515,6 +529,17 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             self.soundVendors[managerIdentifier] = WeakRef(ref: soundVendor as AnyObject)
         }
         soundLoader.copySounds(from: soundVendor, managerIdentifier: managerIdentifier)
+    }
+
+    func addAlertForwarder(_ forwarder: TrioAlertForwarder) {
+        queue.sync {
+            alertForwarders.removeAll { $0.ref == nil || $0.ref === forwarder }
+            alertForwarders.append(WeakRef(ref: forwarder))
+        }
+    }
+
+    private var forwarders: [TrioAlertForwarder] {
+        queue.sync { alertForwarders.compactMap { $0.ref as? TrioAlertForwarder } }
     }
 
     func unregister(managerIdentifier: String) {

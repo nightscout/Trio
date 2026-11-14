@@ -269,6 +269,10 @@
 		3B4BA7712D8DBD690069D5B8 /* G7SensorKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7722D8DBD690069D5B8 /* G7SensorKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */; };
 		3B4BA7732D8DBD690069D5B8 /* G7SensorKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		BEE506306CA70A1D0DCD45E3 /* LupedSmartwatchKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8859C37F0A296B4861E78091 /* LupedSmartwatchKitUI.framework */; };
+		C890017389FC349E36523ADC /* LupedSmartwatchKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8859C37F0A296B4861E78091 /* LupedSmartwatchKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		4DAF9ADAA9BCF449EBA935A2 /* LupedSmartwatchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A1AEF7571D93E310C97062B /* LupedSmartwatchKit.framework */; };
+		04D7AA7393D45A4EE36381AE /* LupedSmartwatchKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6A1AEF7571D93E310C97062B /* LupedSmartwatchKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7742D8DBD690069D5B8 /* LibreTransmitter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */; };
 		3B4BA7752D8DBD690069D5B8 /* LibreTransmitter.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3B4BA7762D8DBD690069D5B8 /* LibreTransmitterUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */; };
@@ -618,6 +622,7 @@
 		BD11A011000000000000A01A /* CGMManagerAlertOwnershipTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A010000000000000A01A /* CGMManagerAlertOwnershipTests.swift */; };
 		BD11A001000000000000A00B /* TrioModalAlertSchedulerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00B /* TrioModalAlertSchedulerTests.swift */; };
 		BD11A001000000000000A00C /* NotLoopingMonitorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00C /* NotLoopingMonitorTests.swift */; };
+		5A7C0FFE00000000000000A2 /* SmartwatchHostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7C0FFE00000000000000A1 /* SmartwatchHostTests.swift */; };
 		BD11A001000000000000A00D /* AlertCatalogRegistryEntriesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00D /* AlertCatalogRegistryEntriesTests.swift */; };
 		BD11A001000000000000A00E /* DanaKitAlertEmissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00E /* DanaKitAlertEmissionTests.swift */; };
 		BD11A001000000000000A00F /* MedtrumKitAlertEmissionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD11A000000000000000A00F /* MedtrumKitAlertEmissionTests.swift */; };
@@ -831,6 +836,9 @@
 		CE7CA3582A064E2F004BE681 /* ListStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7CA3572A064E2F004BE681 /* ListStateView.swift */; };
 		CE82E02528E867BA00473A9C /* AlertStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE82E02428E867BA00473A9C /* AlertStorage.swift */; };
 		CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */; };
+		E01885D82D856FBCC3C4EE4C /* SmartwatchHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8DC9695DAFB6EA2C4A5B821 /* SmartwatchHost.swift */; };
+		5A7C0FFE00000000000000B2 /* SmartwatchHost+RemoteActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7C0FFE00000000000000B1 /* SmartwatchHost+RemoteActions.swift */; };
+		5A7C0FFE00000000000000B4 /* SmartwatchHost+AlertForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A7C0FFE00000000000000B3 /* SmartwatchHost+AlertForwarder.swift */; };
 		CE94598029E9E3BD0047C9C6 /* WatchConfigDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94597F29E9E3BD0047C9C6 /* WatchConfigDataFlow.swift */; };
 		CE94598229E9E3D30047C9C6 /* WatchConfigProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94598129E9E3D30047C9C6 /* WatchConfigProvider.swift */; };
 		CE94598429E9E3E60047C9C6 /* WatchConfigStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE94598329E9E3E60047C9C6 /* WatchConfigStateModel.swift */; };
@@ -1088,6 +1096,7 @@
 		DDF847E62C5D66490049BB3B /* AddMealPresetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E52C5D66490049BB3B /* AddMealPresetView.swift */; };
 		DDF847E82C5DABA30049BB3B /* WatchConfigAppleWatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E72C5DABA30049BB3B /* WatchConfigAppleWatchView.swift */; };
 		DDF847EA2C5DABAC0049BB3B /* WatchConfigGarminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDF847E92C5DABAC0049BB3B /* WatchConfigGarminView.swift */; };
+		AE4F6CE6FDCEBC6F68B12C99 /* WatchConfigSmartwatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1FA636901CB784689912413 /* WatchConfigSmartwatchView.swift */; };
 		DDFF202F2DB1D14500AB8A96 /* NotificationPermissionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF202E2DB1D14500AB8A96 /* NotificationPermissionStepView.swift */; };
 		DDFF20312DB1D15500AB8A96 /* BluetoothPermissionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF20302DB1D15500AB8A96 /* BluetoothPermissionStepView.swift */; };
 		DDFF204A2DB29EF500AB8A96 /* WatchLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */; };
@@ -1186,6 +1195,8 @@
 				03B15F4F3077CD6100DFEBE4 /* SyaiKit.framework in Embed Frameworks */,
 				3B4BA78F2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Embed Frameworks */,
 				3B4BA7732D8DBD690069D5B8 /* G7SensorKitUI.framework in Embed Frameworks */,
+				C890017389FC349E36523ADC /* LupedSmartwatchKitUI.framework in Embed Frameworks */,
+				04D7AA7393D45A4EE36381AE /* LupedSmartwatchKit.framework in Embed Frameworks */,
 				3B4BA76D2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Embed Frameworks */,
 				3B4BA76B2D8DBD690069D5B8 /* CGMBLEKit.framework in Embed Frameworks */,
 				3B4BA7792D8DBD690069D5B8 /* MinimedKit.framework in Embed Frameworks */,
@@ -1498,6 +1509,8 @@
 		3B4BA75D2D8DBD690069D5B8 /* DanaKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DanaKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = G7SensorKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = G7SensorKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8859C37F0A296B4861E78091 /* LupedSmartwatchKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LupedSmartwatchKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A1AEF7571D93E310C97062B /* LupedSmartwatchKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LupedSmartwatchKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreTransmitter.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LibreTransmitterUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4BA7622D8DBD690069D5B8 /* MinimedKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1849,6 +1862,7 @@
 		BD11A010000000000000A01A /* CGMManagerAlertOwnershipTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CGMManagerAlertOwnershipTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A00B /* TrioModalAlertSchedulerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioModalAlertSchedulerTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A00C /* NotLoopingMonitorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotLoopingMonitorTests.swift; sourceTree = "<group>"; };
+		5A7C0FFE00000000000000A1 /* SmartwatchHostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartwatchHostTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A00D /* AlertCatalogRegistryEntriesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertCatalogRegistryEntriesTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A00E /* DanaKitAlertEmissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanaKitAlertEmissionTests.swift; sourceTree = "<group>"; };
 		BD11A000000000000000A00F /* MedtrumKitAlertEmissionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedtrumKitAlertEmissionTests.swift; sourceTree = "<group>"; };
@@ -2072,6 +2086,9 @@
 		CE82E02428E867BA00473A9C /* AlertStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertStorage.swift; sourceTree = "<group>"; };
 		CE94597929E9DF7B0047C9C6 /* ConnectIQ.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ConnectIQ.framework; path = "Dependencies/ios-armv7_arm64/ConnectIQ.framework"; sourceTree = "<group>"; };
 		CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarminManager.swift; sourceTree = "<group>"; };
+		C8DC9695DAFB6EA2C4A5B821 /* SmartwatchHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartwatchHost.swift; sourceTree = "<group>"; };
+		5A7C0FFE00000000000000B1 /* SmartwatchHost+RemoteActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SmartwatchHost+RemoteActions.swift"; sourceTree = "<group>"; };
+		5A7C0FFE00000000000000B3 /* SmartwatchHost+AlertForwarder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SmartwatchHost+AlertForwarder.swift"; sourceTree = "<group>"; };
 		CE94597F29E9E3BD0047C9C6 /* WatchConfigDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigDataFlow.swift; sourceTree = "<group>"; };
 		CE94598129E9E3D30047C9C6 /* WatchConfigProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigProvider.swift; sourceTree = "<group>"; };
 		CE94598329E9E3E60047C9C6 /* WatchConfigStateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigStateModel.swift; sourceTree = "<group>"; };
@@ -2316,6 +2333,7 @@
 		DDF847E52C5D66490049BB3B /* AddMealPresetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddMealPresetView.swift; sourceTree = "<group>"; };
 		DDF847E72C5DABA30049BB3B /* WatchConfigAppleWatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigAppleWatchView.swift; sourceTree = "<group>"; };
 		DDF847E92C5DABAC0049BB3B /* WatchConfigGarminView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigGarminView.swift; sourceTree = "<group>"; };
+		C1FA636901CB784689912413 /* WatchConfigSmartwatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConfigSmartwatchView.swift; sourceTree = "<group>"; };
 		DDFF202E2DB1D14500AB8A96 /* NotificationPermissionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPermissionStepView.swift; sourceTree = "<group>"; };
 		DDFF20302DB1D15500AB8A96 /* BluetoothPermissionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPermissionStepView.swift; sourceTree = "<group>"; };
 		DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLogger.swift; sourceTree = "<group>"; };
@@ -2375,6 +2393,8 @@
 				03B15F4B3077CD4B00DFEBE4 /* SyaiKit.framework in Frameworks */,
 				CE95BF632BA771BE00DC3DE3 /* LoopTestingKit.framework in Frameworks */,
 				3B4BA7722D8DBD690069D5B8 /* G7SensorKitUI.framework in Frameworks */,
+				BEE506306CA70A1D0DCD45E3 /* LupedSmartwatchKitUI.framework in Frameworks */,
+				4DAF9ADAA9BCF449EBA935A2 /* LupedSmartwatchKit.framework in Frameworks */,
 				3B4BA7742D8DBD690069D5B8 /* LibreTransmitter.framework in Frameworks */,
 				5E12FE0E2EBC0000000000B1 /* LibreLoop.framework in Frameworks */,
 				5E12FE0E2EBC0000000000B2 /* LibreLoopUI.framework in Frameworks */,
@@ -3120,6 +3140,8 @@
 				3B4BA75D2D8DBD690069D5B8 /* DanaKit.framework */,
 				3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */,
 				3B4BA75F2D8DBD690069D5B8 /* G7SensorKitUI.framework */,
+				8859C37F0A296B4861E78091 /* LupedSmartwatchKitUI.framework */,
+				6A1AEF7571D93E310C97062B /* LupedSmartwatchKit.framework */,
 				3B4BA7602D8DBD690069D5B8 /* LibreTransmitter.framework */,
 				3B4BA7612D8DBD690069D5B8 /* LibreTransmitterUI.framework */,
 				5E12FE0E2EBC0000000000A1 /* LibreLoop.framework */,
@@ -3507,6 +3529,9 @@
 			children = (
 				BDA25EE32D260CCF00035F34 /* AppleWatchManager.swift */,
 				CE94597D29E9E1EE0047C9C6 /* GarminManager.swift */,
+				C8DC9695DAFB6EA2C4A5B821 /* SmartwatchHost.swift */,
+				5A7C0FFE00000000000000B1 /* SmartwatchHost+RemoteActions.swift */,
+				5A7C0FFE00000000000000B3 /* SmartwatchHost+AlertForwarder.swift */,
 			);
 			path = WatchManager;
 			sourceTree = "<group>";
@@ -3571,6 +3596,7 @@
 				BD11A000000000000000A00E /* DanaKitAlertEmissionTests.swift */,
 				BD11A000000000000000A00D /* AlertCatalogRegistryEntriesTests.swift */,
 				BD11A000000000000000A00C /* NotLoopingMonitorTests.swift */,
+				5A7C0FFE00000000000000A1 /* SmartwatchHostTests.swift */,
 				BD11A000000000000000A00B /* TrioModalAlertSchedulerTests.swift */,
 				BD11A000000000000000A00A /* GlucoseAlertCoordinatorTests.swift */,
 				BD11A010000000000000A01A /* CGMManagerAlertOwnershipTests.swift */,
@@ -4538,6 +4564,7 @@
 				CE94598629E9E4110047C9C6 /* WatchConfigRootView.swift */,
 				DDF847E72C5DABA30049BB3B /* WatchConfigAppleWatchView.swift */,
 				DDF847E92C5DABAC0049BB3B /* WatchConfigGarminView.swift */,
+				C1FA636901CB784689912413 /* WatchConfigSmartwatchView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -5825,6 +5852,9 @@
 				E00EEC0527368630002FF094 /* StorageAssembly.swift in Sources */,
 				DD1745552C55CA6C00211FAC /* UnitsLimitsSettingsRootView.swift in Sources */,
 				CE94597E29E9E1EE0047C9C6 /* GarminManager.swift in Sources */,
+				E01885D82D856FBCC3C4EE4C /* SmartwatchHost.swift in Sources */,
+				5A7C0FFE00000000000000B2 /* SmartwatchHost+RemoteActions.swift in Sources */,
+				5A7C0FFE00000000000000B4 /* SmartwatchHost+AlertForwarder.swift in Sources */,
 				3883583425EEB38000E024B2 /* PumpSettings.swift in Sources */,
 				38DAB280260CBB7F00F74C1A /* PumpView.swift in Sources */,
 				DDD1631C2C4C697400CD525A /* AddOverrideForm.swift in Sources */,
@@ -6101,6 +6131,7 @@
 				B015AFF32E600000000D7351 /* AdjustmentManager.swift in Sources */,
 				B015AFE32E500000000D7351 /* BolusSafetyValidator.swift in Sources */,
 				DDF847EA2C5DABAC0049BB3B /* WatchConfigGarminView.swift in Sources */,
+				AE4F6CE6FDCEBC6F68B12C99 /* WatchConfigSmartwatchView.swift in Sources */,
 				38BF021F25E7F0DE00579895 /* DeviceDataManager.swift in Sources */,
 				BD4E1A7A2D3681B700D21626 /* GlucoseTargetSetup.swift in Sources */,
 				BDB3C1192C03DD1000CEEAA1 /* UserDefaultsExtension.swift in Sources */,
@@ -6595,6 +6626,7 @@
 				BD11A001000000000000A00E /* DanaKitAlertEmissionTests.swift in Sources */,
 				BD11A001000000000000A00D /* AlertCatalogRegistryEntriesTests.swift in Sources */,
 				BD11A001000000000000A00C /* NotLoopingMonitorTests.swift in Sources */,
+				5A7C0FFE00000000000000A2 /* SmartwatchHostTests.swift in Sources */,
 				BD11A001000000000000A00B /* TrioModalAlertSchedulerTests.swift in Sources */,
 				BD11A001000000000000A00A /* GlucoseAlertCoordinatorTests.swift in Sources */,
 				BD11A011000000000000A01A /* CGMManagerAlertOwnershipTests.swift in Sources */,
