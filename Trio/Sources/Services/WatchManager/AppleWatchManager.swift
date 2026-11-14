@@ -526,6 +526,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxProtein: state.maxProtein,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
+            WatchMessageKeys.watchUsageMode: state.watchUsageMode.rawValue,
             WatchMessageKeys.units: state.units.rawValue,
             WatchMessageKeys.showForecastWatch: state.showForecast,
             WatchMessageKeys.isForecastCone: state.isForecastCone,
@@ -573,6 +574,9 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         // tick has bumped the build-time date.
         var state = state
         state.date = Date()
+
+        // Set here so fallback states (e.g. no recent glucose) never re-enable restricted watch actions
+        state.watchUsageMode = settingsManager.settings.watchUsageMode
 
         let message: [String: Any] = watchStateToDictionary(from: state)
 
@@ -644,6 +648,11 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                     let state = await self.setupWatchState()
                     await self.sendDataToWatch(state)
                 }
+                return
+            }
+
+            guard self.settingsManager.settings.watchUsageMode.allows(watchMessage: message) else {
+                self.rejectDisallowedWatchRequest(message)
                 return
             }
 
@@ -805,6 +814,22 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 self?.retryConnection()
             }
         }
+    }
+
+    /// Rejects a request from the Watch that the Watch Usage Mode in the Apple Watch settings does not allow
+    private func rejectDisallowedWatchRequest(_ message: [String: Any]) {
+        info(
+            .watch,
+            "Rejected watch request in watch usage mode \(settingsManager.settings.watchUsageMode.rawValue), keys: \(message.keys.sorted().joined(separator: ", "))"
+        )
+        sendAcknowledgment(
+            toWatch: false,
+            message: String(
+                localized: "Not allowed by the Watch Usage Mode in Trio settings.",
+                comment: "Failure message sent to watch when the watch usage mode does not allow the requested action"
+            ),
+            ackCode: .genericFailure
+        )
     }
 
     /// Processes bolus requests received from the Watch
