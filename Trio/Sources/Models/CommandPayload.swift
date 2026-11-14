@@ -22,6 +22,11 @@ struct CommandPayload: Decodable, Sendable {
     var scheduledTime: TimeInterval?
     var commandId: String?
     var mealId: String?
+    var profileName: String?
+    var originalProfileName: String?
+    var baseFingerprint: String?
+    var profile: CompactTherapyProfile?
+    var scheduledSwitches: [ScheduledProfileSwitch]?
     var returnNotification: ReturnNotificationInfo?
 
     /// Nightscout `id` of the meal root or of one of its carb equivalents.
@@ -61,6 +66,11 @@ struct CommandPayload: Decodable, Sendable {
         case scheduledTime = "scheduled_time"
         case commandId = "command_id"
         case mealId = "meal_id"
+        case profileName = "profile_name"
+        case originalProfileName = "original_profile_name"
+        case baseFingerprint = "base_fingerprint"
+        case profile
+        case scheduledSwitches = "scheduled_switches"
         case returnNotification = "return_notification"
     }
 
@@ -104,6 +114,14 @@ struct CommandPayload: Decodable, Sendable {
             }
         case .cancelOverride:
             description += "Cancel Override command."
+        case .switchProfile:
+            description += "Switch Profile command."
+        case .saveProfile:
+            description += "Save Profile command."
+        case .deleteProfile:
+            description += "Delete Profile command."
+        case .saveScheduledSwitches:
+            description += "Save Scheduled Switches command with \(scheduledSwitches?.count ?? 0) entries."
         case .unknown:
             description += "Unknown command."
         }
@@ -131,6 +149,10 @@ extension TrioRemoteControl {
         case cancelOverride = "cancel_override"
         case deleteMeal = "delete_meal"
         case editMeal = "edit_meal"
+        case switchProfile = "switch_profile"
+        case saveProfile = "save_profile"
+        case deleteProfile = "delete_profile"
+        case saveScheduledSwitches = "save_scheduled_switches"
         /// Command types from newer senders decode to this case and are rejected with an ack.
         case unknown
 
@@ -160,6 +182,14 @@ extension TrioRemoteControl {
                 return "Delete Meal"
             case .editMeal:
                 return "Edit Meal"
+            case .switchProfile:
+                return "Switch Profile"
+            case .saveProfile:
+                return "Save Profile"
+            case .deleteProfile:
+                return "Delete Profile"
+            case .saveScheduledSwitches:
+                return "Save Scheduled Switches"
             case .unknown:
                 return "Unknown"
             }

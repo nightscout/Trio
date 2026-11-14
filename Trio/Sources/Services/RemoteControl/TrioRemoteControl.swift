@@ -14,8 +14,11 @@ class TrioRemoteControl: Injectable {
     @Injected() internal var bolusSafetyValidator: BolusSafetyValidator!
     @Injected() internal var carbEntryMutationService: CarbEntryMutationService!
     @Injected() internal var apsManager: APSManager!
+    @Injected() internal var therapyProfileManager: TherapyProfileManager!
 
     private let timeWindow: TimeInterval = 600
+    /// Command ids of profile commands, kept for twice the accepted clock skew.
+    let seenProfileCommands = RemoteCommandReplayGuard(window: 1200)
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -87,6 +90,14 @@ class TrioRemoteControl: Injectable {
             try await handleDeleteMealCommand(commandPayload)
         case .editMeal:
             try await handleEditMealCommand(commandPayload)
+        case .switchProfile:
+            await handleSwitchProfileCommand(commandPayload)
+        case .saveProfile:
+            await handleSaveProfileCommand(commandPayload)
+        case .deleteProfile:
+            await handleDeleteProfileCommand(commandPayload)
+        case .saveScheduledSwitches:
+            await handleSaveScheduledSwitchesCommand(commandPayload)
         case .unknown:
             await logError(
                 "Command rejected: unsupported command type.",

@@ -5,6 +5,8 @@ import Swinject
 extension BasalProfileEditor {
     struct RootView: BaseView {
         let resolver: Resolver
+        /// A stored profile to edit; nil edits the live settings.
+        var profileName: String? = nil
         @State var state = StateModel()
         @State private var refreshUI = UUID()
         @State private var now = Date()
@@ -141,6 +143,17 @@ extension BasalProfileEditor {
             )
         }
 
+        var unsupportedRatesWarning: some View {
+            Text(
+                "Some basal rates of this schedule are not rates your pump supports. Each is shown as the nearest supported rate. Check them before you save."
+            )
+            .bold()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.tabBar)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+
         var totalBasalRow: some View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
@@ -170,6 +183,15 @@ extension BasalProfileEditor {
                     ScrollView {
                         LazyVStack {
                             VStack(alignment: .leading, spacing: 0) {
+                                if let bannerInfo = state.bannerInfo {
+                                    TherapyProfileBanner(info: bannerInfo)
+                                }
+
+                                if state.hasUnsupportedRates {
+                                    unsupportedRatesWarning
+                                        .padding()
+                                }
+
                                 if !state.canAdd {
                                     fullScheduleWarning
                                         .padding()
@@ -228,6 +250,17 @@ extension BasalProfileEditor {
                     }
 
                     saveButton
+                        .alert(
+                            "Unable to Save",
+                            isPresented: Binding(
+                                get: { state.profileSaveError != nil },
+                                set: { if !$0 { state.profileSaveError = nil } }
+                            )
+                        ) {
+                            Button("OK", role: .cancel) {}
+                        } message: {
+                            Text(state.profileSaveError ?? "")
+                        }
                 }
                 .background(appState.trioBackgroundColor(for: colorScheme))
                 .alert(isPresented: $state.showAlert) {
@@ -240,7 +273,7 @@ extension BasalProfileEditor {
                 .navigationTitle("Basal Rates")
                 .navigationBarTitleDisplayMode(.automatic)
                 .onAppear {
-                    configureView()
+                    configureView { state.profileName = profileName }
                     state.validate()
                     state.therapyItems = state.getTherapyItems()
                 }
