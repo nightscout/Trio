@@ -16,6 +16,7 @@ extension CGMSettings {
         @State private var booleanPlaceholder: Bool = false
         @State var showCGMSelection: Bool = false
         @State private var pendingCGM: CGMCatalogEntry?
+        @State private var showUnreliableReadings = UnsureGlucoseStore.isEnabled
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
@@ -90,6 +91,54 @@ extension CGMSettings {
                             label: { Text("Libre Calibrations") }
                         )
                     }.listRowBackground(Color.chart)
+                }
+
+                if state.cgmCurrent.type == .plugin, state.fetchGlucoseManager?.cgmManager is UnreliableReadingSource {
+                    SettingInputSection(
+                        decimalValue: $decimalPlaceholder,
+                        booleanValue: Binding(
+                            get: { showUnreliableReadings },
+                            set: {
+                                showUnreliableReadings = $0
+                                UnsureGlucoseStore.shared.setEnabled($0)
+                            }
+                        ),
+                        shouldDisplayHint: $shouldDisplayHint,
+                        selectedVerboseHint: Binding(
+                            get: { selectedVerboseHint },
+                            set: {
+                                selectedVerboseHint = $0.map { AnyView($0) }
+                                hintLabel = String(localized: "Show Unreliable Sensor Readings")
+                            }
+                        ),
+                        units: state.units,
+                        type: .boolean,
+                        label: String(localized: "Show Unreliable Sensor Readings"),
+                        miniHint: String(localized: "Show readings the sensor marks as not reliable, never used for looping."),
+                        verboseHint: VStack(alignment: .leading, spacing: 10) {
+                            Text("Default: OFF").bold()
+
+                            Text(
+                                "During a sensor issue some sensors can still send a value but mark it as not reliable. Trio never loops, alarms or doses on such a value, and by default does not show it either."
+                            )
+
+                            Text("When this feature is enabled:")
+
+                            VStack(alignment: .leading) {
+                                Text(
+                                    "• Home shows the value in orange with a warning sign and \"Sensor issue: not reliable\"; the chart shows it as a hollow orange dot."
+                                )
+                                Text("• The Apple Watch shows it the same way, on its face and as hollow dots on its graph.")
+                                Text(
+                                    "• It is uploaded to Nightscout as an \"Unreliable Glucose\" treatment, so LoopFollow can show it. It is never uploaded as a glucose value."
+                                )
+                            }
+
+                            Text(
+                                "For CGMs that report such readings: currently Dexcom G7, ONE+ and Stelo through Trio's own connection."
+                            )
+                        }
+                    )
                 }
 
                 if state.cgmCurrent.type == .plugin,

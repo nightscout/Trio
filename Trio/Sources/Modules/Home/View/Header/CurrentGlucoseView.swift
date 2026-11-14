@@ -22,6 +22,16 @@ struct CurrentGlucoseView: View {
     /// Wall-clock end of the warmup window. Drives the warmup countdown tag.
     var cgmWarmupEndsAt: Date?
 
+    /// A reading the sensor marks unreliable, shown greyed with a warning when it's newer than the last reliable one.
+    @ObservedObject var unsureStore = UnsureGlucoseStore.shared
+    /// One line of the sensor tag's callout text.
+    private static let tagLineHeight: CGFloat = 20
+
+    private var unsureReading: UnsureGlucose? {
+        _ = timerDate
+        return unsureStore.current(after: glucose.last?.date)
+    }
+
     @State private var rotationDegrees: Double = 0.0
     @State private var angularGradient = AngularGradient(colors: [
         Color(red: 0.7215686275, green: 0.3411764706, blue: 1),
@@ -98,7 +108,7 @@ struct CurrentGlucoseView: View {
                 )
             }
 
-            TrendShape(gradient: angularGradient, color: triangleColor, showArrow: true)
+            TrendShape(gradient: angularGradient, color: triangleColor, showArrow: unsureReading == nil)
                 .rotationEffect(.degrees(rotationDegrees))
 
             VStack(alignment: .center) {
@@ -108,9 +118,11 @@ struct CurrentGlucoseView: View {
         .overlay(alignment: .bottom) {
             // Overlay (not VStack) so the tag doesn't push siblings down;
             // hidden when the trend arrow rotates toward 6 o'clock.
-            if let tag = tagLabel, !trendIsDownward {
+            // with an unreliable reading the trend arrow is hidden, so the tag can't collide with it
+            if let tag = tagLabel, !trendIsDownward || unsureReading != nil {
                 SensorStatusTagView(text: tag.text, theme: tag.theme, iconSystemName: tag.icon)
-                    .offset(y: 14)
+                    // the unreliable reading's tag has two lines and would grow up into the bubble: one line further down
+                    .offset(y: unsureReading != nil ? 14 + Self.tagLineHeight : 14)
                     .zIndex(1)
             }
         }
@@ -194,6 +206,15 @@ struct CurrentGlucoseView: View {
     /// One combined VoiceOver description for the bobble, e.g.
     /// "Glucose 79 mg/dL, in range, falling, delta -2, 1 minute ago".
     private var bobbleAccessibilityLabel: String {
+        if let unsure = unsureReading {
+            return String(localized: "Glucose", comment: "Accessibility: glucose label") +
+                " \(Decimal(unsure.mgdl).formatted(for: units)) \(units.rawValue), " +
+                String(
+                    localized: "not reliable: the sensor reports an issue",
+                    comment: "Accessibility: unreliable sensor reading"
+                ) +
+                ", " + unsure.date.formattedSpokenTimeAgo()
+        }
         guard let glucoseValue = glucose.last?.glucose, let date = glucose.last?.date, isReadingFresh else {
             return String(localized: "Glucose unavailable", comment: "Accessibility: no fresh glucose")
         }
@@ -216,6 +237,24 @@ struct CurrentGlucoseView: View {
     }
 
     @ViewBuilder private func bobbleContent() -> some View {
+        if let unsure = unsureReading {
+            // value and warning sign in the one color; "Sensor issue: not reliable" is the tag under the bobble,
+            // as it didn't fit inside
+            Text(Decimal(unsure.mgdl).formatted(for: units))
+                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .foregroundStyle(.orange)
+            HStack(spacing: 4) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                Text(unsure.date.formattedTimeAgo())
+            }
+            .font(.callout).fontWeight(.bold)
+            .foregroundStyle(.orange)
+        } else {
+            reliableBobbleContent()
+        }
+    }
+
+    @ViewBuilder private func reliableBobbleContent() -> some View {
         HStack {
             if let glucoseValue = glucose.last?.glucose, isReadingFresh {
                 let displayGlucose = Decimal(glucoseValue).formatted(for: units)
@@ -260,6 +299,7 @@ struct CurrentGlucoseView: View {
     /// countdown carry useful info, so the bobble stays.
     private var stalenessState: (imageName: String, label: String, color: Color)? {
         guard !isReadingFresh,
+              unsureReading == nil,
               !isInWarmup,
               let status = cgmStatus,
               !status.imageName.isEmpty
@@ -309,6 +349,11 @@ struct CurrentGlucoseView: View {
     /// (no countdown — duration is sensor-driven); outside warmup/stabilizing
     /// the tag is gated to the same 48h window as the arc.
     private var tagLabel: (text: String, spoken: String, theme: SensorStatusTagTheme, icon: String?)? {
+        if unsureReading != nil {
+            // two lines: on one it is cut to "Sensor issue: not …"
+            let text = String(localized: "Sensor issue:\nnot reliable")
+            return (text, String(localized: "Sensor issue: not reliable"), .orange, nil)
+        }
         if isInWarmup {
             if let endsAt = cgmWarmupEndsAt {
                 let remaining = Duration.seconds(endsAt.timeIntervalSinceNow)

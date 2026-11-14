@@ -70,6 +70,9 @@ public extension PumpEventStored {
         case nsAnnouncement = "Announcement"
         case nsSensorChange = "Sensor Start"
         case nsExercise = "Exercise"
+        /// A reading the sensor marks unreliable, for followers (LoopFollow) to show greyed; its own type, so
+        /// nothing reads it as a BG check.
+        case nsUnreliableGlucose = "Unreliable Glucose"
         case capillaryGlucose = "BG Check"
     }
 

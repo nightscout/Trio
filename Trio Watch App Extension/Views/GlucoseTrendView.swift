@@ -35,6 +35,20 @@ struct GlucoseTrendView: View {
         }
     }
 
+    /// A reading the sensor marked unreliable, fresh and newer than the last reliable one: shown in orange with a warning
+    /// sign instead of the reliable value, as on the phone's Home.
+    private var unsureReading: (date: Date, glucose: Double)? {
+        guard !isWatchStateDated, let latest = state.unsureGlucoseValues.last,
+              Date().timeIntervalSince(latest.date) < 12 * 60,
+              latest.date > (state.glucoseValues.last?.date ?? .distantPast)
+        else { return nil }
+        return latest
+    }
+
+    private func formattedUnsure(_ glucose: Double) -> String {
+        glucose < 40 ? String(format: "%.1f", glucose) : "\(Int(glucose.rounded()))"
+    }
+
     var circleSize: CGFloat {
         switch state.deviceType {
         case .watch40mm:
@@ -132,18 +146,43 @@ struct GlucoseTrendView: View {
                 .shadow(color: Color.black.opacity(0.5), radius: 5)
 
                 VStack(alignment: .center) {
-                    Text(isWatchStateDated ? "--" : state.currentGlucose)
-                        .fontWeight(.semibold)
-                        .font(currentGlucoseFontSize)
-                        .foregroundStyle(isWatchStateDated ? Color.secondary : state.currentGlucoseColorString.toColor())
-
-                    if let delta = state.delta {
-                        Text(isWatchStateDated ? "--" : delta)
+                    if let unsure = unsureReading {
+                        HStack(spacing: 2) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.orange)
+                            Text(formattedUnsure(unsure.glucose))
+                                .fontWeight(.semibold)
+                                .font(currentGlucoseFontSize)
+                                .foregroundStyle(.orange)
+                        }
+                        Text("Not reliable", comment: "Under a glucose value the sensor itself marks unreliable")
                             .fontWeight(.semibold)
-                            .font(.system(.caption))
-                            .foregroundStyle(.secondary)
+                            .font(.system(.caption2))
+                            .foregroundStyle(.orange)
+                    } else {
+                        Text(isWatchStateDated ? "--" : state.currentGlucose)
+                            .fontWeight(.semibold)
+                            .font(currentGlucoseFontSize)
+                            .foregroundStyle(isWatchStateDated ? Color.secondary : state.currentGlucoseColorString.toColor())
+
+                        if let delta = state.delta {
+                            Text(isWatchStateDated ? "--" : delta)
+                                .fontWeight(.semibold)
+                                .font(.system(.caption))
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(
+                    unsureReading.map {
+                        Text(
+                            "Glucose \(formattedUnsure($0.glucose)), not reliable: the sensor reports an issue",
+                            comment: "Accessibility: a glucose value the sensor itself marks unreliable"
+                        )
+                    } ?? Text(isWatchStateDated ? "--" : state.currentGlucose)
+                )
             }
 
             Spacer()

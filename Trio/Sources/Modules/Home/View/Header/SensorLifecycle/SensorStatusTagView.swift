@@ -14,14 +14,42 @@ struct SensorStatusTagView: View {
                     .fontWeight(.bold)
                     .foregroundStyle(theme.textColor)
             }
-            Text(text)
-                .font(.callout)
-                .fontWeight(.bold)
-                .fontDesign(.rounded)
-                .foregroundStyle(theme.textColor)
+            // A tag with a line break ("Sensor issue:" / "not reliable") is laid out by its first line, exactly
+            // where a one-line tag sits; the second hangs below it, a little closer than a full line, so it
+            // keeps clear of the carbs under it.
+            styled(Text(firstLine))
                 .lineLimit(1)
+                .overlay(alignment: .top) {
+                    if let secondLine {
+                        styled(Text(secondLine))
+                            .lineLimit(1)
+                            .fixedSize()
+                            .alignmentGuide(.top) { d in d[.top] - d.height + Self.lineTightening }
+                    }
+                }
         }
         .padding(.bottom, -16)
+    }
+
+    /// How much closer than a full line the second line sits.
+    private static let lineTightening: CGFloat = 5
+
+    private var firstLine: String {
+        String(text.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false).first ?? "")
+    }
+
+    private var secondLine: String? {
+        let parts = text.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+        return parts.count > 1 ? String(parts[1]) : nil
+    }
+
+    private func styled(_ text: Text) -> some View {
+        text
+            .font(.callout)
+            .fontWeight(.bold)
+            .fontDesign(.rounded)
+            .foregroundStyle(theme.textColor)
+            .multilineTextAlignment(.center)
     }
 }
 

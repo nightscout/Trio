@@ -64,4 +64,8 @@ enum WatchMessageKeys {
     static let forecastConeMin = "forecastConeMin"
     static let forecastConeMax = "forecastConeMax"
     static let forecastLines = "forecastLines"
+
+    /// Readings the sensor marked unreliable ("Show Unreliable Sensor Readings"), as `glucose` (in the user's units)
+    /// and `date`; empty when the setting is off. Shown greyed on the watch, never used.
+    static let unsureGlucoseValues = "unsureGlucoseValues"
 }

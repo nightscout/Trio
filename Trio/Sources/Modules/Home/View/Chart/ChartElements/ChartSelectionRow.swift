@@ -50,6 +50,12 @@ enum ChartSelectionLookup {
         return readings.first { $0.date.map(range.contains) ?? false }
     }
 
+    /// A reading the sensor marked unreliable under the scrub.
+    static func unsure(at date: Date, in readings: [UnsureGlucose]) -> UnsureGlucose? {
+        let range = date.addingTimeInterval(-window) ... date.addingTimeInterval(window)
+        return readings.last { range.contains($0.date) }
+    }
+
     static func determination(at date: Date, in determinations: [OrefDetermination]) -> OrefDetermination? {
         let range = date.addingTimeInterval(-window) ... date.addingTimeInterval(window)
         let now = Date.now
@@ -64,7 +70,10 @@ enum ChartSelectionLookup {
 /// the meal slot is always on screen and its live values are superseded anyway, so taking it
 /// over reflows nothing.
 struct ChartSelectionRow: View {
-    let selectedGlucose: GlucoseStored
+    /// The stored reading, or nil where only a reading the sensor marked unreliable is: then `unsure` shows, greyed
+    /// with its warning sign.
+    let selectedGlucose: GlucoseStored?
+    var unsure: UnsureGlucose? = nil
     /// COB and IOB both come from the one determination nearest the selection.
     let determination: OrefDetermination?
     let units: GlucoseUnits
@@ -75,7 +84,8 @@ struct ChartSelectionRow: View {
     let isSmoothingEnabled: Bool
 
     private var pointMarkColor: Color {
-        selectionMarkColor(
+        guard let selectedGlucose else { return .orange }
+        return selectionMarkColor(
             for: selectedGlucose,
             highGlucose: highGlucose,
             lowGlucose: lowGlucose,
@@ -85,7 +95,7 @@ struct ChartSelectionRow: View {
     }
 
     private var timeString: String {
-        selectedGlucose.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? ""
+        (selectedGlucose?.date ?? unsure?.date)?.formatted(.dateTime.hour().minute(.twoDigits)) ?? ""
     }
 
     /// Stand-in for a value the selection resolves to nothing: the item keeps its place and
@@ -102,7 +112,7 @@ struct ChartSelectionRow: View {
             row(font: .footnote)
         }
         // Scrubbing changes these several times a second; animating them smears the digits.
-        .animation(nil, value: selectedGlucose.date)
+        .animation(nil, value: selectedGlucose?.date ?? unsure?.date)
         .padding(.horizontal, 12)
         .padding(.vertical, 5)
         .glassPanel(tint: pointMarkColor, tintOpacity: 0.10, strokeOpacity: 0.25)
@@ -149,10 +159,25 @@ struct ChartSelectionRow: View {
     /// reading. Only the drop and the raw value take the glucose color, so the bracketed
     /// value can't be misread as a second state.
     @ViewBuilder private var glucoseGroup: some View {
+        if let selectedGlucose {
+            reliableGlucoseGroup(selectedGlucose)
+        } else if let unsure {
+            // the sensor's own warning: greyed, with the sign it has on Home
+            item(
+                icon: "exclamationmark.triangle.fill",
+                tint: .orange,
+                value: Text(Decimal(unsure.mgdl).formatted(for: units)).foregroundStyle(.secondary)
+                    + Text(verbatim: " ")
+                    + Text("not reliable").fontWeight(.regular).foregroundStyle(.orange)
+            )
+        }
+    }
+
+    @ViewBuilder private func reliableGlucoseGroup(_ selectedGlucose: GlucoseStored) -> some View {
         // verbatim: brackets have nothing to translate, and Xcode would otherwise extract
         // them into the string catalog
         let reading = Text(Decimal(selectedGlucose.glucose).formatted(for: units)).foregroundStyle(pointMarkColor)
-        let smoothed = smoothedToDisplay.map {
+        let smoothed = smoothedToDisplay(selectedGlucose).map {
             (
                 Text(verbatim: "(")
                     + Text(Image(systemName: "sparkles"))
@@ -170,7 +195,7 @@ struct ChartSelectionRow: View {
     }
 
     /// The smoothed reading in mg/dL, or nil with smoothing off or no smoothed value.
-    private var smoothedToDisplay: Decimal? {
+    private func smoothedToDisplay(_ selectedGlucose: GlucoseStored) -> Decimal? {
         guard isSmoothingEnabled, let smoothed = selectedGlucose.smoothedGlucose else { return nil }
         return smoothed.decimalValue
     }
