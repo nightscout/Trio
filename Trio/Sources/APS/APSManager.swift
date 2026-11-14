@@ -1,5 +1,6 @@
 import Combine
 import CoreData
+import DanaKit
 import Foundation
 import LoopKit
 import LoopKitUI
@@ -622,7 +623,16 @@ final class BaseAPSManager: APSManager, Injectable {
     /// Rounded to 3 dp because the kits build their tables as `Double(n) / 20` and similar, and the
     /// resulting binary error would push an entry just above the clean rate it is meant to match.
     private var supportedBasalRates: [Decimal] {
-        (pumpManager?.supportedBasalRates ?? []).map { Decimal($0).rounded(scale: 3) }
+        let rates = (pumpManager?.supportedBasalRates ?? []).map { Decimal($0).rounded(scale: 3) }
+
+        guard let dana = pumpManager as? DanaKitPumpManager else {
+            return rates
+        }
+
+        // Dana pumps enact its temp-basal based on a percentage of current basal (capped at 500%).
+        // So the max temp basal ceiling is inherently dynamic; based on the current scheduled basal.
+        let ceiling = Decimal(dana.maxTempBasalRate()).rounded(scale: 3)
+        return rates.filter { $0 <= ceiling }
     }
 
     func roundBolus(amount: Decimal) -> Decimal {
