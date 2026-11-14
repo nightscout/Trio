@@ -134,7 +134,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
     /// Based on log analysis: avg delay ~5s, max ~11s with new timer coordination
     private let glucoseFallbackDelay: TimeInterval = 10
 
-    /// Pending glucose fallback task - cancelled if determination arrives first
+    /// Accessed only on the main queue; cancelled if determination arrives first
     private var pendingGlucoseFallback: DispatchWorkItem?
 
     /// Queue for glucose fallback timer
@@ -216,7 +216,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         // When loop is slow/failing: timer fires after 20s, sends glucose with stale loop data
         // This ensures watch gets fresh glucose even if loop doesn't complete
         glucoseStorage.updatePublisher
-            .receive(on: DispatchQueue.global(qos: .background))
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.handleGlucoseUpdate()
             }
@@ -224,7 +224,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         // IOB updates - also wait for determination like glucose does
         iobService.iobPublisher
-            .receive(on: DispatchQueue.global(qos: .background))
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.handleIOBUpdate()
             }
