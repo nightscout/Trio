@@ -19,7 +19,9 @@ Usage:
     python3 scripts/build-docs-index.py --input FILE    # use a saved search_index.json
     python3 scripts/build-docs-index.py --output FILE   # write somewhere else
 
-Re-run it whenever the documentation changes notably and commit the result.
+The committed file is the offline fallback. Every build also runs scripts/refresh-docs-index.sh,
+which calls this script to put the current documentation into the built app; see that script.
+Re-run this one by hand now and then so the committed fallback doesn't go stale, and commit the result.
 Standard library only.
 """
 
@@ -177,7 +179,7 @@ def main() -> int:
     index = json.loads(raw)
     chunks = build_chunks(index)
     if len(chunks) < 100:
-        print(f"error: only {len(chunks)} chunks produced, the index format may have changed", file=sys.stderr)
+        print(f"build-docs-index: only {len(chunks)} chunks produced, the index format may have changed", file=sys.stderr)
         return 1
 
     generated = _dt.date.today().isoformat()

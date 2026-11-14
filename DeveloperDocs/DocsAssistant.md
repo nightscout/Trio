@@ -9,7 +9,8 @@ hidden on devices that can never run it (iOS < 26, hardware without Apple Intell
 
 | File | Role |
 | --- | --- |
-| `scripts/build-docs-index.py` | Downloads the MkDocs search index of triodocs.org and writes the bundled passage index. |
+| `scripts/build-docs-index.py` | Downloads the MkDocs search index of triodocs.org and writes the passage index. |
+| `scripts/refresh-docs-index.sh` | Build phase: runs the generator on every build and puts the fresh index into the app bundle. |
 | `Trio/Resources/json/docs/trio-docs-index.json` | ~830 passages (page, section, text, optional `weight`/`outdated`). Bundled through the `json` folder reference, so no project changes are needed when it is regenerated. |
 | `Sources/Services/DocsAssistant/DocsIndex.swift` | In-memory BM25 search over the passages, with a light English stemmer, a few everyday-word synonyms on the query side and a boost for passages whose section or page title the question covers. Language-neutral: the docs are English, and every other language reaches the search through the model's translation. |
 | `Sources/Services/DocsAssistant/DocsAssistant.swift` | The pipeline (see below), availability mapping, prompt assembly (`DocsAssistantPrompt`, testable without the model) and error mapping. |
@@ -39,15 +40,23 @@ values for anyone's insulin settings but to point to the care team instead. The 
 disclaimer that answers can be wrong and are not medical advice. Apple's own guardrails may decline a
 question; that surfaces as a friendly "declined" message with a link to the docs.
 
-## Regenerating the index
+## Keeping the index current
+
+Every build runs `scripts/refresh-docs-index.sh` as a run-script phase of the Trio target, after the
+resources have been copied. It downloads the current search index of triodocs.org and writes the
+rebuilt passage index straight into the built app bundle, so each build ships the documentation as of
+build time. The phase never fails a build: without network (or python3) the committed copy stays in
+the bundle. The working tree is not modified by this.
+
+The committed JSON is therefore only the offline fallback. Refresh it by hand now and then so it
+doesn't go stale, and commit the result:
 
 ```sh
 python3 scripts/build-docs-index.py
 ```
 
-Re-run when the documentation changes notably and commit the regenerated JSON. The script needs only
-the Python standard library. `--input FILE` reuses a saved `search_index.json`, `--output FILE` writes
-elsewhere.
+The script needs only the Python standard library. `--input FILE` reuses a saved `search_index.json`,
+`--output FILE` writes elsewhere.
 
 ## Trying it without a phone
 
