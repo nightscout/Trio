@@ -70,6 +70,7 @@ public extension PumpEventStored {
         case nsAnnouncement = "Announcement"
         case nsSensorChange = "Sensor Start"
         case nsExercise = "Exercise"
+        case nsProfileSwitch = "Profile Switch"
         case capillaryGlucose = "BG Check"
     }
 

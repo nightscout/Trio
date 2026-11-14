@@ -3,6 +3,7 @@ import SwiftUI
 struct NightscoutImportStepView: View {
     @Bindable var state: Onboarding.StateModel
     @State private var activeImportError: NightscoutImportError?
+    @State private var isShowingSkippedProfiles = false
 
     var body: some View {
         ZStack {
@@ -85,9 +86,24 @@ struct NightscoutImportStepView: View {
                 dismissButton: .default(Text("OK"))
             )
         }
+        .alert("Some Profiles Were Not Imported", isPresented: $isShowingSkippedProfiles) {
+            Button("OK") {
+                state.continueAfterImport?()
+                state.continueAfterImport = nil
+            }
+        } message: {
+            Text(
+                state.skippedImportedProfiles.map { "\($0.name): \($0.reason)" }.joined(separator: "\n\n") + "\n\n" +
+                    String(
+                        localized: "Trio imported the other profiles. You can create the missing ones later in Settings > Therapy > Therapy Profiles."
+                    )
+            )
+        }
         .onChange(of: state.nightscoutImportStatus) { _, newStatus in
             if newStatus == .failed {
                 activeImportError = state.nightscoutImportError
+            } else if newStatus == .finished, !state.skippedImportedProfiles.isEmpty {
+                isShowingSkippedProfiles = true
             }
         }
     }
