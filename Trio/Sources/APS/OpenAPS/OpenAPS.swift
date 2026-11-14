@@ -25,12 +25,6 @@ final class OpenAPS {
         self.carbsStorage = carbsStorage
     }
 
-    static let dateFormatter: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-
     // Helper function to convert a Decimal? to NSDecimalNumber?
     func decimalToNSDecimalNumber(_ value: Decimal?) -> NSDecimalNumber? {
         guard let value = value else { return nil }

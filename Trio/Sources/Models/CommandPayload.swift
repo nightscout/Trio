@@ -110,11 +110,7 @@ struct CommandPayload: Decodable, Sendable {
 
         if let scheduledTime = scheduledTime {
             let date = Date(timeIntervalSince1970: scheduledTime)
-            let formatter = DateFormatter()
-            formatter.dateStyle = .short
-            formatter.timeStyle = .short
-            let dateString = formatter.string(from: date)
-            description += " Scheduled for: \(dateString)."
+            description += " Scheduled for: \(date.formatted(.dateAndTime))."
         }
 
         return description

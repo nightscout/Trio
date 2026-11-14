@@ -687,6 +687,7 @@
 		BD54A9712D281A8100F9C1EE /* TempTargetPresetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */; };
 		A1A0EDA830974FFF0028A032 /* GlucoseFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A0EDA730974FFF0028A032 /* GlucoseFormattingTests.swift */; };
 		A1EF5D9B309CEF01007282CC /* DurationFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1EF5D9A309CEF01007282CC /* DurationFormattingTests.swift */; };
+		A128F2F530A3B486000435DC /* TimeFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A128F2F430A3B486000435DC /* TimeFormattingTests.swift */; };
 		A1A0EDF53097CE470028A032 /* PercentFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A0EDF43097CE470028A032 /* PercentFormattingTests.swift */; };
 		A1B2C3D40F00000000000002 /* AlarmSnoozeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40F00000000000001 /* AlarmSnoozeView.swift */; };
 		BD54A9732D281ABC00F9C1EE /* TempTargetPresetWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */; };
@@ -1916,6 +1917,7 @@
 		BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetPresetsView.swift; sourceTree = "<group>"; };
 		A1A0EDA730974FFF0028A032 /* GlucoseFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlucoseFormattingTests.swift; sourceTree = "<group>"; };
 		A1EF5D9A309CEF01007282CC /* DurationFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationFormattingTests.swift; sourceTree = "<group>"; };
+		A128F2F430A3B486000435DC /* TimeFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFormattingTests.swift; sourceTree = "<group>"; };
 		A1A0EDF43097CE470028A032 /* PercentFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PercentFormattingTests.swift; sourceTree = "<group>"; };
 		A1B2C3D40F00000000000001 /* AlarmSnoozeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSnoozeView.swift; sourceTree = "<group>"; };
 		BD54A9722D281A9C00F9C1EE /* TempTargetPresetWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempTargetPresetWatch.swift; sourceTree = "<group>"; };
@@ -3538,6 +3540,7 @@
 			children = (
 				A1A0EDA730974FFF0028A032 /* GlucoseFormattingTests.swift */,
 				A1EF5D9A309CEF01007282CC /* DurationFormattingTests.swift */,
+				A128F2F430A3B486000435DC /* TimeFormattingTests.swift */,
 				A1A0EDF43097CE470028A032 /* PercentFormattingTests.swift */,
 				DDDD0FFD2F4E231600F9C645 /* Mocks */,
 				DDDD0FFA2F4E22C000F9C645 /* GlucoseSmoothingTests.swift */,
@@ -6521,6 +6524,7 @@
 				3B5CD2CB2D4AECD500CE213C /* ProfileTargetsTests.swift in Sources */,
 				A1A0EDA830974FFF0028A032 /* GlucoseFormattingTests.swift in Sources */,
 				A1EF5D9B309CEF01007282CC /* DurationFormattingTests.swift in Sources */,
+				A128F2F530A3B486000435DC /* TimeFormattingTests.swift in Sources */,
 				A1A0EDF53097CE470028A032 /* PercentFormattingTests.swift in Sources */,
 				3BAC92CD2E57859D00B853DA /* SetTempBasalTests.swift in Sources */,
 				BD11A011000000000000A011 /* RoundBasalTests.swift in Sources */,

@@ -23,13 +23,6 @@ struct CarbRatioStepView: View {
         return formatter
     }
 
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.timeStyle = .short
-        return formatter
-    }
-
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack {
