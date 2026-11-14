@@ -26,6 +26,47 @@ import Testing
         #expect(store.alerts.count == GlucoseAlertType.allCases.count)
     }
 
+    @Test("Fresh store seeds the rate alarms disabled, everything else enabled") func freshSeedRateAlarmsDisabled() {
+        let store = Self.makeStore()
+        for alert in store.alerts {
+            #expect(alert.isEnabled == !alert.type.isRateDriven, "Unexpected isEnabled for \(alert.type)")
+        }
+    }
+
+    @Test("Backfilled rate alarms are disabled at 10 mg/dL per 5 min, limit 140 mg/dL") func backfillRateAlarmsDisabled() {
+        let store = Self.makeStore(seed: [GlucoseAlert(type: .low)])
+        for type in [GlucoseAlertType.fallingFast, .risingFast] {
+            let alert = store.alerts.first { $0.type == type }
+            #expect(alert?.isEnabled == false)
+            #expect(alert?.thresholdMgDL == 10)
+            #expect(alert?.glucoseLimitMgDL == 140)
+        }
+    }
+
+    @Test("mmol/L moves disabled default rate alarms to 0.5 mmol/L and back") func unitDefaultsForRateAlarms() {
+        let store = Self.makeStore()
+        store.applyUnitDefaults(.mmolL)
+        for alert in store.alerts where alert.type.isRateDriven {
+            #expect(alert.thresholdMgDL == 9)
+        }
+        store.applyUnitDefaults(.mgdL)
+        for alert in store.alerts where alert.type.isRateDriven {
+            #expect(alert.thresholdMgDL == 10)
+        }
+    }
+
+    @Test("Unit defaults leave enabled or customised rate alarms alone") func unitDefaultsKeepUserChoices() {
+        var enabled = GlucoseAlert(type: .fallingFast)
+        enabled.isEnabled = true
+        var custom = GlucoseAlert(type: .risingFast)
+        custom.isEnabled = false
+        custom.thresholdMgDL = 15
+        let store = Self.makeStore(seed: [enabled, custom])
+        store.applyUnitDefaults(.mmolL)
+        #expect(store.alerts.first { $0.id == enabled.id }?.thresholdMgDL == 10)
+        #expect(store.alerts.first { $0.id == custom.id }?.thresholdMgDL == 15)
+    }
+
     @Test("Legacy load (no carbsRequired) backfills the new type") func legacyLoadBackfillsCarbsRequired() {
         let legacy: [GlucoseAlert] = [
             GlucoseAlert(type: .urgentLow),

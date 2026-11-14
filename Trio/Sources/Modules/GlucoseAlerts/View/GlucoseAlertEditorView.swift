@@ -50,8 +50,10 @@ struct GlucoseAlertEditorView: View {
                 switch working.type {
                 case .urgentLow: urgentLowBody
                 case .low: lowBody
+                case .fallingFast: fallingFastBody
                 case .forecastedLow: forecastedLowBody
                 case .high: highBody
+                case .risingFast: risingFastBody
                 case .carbsRequired: carbsRequiredBody
                 }
 
@@ -146,6 +148,59 @@ struct GlucoseAlertEditorView: View {
             step: 1,
             units: units,
             valueMgDL: $working.thresholdMgDL
+        )
+    }
+
+    @ViewBuilder private var fallingFastBody: some View {
+        AlarmBGSection(
+            header: String(localized: "Fall Rate"),
+            footer: String(
+                localized: "This is the rate of drop per 5 minutes, measured over the last 15 minutes. Fires when glucose drops at least this fast."
+            ),
+            title: String(localized: "Drop in 5 Minutes"),
+            range: GlucoseAlertType.rateRange,
+            step: 1,
+            units: units,
+            valueMgDL: $working.thresholdMgDL
+        )
+        AlarmBGSection(
+            header: String(localized: "Only When Below"),
+            footer: String(localized: "Fires only when glucose is at or below this value."),
+            title: String(localized: "Glucose"),
+            range: GlucoseAlertType.glucoseLimitRange,
+            step: 1,
+            units: units,
+            valueMgDL: glucoseLimitBinding
+        )
+    }
+
+    @ViewBuilder private var risingFastBody: some View {
+        AlarmBGSection(
+            header: String(localized: "Rise Rate"),
+            footer: String(
+                localized: "This is the rate of rise per 5 minutes, measured over the last 15 minutes. Fires when glucose rises at least this fast."
+            ),
+            title: String(localized: "Rise in 5 Minutes"),
+            range: GlucoseAlertType.rateRange,
+            step: 1,
+            units: units,
+            valueMgDL: $working.thresholdMgDL
+        )
+        AlarmBGSection(
+            header: String(localized: "Only When Above"),
+            footer: String(localized: "Fires only when glucose is at or above this value."),
+            title: String(localized: "Glucose"),
+            range: GlucoseAlertType.glucoseLimitRange,
+            step: 1,
+            units: units,
+            valueMgDL: glucoseLimitBinding
+        )
+    }
+
+    private var glucoseLimitBinding: Binding<Decimal> {
+        Binding(
+            get: { working.glucoseLimitMgDL ?? working.type.defaultGlucoseLimitMgDL ?? 0 },
+            set: { working.glucoseLimitMgDL = $0 }
         )
     }
 
