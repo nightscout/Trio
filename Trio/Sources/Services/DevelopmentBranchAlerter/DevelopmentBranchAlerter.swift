@@ -10,7 +10,7 @@ import SwiftUI
 /// treated as a build the average user should not be running.
 ///
 /// Compile with `DEV_BRANCH_WARNING_DISABLED` to suppress the warning.
-@MainActor final class DevelopmentBranchAlerter: ObservableObject {
+@MainActor @Observable final class DevelopmentBranchAlerter {
     static let shared = DevelopmentBranchAlerter()
 
     private init() {}
@@ -25,13 +25,13 @@ import SwiftUI
     // MARK: - State
 
     /// Whether the warning should currently be on screen.
-    @Published var isPresented = false
+    private(set) var isPresented = false
 
     /// Branch the running build came from, resolved when the warning is raised.
     private(set) var branch = ""
 
     /// Reset with the process, so every launch warns again as Loop's does.
-    private var hasBeenAcknowledgedThisLaunch = false
+    @ObservationIgnored private var hasBeenAcknowledgedThisLaunch = false
 
     // MARK: - Public
 
@@ -60,6 +60,7 @@ import SwiftUI
     /// is not counted as one the user actually saw.
     func acknowledge() {
         hasBeenAcknowledgedThisLaunch = true
+        isPresented = false
     }
 
     /// Warning body for the branch this build came from.
@@ -89,29 +90,43 @@ extension View {
     /// The alert offers no cancel: the user either acknowledges that they are testing, or opens the
     /// documentation on returning to the released version.
     func developmentBranchWarning(_ alerter: DevelopmentBranchAlerter) -> some View {
-        alert(
-            Text("Hey Trioneer, watch out!", comment: "Title of the warning shown on builds that are not from the main branch"),
-            isPresented: Binding(
-                get: { alerter.isPresented },
-                set: { alerter.isPresented = $0 }
-            )
-        ) {
-            Button(String(
-                localized: "I'm a Tester",
-                comment: "Button that dismisses the non-release build warning"
-            )) {
-                alerter.acknowledge()
-            }
+        modifier(DevelopmentBranchWarning(alerter: alerter))
+    }
+}
 
-            Button(String(
-                localized: "How to Return to Main",
-                comment: "Button on the non-release build warning that opens documentation about returning to main"
-            )) {
-                alerter.acknowledge()
-                UIApplication.shared.open(DevelopmentBranchAlerter.returnToReleaseURL)
+private struct DevelopmentBranchWarning: ViewModifier {
+    let alerter: DevelopmentBranchAlerter
+
+    @State private var isPresented = false
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: alerter.isPresented, initial: true) { _, isRequested in
+                isPresented = isRequested
             }
-        } message: {
-            Text(alerter.message)
-        }
+            .alert(
+                Text(
+                    "Hey Trioneer, watch out!",
+                    comment: "Title of the warning shown on builds that are not from the main branch"
+                ),
+                isPresented: $isPresented
+            ) {
+                Button(String(
+                    localized: "I'm a Tester",
+                    comment: "Button that dismisses the non-release build warning"
+                )) {
+                    alerter.acknowledge()
+                }
+
+                Button(String(
+                    localized: "How to Return to Main",
+                    comment: "Button on the non-release build warning that opens documentation about returning to main"
+                )) {
+                    alerter.acknowledge()
+                    UIApplication.shared.open(DevelopmentBranchAlerter.returnToReleaseURL)
+                }
+            } message: {
+                Text(alerter.message)
+            }
     }
 }
