@@ -1,9 +1,12 @@
 name: zzz [DO NOT RUN] Add Bugs to Project 'Bugs'
 
+# Called from upstream_automation.yml; see that file for why there is a single dispatcher.
+# Runs when an issue is opened (trigger lives in the caller).
 on:
-  issues:
-    types:
-      - opened
+  workflow_call:
+    secrets:
+      ADD_TO_PROJECT_PAT:
+        required: true
 
 jobs:
   add-to-project:
