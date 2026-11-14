@@ -18,7 +18,15 @@ struct LiveActivityUpdatedLabelView: View {
     var body: some View {
         let dateText = Text("\((context.state.date != nil) ? dateFormatter.string(from: context.state.date!) : "--")")
 
-        if isWatchOS {
+        if isWatchOS, isDetailedLayout {
+            dateText
+                .font(.callout)
+                .foregroundStyle(context.isStale ? .red.opacity(0.6) : .primary)
+                .strikethrough(context.isStale, pattern: .solid, color: .red.opacity(0.6))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
+
+        } else if isWatchOS {
             dateText
                 .font(.subheadline)
                 .bold()
