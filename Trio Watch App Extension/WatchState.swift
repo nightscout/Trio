@@ -1,10 +1,14 @@
 import Foundation
 import SwiftUI
+import UserNotifications
 import WatchConnectivity
 
 /// WatchState manages the communication between the Watch app and the iPhone app using WatchConnectivity.
 /// It handles glucose data synchronization and sending treatment requests (bolus, carbs) to the phone.
 @Observable final class WatchState: NSObject, WCSessionDelegate {
+    /// Shared, not created in a view: the CGM host and the alarms reach it outside any view.
+    static let shared = WatchState()
+
     // MARK: - Properties
 
     /// The WatchConnectivity session instance used for communication
@@ -25,6 +29,8 @@ import WatchConnectivity
     var cob: String? = "--"
     var iob: String? = "--"
     var lastLoopTime: String? = "--"
+    /// When the phone last looped; the watch ages it itself.
+    var lastLoopDate: Date?
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
     var snoozeUntilDate: Date = .distantPast
@@ -112,6 +118,70 @@ import WatchConnectivity
     var showSyncingAnimation: Bool = false
 
     var deviceType = WatchSize.current
+
+    /// Cached from the phone so the setting still applies while the phone is away.
+    var useCriticalAlerts: Bool = UserDefaults.standard.bool(forKey: WatchMessageKeys.useCriticalAlertsWatch) {
+        didSet {
+            UserDefaults.standard.set(useCriticalAlerts, forKey: WatchMessageKeys.useCriticalAlertsWatch)
+            if useCriticalAlerts {
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .criticalAlert]) { granted, _ in
+                    WatchLogger.shared.info(.data, "Critical alerts on: watch notifications allowed=\(granted)")
+                }
+            }
+        }
+    }
+
+    /// The last CGM export from the phone. Persisted so the link comes back after watchOS ends the app while the phone
+    /// is away; `watchReadsSensor` controls whether the watch uses it.
+    var sensorConfiguration: Data? = UserDefaults.standard.data(forKey: WatchMessageKeys.watchSensorConfiguration) {
+        didSet { UserDefaults.standard.set(sensorConfiguration, forKey: WatchMessageKeys.watchSensorConfiguration) }
+    }
+
+    /// The CGM's Read on Apple Watch, as the phone last sent it.
+    var watchReadsSensor: Bool = UserDefaults.standard.bool(forKey: WatchMessageKeys.watchReadsSensor) {
+        didSet {
+            UserDefaults.standard.set(watchReadsSensor, forKey: WatchMessageKeys.watchReadsSensor)
+            if watchReadsSensor != oldValue {
+                WatchLogger.shared.info(.data, "Read on Apple Watch: \(watchReadsSensor ? "on" : "off")")
+            }
+        }
+    }
+
+    /// The phone's range, color scheme and alarms, for the watch's own readings; persisted with them.
+    var glucoseRange: WatchGlucoseRange = .saved {
+        didSet { glucoseRange.save() }
+    }
+
+    /// The newest reading the phone has sent.
+    private(set) var phoneNewestReading: Date?
+    /// The phone's readings and bubble as it sent them, shown while the watch has no fresh reading of its own.
+    private var phoneGlucoseValues: [(date: Date, glucose: Double, color: Color)] = []
+    private var phoneBubble = PhoneBubble()
+    private struct PhoneBubble {
+        var currentGlucose = "--"
+        var colorString = "#ffffff"
+        var trend: String? = ""
+        var delta: String? = "--"
+    }
+
+    /// Readings from the watch's own sensor link, oldest first, the last six hours.
+    private var ownReadings: [BloodGlucose] = []
+    /// The reading shown is the watch's own, not the phone's: the bubble says so.
+    private(set) var newestReadingIsOwn = false
+    /// The watch's own newest reading is shown while it is this fresh: one 5-minute cycle and 30 s of slack. After
+    /// that, the phone's readings, if they are newer.
+    static let ownReadingFreshFor: TimeInterval = 5 * 60 + 30
+    /// Falls back to the phone's readings once the watch's own newest is no longer fresh.
+    private var ownReadingExpiry: DispatchWorkItem?
+
+    /// The phone's readings keep coming: one 5-minute cycle and 30 s of slack since its newest, as the watch's own.
+    static let phoneReadingsFreshFor: TimeInterval = ownReadingFreshFor
+
+    /// While true, the watch leaves the alarms to the phone.
+    func phoneReadingsAreFresh(at now: Date = Date()) -> Bool {
+        guard let phoneNewestReading else { return false }
+        return now.timeIntervalSince(phoneNewestReading) < Self.phoneReadingsFreshFor
+    }
 
     override init() {
         super.init()
@@ -488,18 +558,22 @@ import WatchConnectivity
 
         if let currentGlucose = message[WatchMessageKeys.currentGlucose] as? String {
             self.currentGlucose = currentGlucose
+            phoneBubble.currentGlucose = currentGlucose
         }
 
         if let currentGlucoseColorString = message[WatchMessageKeys.currentGlucoseColorString] as? String {
             self.currentGlucoseColorString = currentGlucoseColorString
+            phoneBubble.colorString = currentGlucoseColorString
         }
 
         if let trend = message[WatchMessageKeys.trend] as? String {
             self.trend = trend
+            phoneBubble.trend = trend
         }
 
         if let delta = message[WatchMessageKeys.delta] as? String {
             self.delta = delta
+            phoneBubble.delta = delta
         }
 
         if let iob = message[WatchMessageKeys.iob] as? String {
@@ -512,6 +586,10 @@ import WatchConnectivity
 
         if let lastLoopTime = message[WatchMessageKeys.lastLoopTime] as? String {
             self.lastLoopTime = lastLoopTime
+        }
+
+        if let lastLoopDate = message[WatchMessageKeys.lastLoopDate] as? TimeInterval {
+            self.lastLoopDate = lastLoopDate > 0 ? Date(timeIntervalSince1970: lastLoopDate) : nil
         }
 
         if let glucoseData = message[WatchMessageKeys.glucoseValues] as? [[String: Any]] {
@@ -528,6 +606,8 @@ import WatchConnectivity
                 )
             }
             .sorted { $0.date < $1.date }
+            phoneGlucoseValues = glucoseValues
+            phoneNewestReading = glucoseValues.last?.date
         }
 
         if let minYAxisValue = message[WatchMessageKeys.minYAxisValue] {
@@ -617,5 +697,191 @@ import WatchConnectivity
             forecastConeMax = forecastPayload[WatchMessageKeys.forecastConeMax] as? [Double] ?? []
             forecastLines = forecastPayload[WatchMessageKeys.forecastLines] as? [String: [Double]] ?? [:]
         }
+
+        if let critical = message[WatchMessageKeys.useCriticalAlertsWatch] as? Bool, critical != useCriticalAlerts {
+            useCriticalAlerts = critical
+        }
+
+        if let low = message[WatchMessageKeys.glucoseRangeLow] as? Double,
+           let high = message[WatchMessageKeys.glucoseRangeHigh] as? Double
+        {
+            let range = WatchGlucoseRange(
+                low: Decimal(low),
+                high: Decimal(high),
+                target: (message[WatchMessageKeys.glucoseRangeTarget] as? Double).map { Decimal($0) } ?? glucoseRange.target,
+                colorScheme: message[WatchMessageKeys.glucoseColorScheme] as? String ?? glucoseRange.colorScheme,
+                isMmol: message[WatchMessageKeys.units] as? String == GlucoseUnits.mmolL.rawValue,
+                urgentLowAlarm: (message[WatchMessageKeys.glucoseAlarmUrgentLow] as? Double).map { Decimal($0) } ?? 54,
+                // 0: no such alarm on
+                lowAlarm: (message[WatchMessageKeys.glucoseAlarmLow] as? Double).flatMap { $0 > 0 ? Decimal($0) : nil },
+                highAlarm: (message[WatchMessageKeys.glucoseAlarmHigh] as? Double).flatMap { $0 > 0 ? Decimal($0) : nil }
+            )
+            if range != glucoseRange { glucoseRange = range }
+        }
+
+        // the export can be absent while the phone starts; only Read on Apple Watch turns the link off
+        var sensorDidChange = false
+        if let watchReadsSensor = message[WatchMessageKeys.watchReadsSensor] as? Bool, watchReadsSensor != self.watchReadsSensor {
+            self.watchReadsSensor = watchReadsSensor
+            sensorDidChange = true
+        }
+        if let configuration = message[WatchMessageKeys.watchSensorConfiguration] as? Data, configuration != sensorConfiguration {
+            sensorConfiguration = configuration
+            sensorDidChange = true
+        }
+        if sensorDidChange {
+            Task { @MainActor in WatchCGMHost.shared.update(from: self) }
+        }
+
+        // the watch's own reading first; the phone's only while the watch has none fresh
+        applyOwnOverlay()
+    }
+
+    // MARK: - The watch's own sensor readings
+
+    /// Readings from the watch's own sensor link: shown first, the phone's only while these are not fresh.
+    func applyOwnReadings(_ readings: [BloodGlucose]) {
+        let known = Set(ownReadings.map { Int($0.dateString.timeIntervalSince1970 / 60) })
+        ownReadings += readings.filter { !known.contains(Int($0.dateString.timeIntervalSince1970 / 60)) }
+        ownReadings.sort { $0.dateString < $1.dateString }
+        applyOwnOverlay()
+    }
+
+    /// Picks the reading shown again, as time passes: called when the watch app comes to the front.
+    func refreshShownReading() {
+        applyOwnOverlay()
+    }
+
+    /// The watch's own newest reading is shown while it is fresh (`ownReadingFreshFor`), or while it is newer than the
+    /// phone's; otherwise the phone's readings stand as sent. The chart is the watch's own readings, the phone's where
+    /// the watch has none. Idempotent: built each time from the phone's copy and the watch's own.
+    private func applyOwnOverlay(now: Date = Date()) {
+        // the watch's own reading gives way to the phone's once it is no longer fresh
+        defer { scheduleOwnReadingExpiry(now: now) }
+        ownReadings.removeAll { $0.dateString < now.addingTimeInterval(-6 * 60 * 60) }
+        let range = glucoseRange
+        let own = ownReadings.compactMap { reading in (reading.glucose ?? reading.sgv).map { (reading, $0) } }
+        let phoneNewest = phoneNewestReading ?? .distantPast
+        guard let (latest, value) = own.last,
+              now.timeIntervalSince(latest.dateString) < Self.ownReadingFreshFor ||
+              latest.dateString > phoneNewest.addingTimeInterval(60)
+        else {
+            showPhoneReadings()
+            return
+        }
+        newestReadingIsOwn = true
+        // the phone's copy of a reading carries a timestamp a few seconds apart from the watch's
+        let ownDates = own.map(\.0.dateString)
+        let phoneOnly = phoneGlucoseValues.filter { phone in
+            !ownDates.contains { abs($0.timeIntervalSince(phone.date)) < 150 }
+        }
+        glucoseValues = (phoneOnly + own.map { (date: $0.0.dateString, glucose: range.display($0.1), color: range.color($0.1)) })
+            .sorted { $0.date < $1.date }
+        currentGlucose = Decimal(value).formatted(for: range.isMmol ? .mmolL : .mgdL)
+        let inRange = Decimal(value) > range.low && Decimal(value) < range.high
+        currentGlucoseColorString = inRange ? "#ffffff" : range.color(value).toHexString()
+        trend = latest.direction?.rawValue
+        if glucoseValues.count >= 2 {
+            let change = glucoseValues[glucoseValues.count - 1].glucose - glucoseValues[glucoseValues.count - 2].glucose
+            let formatted = range.isMmol ? String(format: "%.1f", change) : String(format: "%.0f", change)
+            delta = change < 0 ? formatted : "+" + formatted
+        }
+    }
+
+    private func showPhoneReadings() {
+        newestReadingIsOwn = false
+        glucoseValues = phoneGlucoseValues
+        currentGlucose = phoneBubble.currentGlucose
+        currentGlucoseColorString = phoneBubble.colorString
+        trend = phoneBubble.trend
+        delta = phoneBubble.delta
+    }
+
+    /// While the watch's own reading is shown, the phone's take over once it is no longer fresh, without waiting for
+    /// the next reading or phone message.
+    private func scheduleOwnReadingExpiry(now: Date) {
+        ownReadingExpiry?.cancel()
+        ownReadingExpiry = nil
+        guard newestReadingIsOwn, let latest = ownReadings.last?.dateString else { return }
+        let delay = latest.addingTimeInterval(Self.ownReadingFreshFor).timeIntervalSince(now)
+        guard delay > 0 else { return }
+        let work = DispatchWorkItem { [weak self] in self?.applyOwnOverlay() }
+        ownReadingExpiry = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay + 1, execute: work)
+    }
+}
+
+/// The phone's glucose range, color scheme and alarms, in mg/dL, as `BaseWatchManager` colors the readings it sends.
+struct WatchGlucoseRange: Codable, Equatable {
+    private static let storageKey = "watchGlucoseRange"
+
+    static var saved: WatchGlucoseRange {
+        UserDefaults.standard.data(forKey: storageKey)
+            .flatMap { try? JSONDecoder().decode(WatchGlucoseRange.self, from: $0) } ?? WatchGlucoseRange()
+    }
+
+    func save() {
+        UserDefaults.standard.set(try? JSONEncoder().encode(self), forKey: Self.storageKey)
+    }
+
+    var low: Decimal = 70
+    var high: Decimal = 180
+    var target: Decimal = 100
+    var colorScheme: String = GlucoseColorScheme.staticColor.rawValue
+    var isMmol = false
+    /// The phone's glucose alarms, the most cautious that is on: the watch alarms by them on its own readings.
+    var urgentLowAlarm: Decimal = 54
+    var lowAlarm: Decimal?
+    var highAlarm: Decimal?
+
+    init(
+        low: Decimal = 70,
+        high: Decimal = 180,
+        target: Decimal = 100,
+        colorScheme: String = GlucoseColorScheme.staticColor.rawValue,
+        isMmol: Bool = false,
+        urgentLowAlarm: Decimal = 54,
+        lowAlarm: Decimal? = nil,
+        highAlarm: Decimal? = nil
+    ) {
+        self.low = low
+        self.high = high
+        self.target = target
+        self.colorScheme = colorScheme
+        self.isMmol = isMmol
+        self.urgentLowAlarm = urgentLowAlarm
+        self.lowAlarm = lowAlarm
+        self.highAlarm = highAlarm
+    }
+
+    /// Field by field: a value saved before a field was added keeps the rest.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let defaults = WatchGlucoseRange()
+        low = try container.decodeIfPresent(Decimal.self, forKey: .low) ?? defaults.low
+        high = try container.decodeIfPresent(Decimal.self, forKey: .high) ?? defaults.high
+        target = try container.decodeIfPresent(Decimal.self, forKey: .target) ?? defaults.target
+        colorScheme = try container.decodeIfPresent(String.self, forKey: .colorScheme) ?? defaults.colorScheme
+        isMmol = try container.decodeIfPresent(Bool.self, forKey: .isMmol) ?? defaults.isMmol
+        urgentLowAlarm = try container.decodeIfPresent(Decimal.self, forKey: .urgentLowAlarm) ?? defaults.urgentLowAlarm
+        lowAlarm = try container.decodeIfPresent(Decimal.self, forKey: .lowAlarm)
+        highAlarm = try container.decodeIfPresent(Decimal.self, forKey: .highAlarm)
+    }
+
+    func display(_ mgdl: Int) -> Double {
+        isMmol ? NSDecimalNumber(decimal: Decimal(mgdl).asMmolL).doubleValue : Double(mgdl)
+    }
+
+    /// As `BaseWatchManager.setupWatchState`: the dynamic scheme ramps between fixed ends around the target.
+    func color(_ mgdl: Int) -> Color {
+        let scheme = GlucoseColorScheme(rawValue: colorScheme) ?? .staticColor
+        let isDynamic = scheme == .dynamicColor
+        return getDynamicGlucoseColor(
+            glucoseValue: Decimal(mgdl),
+            highGlucoseColorValue: isDynamic ? 220 : high,
+            lowGlucoseColorValue: isDynamic ? 55 : low,
+            targetGlucose: target,
+            glucoseColorScheme: scheme
+        )
     }
 }
