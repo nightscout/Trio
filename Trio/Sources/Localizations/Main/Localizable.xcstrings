@@ -5378,6 +5378,9 @@
         }
       }
     },
+    "–" : {
+
+    },
     "– –" : {
       "localizations" : {
         "bg" : {
@@ -9106,6 +9109,9 @@
           }
         }
       }
+    },
+    "%@ / day" : {
+
     },
     "%@ %@" : {
       "localizations" : {
@@ -13489,6 +13495,9 @@
         }
       }
     },
+    "%lld days of history" : {
+
+    },
     "%lld g" : {
       "localizations" : {
         "bg" : {
@@ -13615,6 +13624,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld g"
+          }
+        }
+      }
+    },
+    "%lld g treatment, then peak %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld g treatment, then peak %2$@"
           }
         }
       }
@@ -14009,6 +14028,9 @@
         }
       }
     },
+    "%lld messages" : {
+
+    },
     "%lld min" : {
       "localizations" : {
         "bg" : {
@@ -14399,6 +14421,77 @@
           }
         }
       }
+    },
+    "%lld%% after a prebolus for an unannounced meal" : {
+
+    },
+    "%lld%% after breakfast" : {
+
+    },
+    "%lld%% after correction boluses" : {
+
+    },
+    "%lld%% after dinner" : {
+
+    },
+    "%lld%% after lunch" : {
+
+    },
+    "%lld%% after meal boluses" : {
+
+    },
+    "%lld%% after SMBs for an unannounced meal" : {
+
+    },
+    "%lld%% after snacks" : {
+
+    },
+    "%lld%% after treating a low with more than 20 g carbs" : {
+
+    },
+    "%lld%% around midday" : {
+
+    },
+    "%lld%% at night" : {
+
+    },
+    "%lld%% between %@ and %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld%% between %2$@ and %3$@"
+          }
+        }
+      }
+    },
+    "%lld%% in the afternoon" : {
+
+    },
+    "%lld%% in the evening" : {
+
+    },
+    "%lld%% in the morning" : {
+
+    },
+    "%lld%% on day %lld of an infusion site" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld%% on day %2$lld of an infusion site"
+          }
+        }
+      }
+    },
+    "%lld%% with a manual prebolus" : {
+
+    },
+    "%lld%% with more than 2 U insulin on board" : {
+
+    },
+    "%lld×" : {
+
     },
     "•" : {
       "localizations" : {
@@ -24435,6 +24528,9 @@
         }
       }
     },
+    "3 Months" : {
+
+    },
     "3. Tap on \"Data Access & Devices\"." : {
       "localizations" : {
         "bg" : {
@@ -28496,6 +28592,12 @@
         }
       }
     },
+    "A low follows within a few hours of a meal or correction bolus. Often a sign of too much insulin for the carbs or the correction." : {
+
+    },
+    "A low is treated and glucose then overshoots into a high. Usually caused by over-treating the low or by insulin being suspended for too long." : {
+
+    },
     "A lower 'Half Basal Target' setting will reduce the basal and raise the ISF earlier, at a lower target glucose." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -29024,6 +29126,12 @@
         }
       }
     },
+    "A rise at the same clock time each day points to basal. A rise that follows getting up, whenever that is, usually does not." : {
+
+    },
+    "A rise several hours after a meal is not explained by the carbs alone, so the carb ratio is usually not the setting to change." : {
+
+    },
     "A Temporary Target replaces the current Target Glucose specified in Therapy settings." : {
       "localizations" : {
         "bg" : {
@@ -29545,6 +29653,9 @@
         }
       }
     },
+    "About the Data Model" : {
+
+    },
     "About the Process" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -29812,6 +29923,12 @@
         }
       }
     },
+    "About the Scenarios" : {
+
+    },
+    "About This Rule" : {
+
+    },
     "About this source" : {
       "comment" : "About this source",
       "localizations" : {
@@ -30073,6 +30190,9 @@
           }
         }
       }
+    },
+    "Above %@" : {
+
     },
     "Above 180 through 250 mg/dL" : {
       "comment" : "Percentage of glucose readings in the high GRI range."
@@ -31267,6 +31387,9 @@
           }
         }
       }
+    },
+    "Activity Drop" : {
+
     },
     "Add" : {
       "comment" : "Add profile basal",
@@ -39741,6 +39864,12 @@
           }
         }
       }
+    },
+    "Advice" : {
+
+    },
+    "Advice describes what a pattern usually points to. Discuss any change with your care team, and change one setting at a time." : {
+
     },
     "AF" : {
       "localizations" : {
@@ -48745,6 +48874,15 @@
         }
       }
     },
+    "Analysis" : {
+
+    },
+    "Analyze" : {
+
+    },
+    "Analyzing…" : {
+
+    },
     "Animated Background" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -50963,6 +51101,9 @@
           }
         }
       }
+    },
+    "Applied when curating the catalog" : {
+
     },
     "Applies To (Cannot be changed)" : {
       "localizations" : {
@@ -59405,6 +59546,12 @@
         }
       }
     },
+    "Basal (early morning)" : {
+
+    },
+    "Basal (night)" : {
+
+    },
     "Basal Insulin and Sensitivity ratio" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -60849,6 +60996,9 @@
           }
         }
       }
+    },
+    "Based on your current settings. Rule catalog %@." : {
+
     },
     "Basic Insulin Rates & Targets" : {
       "localizations" : {
@@ -67840,6 +67990,9 @@
         }
       }
     },
+    "Bolus Then Hypo" : {
+
+    },
     "Bolus/Basal %" : {
       "localizations" : {
         "bg" : {
@@ -70758,6 +70911,9 @@
         }
       }
     },
+    "Can't Check" : {
+
+    },
     "Can't find the default Nightscout Profile." : {
       "comment" : "Import ErrorImport Error",
       "extractionState" : "manual",
@@ -72474,6 +72630,16 @@
         }
       }
     },
+    "Carb entry, then a rise of more than %@ to above %@ within 2 h." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Carb entry, then a rise of more than %1$@ to above %2$@ within 2 h."
+          }
+        }
+      }
+    },
     "Carb ratio" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -72740,6 +72906,9 @@
           }
         }
       }
+    },
+    "Carb Ratio or meal timing" : {
+
     },
     "Carb ratio profile chart, 24 hours" : {
       "localizations" : {
@@ -76283,6 +76452,12 @@
         }
       }
     },
+    "CGM Coverage" : {
+
+    },
+    "CGM data covers only part of this time frame. Scenarios in the gaps are missed." : {
+
+    },
     "CGM Glucose Value" : {
       "localizations" : {
         "bg" : {
@@ -78145,6 +78320,9 @@
           }
         }
       }
+    },
+    "Change one setting at a time and wait a few days before the next change. Settings that affect everything else come first." : {
+
     },
     "Change Pod now. Insulin delivery will stop in %1$@ or when no more insulin remains." : {
       "comment" : "Format string for the action string on pod status page when pod expired. (1: service time remaining)",
@@ -95530,6 +95708,9 @@
         }
       }
     },
+    "Data Model" : {
+
+    },
     "Data transmission has been disabled. Now select the new watchface on your Garmin device and resume data transmission once done." : {
       "localizations" : {
         "bg" : {
@@ -96179,6 +96360,9 @@
           }
         }
       }
+    },
+    "Dawn Phenomenon" : {
+
     },
     "Day" : {
       "extractionState" : "manual",
@@ -99364,6 +99548,9 @@
           }
         }
       }
+    },
+    "Default usually recommended" : {
+
     },
     "Default value: 0.5 This is another key OpenAPS safety cap, and specifies what share of the total insulin required can be delivered as SMB. Increase this experimental value slowly and with caution." : {
       "comment" : "SMB DeliveryRatio",
@@ -105618,6 +105805,9 @@
         }
       }
     },
+    "Delayed Meal Rise" : {
+
+    },
     "Delete" : {
       "localizations" : {
         "bg" : {
@@ -109209,6 +109399,9 @@
         }
       }
     },
+    "Detected Scenarios" : {
+
+    },
     "Detected sensor is invalid: %@" : {
       "comment" : "Detected sensor is invalid: %@",
       "extractionState" : "manual",
@@ -110804,6 +110997,9 @@
         }
       }
     },
+    "DIA %@ h" : {
+
+    },
     "Diabetes Data as Calendar Event" : {
       "localizations" : {
         "bg" : {
@@ -111202,6 +111398,9 @@
           }
         }
       }
+    },
+    "Direction" : {
+
     },
     "Disable" : {
       "comment" : "Option to disable SMB",
@@ -118346,6 +118545,19 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "控制主畫面血糖圓點的外圈與標籤。"
+          }
+        }
+      }
+    },
+    "Drop of more than %@ within 1 h, during a raised temp target or a reduced-insulin override, or the hour after it." : {
+
+    },
+    "Dropped %@ in %lld min" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dropped %1$@ in %2$lld min"
           }
         }
       }
@@ -130722,6 +130934,9 @@
         }
       }
     },
+    "Enforced" : {
+
+    },
     "Enter Meal Preset Name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -133361,6 +133576,9 @@
         }
       }
     },
+    "Events" : {
+
+    },
     "Eventual glucose" : {
       "comment" : "A label displayed under the loop status icon",
       "localizations" : {
@@ -134303,6 +134521,9 @@
           }
         }
       }
+    },
+    "Evidence" : {
+
     },
     "Example Calculation" : {
       "localizations" : {
@@ -141750,6 +141971,9 @@
         }
       }
     },
+    "Few or no meals are logged, so meals are recognised from fast rises instead of carb entries." : {
+
+    },
     "Filter" : {
       "localizations" : {
         "bg" : {
@@ -147394,6 +147618,9 @@
         }
       }
     },
+    "Frequent" : {
+
+    },
     "From" : {
       "localizations" : {
         "bg" : {
@@ -150151,6 +150378,9 @@
         }
       }
     },
+    "Glucose above %@ for more than 3 h without carbs or an unannounced meal." : {
+
+    },
     "Glucose Alarms" : {
       "comment" : "The title of the glucose alarms screen.",
       "localizations" : {
@@ -150677,6 +150907,19 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "血糖 App 圖示徽章"
+          }
+        }
+      }
+    },
+    "Glucose below %@ between 00:00 and 06:00." : {
+
+    },
+    "Glucose below %@, then above %@ within 3 h." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Glucose below %1$@, then above %2$@ within 3 h."
           }
         }
       }
@@ -152786,6 +153029,12 @@
         }
       }
     },
+    "Glucose drops below range during the night, often hours after the last bolus." : {
+
+    },
+    "Glucose drops quickly during or after physical activity while insulin on board is still high." : {
+
+    },
     "Glucose Error" : {
       "localizations" : {
         "bg" : {
@@ -153436,6 +153685,9 @@
         }
       }
     },
+    "Glucose looks fine after a meal, then rises three to six hours later. Typical for high-fat or high-protein meals." : {
+
+    },
     "Glucose Notification visibility" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -153966,6 +154218,18 @@
     "Glucose Reading Font" : {
 
     },
+    "Glucose Readings" : {
+
+    },
+    "Glucose rises fast like after a meal, but no carbs were logged, and goes above range. Covers meals left fully to UAM and meals with only a manual prebolus." : {
+
+    },
+    "Glucose rises in the early morning without any carbs, driven by hormones released before waking." : {
+
+    },
+    "Glucose rises sharply in the first two hours after a meal, even though carbs were entered and bolused." : {
+
+    },
     "Glucose Settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -154494,6 +154758,9 @@
           }
         }
       }
+    },
+    "Glucose stays high for hours and does not respond as expected to insulin. Can be settings, but also a failing infusion site or illness." : {
+
     },
     "Glucose Target" : {
       "extractionState" : "manual",
@@ -157562,6 +157829,12 @@
     "GRI uses fixed glucose thresholds, regardless of your target range or display units." : {
       "comment" : "A description of how the GRI calculates its score.",
       "isCommentAutoGenerated" : true
+    },
+    "Guards" : {
+
+    },
+    "Guards decide whether a rule may give advice at all. They apply before any rule fires." : {
+
     },
     "h" : {
       "extractionState" : "stale",
@@ -160633,6 +160906,9 @@
         }
       }
     },
+    "High confidence" : {
+
+    },
     "High Contrast Mode" : {
       "localizations" : {
         "bg" : {
@@ -161812,6 +162088,9 @@
           }
         }
       }
+    },
+    "Highs that don't respond to insulin and cluster near the end of a site's life point to the site rather than your settings." : {
+
     },
     "History" : {
       "comment" : "Header",
@@ -163544,6 +163823,9 @@
           }
         }
       }
+    },
+    "How Advice Is Checked" : {
+
     },
     "How far back?" : {
 
@@ -165528,6 +165810,12 @@
         }
       }
     },
+    "If glucose comes back to target within a few hours, bolus timing is the more likely cause. If it stays high, the carb ratio for that time of day is worth reviewing." : {
+
+    },
+    "If glucose rises before SMBs ramp up, the prebolus size or timing is the more likely cause. If SMBs stop while glucose keeps rising, look at Max SMB and UAM Basal Minutes and Max IOB." : {
+
+    },
     "If Half Basal Exercise Target is %@ %@, a Temp Target of %@ %@ uses an Autosens Ratio of 1.09. A Temp Target of %@ %@ uses an Autosens Ratio of 1.33." : {
       "localizations" : {
         "bg" : {
@@ -165799,6 +166087,9 @@
           }
         }
       }
+    },
+    "If lows themselves are frequent, look at the cause of the lows first. The highs that follow a low are hard to judge on their own." : {
+
     },
     "If shown, Logarithmic Dynamic ISF is enabled." : {
       "localizations" : {
@@ -170150,6 +170441,9 @@
         }
       }
     },
+    "In range 2 h after a meal, then above %@ 3–6 h after it." : {
+
+    },
     "In the next few steps, you’ll configure your algorithm settings for" : {
       "localizations" : {
         "bg" : {
@@ -170279,6 +170573,9 @@
           }
         }
       }
+    },
+    "In Your Data" : {
+
     },
     "Include IOB & COB in the calendar event data." : {
       "localizations" : {
@@ -171724,6 +172021,9 @@
           }
         }
       }
+    },
+    "Infusion site, then ISF" : {
+
     },
     "Initiating…" : {
       "comment" : "A label displayed when the pump is waiting to start bolusing.",
@@ -174378,6 +174678,9 @@
         }
       }
     },
+    "Insulin that starts with the rise arrives late for fast carbs. A small prebolus or announcing larger meals usually helps more than raising limits, especially if lows follow these meals." : {
+
+    },
     "Insulin Type" : {
       "localizations" : {
         "bg" : {
@@ -176899,6 +177202,9 @@
         }
       }
     },
+    "ISF or Carb Ratio" : {
+
+    },
     "ISF/CR" : {
       "comment" : "Option for both ISF and CR",
       "localizations" : {
@@ -178466,6 +178772,9 @@
         }
       }
     },
+    "Last" : {
+
+    },
     "last 24 hours" : {
       "comment" : "Stats banner scope"
     },
@@ -178623,6 +178932,9 @@
           }
         }
       }
+    },
+    "Last Confirmed" : {
+
     },
     "last device communication %@" : {
       "comment" : "Accessibility: device age",
@@ -186921,6 +187233,9 @@
         }
       }
     },
+    "Logged Meals" : {
+
+    },
     "Logging Failed: Max Carbs = %lld g" : {
       "comment" : "An error message that the Add Carbs shortcut failed because the entered carbs exceeded the Max Carbs setting",
       "localizations" : {
@@ -187444,6 +187759,9 @@
           }
         }
       }
+    },
+    "Looks for recurring patterns over a longer period. %@" : {
+
     },
     "Loop at %@ failed." : {
       "localizations" : {
@@ -189822,6 +190140,26 @@
         }
       }
     },
+    "Low %@ %@ h after an unannounced meal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Low %1$@ %2$@ h after an unannounced meal"
+          }
+        }
+      }
+    },
+    "Low %@ %@ h after bolus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Low %1$@ %2$@ h after bolus"
+          }
+        }
+      }
+    },
     "Low and High Thresholds" : {
       "localizations" : {
         "bg" : {
@@ -190089,6 +190427,9 @@
           }
         }
       }
+    },
+    "Low confidence" : {
+
     },
     "Low Glucose" : {
       "localizations" : {
@@ -191413,6 +191754,9 @@
           }
         }
       }
+    },
+    "Low treatment" : {
+
     },
     "LOWALERT!" : {
       "comment" : "LOWALERT!",
@@ -193128,6 +193472,9 @@
     },
     "Manual basal %@" : {
       "comment" : "Accessibility: manual temp basal rate the user set on the pump"
+    },
+    "Manual bolus, or SMBs after an unannounced meal, then glucose below %@ within 4 h, with no carbs in between." : {
+
     },
     "manual entry" : {
       "comment" : "Accessibility: manually entered glucose",
@@ -197077,6 +197424,9 @@
           }
         }
       }
+    },
+    "Max IOB %@ U" : {
+
     },
     "Max IOB is 0 U" : {
       "localizations" : {
@@ -201157,6 +201507,16 @@
         }
       }
     },
+    "Mean %@ for %@ h" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Mean %1$@ for %2$@ h"
+          }
+        }
+      }
+    },
     "Med" : {
       "localizations" : {
         "bg" : {
@@ -201550,6 +201910,9 @@
     },
     "Medium" : {
       "comment" : "Live Activity glucose reading font size"
+    },
+    "Medium confidence" : {
+
     },
     "Medtronic and Dana Users Only" : {
       "localizations" : {
@@ -208174,6 +208537,16 @@
         }
       }
     },
+    "Nadir %@, %lld min below range" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Nadir %1$@, %2$lld min below range"
+          }
+        }
+      }
+    },
     "Name" : {
       "comment" : "Preset name",
       "localizations" : {
@@ -208572,6 +208945,9 @@
           }
         }
       }
+    },
+    "Needs logged carbs. %lld meals were logged in this time frame. See Unannounced Meal Rise instead." : {
+
     },
     "Neither the carbs nor the bolus could be saved. Please try again." : {
       "comment" : "Alert body when both carbs and bolus failed",
@@ -211328,6 +211704,12 @@
           }
         }
       }
+    },
+    "No carbs logged, then peak %@" : {
+
+    },
+    "No CGM readings found in this time frame, so no scenarios could be detected." : {
+
     },
     "No confidence reminders are used." : {
       "comment" : "Description for BeepPreference.silent",
@@ -214227,6 +214609,9 @@
         }
       }
     },
+    "No scenarios found in this time frame." : {
+
+    },
     "No Sensor Detected" : {
       "comment" : "No Sensor Detected",
       "extractionState" : "manual",
@@ -214365,6 +214750,9 @@
         }
       }
     },
+    "No settings change" : {
+
+    },
     "No settings matching your search query" : {
       "localizations" : {
         "bg" : {
@@ -214494,6 +214882,9 @@
           }
         }
       }
+    },
+    "No settings stood out." : {
+
     },
     "No suggestion" : {
       "comment" : "Status Title",
@@ -214762,6 +215153,9 @@
           }
         }
       }
+    },
+    "No TDD history" : {
+
     },
     "No Temp Target Presets" : {
       "localizations" : {
@@ -217016,6 +217410,9 @@
         }
       }
     },
+    "Not Detected" : {
+
+    },
     "not dosing" : {
       "comment" : "Accessibility: loop status",
       "localizations" : {
@@ -217938,6 +218335,9 @@
           }
         }
       }
+    },
+    "Not used with Dynamic ISF %@." : {
+
     },
     "Note" : {
       "comment" : "Food Type / Meal Note",
@@ -222932,6 +223332,9 @@
         }
       }
     },
+    "Occasional" : {
+
+    },
     "Occlusion" : {
       "localizations" : {
         "bg" : {
@@ -223061,6 +223464,15 @@
           }
         }
       }
+    },
+    "Occurrences" : {
+
+    },
+    "Occurrences by time of day" : {
+
+    },
+    "Occurrences by time of day." : {
+
     },
     "of" : {
       "comment" : "Bolus progress view",
@@ -224770,6 +225182,9 @@
         }
       }
     },
+    "Only checked in Closed Loop." : {
+
+    },
     "Only shown for the Glucose Bobble style, which replaces Display Values, Ring Settings, and Font Settings:" : {
       "localizations" : {
         "bg" : {
@@ -224899,6 +225314,9 @@
           }
         }
       }
+    },
+    "Only some meals are logged, so carb-based scenarios have lower confidence." : {
+
     },
     "Oops, there was an issue!" : {
       "localizations" : {
@@ -229123,6 +229541,9 @@
         }
       }
     },
+    "Overnight Low" : {
+
+    },
     "Override" : {
       "localizations" : {
         "bg" : {
@@ -231893,6 +232314,12 @@
         }
       }
     },
+    "P9: confidence lowered because your DIA is under 8 hours." : {
+
+    },
+    "P12: confidence lowered because only some meals were logged in this time frame." : {
+
+    },
     "Pair Pod" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -232823,6 +233250,9 @@
           }
         }
       }
+    },
+    "Passed (%lld)" : {
+
     },
     "Past 24 Hours " : {
       "comment" : "Duration displayed in statPanel",
@@ -233773,6 +234203,62 @@
         }
       }
     },
+    "Pattern" : {
+
+    },
+    "Pattern-based and conservative" : {
+
+    },
+    "Peak %@ %lld h after meal" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Peak %1$@ %2$lld h after meal"
+          }
+        }
+      }
+    },
+    "Peak %@ after %lld g carbs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Peak %1$@ after %2$lld g carbs"
+          }
+        }
+      }
+    },
+    "Peak %@, %@ U SMB in 2 h, no manual bolus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Peak %1$@, %2$@ U SMB in 2 h, no manual bolus"
+          }
+        }
+      }
+    },
+    "Peak %@, bolus %@ U at the start of the rise" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Peak %1$@, bolus %2$@ U at the start of the rise"
+          }
+        }
+      }
+    },
+    "Peak %@, prebolus %@ U %lld min before the rise" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Peak %1$@, prebolus %2$@ U %3$lld min before the rise"
+          }
+        }
+      }
+    },
     "per" : {
       "comment" : "Accessibility: unit separator, as in grams per unit",
       "localizations" : {
@@ -233903,6 +234389,9 @@
           }
         }
       }
+    },
+    "Per Week" : {
+
     },
     "percent" : {
       "comment" : "Accessibility: spoken unit",
@@ -235215,6 +235704,9 @@
         }
       }
     },
+    "Period" : {
+
+    },
     "Period:" : {
       "localizations" : {
         "bg" : {
@@ -235612,6 +236104,9 @@
         }
       }
     },
+    "Persistent High" : {
+
+    },
     "Phone NFC required!" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -235878,6 +236373,9 @@
           }
         }
       }
+    },
+    "Pick a specific window, for example a single meal or night, to analyze individual events." : {
+
     },
     "Pick Treatment" : {
       "localizations" : {
@@ -236268,6 +236766,9 @@
           }
         }
       }
+    },
+    "Planned (Phase %lld)" : {
+
     },
     "Play preview" : {
       "comment" : "Accessibility: play tone preview",
@@ -238121,6 +238622,9 @@
         }
       }
     },
+    "Points to one setting at a time" : {
+
+    },
     "Port" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -238267,6 +238771,15 @@
           }
         }
       }
+    },
+    "Post-Meal Spike" : {
+
+    },
+    "Prebolus size or SMB settings" : {
+
+    },
+    "Prebolus, then SMB and UAM limits" : {
+
     },
     "Prediction Type" : {
       "localizations" : {
@@ -242216,6 +242729,9 @@
           }
         }
       }
+    },
+    "Prototype" : {
+
     },
     "Pull down to force loop" : {
       "localizations" : {
@@ -247989,6 +248505,9 @@
         }
       }
     },
+    "Ratio %@" : {
+
+    },
     "raw: %lf" : {
       "localizations" : {
         "bg" : {
@@ -248249,6 +248768,9 @@
           }
         }
       }
+    },
+    "Readiness" : {
+
     },
     "Readings" : {
       "comment" : "CGM readings in statView",
@@ -248648,6 +249170,9 @@
           }
         }
       }
+    },
+    "Rebound High" : {
+
     },
     "Rec. %" : {
       "localizations" : {
@@ -250876,6 +251401,12 @@
           }
         }
       }
+    },
+    "Reducing insulin some time before the activity, for example with a temp target, usually helps more than changing your profile." : {
+
+    },
+    "Related Guards" : {
+
     },
     "Release Notes" : {
       "localizations" : {
@@ -256389,6 +256920,22 @@
         }
       }
     },
+    "Rise of %@ before waking" : {
+
+    },
+    "Rise of more than %@ between 03:00 and 08:00 with no low that night. The window ends at the first carbs, bolus or unannounced meal." : {
+
+    },
+    "Rise of more than %@ within 30 min with no carbs logged, then above %@ within 2 h. A manual bolus up to 1 h before counts as a prebolus." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rise of more than %1$@ within 30 min with no carbs logged, then above %2$@ within 2 h. A manual bolus up to 1 h before counts as a prebolus."
+          }
+        }
+      }
+    },
     "rising" : {
       "comment" : "Accessibility: glucose trend",
       "localizations" : {
@@ -256782,6 +257329,9 @@
         }
       }
     },
+    "Robust against one-off events" : {
+
+    },
     "Rounded for pump" : {
       "localizations" : {
         "bg" : {
@@ -256911,6 +257461,15 @@
           }
         }
       }
+    },
+    "Rule %@" : {
+
+    },
+    "Rule Catalog" : {
+
+    },
+    "Rules" : {
+
     },
     "Run now" : {
       "extractionState" : "manual",
@@ -259312,6 +259871,12 @@
         }
       }
     },
+    "Scenarios" : {
+
+    },
+    "Scenarios Found" : {
+
+    },
     "Schedule " : {
       "extractionState" : "manual",
       "localizations" : {
@@ -261298,6 +261863,9 @@
         }
       }
     },
+    "Select at least one scenario." : {
+
+    },
     "Select font size, weight, and width to match your style:" : {
       "localizations" : {
         "bg" : {
@@ -261427,6 +261995,9 @@
           }
         }
       }
+    },
+    "Select None" : {
+
     },
     "Select override" : {
       "localizations" : {
@@ -267686,6 +268257,15 @@
         }
       }
     },
+    "Settings Analysis" : {
+
+    },
+    "Settings Checks" : {
+
+    },
+    "Settings checks use your current settings, and scenarios are detected in your stored glucose, carb and insulin data. The advice is general wording per scenario, not medical advice; always talk to your care team before changing settings." : {
+
+    },
     "Settings imported" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -271502,6 +272082,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 Trio 應用圖示上顯示你的目前血糖。"
+          }
+        }
+      }
+    },
+    "Showing the %lld most recent of %lld events." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Showing the %1$lld most recent of %2$lld events."
           }
         }
       }
@@ -275323,6 +275913,9 @@
           }
         }
       }
+    },
+    "SMB and UAM limits, or announcing meals" : {
+
     },
     "SMB Delivery Ratio" : {
       "comment" : "SMB Delivery Ratio",
@@ -279262,6 +279855,9 @@
         }
       }
     },
+    "Sorted by how often they occur. Tap a scenario to see the advice." : {
+
+    },
     "Sound off" : {
       "localizations" : {
         "bg" : {
@@ -280433,6 +281029,9 @@
           }
         }
       }
+    },
+    "Start Here" : {
+
     },
     "Start new Profile" : {
       "extractionState" : "manual",
@@ -281631,6 +282230,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟動此覆蓋將改變您的設定檔和/或您在整個選定期間用於循環的目標血糖。點擊「開始設定檔」將啟動您的新設定檔或編輯您目前的活動設定檔。"
+          }
+        }
+      }
+    },
+    "Starts around %@ on %lld%% of nights" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Starts around %1$@ on %2$lld%% of nights"
           }
         }
       }
@@ -292272,6 +292881,9 @@
         }
       }
     },
+    "Temp target before activity" : {
+
+    },
     "Temp Target Presets" : {
       "localizations" : {
         "bg" : {
@@ -296366,6 +296978,9 @@
         }
       }
     },
+    "The end of the time frame must be after its start." : {
+
+    },
     "The external bolus cannot be larger than 3 x the pump setting max bolus (%@)." : {
       "localizations" : {
         "bg" : {
@@ -299627,6 +300242,9 @@
         }
       }
     },
+    "The settings analysis rule catalog is missing from the app bundle." : {
+
+    },
     "The settings in this section typically do not require ANY modifications. Do not alter them without a solid understanding of what you are changing and the full impact it will have on the algorithm." : {
       "localizations" : {
         "bg" : {
@@ -301194,6 +301812,9 @@
           }
         }
       }
+    },
+    "Theresa looks for patterns that repeat across many days. She groups events by time of day and only suggests a change when a pattern is consistent. Her advice says which therapy setting (basal, carb ratio, ISF) a pattern usually points to and in which direction, not by how much." : {
+
     },
     "These alarms are silenced because the %@ app handles CGM alerts. To have Trio notify you instead, turn off \"Use CGM App Alerts\" below." : {
       "localizations" : {
@@ -307800,6 +308421,9 @@
         }
       }
     },
+    "This only applies when there was no late bolus or treated low before the drop. Otherwise the evening insulin is the more likely cause." : {
+
+    },
     "This override preset is currently running. Deleting will stop it." : {
       "localizations" : {
         "bg" : {
@@ -307929,6 +308553,39 @@
           }
         }
       }
+    },
+    "This pattern often indicates an absorption problem with the infusion site. If the site is fine, it can point to an ISF that is too weak." : {
+
+    },
+    "This pattern usually indicates that basal during the night is too high, starting some time before the drop." : {
+
+    },
+    "This pattern usually indicates that basal in the early morning is too low, starting some time before the rise." : {
+
+    },
+    "This pattern usually indicates that fat and protein from larger meals are not covered by the meal bolus." : {
+
+    },
+    "This pattern usually indicates that lows are treated with more carbs than needed, rather than a problem with your settings." : {
+
+    },
+    "This pattern usually indicates that SMBs alone cannot keep up with these meals, either because the SMB and UAM limits are tight or because insulin only starts once glucose is already rising." : {
+
+    },
+    "This pattern usually indicates that the carb ratio for this meal is too weak, or that the bolus is given too close to the meal." : {
+
+    },
+    "This pattern usually indicates that the manual prebolus is too small or given too late for these meals, or that the SMB and UAM limits keep Trio from covering the rest of the rise." : {
+
+    },
+    "This pattern usually indicates that there is too much insulin on board when the activity starts." : {
+
+    },
+    "This pattern usually indicates that too much insulin is given for meals that are not announced: a manual prebolus that is too large, or SMBs that keep going after the meal is covered." : {
+
+    },
+    "This pattern usually indicates that too much insulin is given for the situation: a too-strong ISF if the lows follow corrections, a too-strong carb ratio if they follow meals." : {
+
     },
     "This peak informs the system when to expect the most potent glucose-lowering effect, helping it predict glucose trends more accurately." : {
       "localizations" : {
@@ -311080,6 +311737,9 @@
           }
         }
       }
+    },
+    "Time Frame" : {
+
     },
     "Time in Normoglycemia (TING)" : {
       "localizations" : {
@@ -316437,6 +317097,9 @@
           }
         }
       }
+    },
+    "Top Scenario Advice from %@" : {
+
     },
     "Top target" : {
       "comment" : "Upper temp target limit",
@@ -329150,6 +329813,12 @@
         }
       }
     },
+    "Unannounced Meal Rise" : {
+
+    },
+    "Unannounced Meal Rises" : {
+
+    },
     "Unavailable" : {
       "localizations" : {
         "bg" : {
@@ -336547,6 +337216,15 @@
         }
       }
     },
+    "Usually better to wait" : {
+
+    },
+    "Usually points to a decrease" : {
+
+    },
+    "Usually points to an increase" : {
+
+    },
     "Valid for footer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -337073,6 +337751,12 @@
           }
         }
       }
+    },
+    "Version" : {
+
+    },
+    "Very Frequent" : {
+
     },
     "Very High (>%@)" : {
       "localizations" : {
@@ -342195,6 +342879,9 @@
         }
       }
     },
+    "What This Usually Means" : {
+
+    },
     "What's Changed At A Glance" : {
       "comment" : "Heading above the release note highlights",
       "localizations" : {
@@ -344018,6 +344705,9 @@
         }
       }
     },
+    "When lows follow unannounced meals, the prebolus and the SMB and UAM limits matter more than the carb ratio. Look at this before raising any limits for meal highs (guard P10)." : {
+
+    },
     "When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications." : {
       "localizations" : {
         "bg" : {
@@ -345474,6 +346164,9 @@
     "When your CGM reports a state where it cannot give a usable reading, such as a sensor error or warmup, Trio uploads that state to Nightscout as a note. Supported for Dexcom G6 and G7." : {
 
     },
+    "Whether carbs were still on board when the low happened helps tell the two apart." : {
+
+    },
     "which is below your Threshold (" : {
       "comment" : "Bolus pop-up / Alert string. Make translations concise!",
       "extractionState" : "manual",
@@ -346927,6 +347620,9 @@
         }
       }
     },
+    "With Manual Prebolus" : {
+
+    },
     "With this option enabled, the SMB algorithm can recognize unannounced meals. This is helpful, if you forget to tell Trio about your carbs or estimate your carbs wrong and the amount of entered carbs is wrong or if a meal with lots of fat and protein has a longer duration than expected. Without any carb entry, UAM can recognize fast glucose increasments caused by carbs, adrenaline, etc, and tries to adjust it with SMBs. This also works the opposite way: if there is a fast glucose decreasement, it can stop SMBs earlier." : {
       "comment" : "\"Enable UAM\"",
       "extractionState" : "manual",
@@ -347064,6 +347760,15 @@
           }
         }
       }
+    },
+    "Works well on longer time frames (month, 3 months)" : {
+
+    },
+    "Worth considering a change" : {
+
+    },
+    "Worth reviewing" : {
+
     },
     "𝒳 = Max SMB Basal Minutes" : {
       "localizations" : {
