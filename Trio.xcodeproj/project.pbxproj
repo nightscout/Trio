@@ -866,6 +866,10 @@
 		DB0BA0010000000000000003 /* DevelopmentBranchAlerter.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BA0010000000000000002 /* DevelopmentBranchAlerter.swift */; };
 		DB0BB002000000000000000C /* ReleaseNotes.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB002000000000000000B /* ReleaseNotes.swift */; };
 		DB0BB002000000000000000E /* ReleaseNotesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB002000000000000000D /* ReleaseNotesService.swift */; };
+		DA5D0C5A0000000000000002 /* DocsIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5D0C5A0000000000000001 /* DocsIndex.swift */; };
+		DA5D0C5A0000000000000004 /* DocsAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5D0C5A0000000000000003 /* DocsAssistant.swift */; };
+		DA5D0C5A0000000000000006 /* DocsAssistantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5D0C5A0000000000000005 /* DocsAssistantView.swift */; };
+		DA5D0C5A0000000000000008 /* DocsIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA5D0C5A0000000000000007 /* DocsIndexTests.swift */; };
 		DB0BB0020000000000000010 /* ReleaseNotesSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB002000000000000000F /* ReleaseNotesSheetView.swift */; };
 		DB0BB0030000000000000002 /* ReleaseNotesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB0BB0030000000000000001 /* ReleaseNotesListView.swift */; };
 		DBA5254DBB2586C98F61220C /* ISFEditorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F9F137F126D9F8DEB799F26 /* ISFEditorProvider.swift */; };
@@ -2099,6 +2103,10 @@
 		DB0BA0010000000000000002 /* DevelopmentBranchAlerter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevelopmentBranchAlerter.swift; sourceTree = "<group>"; };
 		DB0BB002000000000000000B /* ReleaseNotes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotes.swift; sourceTree = "<group>"; };
 		DB0BB002000000000000000D /* ReleaseNotesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesService.swift; sourceTree = "<group>"; };
+		DA5D0C5A0000000000000001 /* DocsIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocsIndex.swift; sourceTree = "<group>"; };
+		DA5D0C5A0000000000000003 /* DocsAssistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocsAssistant.swift; sourceTree = "<group>"; };
+		DA5D0C5A0000000000000005 /* DocsAssistantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocsAssistantView.swift; sourceTree = "<group>"; };
+		DA5D0C5A0000000000000007 /* DocsIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocsIndexTests.swift; sourceTree = "<group>"; };
 		DB0BB002000000000000000F /* ReleaseNotesSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesSheetView.swift; sourceTree = "<group>"; };
 		DB0BB0030000000000000001 /* ReleaseNotesListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseNotesListView.swift; sourceTree = "<group>"; };
 		DB3EBC8BA17C4627BD32C58F /* QuickPickTreatmentsConfigRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPickTreatmentsConfigRootView.swift; sourceTree = "<group>"; };
@@ -2863,6 +2871,7 @@
 			children = (
 				DD1745112C54168300211FAC /* Subviews */,
 				3811DE3C25C9D4A100A708ED /* SettingsRootView.swift */,
+				DA5D0C5A0000000000000005 /* DocsAssistantView.swift */,
 				CE1F6DE82BAF37C90064EB8D /* TidepoolConfigView.swift */,
 				65070A322BFDCB83006F213F /* TidepoolStartView.swift */,
 			);
@@ -2882,6 +2891,7 @@
 				3862CC2C2743F9DC00BF832C /* Calendar */,
 				E592A37E2CEEC046009A472C /* ContactImage */,
 				DB0BA0010000000000000001 /* DevelopmentBranchAlerter */,
+				DA5D0C5A0000000000000009 /* DocsAssistant */,
 				DB0BB002000000000000000A /* ReleaseNotes */,
 				F90692A8274B7A980037068D /* HealthKit */,
 				3B506FD72E6352E9000740B9 /* IOB */,
@@ -3538,6 +3548,7 @@
 			children = (
 				A1A0EDA730974FFF0028A032 /* GlucoseFormattingTests.swift */,
 				A1EF5D9A309CEF01007282CC /* DurationFormattingTests.swift */,
+				DA5D0C5A0000000000000007 /* DocsIndexTests.swift */,
 				A1A0EDF43097CE470028A032 /* PercentFormattingTests.swift */,
 				DDDD0FFD2F4E231600F9C645 /* Mocks */,
 				DDDD0FFA2F4E22C000F9C645 /* GlucoseSmoothingTests.swift */,
@@ -4615,6 +4626,15 @@
 				DB0BB002000000000000000D /* ReleaseNotesService.swift */,
 			);
 			path = ReleaseNotes;
+			sourceTree = "<group>";
+		};
+		DA5D0C5A0000000000000009 /* DocsAssistant */ = {
+			isa = PBXGroup;
+			children = (
+				DA5D0C5A0000000000000003 /* DocsAssistant.swift */,
+				DA5D0C5A0000000000000001 /* DocsIndex.swift */,
+			);
+			path = DocsAssistant;
 			sourceTree = "<group>";
 		};
 		DC01A00C2E9F100000000003 /* Devices */ = {
@@ -6012,6 +6032,9 @@
 				7A11AC0DE000000000000113 /* MultiUsePanelState.swift in Sources */,
 				DB0BB002000000000000000C /* ReleaseNotes.swift in Sources */,
 				DB0BB002000000000000000E /* ReleaseNotesService.swift in Sources */,
+				DA5D0C5A0000000000000002 /* DocsIndex.swift in Sources */,
+				DA5D0C5A0000000000000004 /* DocsAssistant.swift in Sources */,
+				DA5D0C5A0000000000000006 /* DocsAssistantView.swift in Sources */,
 				DB0BB0020000000000000010 /* ReleaseNotesSheetView.swift in Sources */,
 				7A11AC0DE000000000000116 /* GlassChrome.swift in Sources */,
 				7A11AC0DE000000000000110 /* HomeRootView+BottomControls.swift in Sources */,
@@ -6521,6 +6544,7 @@
 				3B5CD2CB2D4AECD500CE213C /* ProfileTargetsTests.swift in Sources */,
 				A1A0EDA830974FFF0028A032 /* GlucoseFormattingTests.swift in Sources */,
 				A1EF5D9B309CEF01007282CC /* DurationFormattingTests.swift in Sources */,
+				DA5D0C5A0000000000000008 /* DocsIndexTests.swift in Sources */,
 				A1A0EDF53097CE470028A032 /* PercentFormattingTests.swift in Sources */,
 				3BAC92CD2E57859D00B853DA /* SetTempBasalTests.swift in Sources */,
 				BD11A011000000000000A011 /* RoundBasalTests.swift in Sources */,
