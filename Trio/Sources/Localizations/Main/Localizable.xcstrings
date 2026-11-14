@@ -12439,6 +12439,9 @@
         }
       }
     },
+    "%d days" : {
+      "comment" : "Stats range picker footer: how many whole days the range covers"
+    },
     "%d hours" : {
       "extractionState" : "stale",
       "comment" : "Accessibility: pod time",
@@ -209623,6 +209626,9 @@
         }
       }
     },
+    "Next period" : {
+
+    },
     "Night only" : {
       "comment" : "A label for \"Night only\".",
       "localizations" : {
@@ -239709,6 +239715,9 @@
         }
       }
     },
+    "Previous period" : {
+
+    },
     "Previous Pod Information" : {
       "comment" : "Text for previous pod information row",
       "extractionState" : "manual",
@@ -247073,6 +247082,7 @@
       }
     },
     "Range" : {
+      "comment" : "Stats interval: a user-picked span of days",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -289893,6 +289903,9 @@
           }
         }
       }
+    },
+    "Tap and hold the selected date to return to today." : {
+
     },
     "Tap and hold the Time-in-Range ring to reveal more details." : {
       "localizations" : {
