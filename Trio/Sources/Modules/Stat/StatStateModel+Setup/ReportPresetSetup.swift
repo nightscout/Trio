@@ -51,3 +51,22 @@ extension Stat.StateModel {
         storage.save(presets, as: Self.reportPresetsFile)
     }
 }
+
+/// The patient name printed in PDF report headers. Remembered between exports (Trio has a single
+/// patient) so the name prompt shown on each export comes prefilled.
+struct ReportPatientInfo: JSON, Equatable {
+    var name: String
+}
+
+extension Stat.StateModel {
+    private static let reportPatientFile = "settings/stat_report_patient.json"
+
+    /// The last patient name used, or `nil` if none has been saved yet.
+    func loadReportPatientName() -> String? {
+        storage.retrieve(Self.reportPatientFile, as: ReportPatientInfo.self)?.name
+    }
+
+    func saveReportPatientName(_ name: String) {
+        storage.save(ReportPatientInfo(name: name), as: Self.reportPatientFile)
+    }
+}

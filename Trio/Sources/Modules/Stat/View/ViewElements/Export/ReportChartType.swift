@@ -18,6 +18,47 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    init(_ type: Stat.StateModel.GlucoseChartType) {
+        switch type {
+        case .distributionByTime: self = .glucoseDistributionByTime
+        case .percentileByTime: self = .glucosePercentileByTime
+        case .percentileByDay: self = .glucosePercentileByDay
+        case .distributionByDay: self = .glucoseDistributionByDay
+        case .glycemiaRiskIndex: self = .glucoseGlycemiaRiskIndex
+        }
+    }
+
+    init(_ type: Stat.StateModel.InsulinChartType) {
+        switch type {
+        case .totalDailyDose: self = .insulinTotalDailyDose
+        case .bolusDistribution: self = .insulinBolusDistribution
+        }
+    }
+
+    /// `nil` for Looping chart types that aren't exportable yet ("Coming soon").
+    init?(_ type: Stat.StateModel.LoopingChartType) {
+        switch type {
+        case .loopingPerformance: self = .loopingPerformance
+        case .cgmConnectionTrace,
+             .trioUpTime: return nil
+        }
+    }
+
+    /// `nil` for Meal chart types that aren't exportable yet ("Coming soon").
+    init?(_ type: Stat.StateModel.MealChartType) {
+        switch type {
+        case .totalMeals: self = .mealsTotalMeals
+        case .mealToHypoHyperDistribution: return nil
+        }
+    }
+
+    /// Box/bar plots with one entry per day. A single-day range has nothing meaningful to plot, so
+    /// the export menu disables these while "D" is selected — the same restriction the live
+    /// Statistics screen applies (`StatRootView.intervalOptions`).
+    var isPerDay: Bool {
+        self == .glucosePercentileByDay || self == .glucoseDistributionByDay
+    }
+
     var dataType: Stat.StateModel.StatisticViewType {
         switch self {
         case .glucoseDistributionByDay,
