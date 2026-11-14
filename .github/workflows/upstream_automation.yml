@@ -1,0 +1,152 @@
+# -----------------------------------------------------------------------------
+# Workflow: `upstream_automation.yml`
+#
+# Single entry point for the automation that only does anything in
+# nightscout/Trio itself: unit tests, the APP_DEV_VERSION bump, closing stale
+# issues, and adding new bug reports to the project board.
+#
+# Why one dispatcher instead of four separate workflows:
+# Every fork of Trio (including every browser-build fork) inherits these
+# workflow files. GitHub creates a workflow run for every matching trigger
+# BEFORE any job-level `if:` is evaluated, so on a fork each push to `dev`
+# used to produce two runs (unit tests + version bump) that were immediately
+# skipped, plus one skipped run per day for the stale-issue job. GitHub may
+# disable Actions on forks that accumulate inherited runs like these, which
+# also stops the fork's scheduled "Build Trio" run.
+#
+# With a single dispatcher:
+# - a fork gets at most ONE skipped run per event instead of one per workflow;
+# - a fork owner can switch all of this off by disabling ONE workflow
+#   ("zzz [DO NOT RUN] Upstream automation") in the Actions tab.
+#
+# There is deliberately no `schedule:` trigger. A cron can't be made
+# conditional on the repository (expressions aren't allowed under `on:`), so
+# any schedule here would fire daily on every fork that has workflows enabled.
+# Stale-issue cleanup instead piggybacks on pushes to `dev`, which forks
+# already pay one (skipped) run for. Its thresholds are measured in weeks, so
+# running after each merge rather than at a fixed time makes no practical
+# difference. Having no schedule also means GitHub's 60-day inactivity rule
+# for scheduled workflows never disables this file.
+#
+# The actual work lives in the reusable workflows below (`on: workflow_call`).
+# Each job here is gated on `github.repository_owner == 'nightscout'`; the
+# called workflows keep the same guard as a second line of defense.
+# -----------------------------------------------------------------------------
+
+name: zzz [DO NOT RUN] Upstream automation
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+    types: [opened, synchronize]
+  issues:
+    types:
+      - opened
+
+jobs:
+  # Replaces the `paths-ignore` filter that `unit_tests.yml` used to have on its
+  # own push / pull_request triggers. A dispatcher shares one trigger between
+  # several jobs, so the filter has to be evaluated here instead. Mirrors
+  # GitHub's semantics: tests run unless every changed file is ignored, and
+  # they always run when the diff can't be determined or is too large.
+  changes:
+    name: Detect code changes
+    if: >-
+      github.repository_owner == 'nightscout' &&
+      (github.event_name == 'push' || github.event_name == 'pull_request')
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Check whether any non-ignored file changed
+        id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.event.after }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT" = "pull_request" ]; then
+            base="$PR_BASE"; head="$PR_HEAD"
+          else
+            base="$PUSH_BEFORE"; head="$PUSH_AFTER"
+          fi
+
+          code=true
+          if [ -z "$base" ] || [[ "$base" =~ ^0+$ ]]; then
+            echo "No base commit to compare against; running tests."
+          elif ! files=$(gh api "repos/$REPO/compare/$base...$head" --jq '.files[].filename'); then
+            echo "::warning::Could not list changed files; running tests."
+          elif [ "$(printf '%s\n' "$files" | grep -c .)" -ge 300 ]; then
+            # The compare API returns at most 300 files.
+            echo "300+ changed files; running tests."
+          else
+            code=false
+            while IFS= read -r f; do
+              [ -z "$f" ] && continue
+              case "$f" in
+                # Same patterns as the old paths-ignore:
+                # '**.md', '**/README', '**.yml', '**.txt'
+                *.md|*.yml|*.txt|README|*/README) ;;
+                *) echo "Code change: $f"; code=true; break ;;
+              esac
+            done <<< "$files"
+          fi
+
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "Run unit tests: $code"
+
+  unit-tests:
+    name: Automated unit tests
+    needs: changes
+    if: >-
+      github.repository_owner == 'nightscout' &&
+      needs.changes.outputs.code == 'true'
+    # Previously the workflow-level concurrency of unit_tests.yml. Kept at job
+    # level so a newer push / PR update cancels only the in-flight tests, never
+    # the version bump.
+    concurrency:
+      group: unit-tests-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/unit_tests.yml
+
+  bump-dev-version:
+    name: Bump APP_DEV_VERSION
+    if: github.repository_owner == 'nightscout' && github.event_name == 'push'
+    uses: ./.github/workflows/auto_version_dev.yml
+    secrets:
+      TRIO_TOKEN_AUTOBUMP: ${{ secrets.TRIO_TOKEN_AUTOBUMP }}
+
+  close-stale-issues:
+    name: Close inactive issues
+    # Runs after each push to `dev` instead of on a daily cron (see header).
+    if: github.repository_owner == 'nightscout' && github.event_name == 'push'
+    # Never run two cleanups at once; a burst of pushes queues at most one.
+    concurrency:
+      group: stale-issues
+      cancel-in-progress: false
+    # A called workflow can only narrow the caller's GITHUB_TOKEN permissions,
+    # so the write access stale_issues.yml asks for must be granted here.
+    permissions:
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/stale_issues.yml
+
+  add-to-project:
+    name: Add bugs to project
+    if: github.repository_owner == 'nightscout' && github.event_name == 'issues'
+    uses: ./.github/workflows/add_to_project.yml
+    secrets:
+      ADD_TO_PROJECT_PAT: ${{ secrets.ADD_TO_PROJECT_PAT }}
