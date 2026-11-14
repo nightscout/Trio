@@ -10,10 +10,27 @@ protocol WatchManager {
     func setupWatchState() async -> WatchState
 }
 
+protocol WatchStateTransport: AnyObject {
+    var isPaired: Bool { get }
+    var isWatchAppInstalled: Bool { get }
+    var isReachable: Bool { get }
+    var isComplicationEnabled: Bool { get }
+    var activationState: WCSessionActivationState { get }
+    var remainingComplicationUserInfoTransfers: Int { get }
+    var outstandingUserInfoTransfers: [WCSessionUserInfoTransfer] { get }
+    func activate()
+    func sendMessage(_ message: [String: Any], replyHandler: (([String: Any]) -> Void)?, errorHandler: ((Error) -> Void)?)
+    func updateApplicationContext(_ applicationContext: [String: Any]) throws
+    @discardableResult func transferUserInfo(_ userInfo: [String: Any]) -> WCSessionUserInfoTransfer
+    @discardableResult func transferCurrentComplicationUserInfo(_ userInfo: [String: Any]) -> WCSessionUserInfoTransfer
+}
+
+extension WCSession: WatchStateTransport {}
+
 /// Main implementation of the Watch communication manager
 /// Handles bidirectional communication between iPhone and Apple Watch
 final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchManager {
-    private var session: WCSession?
+    var session: WatchStateTransport?
 
     @Injected() var broadcaster: Broadcaster!
     @Injected() private var apsManager: APSManager!
@@ -34,19 +51,35 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     private var highGlucose: Decimal = 180.0
     private var currentGlucoseTarget: Decimal = 100.0
     private var activeBolusAmount: Double = 0.0
+    private var lastComplicationTransferDate: Date = .distantPast
 
     // Queue for handling Core Data change notifications
     private let queue = DispatchQueue(label: "BaseWatchManagerManager.queue", qos: .utility)
     private var coreDataPublisher: AnyPublisher<Set<NSManagedObjectID>, Never>?
     private var subscriptions = Set<AnyCancellable>()
+    private var watchStateUpdates: WatchStateUpdateCoalescer<DispatchQueue>?
 
     typealias PumpEvent = PumpEventStored.EventType
 
     let viewContext = CoreDataStack.shared.persistentContainer.viewContext
 
-    init(resolver: Resolver) {
+    init(
+        resolver: Resolver,
+        entityChanges: AnyPublisher<Set<NSManagedObjectID>, Never> = CoreDataStack.shared.entityChangePublisher,
+        watchStateDebounce: DispatchQueue.SchedulerTimeType.Stride = .seconds(2)
+    ) {
         super.init()
         injectServices(resolver)
+        watchStateUpdates = WatchStateUpdateCoalescer(
+            interval: watchStateDebounce,
+            scheduler: DispatchQueue.global(qos: .background)
+        ) { [weak self] in
+            guard let self = self else { return }
+            Task {
+                let state = await self.setupWatchState()
+                await self.sendDataToWatch(state)
+            }
+        }
         setupWatchSession()
 
         units = settingsManager.settings.units
@@ -62,7 +95,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         // Observer for OrefDetermination and adjustments
         coreDataPublisher =
-            CoreDataStack.shared.entityChangePublisher
+            entityChanges
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()
@@ -72,13 +105,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .receive(on: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                // Skip if no watch is paired or app not installed
-                guard let session = self.session, session.isPaired, session.isReachable,
-                      session.isWatchAppInstalled else { return }
-                Task {
-                    let state = await self.setupWatchState()
-                    await self.sendDataToWatch(state)
-                }
+                self.requestWatchStateUpdate()
             }
             .store(in: &subscriptions)
 
@@ -86,36 +113,28 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             .receive(on: DispatchQueue.global(qos: .background))
             .sink { [weak self] _ in
                 guard let self = self else { return }
-                Task {
-                    let state = await self.setupWatchState()
-                    await self.sendDataToWatch(state)
-                }
+                self.requestWatchStateUpdate()
             }
             .store(in: &subscriptions)
 
         registerHandlers()
     }
 
+    private func requestWatchStateUpdate() {
+        guard let session = session, session.isPaired, session.isWatchAppInstalled else { return }
+        watchStateUpdates?.request()
+    }
+
     private func registerHandlers() {
         coreDataPublisher?.filteredByEntityName("OrefDetermination").sink { [weak self] _ in
             guard let self = self else { return }
-            // Skip if no watch is paired or app not installed
-            guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
-            Task {
-                let state = await self.setupWatchState()
-                await self.sendDataToWatch(state)
-            }
+            self.requestWatchStateUpdate()
         }.store(in: &subscriptions)
 
         // Due to the Batch insert this only is used for observing Deletion of Glucose entries
         coreDataPublisher?.filteredByEntityName("GlucoseStored").sink { [weak self] _ in
             guard let self = self else { return }
-            // Skip if no watch is paired or app not installed
-            guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
-            Task {
-                let state = await self.setupWatchState()
-                await self.sendDataToWatch(state)
-            }
+            self.requestWatchStateUpdate()
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filteredByEntityName("PumpEventStored").sink { [weak self] _ in
@@ -127,22 +146,12 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
         coreDataPublisher?.filteredByEntityName("OverrideStored").sink { [weak self] _ in
             guard let self = self else { return }
-            // Skip if no watch is paired or app not installed
-            guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
-            Task {
-                let state = await self.setupWatchState()
-                await self.sendDataToWatch(state)
-            }
+            self.requestWatchStateUpdate()
         }.store(in: &subscriptions)
 
         coreDataPublisher?.filteredByEntityName("TempTargetStored").sink { [weak self] _ in
             guard let self = self else { return }
-            // Skip if no watch is paired or app not installed
-            guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
-            Task {
-                let state = await self.setupWatchState()
-                await self.sendDataToWatch(state)
-            }
+            self.requestWatchStateUpdate()
         }.store(in: &subscriptions)
     }
 
@@ -173,8 +182,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     /// Prepares the current state data to be sent to the Watch
     /// - Returns: WatchState containing current glucose readings and trends and determination infos for displaying cob and iob in the view
     func setupWatchState() async -> WatchState {
-        // Check if a watch is paired and reachable before doing expensive calculations
-        guard let session = session, session.isPaired, session.isReachable, session.isWatchAppInstalled else {
+        // Check if a watch is paired before doing expensive calculations
+        guard let session = session, session.isPaired, session.isWatchAppInstalled else {
             debug(.watch, "Watch state skipped: no watch paired or app not installed")
             return WatchState(date: Date())
         }
@@ -218,6 +227,14 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 } else {
                     watchState.lastLoopTime = "\(lastLoopMinutes) min"
                 }
+                watchState.lastLoopDate = self.apsManager.lastLoopDate
+
+                watchState.lowGlucoseLimit = self.units == .mgdL
+                    ? Double(truncating: self.lowGlucose as NSNumber)
+                    : Double(truncating: self.lowGlucose.asMmolL as NSNumber)
+                watchState.highGlucoseLimit = self.units == .mgdL
+                    ? Double(truncating: self.highGlucose as NSNumber)
+                    : Double(truncating: self.highGlucose.asMmolL as NSNumber)
 
                 // Set IOB and COB from latest determination
                 let iob = self.iobService.currentIOB ?? 0
@@ -257,6 +274,13 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                 let currentGlucoseColor = Trio.getDynamicGlucoseColor(
                     glucoseValue: Decimal(latestGlucose.glucose),
+                    highGlucoseColorValue: highGlucoseColorValue,
+                    lowGlucoseColorValue: lowGlucoseColorValue,
+                    targetGlucose: targetGlucose,
+                    glucoseColorScheme: self.glucoseColorScheme
+                )
+
+                watchState.complicationRingStops = Trio.complicationRingStops(
                     highGlucoseColorValue: highGlucoseColorValue,
                     lowGlucoseColorValue: lowGlucoseColorValue,
                     targetGlucose: targetGlucose,
@@ -344,6 +368,10 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 watchState.maxProtein = self.settingsManager.settings.maxProtein
                 watchState.bolusIncrement = self.settingsManager.preferences.bolusIncrement
                 watchState.confirmBolusFaster = self.settingsManager.settings.confirmBolusFaster
+
+                watchState.complicationCornerValue = self.settingsManager.settings.watchComplicationCornerValue
+                watchState.complicationSecondaryValue = self.settingsManager.settings.watchComplicationSecondaryValue
+                watchState.complicationStaleMinutes = self.settingsManager.settings.watchComplicationStaleMinutes
 
                 watchState.showForecast = self.settingsManager.settings.showForecastWatch
                 watchState.isForecastCone = self.settingsManager.settings.forecastDisplayType == .cone
@@ -489,7 +517,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
     // MARK: - Send to Watch
 
-    func watchStateToDictionary(from state: WatchState) -> [String: Any] {
+    static func watchStateToDictionary(from state: WatchState) -> [String: Any] {
         var dictionary: [String: Any] = [
             WatchMessageKeys.date: state.date.timeIntervalSince1970,
             WatchMessageKeys.currentGlucose: state.currentGlucose ?? "--",
@@ -526,11 +554,25 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxProtein: state.maxProtein,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
+            WatchMessageKeys.complicationCornerValue: state.complicationCornerValue.rawValue,
+            WatchMessageKeys.complicationSecondaryValue: state.complicationSecondaryValue.rawValue,
+            WatchMessageKeys.complicationStaleMinutes: state.complicationStaleMinutes,
+            WatchMessageKeys.complicationRingStops: state.complicationRingStops.map(\.payload),
             WatchMessageKeys.units: state.units.rawValue,
             WatchMessageKeys.showForecastWatch: state.showForecast,
             WatchMessageKeys.isForecastCone: state.isForecastCone,
             WatchMessageKeys.snoozeUntilDate: state.snoozeUntilDate.timeIntervalSince1970
         ]
+
+        if let lastLoopDate = state.lastLoopDate {
+            dictionary[WatchMessageKeys.lastLoopDate] = lastLoopDate.timeIntervalSince1970
+        }
+        if let lowGlucoseLimit = state.lowGlucoseLimit {
+            dictionary[WatchMessageKeys.lowGlucoseLimit] = lowGlucoseLimit
+        }
+        if let highGlucoseLimit = state.highGlucoseLimit {
+            dictionary[WatchMessageKeys.highGlucoseLimit] = highGlucoseLimit
+        }
 
         var forecastData: [String: Any] = [
             WatchMessageKeys.forecastConeMin: state.forecastConeMin,
@@ -574,19 +616,42 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         var state = state
         state.date = Date()
 
-        let message: [String: Any] = watchStateToDictionary(from: state)
+        let message: [String: Any] = Self.watchStateToDictionary(from: state)
 
         // if session is reachable, it means watch App is in the foreground -> send watchState as message
-        // if session is not reachable, it means it's in background -> send watchState as userInfo
+        // if session is not reachable, it means it's in background -> publish watchState for the next wake
         if session.isReachable {
             session.sendMessage([WatchMessageKeys.watchState: message], replyHandler: nil) { error in
                 warning(.watch, "Sending watch state failed", error: error)
             }
         } else {
-            session.transferUserInfo([WatchMessageKeys.watchState: message])
-            debug(.watch, "Watch state queued for background transfer")
+            publishToUnreachableWatch(session, message: message, at: state.date)
         }
         WatchStateSnapshot.saveLatestDateToDisk(state.date)
+    }
+
+    private func publishToUnreachableWatch(_ session: WatchStateTransport, message: [String: Any], at date: Date) {
+        session.outstandingUserInfoTransfers
+            .filter { $0.userInfo[WatchMessageKeys.watchState] != nil && !$0.isCurrentComplicationInfo }
+            .forEach { $0.cancel() }
+        do {
+            try session.updateApplicationContext([WatchMessageKeys.watchState: message])
+        } catch {
+            warning(.watch, "Updating application context failed", error: error)
+        }
+        let isTransferDue = session.isComplicationEnabled && ComplicationTransferBudget.isTransferDue(
+            at: date,
+            lastTransfer: lastComplicationTransferDate,
+            remainingTransfers: session.remainingComplicationUserInfoTransfers
+        )
+        if isTransferDue {
+            session.transferCurrentComplicationUserInfo([WatchMessageKeys.watchState: message])
+            lastComplicationTransferDate = date
+            info(.watch, "Transferred new WatchState snapshot for the complication")
+        } else {
+            session.transferUserInfo([WatchMessageKeys.watchState: message])
+            debug(.watch, "Transferred new WatchState snapshot via userInfo")
+        }
     }
 
     func sendAcknowledgment(toWatch success: Bool, message: String = "", ackCode: AcknowledgmentCode) {
@@ -757,7 +822,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
                     if let session = self.session, session.isReachable {
                         debug(.watch, "Sending recommended bolus \(result.insulinCalculated) U to watch")
-                        session.sendMessage(recommendationMessage, replyHandler: nil)
+                        session.sendMessage(recommendationMessage, replyHandler: nil, errorHandler: nil)
                     }
                 }
                 return
@@ -1068,12 +1133,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 extension BaseWatchManager: SettingsObserver, PumpSettingsObserver {
     // to update maxBolus
     func pumpSettingsDidChange(_: PumpSettings) {
-        // Skip if no watch is paired or app not installed
-        guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
-        Task {
-            let state = await self.setupWatchState()
-            await self.sendDataToWatch(state)
-        }
+        requestWatchStateUpdate()
     }
 
     // to update the rest
@@ -1083,23 +1143,13 @@ extension BaseWatchManager: SettingsObserver, PumpSettingsObserver {
         lowGlucose = settingsManager.settings.low
         highGlucose = settingsManager.settings.high
 
-        // Skip if no watch is paired or app not installed
-        guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
-
-        Task {
-            let state = await self.setupWatchState()
-            await self.sendDataToWatch(state)
-        }
+        requestWatchStateUpdate()
     }
 }
 
 extension BaseWatchManager: SnoozeObserver {
     @MainActor func snoozeDidChange(_: Date) {
-        guard let session = self.session, session.isPaired, session.isReachable, session.isWatchAppInstalled else { return }
-        Task {
-            let state = await self.setupWatchState()
-            await self.sendDataToWatch(state)
-        }
+        requestWatchStateUpdate()
     }
 }
 
@@ -1164,5 +1214,33 @@ extension BaseWatchManager {
         case tempTargetStopped = "temp_target_stopped"
         case genericSuccess = "success"
         case genericFailure = "failure"
+    }
+}
+
+enum ComplicationTransferBudget {
+    private static let minimumInterval: TimeInterval = 10 * 60
+
+    static func isTransferDue(
+        at date: Date,
+        lastTransfer: Date,
+        remainingTransfers: Int,
+        calendar: Calendar = .current
+    ) -> Bool {
+        guard remainingTransfers > 0, let endOfDay = calendar.dateInterval(of: .day, for: date)?.end else { return false }
+        let spreadInterval = endOfDay.timeIntervalSince(date) / Double(remainingTransfers)
+        return date.timeIntervalSince(lastTransfer) >= max(spreadInterval, minimumInterval)
+    }
+}
+
+final class WatchStateUpdateCoalescer<S: Scheduler> {
+    private let requests = PassthroughSubject<Void, Never>()
+    private let subscription: AnyCancellable
+
+    init(interval: S.SchedulerTimeType.Stride, scheduler: S, perform: @escaping () -> Void) {
+        subscription = requests.debounce(for: interval, scheduler: scheduler).sink { perform() }
+    }
+
+    func request() {
+        requests.send()
     }
 }

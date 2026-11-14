@@ -14,6 +14,9 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var iob: String?
     var cob: String?
     var lastLoopTime: String?
+    var lastLoopDate: Date?
+    var lowGlucoseLimit: Double?
+    var highGlucoseLimit: Double?
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
 
@@ -26,6 +29,11 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
+
+    var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
+    var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
+    var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+    var complicationRingStops: [ComplicationRingStop] = []
 
     // Forecast options
     var showForecast: Bool = false
@@ -52,6 +60,9 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.iob == rhs.iob &&
             lhs.cob == rhs.cob &&
             lhs.lastLoopTime == rhs.lastLoopTime &&
+            lhs.lastLoopDate == rhs.lastLoopDate &&
+            lhs.lowGlucoseLimit == rhs.lowGlucoseLimit &&
+            lhs.highGlucoseLimit == rhs.highGlucoseLimit &&
             lhs.overridePresets == rhs.overridePresets &&
             lhs.tempTargetPresets == rhs.tempTargetPresets &&
             lhs.maxBolus == rhs.maxBolus &&
@@ -60,6 +71,10 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.maxProtein == rhs.maxProtein &&
             lhs.bolusIncrement == rhs.bolusIncrement &&
             lhs.confirmBolusFaster == rhs.confirmBolusFaster &&
+            lhs.complicationCornerValue == rhs.complicationCornerValue &&
+            lhs.complicationSecondaryValue == rhs.complicationSecondaryValue &&
+            lhs.complicationStaleMinutes == rhs.complicationStaleMinutes &&
+            lhs.complicationRingStops == rhs.complicationRingStops &&
             lhs.showForecast == rhs.showForecast &&
             lhs.isForecastCone == rhs.isForecastCone &&
             lhs.forecastStartDate == rhs.forecastStartDate &&
@@ -85,6 +100,9 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(iob)
         hasher.combine(cob)
         hasher.combine(lastLoopTime)
+        hasher.combine(lastLoopDate)
+        hasher.combine(lowGlucoseLimit)
+        hasher.combine(highGlucoseLimit)
         hasher.combine(overridePresets)
         hasher.combine(tempTargetPresets)
         hasher.combine(maxBolus)
@@ -93,6 +111,10 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(maxProtein)
         hasher.combine(bolusIncrement)
         hasher.combine(confirmBolusFaster)
+        hasher.combine(complicationCornerValue)
+        hasher.combine(complicationSecondaryValue)
+        hasher.combine(complicationStaleMinutes)
+        hasher.combine(complicationRingStops)
         hasher.combine(showForecast)
         hasher.combine(isForecastCone)
         hasher.combine(forecastStartDate)

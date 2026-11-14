@@ -4,7 +4,7 @@ import WatchKit
 
 struct TrioMainWatchView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @State private var state = WatchState()
+    @Bindable var state: WatchState
 
     // misc
     @State private var currentPage: Int = 0
@@ -281,5 +281,5 @@ struct TrioMainWatchView: View {
 }
 
 #Preview {
-    TrioMainWatchView()
+    TrioMainWatchView(state: WatchState())
 }
