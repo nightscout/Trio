@@ -13,7 +13,7 @@ import LoopKit
 enum AlertCatalogRegistry {
     static let entries: [Alert.CatalogEntry] =
         omniEntries + minimedEntries + danaEntries + medtrumEntries + libreLoopEntries + g7Entries
-            + syaiEntries + trioAlgorithmEntries + tidepoolEntries
+            + syaiEntries + trioAlgorithmEntries + tidepoolEntries + trioProfileEntries
 
     static func lookup(_ identifier: Alert.Identifier) -> Alert.CatalogEntry? {
         if let exact = entries.first(where: { $0.identifier == identifier }) {
@@ -362,6 +362,33 @@ private extension AlertCatalogRegistry {
             "Services",
             .tidepoolLoginRequired
         )
+    ]
+}
+
+// MARK: - Trio internal — Profiles
+
+private extension AlertCatalogRegistry {
+    /// Scheduled profile switch alerts emitted by `TherapyProfileManager`
+    /// under `manager = "trio.therapyProfiles"`. Levels match what the
+    /// manager sets at construction.
+    static let trioProfileEntries: [Alert.CatalogEntry] = [
+        addEntry(
+            "trio.therapyProfiles",
+            "scheduledSwitch.pending",
+            .timeSensitive,
+            "Scheduled Switch Not Done",
+            "Profiles",
+            .scheduledProfileSwitchNotDone
+        ),
+        addEntry(
+            "trio.therapyProfiles",
+            "scheduledSwitch.failed",
+            .timeSensitive,
+            "Scheduled Switch Not Done",
+            "Profiles",
+            .scheduledProfileSwitchNotDone
+        ),
+        addEntry("trio.therapyProfiles", "scheduledSwitch.done", .active, "Profile Switched", "Profiles", .profileSwitched)
     ]
 }
 
