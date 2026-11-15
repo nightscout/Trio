@@ -1,10 +1,8 @@
 import Charts
 import SwiftUI
 
-/// A static, full-range rendering of the Total Daily Dose chart for PDF export. Mirrors
-/// `TotalDailyDoseChart`'s marks/colors exactly, but shows every entry in the export range at
-/// once instead of a scrollable window, and drops the interactive selection popover (not
-/// meaningful in a static, non-interactive PDF).
+/// Static version of `TotalDailyDoseChart` for PDF export. Shows the whole range and
+/// leaves out the selection popover.
 struct InsulinTDDPDFChart: View {
     let stats: [TDDStats]
     let selectedInterval: Stat.StateModel.StatsTimeInterval

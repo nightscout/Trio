@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// PDF page content for the "Glucose Distribution" export.
-/// Reuses the same chart/stat components shown in the on-screen Statistics sheet.
+/// PDF page for the Glucose Distribution export.
 struct GlucoseDistributionPDFContent: View {
     let glucose: [GlucoseStored]
     let glucoseRangeStats: [GlucoseRangeStats]
@@ -43,8 +42,7 @@ struct GlucoseDistributionPDFContent: View {
     }
 }
 
-/// PDF page content for the "Glucose Percentile" (AGP) export.
-/// Reuses the same AGP chart shown in the on-screen Statistics sheet.
+/// PDF page for the Glucose Percentile (AGP) export.
 struct GlucosePercentilePDFContent: View {
     let glucose: [GlucoseStored]
     let highLimit: Decimal
@@ -64,8 +62,7 @@ struct GlucosePercentilePDFContent: View {
     }
 }
 
-/// PDF page content for the "Looping Performance" export.
-/// Reuses the same static bar chart and stats row shown in the on-screen Statistics sheet.
+/// PDF page for the Looping Performance export.
 struct LoopingPerformancePDFContent: View {
     let loopStatRecords: [LoopStatRecord]
     let selectedInterval: Stat.StateModel.StatsTimeIntervalWithToday
@@ -84,9 +81,8 @@ struct LoopingPerformancePDFContent: View {
     }
 }
 
-/// PDF page content for the "Glycemia Risk Index" export.
-/// Reuses the GRI risk grid and score colors from the on-screen Statistics sheet, laid out
-/// statically (no sheet or disclosure group) so the full breakdown fits on one page.
+/// PDF page for the Glycemia Risk Index export. The GRI grid is laid out statically
+/// so it fits on one page.
 struct GlycemiaRiskIndexPDFContent: View {
     let result: GRICalculator.Result?
     let units: GlucoseUnits

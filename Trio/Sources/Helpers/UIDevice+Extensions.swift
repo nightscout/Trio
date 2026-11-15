@@ -68,8 +68,7 @@ extension UIDevice {
         return mapToDevice(identifier: identifier)
     }
 
-    /// Marketing name of the device, e.g. "iPhone 15 Pro". Falls back to the model identifier
-    /// (e.g. "iPhone19,1") for models not in the list.
+    /// Marketing name, e.g. "iPhone 15 Pro". Falls back to the model identifier for unknown models.
     var marketingName: String {
         var systemInfo = utsname()
         uname(&systemInfo)

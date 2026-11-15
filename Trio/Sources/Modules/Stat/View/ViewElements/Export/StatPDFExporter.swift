@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Renders one or more SwiftUI views into a multi-page A4 PDF file, one page per view.
+/// Renders SwiftUI views into a multi-page A4 PDF, one page per view.
 enum StatPDFExporter {
     /// A4 page size in points at 72 DPI (210mm x 297mm).
     static let pageSize = CGSize(width: 595.28, height: 841.89)
@@ -22,13 +22,10 @@ enum StatPDFExporter {
         }
     }
 
-    /// Renders `pages` at `pageSize`, one per PDF page in order, and writes the result to a
-    /// temporary file.
+    /// Renders `pages` in order and writes the PDF to a temporary file.
     ///
-    /// A fresh `ImageRenderer` is built for each page because `ImageRenderer.content` can only be
-    /// reassigned to the same concrete `Content` type it was created with, and pages are
-    /// type-erased `AnyView`s of differing underlying content — but all pages still share the
-    /// same underlying `CGContext`/output so they land in a single PDF file.
+    /// Each page gets its own `ImageRenderer` because `content` can't change concrete type and
+    /// the pages are `AnyView`s of different views. All pages draw into the same `CGContext`.
     /// - Returns: The URL of the written PDF file.
     @MainActor static func export(_ pages: [AnyView], fileName: String) throws -> URL {
         guard !pages.isEmpty else {

@@ -1,10 +1,8 @@
 import Charts
 import SwiftUI
 
-/// A static, full-range rendering of the per-day glucose percentile ("boxplot") chart for PDF
-/// export. Mirrors `GlucoseDailyPercentileChart`'s marks/colors/legend exactly, but shows every
-/// day in the export range at once instead of a scrollable window, and drops the interactive
-/// day-selection/percentile-detail overlay (not meaningful in a static, non-interactive PDF).
+/// Static version of `GlucoseDailyPercentileChart` for PDF export. Shows every day in
+/// the range and leaves out the interactive overlays.
 struct GlucosePercentileByDayPDFChart: View {
     let dailyStats: [GlucoseDailyPercentileStats]
     let highLimit: Decimal

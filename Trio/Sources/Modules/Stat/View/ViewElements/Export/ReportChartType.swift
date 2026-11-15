@@ -1,10 +1,7 @@
 import Foundation
 
-/// A single flat identifier for every chart type currently exportable to PDF, spanning all four
-/// Statistics categories. Backs both the report builder's working item list and saved presets —
-/// one source of truth here avoids juggling four separate per-category chart-type enums
-/// (`Stat.StateModel.GlucoseChartType`, `InsulinChartType`, `LoopingChartType`, `MealChartType`)
-/// wherever a report item needs to be stored, compared, or persisted.
+/// Every chart type that can be exported to PDF, across all Statistics categories.
+/// Used by the report builder and saved presets.
 enum ReportChartType: String, Codable, CaseIterable, Identifiable {
     case glucoseDistributionByTime
     case glucosePercentileByTime
@@ -52,9 +49,8 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
         }
     }
 
-    /// Box/bar plots with one entry per day. A single-day range has nothing meaningful to plot, so
-    /// the export menu disables these while "D" is selected — the same restriction the live
-    /// Statistics screen applies (`StatRootView.intervalOptions`).
+    /// Charts with one entry per day. Disabled for the single-day range, as on the
+    /// Statistics screen (`StatRootView.intervalOptions`).
     var isPerDay: Bool {
         self == .glucosePercentileByDay || self == .glucoseDistributionByDay
     }
@@ -77,8 +73,7 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
         }
     }
 
-    /// Reuses the same localized display names already shown by the on-screen Statistics
-    /// Chart Type pickers, so a report item's label always matches app-wide terminology.
+    /// Same localized names as the Statistics chart pickers.
     var displayName: String {
         switch self {
         case .glucoseDistributionByTime:

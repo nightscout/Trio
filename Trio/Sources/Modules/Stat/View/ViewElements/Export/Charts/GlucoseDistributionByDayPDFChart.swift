@@ -1,10 +1,8 @@
 import Charts
 import SwiftUI
 
-/// A static, full-range rendering of the per-day glucose distribution chart for PDF export.
-/// Mirrors `GlucoseDailyDistributionChart`'s marks/colors/legend exactly, but shows every day in
-/// the export range at once instead of a scrollable window, and drops the interactive
-/// day-selection/sector-chart/metrics overlay (not meaningful in a static, non-interactive PDF).
+/// Static version of `GlucoseDailyDistributionChart` for PDF export. Shows every day in
+/// the range and leaves out the interactive overlays.
 struct GlucoseDistributionByDayPDFChart: View {
     let dailyStats: [GlucoseDailyDistributionStats]
     let highLimit: Decimal

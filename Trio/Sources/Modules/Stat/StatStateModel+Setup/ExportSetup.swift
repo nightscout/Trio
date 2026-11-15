@@ -3,15 +3,13 @@ import Foundation
 import SwiftUI
 
 extension Stat.StateModel {
-    /// Data required to render the "Glucose Distribution" PDF export, resolved for a specific
-    /// time interval independently of whatever range is currently selected on screen.
+    /// Glucose Distribution PDF data for an interval, independent of the on-screen selection.
     struct GlucoseDistributionExportData {
         let glucose: [GlucoseStored]
         let rangeStats: [GlucoseRangeStats]
     }
 
-    /// Device/algorithm context shown in the PDF export header, so a report can be understood
-    /// on its own without the reader having to cross-reference the app's current settings.
+    /// Device and algorithm details for the PDF header.
     struct ReportMetadata {
         struct Hardware {
             let cgmName: String
@@ -36,8 +34,7 @@ extension Stat.StateModel {
         let importantSettings: ImportantSettings
     }
 
-    /// Fetches and computes glucose distribution data for the PDF export, without mutating any
-    /// of the published state backing the on-screen chart.
+    /// Glucose distribution data for the export. Leaves the on-screen chart state untouched.
     func prepareGlucoseDistributionExportData(for interval: StatsTimeIntervalWithToday) async -> GlucoseDistributionExportData {
         let ids = await fetchGlucose(for: interval)
         let glucose = await resolveGlucose(ids: ids)
@@ -46,14 +43,13 @@ extension Stat.StateModel {
         return GlucoseDistributionExportData(glucose: glucose, rangeStats: rangeStats)
     }
 
-    /// Data required to render the "Glucose Percentile" (AGP) PDF export.
+    /// Glucose Percentile (AGP) PDF data.
     struct GlucosePercentileExportData {
         let glucose: [GlucoseStored]
         let hourlyStats: [HourlyStats]
     }
 
-    /// Fetches and computes hourly percentile data for the AGP PDF export, independent of
-    /// whatever interval is currently selected for the on-screen AGP chart.
+    /// Hourly percentile data for the export, independent of the on-screen interval.
     func preparePercentileExportData(for interval: StatsTimeIntervalWithToday) async -> GlucosePercentileExportData {
         let ids = await fetchGlucose(for: interval)
         let glucose = await resolveGlucose(ids: ids)
@@ -62,12 +58,12 @@ extension Stat.StateModel {
         return GlucosePercentileExportData(glucose: glucose, hourlyStats: hourlyStats)
     }
 
-    /// Data required to render the "Glucose Percentile by Day" PDF export.
+    /// Glucose Percentile by Day PDF data.
     struct GlucosePercentileByDayExportData {
         let dailyStats: [GlucoseDailyPercentileStats]
     }
 
-    /// Fetches and computes per-day percentile data for the requested export range.
+    /// Per-day percentile data for the export range.
     func prepareGlucosePercentileByDayExportData(for interval: StatsTimeInterval) async -> GlucosePercentileByDayExportData {
         let widened = StatsTimeIntervalWithToday(rawValue: interval.rawValue) ?? .month
         let ids = await fetchGlucose(for: widened)
@@ -77,12 +73,12 @@ extension Stat.StateModel {
         return GlucosePercentileByDayExportData(dailyStats: dailyStats)
     }
 
-    /// Data required to render the "Glucose Distribution by Day" PDF export.
+    /// Glucose Distribution by Day PDF data.
     struct GlucoseDistributionByDayExportData {
         let dailyStats: [GlucoseDailyDistributionStats]
     }
 
-    /// Fetches and computes per-day distribution data for the requested export range.
+    /// Per-day distribution data for the export range.
     func prepareGlucoseDistributionByDayExportData(for interval: StatsTimeInterval) async -> GlucoseDistributionByDayExportData {
         let widened = StatsTimeIntervalWithToday(rawValue: interval.rawValue) ?? .month
         let ids = await fetchGlucose(for: widened)
@@ -97,13 +93,12 @@ extension Stat.StateModel {
         return GlucoseDistributionByDayExportData(dailyStats: dailyStats)
     }
 
-    /// Data required to render the "Glycemia Risk Index" PDF export.
+    /// Glycemia Risk Index PDF data.
     struct GRIExportData {
         let result: GRICalculator.Result?
     }
 
-    /// Fetches glucose for the requested export range and computes its Glycemia Risk Index,
-    /// using the same calculator as the on-screen GRI chart.
+    /// GRI for the export range, using the same calculator as the on-screen chart.
     func prepareGRIExportData(for interval: StatsTimeIntervalWithToday) async -> GRIExportData {
         let ids = await fetchGlucose(for: interval)
         let glucose = await resolveGlucose(ids: ids)
@@ -112,14 +107,13 @@ extension Stat.StateModel {
         return GRIExportData(result: result)
     }
 
-    /// Data required to render the "Total Daily Dose" PDF export.
+    /// Total Daily Dose PDF data.
     struct TDDExportData {
         let stats: [TDDStats]
     }
 
-    /// Filters the already-loaded TDD stats (hourly covers the last 20 days, daily covers the
-    /// last 3 months — both comfortably cover the export's largest selectable range) down to the
-    /// requested export interval.
+    /// Filters the loaded TDD stats to the export interval. Hourly stats cover 20 days and
+    /// daily stats 3 months, which covers every export range.
     @MainActor func prepareTDDExportData(for interval: StatsTimeInterval) -> TDDExportData {
         let stats = interval == .day
             ? hourlyTDDStats.filter { $0.date >= interval.periodStart }
@@ -128,13 +122,12 @@ extension Stat.StateModel {
         return TDDExportData(stats: stats)
     }
 
-    /// Data required to render the "Bolus Distribution" PDF export.
+    /// Bolus Distribution PDF data.
     struct BolusExportData {
         let stats: [BolusStats]
     }
 
-    /// Filters the already-loaded bolus stats (hourly covers the last 20 days, daily covers the
-    /// last 3 months) down to the requested export interval.
+    /// Filters the loaded bolus stats to the export interval.
     @MainActor func prepareBolusExportData(for interval: StatsTimeInterval) -> BolusExportData {
         let stats = interval == .day
             ? hourlyBolusStats.filter { $0.date >= interval.periodStart }
@@ -143,14 +136,13 @@ extension Stat.StateModel {
         return BolusExportData(stats: stats)
     }
 
-    /// Data required to render the "Total Meals" PDF export.
+    /// Total Meals PDF data.
     struct MealsExportData {
         let stats: [MealStats]
         let useFPUconversion: Bool
     }
 
-    /// Filters the already-loaded meal stats (hourly covers the last 20 days, daily covers the
-    /// last 3 months) down to the requested export interval.
+    /// Filters the loaded meal stats to the export interval.
     @MainActor func prepareMealsExportData(for interval: StatsTimeInterval) -> MealsExportData {
         let stats = interval == .day
             ? hourlyMealStats.filter { $0.date >= interval.periodStart }
@@ -159,14 +151,13 @@ extension Stat.StateModel {
         return MealsExportData(stats: stats, useFPUconversion: useFPUconversion)
     }
 
-    /// Data required to render the "Looping Performance" PDF export.
+    /// Looping Performance PDF data.
     struct LoopingExportData {
         let loopStatRecords: [LoopStatRecord]
         let loopStats: [LoopStatsProcessedData]
     }
 
-    /// Fetches and computes loop performance data for the PDF export, without mutating any of the
-    /// published state backing the on-screen chart.
+    /// Loop performance data for the export. Leaves the on-screen chart state untouched.
     func prepareLoopingExportData(for interval: StatsTimeIntervalWithToday) async -> LoopingExportData {
         do {
             let (allLoopIds, failedLoopIds) = try await fetchLoopStatRecords(for: interval)
@@ -180,7 +171,7 @@ extension Stat.StateModel {
         }
     }
 
-    /// Generates one `Date` per calendar day, from `start` through `end` (inclusive).
+    /// One `Date` per calendar day from `start` through `end`, inclusive.
     private static func dayArray(from start: Date, to end: Date) -> [Date] {
         let calendar = Calendar.current
         let last = calendar.startOfDay(for: end)
@@ -209,7 +200,7 @@ extension Stat.StateModel {
         }
     }
 
-    /// Resolves the device and algorithm context shown in the PDF export header.
+    /// Device and algorithm details for the PDF header.
     @MainActor func prepareReportMetadata() -> ReportMetadata {
         let cgmName: String
         switch settingsManager.settings.cgm {

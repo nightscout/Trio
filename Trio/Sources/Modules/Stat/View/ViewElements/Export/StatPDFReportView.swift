@@ -1,9 +1,7 @@
 import SwiftUI
 
-/// The shared printable A4 page chrome for every Statistics PDF export: title, report name,
-/// data/chart-type/range subtitle, generation timestamp, hardware/software/settings metadata,
-/// and footer. Callers supply the chart-specific body as `content`, forced to light,
-/// print-friendly styling so the export looks the same regardless of the device's color scheme.
+/// Shared A4 page layout for Statistics PDF exports: header, metadata and footer around
+/// `content`. Always rendered in light mode so output doesn't depend on the device theme.
 struct StatPDFPage<Content: View>: View {
     let reportName: String
     let dataTypeDisplayName: String

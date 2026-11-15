@@ -70,8 +70,8 @@ extension Stat.StateModel {
         }
     }
 
-    /// Pure computation of glucose range distribution statistics, without mutating any published state.
-    /// Shared by the live chart (`calculateGlucoseRangeStatsForStackedChart`) and the PDF export flow.
+    /// Glucose range distribution stats, computed without changing published state.
+    /// Used by the stacked chart and the PDF export.
     static func computeGlucoseRangeStats(
         from ids: [NSManagedObjectID],
         timeInRangeType: TimeInRangeType

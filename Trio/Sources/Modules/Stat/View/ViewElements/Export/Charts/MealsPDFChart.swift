@@ -1,10 +1,8 @@
 import Charts
 import SwiftUI
 
-/// A static, full-range rendering of the Total Meals chart for PDF export. Mirrors
-/// `MealStatsView`'s marks/colors/legend exactly, but shows every entry in the export range at
-/// once instead of a scrollable window, and drops the interactive selection popover (not
-/// meaningful in a static, non-interactive PDF).
+/// Static version of `MealStatsView` for PDF export. Shows the whole range and leaves
+/// out the selection popover.
 struct MealsPDFChart: View {
     let stats: [MealStats]
     let selectedInterval: Stat.StateModel.StatsTimeInterval

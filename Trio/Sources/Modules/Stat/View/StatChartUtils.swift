@@ -251,8 +251,7 @@ struct StatChartUtils {
         return sorted[length / 2]
     }
 
-    /// Formats the display label for a glucose distribution range bucket (e.g. "70-180 mg/dL"),
-    /// shared by the on-screen daily distribution chart and its static PDF-export counterpart.
+    /// Label for a glucose distribution range bucket, e.g. "70-180 mg/dL".
     static func glucoseDistributionRangeLabel(
         _ rangeName: String,
         highLimit: Decimal,
@@ -277,9 +276,7 @@ struct StatChartUtils {
         }
     }
 
-    /// Computes the Y-axis domain for glucose percentile ("boxplot") charts from the highest
-    /// observed value in the given daily stats, shared by the on-screen percentile chart and its
-    /// static PDF-export counterpart.
+    /// Y-axis domain for glucose percentile charts, based on the highest value in the stats.
     static func glucosePercentileYScaleDomain(
         for dailyStats: [GlucoseDailyPercentileStats],
         highLimit: Decimal,
@@ -311,9 +308,8 @@ struct StatChartUtils {
         }.font(.caption)
     }
 
-    /// Builds the shared per-mark axis label content for stat bar charts: labels every 6th hour
-    /// in `.day` view, every first-weekday mark in `.month`, every month-start mark in `.total`,
-    /// and every mark otherwise (`.week`, or by-day charts whose data is already one bar per day).
+    /// Axis label for stat bar charts. Labels every 6th hour in `.day`, the first weekday in
+    /// `.month`, month starts in `.total`, and every mark otherwise.
     /// - Parameters:
     ///   - date: The date of the axis value currently being drawn.
     ///   - selectedInterval: The selected time interval for statistics.

@@ -1,10 +1,8 @@
 import Charts
 import SwiftUI
 
-/// A static, full-range rendering of the Bolus Distribution chart for PDF export. Mirrors
-/// `BolusStatsView`'s marks/colors/legend exactly, but shows every entry in the export range at
-/// once instead of a scrollable window, and drops the interactive selection popover (not
-/// meaningful in a static, non-interactive PDF).
+/// Static version of `BolusStatsView` for PDF export. Shows the whole range and leaves
+/// out the selection popover.
 struct InsulinBolusPDFChart: View {
     let stats: [BolusStats]
     let selectedInterval: Stat.StateModel.StatsTimeInterval

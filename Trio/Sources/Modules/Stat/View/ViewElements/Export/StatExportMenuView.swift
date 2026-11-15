@@ -1,12 +1,7 @@
 import SwiftUI
 
-/// Sheet that lets the user build a multi-page PDF report from the Statistics screen. Each data
-/// type (Glucose, Carbs, Insulin, Looping) is a row that expands on tap to reveal its chart types,
-/// each with its own toggle. Every enabled chart becomes one PDF page, in the same order they're
-/// listed, all sharing a single date Range. Selections can be saved as a named preset for reuse
-/// (e.g. a recurring clinician-visit report) and reloaded later; only the chart types still shown
-/// as "Coming soon" on the live Statistics screen (Looping's CGM Connection Trace / Trio Up-Time,
-/// Meals' Meal to Hypo/Hyper) stay disabled here too.
+/// Builds a multi-page PDF report from the Statistics screen. Each enabled chart becomes
+/// one page, in list order, over a shared date range. Selections can be saved as presets.
 struct StatExportMenuView: View {
     let state: Stat.StateModel
 
@@ -16,7 +11,7 @@ struct StatExportMenuView: View {
 
     @State private var selectedRange: Stat.StateModel.StatsTimeInterval = .month
 
-    /// The last patient name used, persisted so the prompt shown on each export comes prefilled.
+    /// Last patient name used, to prefill the export prompt.
     @State private var patientName: String = ""
     @State private var showPatientNamePrompt = false
     @State private var patientNameInput: String = ""
@@ -47,8 +42,7 @@ struct StatExportMenuView: View {
 
                 Section {
                     Button("Save as Preset…") {
-                        // Presets are a reusable chart/range template, not tied to a patient,
-                        // so don't seed the prompt with the patient name.
+                        // Presets aren't tied to a patient, so don't prefill the name.
                         presetNameInput = ""
                         showSavePresetPrompt = true
                     }
@@ -67,7 +61,7 @@ struct StatExportMenuView: View {
                         ProgressView()
                     } else {
                         Button("Export") {
-                            // Confirm the patient name on every export, prefilled with the last one.
+                            // Ask for the patient name on every export, prefilled with the last one.
                             patientNameInput = patientName
                             showPatientNamePrompt = true
                         }
@@ -166,8 +160,7 @@ struct StatExportMenuView: View {
     }
 
     private func loadPreset(_ preset: ReportPreset) {
-        // A preset is just a reusable range/chart template, not tied to a patient, so loading
-        // one leaves the patient name alone.
+        // Presets don't include a patient name, so leave it unchanged.
         withAnimation {
             selectedCharts = Set(preset.chartTypes)
             expandedDataTypes = Set(preset.chartTypes.map(\.dataType))
@@ -194,7 +187,7 @@ struct StatExportMenuView: View {
 
     // MARK: - Range
 
-    /// Same segmented D / W / M / 3 M control the Statistics screen uses for its Duration picker.
+    /// Same D / W / M / 3 M picker as the Statistics screen.
     private var rangeSection: some View {
         Section(header: Text("Range")) {
             Picker("Range", selection: $selectedRange) {
@@ -209,20 +202,19 @@ struct StatExportMenuView: View {
         }
     }
 
-    /// Per-day charts are unavailable for the single-day range. They stay in `selectedCharts` while
-    /// disabled, so switching back to a longer range restores them.
+    /// Per-day charts are disabled for the single-day range but stay selected, so a longer
+    /// range restores them.
     private func isAvailable(_ chart: ReportChartType) -> Bool {
         !(selectedRange == .day && chart.isPerDay)
     }
 
     // MARK: - Include in Report
 
-    /// How far chart rows are indented under their data type's row.
+    /// Indent for chart rows under their data type.
     private static let chartRowInset: CGFloat = 20
 
-    /// A single group: one row per data type that expands on tap to list that type's chart types
-    /// directly beneath it, indented, each with its own toggle. Inclusion is decided purely by the
-    /// chart toggles; collapsed rows show how many charts are selected.
+    /// One expandable row per data type with a toggle per chart. Collapsed rows show the
+    /// selected count.
     private var includeInReportSection: some View {
         Section(header: Text("Include")) {
             ForEach(Stat.StateModel.StatisticViewType.exportOrder) { dataType in
@@ -303,8 +295,8 @@ struct StatExportMenuView: View {
         )
     }
 
-    /// Every chart type the live Statistics screen offers for `dataType`, in the same order; `chart`
-    /// is `nil` for the ones not exportable yet ("Coming soon").
+    /// All chart types the Statistics screen offers for `dataType`, in order. `chart` is `nil`
+    /// for ones not exportable yet.
     private func chartOptions(for dataType: Stat.StateModel.StatisticViewType) -> [(title: String, chart: ReportChartType?)] {
         switch dataType {
         case .glucose:
@@ -318,8 +310,7 @@ struct StatExportMenuView: View {
         }
     }
 
-    /// The charts that will actually be exported — selected and available for the current range —
-    /// in on-screen order, which is also the PDF page order.
+    /// Selected charts available for the current range, in page order.
     private var orderedSelectedCharts: [ReportChartType] {
         Stat.StateModel.StatisticViewType.exportOrder
             .flatMap { chartOptions(for: $0).compactMap(\.chart) }
@@ -365,8 +356,7 @@ struct StatExportMenuView: View {
         }
     }
 
-    /// Builds a single PDF page for one report item: fetches/prepares that chart type's data and
-    /// wraps it in the shared `StatPDFPage` header/footer.
+    /// Builds one PDF page for a report item.
     @MainActor private func buildPage(
         for chartType: ReportChartType,
         widenedInterval: Stat.StateModel.StatsTimeIntervalWithToday,
@@ -485,8 +475,7 @@ struct StatExportMenuView: View {
 }
 
 extension Stat.StateModel.StatsTimeInterval {
-    /// A full-word display name suitable for the export menu and PDF header
-    /// (`displayName` on this type is an abbreviation meant for the segmented picker).
+    /// Full-word name for the export menu and PDF header. `displayName` is the short picker label.
     var exportDisplayName: String {
         switch self {
         case .day:
@@ -500,9 +489,8 @@ extension Stat.StateModel.StatsTimeInterval {
         }
     }
 
-    /// The start of this range, using the same fixed offsets as the app's own stats predicates
-    /// (e.g. `NSPredicate.glucoseForStatsWeek`), so the PDF header's displayed date range matches
-    /// what was actually fetched.
+    /// Start of this range, using the same offsets as the stats predicates
+    /// (e.g. `NSPredicate.glucoseForStatsWeek`) so the header matches the fetched data.
     var periodStart: Date {
         switch self {
         case .day:
@@ -518,11 +506,11 @@ extension Stat.StateModel.StatsTimeInterval {
 }
 
 extension Stat.StateModel.StatisticViewType {
-    /// Data type order in the export menu, which is also the PDF page order.
+    /// Export menu order, which is also the PDF page order.
     static let exportOrder: [Self] = [.glucose, .meals, .insulin, .looping]
 
-    /// Name used in the export menu and PDF header. Meals reads as "Carbs" here, since that's what
-    /// its charts actually report.
+    /// Name for the export menu and PDF header. Meals is shown as "Carbs", which is what
+    /// its charts report.
     var exportDisplayName: String {
         switch self {
         case .meals:

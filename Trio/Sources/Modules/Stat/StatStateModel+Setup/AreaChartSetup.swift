@@ -81,8 +81,8 @@ extension Stat.StateModel {
         }
     }
 
-    /// Pure computation of hourly glucose percentile statistics, without mutating any published state.
-    /// Shared by the live AGP chart (`calculateHourlyStatsForGlucoseAreaChart`) and the PDF export flow.
+    /// Hourly glucose percentile stats, computed without changing published state.
+    /// Used by the AGP chart and the PDF export.
     static func computeHourlyStats(from ids: [NSManagedObjectID]) async -> [HourlyStats] {
         let taskContext = CoreDataStack.shared.newTaskContext()
 
