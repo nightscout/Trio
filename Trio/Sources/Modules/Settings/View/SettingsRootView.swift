@@ -284,12 +284,6 @@ extension Settings {
                             NavigationLink(destination: ReportProblemView(state: state)) {
                                 Text("Report a Problem")
                             }
-                            NavigationLink(destination: SettingsAnalysisView(
-                                units: state.units,
-                                snapshot: { await state.settingsAnalysisSnapshot() }
-                            )) {
-                                Text("Settings Analysis")
-                            }
                             ReportLinkRow(title: "Ask on Discord", url: "https://discord.triodocs.org")
                             ReportLinkRow(title: "Ask on Facebook", url: "https://facebook.triodocs.org")
                         },

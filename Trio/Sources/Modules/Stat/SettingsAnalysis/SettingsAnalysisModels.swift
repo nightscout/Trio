@@ -4,61 +4,6 @@ import SwiftUI
 /// Prototype: advice wording is fixed per scenario and not clinically validated.
 enum SettingsAnalysis {}
 
-// MARK: - Data models
-
-extension SettingsAnalysis {
-    enum DataModel: String, CaseIterable, Identifiable, Hashable {
-        case theresa
-
-        var id: String { rawValue }
-
-        var displayName: String {
-            switch self {
-            case .theresa: return "Theresa"
-            }
-        }
-
-        var icon: String {
-            switch self {
-            case .theresa: return "chart.bar.doc.horizontal"
-            }
-        }
-
-        var color: Color {
-            switch self {
-            case .theresa: return .purple
-            }
-        }
-
-        var tagline: String {
-            switch self {
-            case .theresa:
-                return String(localized: "Pattern-based and conservative")
-            }
-        }
-
-        var summary: String {
-            switch self {
-            case .theresa:
-                return String(
-                    localized: "Theresa looks for patterns that repeat across many days. She groups events by time of day and only suggests a change when a pattern is consistent. Her advice says which therapy setting (basal, carb ratio, ISF) a pattern usually points to and in which direction, not by how much."
-                )
-            }
-        }
-
-        var strengths: [String] {
-            switch self {
-            case .theresa:
-                return [
-                    String(localized: "Robust against one-off events"),
-                    String(localized: "Points to one setting at a time"),
-                    String(localized: "Works well on longer time frames (month, 3 months)")
-                ]
-            }
-        }
-    }
-}
-
 // MARK: - Scenarios
 
 extension SettingsAnalysis {
@@ -209,20 +154,6 @@ extension SettingsAnalysis {
 // MARK: - Time frames
 
 extension SettingsAnalysis {
-    enum TimeFrameMode: String, CaseIterable, Identifiable {
-        case preset
-        case custom
-
-        var id: String { rawValue }
-
-        var displayName: String {
-            switch self {
-            case .preset: return String(localized: "Period")
-            case .custom: return String(localized: "Custom")
-            }
-        }
-    }
-
     enum TimeFramePreset: String, CaseIterable, Identifiable {
         case week
         case month
@@ -317,7 +248,6 @@ extension SettingsAnalysis {
 
     struct Advice: Identifiable {
         let id = UUID()
-        let model: DataModel
         /// The setting or behaviour the advice targets, e.g. "Carb Ratio 06:00–10:00".
         let target: String
         let recommendation: String
@@ -334,7 +264,7 @@ extension SettingsAnalysis {
         let severity: Severity
         /// e.g. "64% after breakfast".
         let pattern: String
-        let advice: [Advice]
+        let advice: Advice
         /// Guards that lowered this finding's confidence.
         let guardIDs: [String]
     }
@@ -347,7 +277,6 @@ extension SettingsAnalysis {
 
     struct Report {
         let timeFrame: TimeFrame
-        let models: [DataModel]
         let checks: SettingsCheckReport?
         let catalog: Catalog?
         let catalogError: String?

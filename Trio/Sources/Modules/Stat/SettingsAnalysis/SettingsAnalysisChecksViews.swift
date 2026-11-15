@@ -1,61 +1,58 @@
 import SwiftUI
 
-/// "Start Here", flagged checks and passed checks for the results screen.
-struct SettingsChecksSections: View {
+/// "Start Here", flagged checks and passed checks for the results.
+struct SettingsChecksCards: View {
     let report: SettingsAnalysis.Report
 
     var body: some View {
         if let error = report.catalogError {
-            Section {
+            SettingsAnalysisCard(Text("Settings Checks")) {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.orange)
-            } header: {
-                Text("Settings Checks")
             }
-            .listRowBackground(Color.chart)
         } else if let checks = report.checks {
             if let first = checks.startHere {
-                Section {
-                    NavigationLink(destination: SettingsCheckDetailView(result: first, catalog: report.catalog)) {
-                        SettingsCheckRow(result: first, showsFinding: true)
-                    }
-                } header: {
-                    Label("Start Here", systemImage: "flag")
+                SettingsAnalysisCard(Text("\(Image(systemName: "flag")) Start Here")) {
+                    link(for: first, showsFinding: true)
                 } footer: {
                     Text(
                         "Change one setting at a time and wait a few days before the next change. Settings that affect everything else come first."
                     )
                 }
-                .listRowBackground(Color.chart)
             }
 
-            Section {
+            SettingsAnalysisCard(Text("Settings Checks")) {
                 if checks.flagged.isEmpty {
                     Label("No settings stood out.", systemImage: "checkmark.seal")
                         .foregroundStyle(.green)
                 }
-                ForEach(checks.flagged.dropFirst()) { result in
-                    NavigationLink(destination: SettingsCheckDetailView(result: result, catalog: report.catalog)) {
-                        SettingsCheckRow(result: result, showsFinding: true)
-                    }
+                ForEach(Array(checks.flagged.dropFirst().enumerated()), id: \.element.id) { index, result in
+                    if index > 0 { Divider() }
+                    link(for: result, showsFinding: true)
                 }
                 if !checks.passed.isEmpty {
+                    if checks.flagged.count > 1 { Divider() }
                     DisclosureGroup {
-                        ForEach(checks.passed) { result in
-                            NavigationLink(destination: SettingsCheckDetailView(result: result, catalog: report.catalog)) {
-                                SettingsCheckRow(result: result, showsFinding: false)
+                        VStack(alignment: .leading, spacing: 10) {
+                            ForEach(checks.passed) { result in
+                                Divider()
+                                link(for: result, showsFinding: false)
                             }
                         }
+                        .padding(.top, 6)
                     } label: {
                         Text("Passed (\(checks.passed.count))")
                     }
                 }
-            } header: {
-                Text("Settings Checks")
             } footer: {
                 Text("Based on your current settings. Rule catalog \(checks.catalogVersion).")
             }
-            .listRowBackground(Color.chart)
+        }
+    }
+
+    private func link(for result: SettingsAnalysis.CheckResult, showsFinding: Bool) -> some View {
+        SettingsAnalysisLinkRow(destination: SettingsCheckDetailView(result: result, catalog: report.catalog)) {
+            SettingsCheckRow(result: result, showsFinding: showsFinding)
         }
     }
 }
@@ -212,61 +209,6 @@ struct GuardRow: View {
         case 0: return String(localized: "Applied when curating the catalog")
         case 1: return String(localized: "Enforced")
         default: return String(localized: "Planned (Phase \(item.phase))")
-        }
-    }
-}
-
-/// Lists all guards and the catalog version.
-struct SettingsAnalysisGuardsInfoView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @Environment(AppState.self) private var appState
-
-    @State private var catalog: SettingsAnalysis.Catalog?
-    @State private var error: String?
-
-    var body: some View {
-        List {
-            if let error {
-                Section {
-                    Label(error, systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.orange)
-                }
-                .listRowBackground(Color.chart)
-            }
-            if let catalog {
-                Section {
-                    ForEach(catalog.guards) { item in
-                        GuardRow(item: item)
-                    }
-                } header: {
-                    Text("Guards")
-                } footer: {
-                    Text("Guards decide whether a rule may give advice at all. They apply before any rule fires.")
-                }
-                .listRowBackground(Color.chart)
-
-                Section {
-                    LabeledContent("Version", value: catalog.version)
-                    LabeledContent("Rules", value: "\(catalog.rules.filter { $0.status == .current }.count)")
-                    Text(catalog.source)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                } header: {
-                    Text("Rule Catalog")
-                }
-                .listRowBackground(Color.chart)
-            }
-        }
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
-        .navigationTitle("How Advice Is Checked")
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            do {
-                catalog = try SettingsAnalysis.Catalog.loadBundled()
-            } catch {
-                self.error = error.localizedDescription
-            }
         }
     }
 }

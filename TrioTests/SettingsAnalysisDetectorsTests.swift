@@ -199,8 +199,6 @@ import Testing
         SettingsAnalysis.Engine.report(
             history: history,
             timeFrame: dayFrame,
-            scenarios: Set(SettingsAnalysis.Scenario.allCases),
-            models: SettingsAnalysis.DataModel.allCases,
             snapshot: .defaults,
             catalog: nil,
             catalogError: nil,
@@ -329,8 +327,6 @@ import Testing
         let report = SettingsAnalysis.Engine.report(
             history: history,
             timeFrame: dayFrame,
-            scenarios: Set(SettingsAnalysis.Scenario.allCases),
-            models: SettingsAnalysis.DataModel.allCases,
             snapshot: .defaults,
             catalog: nil,
             catalogError: nil,
@@ -349,8 +345,6 @@ import Testing
         let report = SettingsAnalysis.Engine.report(
             history: History(),
             timeFrame: dayFrame,
-            scenarios: Set(SettingsAnalysis.Scenario.allCases),
-            models: SettingsAnalysis.DataModel.allCases,
             snapshot: .defaults,
             catalog: nil,
             catalogError: nil,

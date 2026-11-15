@@ -1,95 +1,63 @@
 import Charts
 import SwiftUI
 
+/// Analysis results, shown as cards below the Analyze button.
 struct SettingsAnalysisResultsView: View {
     let report: SettingsAnalysis.Report
     let units: GlucoseUnits
 
-    @Environment(\.colorScheme) private var colorScheme
-    @Environment(AppState.self) private var appState
-
     var body: some View {
-        List {
-            Section {
-                SettingsAnalysisPrototypeBanner()
+        overviewCard
+
+        SettingsChecksCards(report: report)
+
+        if report.findings.isEmpty {
+            StatCard {
+                Label("No scenarios found in this time frame.", systemImage: "checkmark.seal")
+                    .foregroundStyle(.green)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .listRowBackground(Color.chart)
-
-            overviewSection
-
-            SettingsChecksSections(report: report)
-
-            if report.findings.isEmpty {
-                Section {
-                    Label("No scenarios found in this time frame.", systemImage: "checkmark.seal")
-                        .foregroundStyle(.green)
-                }
-                .listRowBackground(Color.chart)
-            } else {
-                Section {
-                    ForEach(report.findings) { finding in
-                        NavigationLink(destination: SettingsAnalysisFindingView(finding: finding, units: units)) {
-                            FindingRow(finding: finding)
-                        }
+        } else {
+            SettingsAnalysisCard(Text("Detected Scenarios")) {
+                ForEach(Array(report.findings.enumerated()), id: \.element.id) { index, finding in
+                    if index > 0 { Divider() }
+                    SettingsAnalysisLinkRow(destination: SettingsAnalysisFindingView(finding: finding, units: units)) {
+                        FindingRow(finding: finding)
                     }
-                } header: {
-                    Text("Detected Scenarios")
-                } footer: {
-                    Text("Sorted by how often they occur. Tap a scenario to see the advice.")
                 }
-                .listRowBackground(Color.chart)
-
-                ForEach(report.models) { model in
-                    topAdviceSection(for: model)
-                }
+            } footer: {
+                Text("Sorted by how often they occur. Tap a scenario to see the advice.")
             }
 
-            if !report.unavailable.isEmpty {
-                Section {
-                    ForEach(report.unavailable) { item in
-                        VStack(alignment: .leading, spacing: 4) {
-                            SettingsAnalysisScenarioLabel(scenario: item.scenario, showsSummary: false)
-                                .foregroundStyle(.secondary)
-                            Text(item.reason)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } header: {
-                    Text("Can't Check")
-                }
-                .listRowBackground(Color.chart)
-            }
+            topAdviceCard
+        }
 
-            if !report.notDetected.isEmpty {
-                Section {
-                    ForEach(report.notDetected) { scenario in
-                        SettingsAnalysisScenarioLabel(scenario: scenario, showsSummary: false)
-                            .foregroundStyle(.secondary)
+        if !report.unavailable.isEmpty {
+            SettingsAnalysisCard(Text("Can't Check")) {
+                ForEach(report.unavailable) { item in
+                    VStack(alignment: .leading, spacing: 4) {
+                        SettingsAnalysisScenarioLabel(scenario: item.scenario, showsSummary: false)
+                        Text(item.reason)
+                            .font(.caption)
                     }
-                } header: {
-                    Text("Not Detected")
+                    .foregroundStyle(.secondary)
                 }
-                .listRowBackground(Color.chart)
             }
         }
-        .scrollContentBackground(.hidden)
-        .background(appState.trioBackgroundColor(for: colorScheme))
-        .navigationTitle("Analysis")
-        .navigationBarTitleDisplayMode(.inline)
-    }
 
-    private var overviewSection: some View {
-        Section {
-            LabeledContent("Time Frame", value: report.timeFrame.formatted)
-            LabeledContent("Data Model") {
-                HStack(spacing: 6) {
-                    ForEach(report.models) { model in
-                        SettingsAnalysisModelBadge(model: model, size: 22)
-                        Text(model.displayName)
-                    }
+        if !report.notDetected.isEmpty {
+            SettingsAnalysisCard(Text("Not Detected")) {
+                ForEach(report.notDetected) { scenario in
+                    SettingsAnalysisScenarioLabel(scenario: scenario, showsSummary: false)
+                        .foregroundStyle(.secondary)
                 }
             }
+        }
+    }
+
+    private var overviewCard: some View {
+        SettingsAnalysisCard(Text("Overview")) {
+            LabeledContent("Time Frame", value: report.timeFrame.formatted)
             LabeledContent("Glucose Readings", value: report.readings.formatted())
             LabeledContent("CGM Coverage", value: "\(report.coverage) %")
             LabeledContent {
@@ -98,17 +66,10 @@ struct SettingsAnalysisResultsView: View {
                 Text("Time in Range")
                 Text(timeInRangeBounds)
             }
-            LabeledContent("Logged Meals", value: perDay(report.mealProfile.loggedPerDay))
-            LabeledContent("Unannounced Meal Rises", value: perDay(report.mealProfile.unannouncedPerDay))
-            if let share = report.mealProfile.prebolusShare {
-                LabeledContent("With Manual Prebolus", value: "\(Int((share * 100).rounded())) %")
-            }
             LabeledContent(
                 "Scenarios Found",
                 value: "\(report.findings.count) / \(report.findings.count + report.notDetected.count + report.unavailable.count)"
             )
-        } header: {
-            Text("Overview")
         } footer: {
             VStack(alignment: .leading, spacing: 4) {
                 if report.readings == 0 {
@@ -126,11 +87,6 @@ struct SettingsAnalysisResultsView: View {
                 }
             }
         }
-        .listRowBackground(Color.chart)
-    }
-
-    private func perDay(_ value: Double) -> String {
-        String(localized: "\(value.formatted(.number.precision(.fractionLength(1)))) / day")
     }
 
     /// The fixed range the analysis uses, shown in the user's glucose units.
@@ -140,29 +96,21 @@ struct SettingsAnalysisResultsView: View {
         return "\(low)–\(high)"
     }
 
-    private func topAdviceSection(for model: SettingsAnalysis.DataModel) -> some View {
-        Section {
-            ForEach(report.findings.prefix(3)) { finding in
-                if let advice = finding.advice.first(where: { $0.model == model }) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(finding.scenario.title)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(advice.target)
-                            .font(.subheadline.weight(.semibold))
-                        Text(advice.recommendation)
-                            .font(.subheadline)
-                    }
-                    .padding(.vertical, 2)
+    private var topAdviceCard: some View {
+        SettingsAnalysisCard(Text("Top Scenario Advice")) {
+            ForEach(Array(report.findings.prefix(3).enumerated()), id: \.element.id) { index, finding in
+                if index > 0 { Divider() }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(finding.scenario.title)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(finding.advice.target)
+                        .font(.subheadline.weight(.semibold))
+                    Text(finding.advice.recommendation)
+                        .font(.subheadline)
                 }
             }
-        } header: {
-            HStack(spacing: 6) {
-                SettingsAnalysisModelBadge(model: model, size: 18)
-                Text("Top Scenario Advice from \(model.displayName)")
-            }
         }
-        .listRowBackground(Color.chart)
     }
 }
 
@@ -266,9 +214,7 @@ struct SettingsAnalysisFindingView: View {
             .listRowBackground(Color.chart)
 
             Section {
-                ForEach(finding.advice) { advice in
-                    AdviceCard(advice: advice)
-                }
+                AdviceCard(advice: finding.advice)
                 ForEach(finding.guardIDs, id: \.self) { id in
                     Label(guardNote(for: id), systemImage: "shield.lefthalf.filled")
                         .font(.footnote)
@@ -323,17 +269,13 @@ private struct AdviceCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                SettingsAnalysisModelBadge(model: advice.model, size: 24)
-                Text(advice.model.displayName)
-                    .font(.subheadline.weight(.semibold))
+                Text(advice.target)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.purple)
+                    .textCase(.uppercase)
                 Spacer()
-                ConfidenceBars(confidence: advice.confidence, color: advice.model.color)
+                ConfidenceBars(confidence: advice.confidence, color: .purple)
             }
-
-            Text(advice.target)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(advice.model.color)
-                .textCase(.uppercase)
 
             Text(advice.recommendation)
                 .font(.body)

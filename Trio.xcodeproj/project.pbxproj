@@ -2698,6 +2698,7 @@
 				19F95FF429F10FCF00314DDC /* StatProvider.swift */,
 				19F95FF629F10FEE00314DDC /* StatStateModel.swift */,
 				19F95FF829F10FF600314DDC /* View */,
+				5A0A11000000000000000001 /* SettingsAnalysis */,
 			);
 			path = Stat;
 			sourceTree = "<group>";
@@ -2880,7 +2881,6 @@
 				3811DE3B25C9D4A100A708ED /* View */,
 				BDCAF2372C639F35002DC907 /* SettingItems.swift */,
 				9C010A737CBFB0028E98B2E9 /* ReportProblem */,
-				5A0A11000000000000000001 /* SettingsAnalysis */,
 			);
 			path = Settings;
 			sourceTree = "<group>";

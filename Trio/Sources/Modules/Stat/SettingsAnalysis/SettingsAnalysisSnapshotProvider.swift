@@ -1,7 +1,7 @@
 import CoreData
 import Foundation
 
-extension Settings.StateModel {
+extension Stat.StateModel {
     /// Reads the current configuration for the settings checks.
     func settingsAnalysisSnapshot() async -> SettingsAnalysis.SettingsSnapshot {
         let preferences = settingsManager.preferences

@@ -45,6 +45,11 @@ extension Stat {
                             loopingView
                         case .meals:
                             mealsView
+                        case .analysis:
+                            SettingsAnalysisView(
+                                units: state.units,
+                                snapshot: { await state.settingsAnalysisSnapshot() }
+                            )
                         }
                     }
                     .padding()

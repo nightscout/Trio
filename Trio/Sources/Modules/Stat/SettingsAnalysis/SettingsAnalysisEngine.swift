@@ -7,8 +7,6 @@ extension SettingsAnalysis {
 
         func analyze(
             timeFrame: TimeFrame,
-            scenarios: Set<Scenario>,
-            models: [DataModel],
             snapshot: SettingsSnapshot,
             catalog: Catalog?,
             catalogError: String?
@@ -17,8 +15,6 @@ extension SettingsAnalysis {
             return Self.report(
                 history: history,
                 timeFrame: timeFrame,
-                scenarios: scenarios,
-                models: models,
                 snapshot: snapshot,
                 catalog: catalog,
                 catalogError: catalogError,
@@ -29,8 +25,6 @@ extension SettingsAnalysis {
         static func report(
             history: History,
             timeFrame: TimeFrame,
-            scenarios: Set<Scenario>,
-            models: [DataModel],
             snapshot: SettingsSnapshot,
             catalog: Catalog?,
             catalogError: String?,
@@ -45,7 +39,7 @@ extension SettingsAnalysis {
             var notDetected: [Scenario] = []
             var unavailable: [UnavailableScenario] = []
 
-            for scenario in Scenario.allCases where scenarios.contains(scenario) {
+            for scenario in Scenario.allCases {
                 // P12: carb-based scenarios need logged meals.
                 var guardIDs = guardEffect.guardIDs
                 var guardAdjustment = guardEffect.confidenceAdjustment
@@ -89,14 +83,11 @@ extension SettingsAnalysis {
                         perWeek: perWeek,
                         severity: severity,
                         pattern: detection.pattern,
-                        advice: models.map { model in
-                            AdviceLibrary.advice(
-                                for: scenario,
-                                variant: detection.variant,
-                                model: model,
-                                confidenceBoost: confidenceBoost
-                            )
-                        },
+                        advice: AdviceLibrary.advice(
+                            for: scenario,
+                            variant: detection.variant,
+                            confidenceBoost: confidenceBoost
+                        ),
                         guardIDs: guardIDs
                     )
                 )
@@ -112,7 +103,6 @@ extension SettingsAnalysis {
 
             return Report(
                 timeFrame: timeFrame,
-                models: models,
                 checks: catalog.map { SettingsChecks.run(snapshot: snapshot, catalog: $0) },
                 catalog: catalog,
                 catalogError: catalogError,
@@ -141,7 +131,6 @@ private enum AdviceLibrary {
     static func advice(
         for scenario: SettingsAnalysis.Scenario,
         variant: SettingsAnalysis.AdviceVariant? = nil,
-        model: SettingsAnalysis.DataModel,
         confidenceBoost: Int
     ) -> Advice {
         let base: (target: String, recommendation: String, rationale: String, confidence: Confidence)
@@ -176,7 +165,6 @@ private enum AdviceLibrary {
 
         let confidenceValue = min(max(base.confidence.rawValue + confidenceBoost, 0), 2)
         return Advice(
-            model: model,
             target: base.target,
             recommendation: base.recommendation,
             rationale: base.rationale,
