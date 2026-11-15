@@ -7,7 +7,7 @@ struct SettingsAnalysisView: View {
     let snapshot: () async -> SettingsAnalysis.SettingsSnapshot
 
     /// `nil` means a custom time frame.
-    @State private var preset: SettingsAnalysis.TimeFramePreset? = .month
+    @State private var preset: SettingsAnalysis.TimeFramePreset? = .twoWeeks
     @State private var customStart = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
     @State private var customEnd = Date()
 
@@ -195,9 +195,9 @@ struct SettingsAnalysisLinkRow<Label: View, Destination: View>: View {
 struct SettingsAnalysisPrototypeBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "flask")
+            Image(systemName: "exclamationmark.circle.fill")
                 .font(.title2)
-                .foregroundStyle(.orange)
+                .foregroundStyle(.red)
             VStack(alignment: .leading, spacing: 4) {
                 Text("Prototype")
                     .font(.headline)

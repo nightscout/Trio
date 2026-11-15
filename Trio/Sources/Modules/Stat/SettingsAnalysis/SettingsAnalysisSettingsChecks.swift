@@ -80,6 +80,13 @@ extension SettingsAnalysis {
         var flagged: [CheckResult] { results.filter(\.isFlagged) }
         var passed: [CheckResult] { results.filter { if case .passed = $0.outcome { return true } else { return false } } }
 
+        /// Flagged checks after "Start Here", then passed ones, then ones that don't apply.
+        var listed: [CheckResult] {
+            Array(flagged.dropFirst()) + passed + results.filter {
+                if case .notApplicable = $0.outcome { return true } else { return false }
+            }
+        }
+
         /// Guards P1 + P3: a single suggested first step, the flagged rule with the lowest priority.
         var startHere: CheckResult? { flagged.first }
     }

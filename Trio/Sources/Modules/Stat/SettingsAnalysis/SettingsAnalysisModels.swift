@@ -156,15 +156,15 @@ extension SettingsAnalysis {
 extension SettingsAnalysis {
     enum TimeFramePreset: String, CaseIterable, Identifiable {
         case week
-        case month
+        case twoWeeks
         case threeMonths
 
         var id: String { rawValue }
 
         var displayName: String {
             switch self {
-            case .week: return String(localized: "Week")
-            case .month: return String(localized: "Month")
+            case .week: return String(localized: "1 Week")
+            case .twoWeeks: return String(localized: "2 Weeks")
             case .threeMonths: return String(localized: "3 Months")
             }
         }
@@ -172,7 +172,7 @@ extension SettingsAnalysis {
         var days: Int {
             switch self {
             case .week: return 7
-            case .month: return 30
+            case .twoWeeks: return 14
             case .threeMonths: return 90
             }
         }

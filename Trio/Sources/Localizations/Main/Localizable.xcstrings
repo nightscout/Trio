@@ -1089,6 +1089,329 @@
         }
       }
     },
+    "%lld of %lld characters" : {
+
+    },
+    "Add Screenshots" : {
+
+    },
+    "Also Sent" : {
+
+    },
+    "Ask on Discord" : {
+
+    },
+    "Ask on Facebook" : {
+
+    },
+    "Attach My Logs" : {
+
+    },
+    "Build" : {
+
+    },
+    "Change Screenshots" : {
+
+    },
+    "Contact" : {
+
+    },
+    "Copy ID" : {
+
+    },
+    "Couldn't Delete Report" : {
+
+    },
+    "Couldn't Send Report" : {
+
+    },
+    "Delete Report" : {
+
+    },
+    "Delete Report?" : {
+
+    },
+    "Deleting" : {
+
+    },
+    "Deleting a report removes it and its files from the Trio team's server." : {
+
+    },
+    "Describe what happened and what you expected" : {
+
+    },
+    "Discord Name" : {
+
+    },
+    "Email" : {
+
+    },
+    "Fill in any of these so the team can follow up with you." : {
+
+    },
+    "Get help from other Trio users." : {
+
+    },
+    "GitHub Username" : {
+
+    },
+    "Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed." : {
+
+    },
+    "iOS Version" : {
+
+    },
+    "iPhone Model" : {
+
+    },
+    "One of the screenshots couldn't be read. Try choosing it again or leave it out." : {
+
+    },
+    "Open a GitHub Issue" : {
+
+    },
+    "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it." : {
+
+    },
+    "Public. Only for bugs you can describe without personal or health data." : {
+
+    },
+    "Report %@ and its files will be deleted from the Trio team's server." : {
+
+    },
+    "Report a Problem" : {
+
+    },
+    "Report Actions" : {
+
+    },
+    "Report Sent" : {
+
+    },
+    "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time." : {
+
+    },
+    "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed." : {
+
+    },
+    "Screenshot %lld" : {
+
+    },
+    "Screenshots" : {
+
+    },
+    "Send to the Trio Team" : {
+
+    },
+    "Sending" : {
+
+    },
+    "Some files didn't reach the Trio team's server. Please try again." : {
+
+    },
+    "Sending Report" : {
+
+    },
+    "Sent Reports" : {
+
+    },
+    "Stay Anonymous" : {
+
+    },
+    "Submit" : {
+
+    },
+    "Thank you. Your report ID is %@. Mention it if you ask about this on Discord or Facebook." : {
+
+    },
+    "The report is too large. Try fewer or smaller screenshots." : {
+
+    },
+    "The report won't include your name or contact details." : {
+
+    },
+    "The Trio team's server couldn't take the report right now (error %lld)." : {
+
+    },
+    "The Trio team's server sent an answer the app doesn't understand." : {
+
+    },
+    "This build of Trio can't send reports. Please share your logs on Discord or Facebook instead." : {
+
+    },
+    "Tidepool Login Required" : {
+
+    },
+    "Title (optional)" : {
+
+    },
+    "Trio couldn't confirm with Apple that this copy of the app is genuine. Please try again later." : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Up to %lld screenshots or photos." : {
+
+    },
+    "Uploads to Tidepool are paused. Tap to log in." : {
+
+    },
+    "You've sent several reports today. Please try again tomorrow." : {
+
+    },
+    "Your Logs" : {
+
+    },
+    "Your logs are too large to send. Turn off Attach My Logs and share them on Discord or Facebook instead." : {
+
+    },
+    "Your logs couldn't be prepared. Try again, or turn off Attach My Logs." : {
+
+    },
+    "Choose the preferred lower threshold for Time in Range statistics." : {
+      "comment" : "Short description of the lower range threshold setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the preferred lower threshold for Time in Range statistics."
+          }
+        }
+      }
+    },
+    "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)." : {
+      "comment" : "Explains that the lower threshold applies to both TIR and TITR. Placeholders are the upper thresholds including units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)."
+          }
+        }
+      }
+    },
+    "Extended (%@)" : {
+      "comment" : "Extended lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended (%@)"
+          }
+        }
+      }
+    },
+    "Extended Lower Threshold" : {
+      "comment" : "Search term for the extended lower range threshold setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended Lower Threshold"
+          }
+        }
+      }
+    },
+    "Extended:" : {
+      "comment" : "Heading for the extended lower range threshold description.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended:"
+          }
+        }
+      }
+    },
+    "TIR Lower Threshold" : {
+      "comment" : "Setting for the lower glucose boundary shared by TIR and TITR statistics.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIR Lower Threshold"
+          }
+        }
+      }
+    },
+    "Standard (%@)" : {
+      "comment" : "Standard lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard (%@)"
+          }
+        }
+      }
+    },
+    "Standard Lower Threshold" : {
+      "comment" : "Search term for the standard lower range threshold setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard Lower Threshold"
+          }
+        }
+      }
+    },
+    "Standard:" : {
+      "comment" : "Heading for the standard lower range threshold description.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard:"
+          }
+        }
+      }
+    },
+    "TIR (%@-%@)" : {
+      "comment" : "Time in Range with the selected lower threshold and the upper threshold.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIR (%@-%@)"
+          }
+        }
+      }
+    },
+    "TITR (%@-%@)" : {
+      "comment" : "Time in Tight Range with either the Standard or Extended lower threshold.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TITR (%@-%@)"
+          }
+        }
+      }
+    },
+    "Uses the established lower threshold of %@." : {
+      "comment" : "Standard lower range threshold description; placeholder includes glucose value and units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the established lower threshold of %@."
+          }
+        }
+      }
+    },
+    "Uses the newer Time in Normoglycemia (TING) lower threshold of %@." : {
+      "comment" : "Extended lower range threshold description; placeholder includes glucose value and units.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the newer Time in Normoglycemia (TING) lower threshold of %@."
+          }
+        }
+      }
+    },
     " " : {
       "localizations" : {
         "bg" : {
@@ -1748,7 +2071,6 @@
       }
     },
     " %@" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -5189,9 +5511,6 @@
         }
       }
     },
-    "—" : {
-
-    },
     ", %lld%%" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8520,7 +8839,6 @@
       }
     },
     "%@ (%@-%@)" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -10265,136 +10583,6 @@
         }
       }
     },
-    "%@ Insulin" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Инсулин"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Inzulín"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulin"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulin"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulina"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Insuline %@"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ אינסולין"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulina"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 인슐린"
-          }
-        },
-        "nb-NO" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulin"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insuline"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulina"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulina"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ Insulin"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Инсулин"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulin"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%@ Insulin"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulin"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Insulin"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 胰岛素"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 胰島素"
-          }
-        }
-      }
-    },
     "%@ is on. %@" : {
       "localizations" : {
         "bg" : {
@@ -10925,16 +11113,6 @@
     },
     "%@ Start Here" : {
 
-    },
-    "%@ to below %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ to below %2$@"
-          }
-        }
-      }
     },
     "%@-%@" : {
       "localizations" : {
@@ -11604,6 +11782,136 @@
         }
       }
     },
+    "%@ Insulin" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Инсулин"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Inzulín"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulina"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insuline %@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ אינסולין"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulina"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 인슐린"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insuline"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulina"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulina"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ Insulin"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Инсулин"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ Insulin"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 胰岛素"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 胰島素"
+          }
+        }
+      }
+    },
     "%1$@ for %2$@" : {
       "comment" : "Summary string for temporary basal rate configuration page",
       "extractionState" : "manual",
@@ -11743,8 +12051,8 @@
       }
     },
     "%1$d days %2$d hours" : {
-      "comment" : "Accessibility: pod time",
       "extractionState" : "stale",
+      "comment" : "Accessibility: pod time",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -11875,8 +12183,8 @@
       }
     },
     "%1$d hours %2$d minutes" : {
-      "comment" : "Accessibility: pod time",
       "extractionState" : "stale",
+      "comment" : "Accessibility: pod time",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -12138,8 +12446,8 @@
       }
     },
     "%d hours" : {
-      "comment" : "Accessibility: pod time",
       "extractionState" : "stale",
+      "comment" : "Accessibility: pod time",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -12270,8 +12578,8 @@
       }
     },
     "%d minutes" : {
-      "comment" : "Accessibility: pod time",
       "extractionState" : "stale",
+      "comment" : "Accessibility: pod time",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -12402,8 +12710,8 @@
       }
     },
     "%d minutes ago" : {
-      "comment" : "Accessibility: elapsed time",
       "extractionState" : "stale",
+      "comment" : "Accessibility: elapsed time",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -13057,6 +13365,7 @@
       }
     },
     "%lld %%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -13851,9 +14160,6 @@
           }
         }
       }
-    },
-    "%lld of %lld characters" : {
-
     },
     "%lld x" : {
       "localizations" : {
@@ -26853,6 +27159,9 @@
         }
       }
     },
+    "54 to below 70 mg/dL" : {
+      "comment" : "Percentage of glucose readings in the low GRI range."
+    },
     "75%:" : {
       "localizations" : {
         "bg" : {
@@ -29614,9 +29923,6 @@
     "About the Scenarios" : {
 
     },
-    "About This Rule" : {
-
-    },
     "About this source" : {
       "comment" : "About this source",
       "localizations" : {
@@ -29891,6 +30197,12 @@
           }
         }
       }
+    },
+    "Above 180 through 250 mg/dL" : {
+      "comment" : "Percentage of glucose readings in the high GRI range."
+    },
+    "Above 250 mg/dL" : {
+      "comment" : "Percentage of glucose readings in the very high GRI range."
     },
     "above range" : {
       "comment" : "Accessibility: glucose range",
@@ -35840,9 +36152,6 @@
         }
       }
     },
-    "Add Screenshots" : {
-
-    },
     "Add Simulator" : {
       "comment" : "Add Simulator pump",
       "extractionState" : "manual",
@@ -40230,9 +40539,6 @@
           }
         }
       }
-    },
-    "Alarms active" : {
-
     },
     "Alarms cannot alert you. Tap to fix." : {
       "localizations" : {
@@ -46453,9 +46759,6 @@
         }
       }
     },
-    "Also Sent" : {
-
-    },
     "Also triggered when the lowest forecasted glucose (minPredBG) is < %@ %@." : {
       "localizations" : {
         "bg" : {
@@ -50803,9 +51106,6 @@
         }
       }
     },
-    "Applied when curating the catalog" : {
-
-    },
     "Applies To (Cannot be changed)" : {
       "localizations" : {
         "bg" : {
@@ -51997,12 +52297,6 @@
         }
       }
     },
-    "Ask on Discord" : {
-
-    },
-    "Ask on Facebook" : {
-
-    },
     "at least" : {
       "localizations" : {
         "bg" : {
@@ -52262,9 +52556,6 @@
           }
         }
       }
-    },
-    "Attach My Logs" : {
-
     },
     "Attach Pod" : {
       "comment" : "-------------------------------------------------------------------------------------------\n  DASH strings",
@@ -57124,13 +57415,13 @@
         }
       }
     },
+    "Average of the Last 24 Hours" : {
+      "comment" : "Stats banner subtitle"
+    },
     "Average of the Last 3 Months" : {
       "comment" : "Stats banner subtitle"
     },
     "Average of the Last 7 Days" : {
-      "comment" : "Stats banner subtitle"
-    },
-    "Average of the Last 24 Hours" : {
       "comment" : "Stats banner subtitle"
     },
     "Average of the Last Month" : {
@@ -57789,15 +58080,6 @@
           }
         }
       }
-    },
-    "Backfill" : {
-
-    },
-    "Backfill carbs, boluses, temp basals, and glucose from Nightscout, up to now." : {
-
-    },
-    "Backfill Complete" : {
-
     },
     "Backfill Failed" : {
       "localizations" : {
@@ -58867,12 +59149,6 @@
         }
       }
     },
-    "Backfill Treatments" : {
-
-    },
-    "Backfill Treatments from Nightscout" : {
-
-    },
     "Backfilling from trend is currently not well supported by Loop" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -59009,9 +59285,6 @@
           }
         }
       }
-    },
-    "Backfilling…" : {
-
     },
     "Background" : {
       "localizations" : {
@@ -60725,9 +60998,6 @@
         }
       }
     },
-    "Based on your current settings. Rule catalog %@." : {
-
-    },
     "Basic Insulin Rates & Targets" : {
       "localizations" : {
         "bg" : {
@@ -62044,8 +62314,8 @@
         }
       }
     },
-    "Below %@" : {
-
+    "Below 54 mg/dL" : {
+      "comment" : "Percentage of glucose readings in the very low GRI range."
     },
     "Below is the exact JSON object Trio would send right now. No glucose, insulin, carbs, credentials, or settings values are included." : {
       "localizations" : {
@@ -68775,9 +69045,6 @@
       "comment" : "Name of a spoken alert voice.",
       "isCommentAutoGenerated" : true
     },
-    "Build" : {
-
-    },
     "Build Number" : {
       "localizations" : {
         "bg" : {
@@ -69579,9 +69846,6 @@
           }
         }
       }
-    },
-    "Calculating TDD for day %@…" : {
-
     },
     "Calculator Configuration" : {
       "localizations" : {
@@ -78196,9 +78460,6 @@
         }
       }
     },
-    "Change Screenshots" : {
-
-    },
     "Changes the size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected." : {
 
     },
@@ -80556,28 +80817,6 @@
         }
       }
     },
-    "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)." : {
-      "comment" : "Explains that the lower threshold applies to both TIR and TITR",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)."
-          }
-        }
-      }
-    },
-    "Choose the preferred lower threshold for Time in Range statistics." : {
-      "comment" : "Short description of the lower range threshold setting.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the preferred lower threshold for Time in Range statistics."
-          }
-        }
-      }
-    },
     "Choose the time span the home statistics panel covers." : {
 
     },
@@ -81103,7 +81342,6 @@
       }
     },
     "Choose type of time in range to be used for Trio's statistics." : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -81362,6 +81600,9 @@
           }
         }
       }
+    },
+    "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
+      "extractionState" : "stale"
     },
     "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nToday's Treatments: insulin delivered since midnight — no glucose statistics. Announced carbs (and fat and protein, if you log them) appear once logged that day.\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
       "extractionState" : "stale",
@@ -81888,7 +82129,6 @@
       }
     },
     "Choose which type of time in range Trio should adopt for all its statistical charts and displays:" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -88615,9 +88855,6 @@
         }
       }
     },
-    "Contact" : {
-
-    },
     "Contact Image" : {
       "localizations" : {
         "bg" : {
@@ -89934,9 +90171,6 @@
         }
       }
     },
-    "Copy ID" : {
-
-    },
     "Copy JSON" : {
       "localizations" : {
         "bg" : {
@@ -90857,12 +91091,6 @@
           }
         }
       }
-    },
-    "Couldn't Delete Report" : {
-
-    },
-    "Couldn't Send Report" : {
-
     },
     "Count" : {
       "localizations" : {
@@ -94436,8 +94664,8 @@
       }
     },
     "d" : {
-      "comment" : "Abbreviation for Days\nabbreviation for days",
       "extractionState" : "stale",
+      "comment" : "Abbreviation for Days\nabbreviation for days",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -96530,9 +96758,6 @@
         }
       }
     },
-    "Day %@ failed, continuing…" : {
-
-    },
     "Day and Night Window" : {
       "localizations" : {
         "bg" : {
@@ -97055,9 +97280,6 @@
           }
         }
       }
-    },
-    "day(s)" : {
-
     },
     "DayEnd" : {
       "localizations" : {
@@ -107466,12 +107688,6 @@
         }
       }
     },
-    "Delete Report" : {
-
-    },
-    "Delete Report?" : {
-
-    },
     "Delete Selected Preset" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -107999,12 +108215,6 @@
           }
         }
       }
-    },
-    "Deleting" : {
-
-    },
-    "Deleting a report removes it and its files from the Trio team's server." : {
-
     },
     "Delivery limits" : {
       "extractionState" : "manual",
@@ -108793,9 +109003,6 @@
           }
         }
       }
-    },
-    "Describe what happened and what you expected" : {
-
     },
     "Deselect All" : {
       "localizations" : {
@@ -112499,9 +112706,6 @@
           }
         }
       }
-    },
-    "Discord Name" : {
-
     },
     "Dismiss" : {
       "extractionState" : "manual",
@@ -122159,9 +122363,6 @@
     "Electronic" : {
       "comment" : "Themed alarm sound catalog for electronic sounds.",
       "isCommentAutoGenerated" : true
-    },
-    "Email" : {
-
     },
     "Emoji or short text" : {
       "localizations" : {
@@ -136331,40 +136532,6 @@
         }
       }
     },
-    "Extended (%@)" : {
-      "comment" : "Extended lower threshold for TIR and TITR statistics",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended (%@)"
-          }
-        }
-      }
-    },
-    "Extended Lower Threshold" : {
-      "comment" : "Search term for the extended lower range threshold setting.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended Lower Threshold"
-          }
-        }
-      }
-    },
-    "Extended:" : {
-      "comment" : "Heading for the extended lower range threshold description.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended:"
-          }
-        }
-      }
-    },
     "External" : {
       "comment" : "External Insulin",
       "localizations" : {
@@ -141799,13 +141966,7 @@
         }
       }
     },
-    "Fetching day %@…" : {
-
-    },
     "Few or no meals are logged, so meals are recognised from fast rises instead of carb entries." : {
-
-    },
-    "Fill in any of these so the team can follow up with you." : {
 
     },
     "Filter" : {
@@ -149550,9 +149711,6 @@
         }
       }
     },
-    "GitHub Username" : {
-
-    },
     "Give Apple Health Write Permissions" : {
       "localizations" : {
         "bg" : {
@@ -154055,9 +154213,6 @@
     "Glucose Reading Font" : {
 
     },
-    "Glucose Readings" : {
-
-    },
     "Glucose rises fast like after a meal, but no carbs were logged, and goes above range. Covers meals left fully to UAM and meals with only a manual prebolus." : {
 
     },
@@ -157668,8 +157823,8 @@
       "isCommentAutoGenerated" : true
     },
     "h" : {
-      "comment" : "Abbreviation for Hours\nabbreviation for hours\nh",
       "extractionState" : "stale",
+      "comment" : "Abbreviation for Hours\nabbreviation for hours\nh",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -162451,9 +162606,6 @@
           }
         }
       }
-    },
-    "Home Statistics Range" : {
-
     },
     "Home View Button Panel " : {
       "comment" : "UI/UX option",
@@ -170538,9 +170690,6 @@
         }
       }
     },
-    "Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed." : {
-
-    },
     "Increase sensitivity when glucose is above target if a manual Temp Target > %@ %@ is set." : {
       "localizations" : {
         "bg" : {
@@ -176512,12 +176661,6 @@
         }
       }
     },
-    "iOS Version" : {
-
-    },
-    "iPhone Model" : {
-
-    },
     "iPhone not reachable. Nothing was sent." : {
       "comment" : "Watch message when a request could not be sent to the phone"
     },
@@ -178612,6 +178755,12 @@
         }
       }
     },
+    "last 24 hours" : {
+      "comment" : "Stats banner scope"
+    },
+    "Last 24 Hours" : {
+      "comment" : "Home stats panel range option"
+    },
     "Last 3 Days" : {
 
     },
@@ -178625,12 +178774,6 @@
       "comment" : "Stats banner scope"
     },
     "Last 7 Days" : {
-      "comment" : "Home stats panel range option"
-    },
-    "last 24 hours" : {
-      "comment" : "Stats banner scope"
-    },
-    "Last 24 Hours" : {
       "comment" : "Home stats panel range option"
     },
     "Last Blood Sugar prediction" : {
@@ -203867,7 +204010,7 @@
       }
     },
     "min" : {
-      "comment" : "Minutes abbreviation",
+      "comment" : "Minutes abbreviation\nShort form for minutes\nminutes abbreviation",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -211145,9 +211288,6 @@
         }
       }
     },
-    "No answer from iPhone. Check Trio on your iPhone before trying again." : {
-      "comment" : "Watch message when the phone did not confirm a request"
-    },
     "No biometric identities are enrolled. Please set up Face ID or Touch ID." : {
       "localizations" : {
         "bg" : {
@@ -211277,6 +211417,9 @@
           }
         }
       }
+    },
+    "No answer from iPhone. Check Trio on your iPhone before trying again." : {
+      "comment" : "Watch message when the phone did not confirm a request"
     },
     "No Bolus Data" : {
       "localizations" : {
@@ -216311,7 +216454,6 @@
       }
     },
     "Normal (%@-%@)" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -224749,9 +224891,6 @@
         }
       }
     },
-    "One of the screenshots couldn't be read. Try choosing it again or leave it out." : {
-
-    },
     "Only adjust these settings if you’re an advanced or returning user who knows what they’re doing." : {
       "localizations" : {
         "bg" : {
@@ -225545,9 +225684,6 @@
           }
         }
       }
-    },
-    "Open a GitHub Issue" : {
-
     },
     "Open Can" : {
       "comment" : "Name of a sound file.",
@@ -232155,15 +232291,6 @@
         }
       }
     },
-    "P9: confidence lowered because your DIA is under 8 hours." : {
-
-    },
-    "P12: confidence lowered because only some meals were logged in this time frame." : {
-
-    },
-    "Pair a pump before backfilling treatments." : {
-
-    },
     "Pair Pod" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -233094,9 +233221,6 @@
           }
         }
       }
-    },
-    "Passed (%lld)" : {
-
     },
     "Past 24 Hours " : {
       "comment" : "Duration displayed in statPanel",
@@ -240846,9 +240970,6 @@
         }
       }
     },
-    "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it." : {
-
-    },
     "Proceed" : {
       "comment" : "Button Label to Proceed to Bolus on Watch",
       "localizations" : {
@@ -241913,9 +242034,6 @@
         }
       }
     },
-    "Programmed on pump" : {
-      "comment" : "Accessibility label for bolus programmed on the pump itself"
-    },
     "Protein" : {
       "comment" : "Add Protein",
       "localizations" : {
@@ -242046,6 +242164,9 @@
           }
         }
       }
+    },
+    "Programmed on pump" : {
+      "comment" : "Accessibility label for bolus programmed on the pump itself"
     },
     "Protein / Fat" : {
       "comment" : "Treatment type",
@@ -242569,9 +242690,6 @@
       }
     },
     "Prototype" : {
-
-    },
-    "Public. Only for bugs you can describe without personal or health data." : {
 
     },
     "Pull down to force loop" : {
@@ -253080,21 +253198,6 @@
         }
       }
     },
-    "Report %@ and its files will be deleted from the Trio team's server." : {
-
-    },
-    "Report a Problem" : {
-
-    },
-    "Report Actions" : {
-
-    },
-    "Report Sent" : {
-
-    },
-    "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time." : {
-
-    },
     "Represents carb equivalent for fat and protein, calculated using the Warsaw Method." : {
       "localizations" : {
         "bg" : {
@@ -253622,7 +253725,6 @@
       }
     },
     "Reservoir is empty" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -258925,9 +259027,6 @@
         }
       }
     },
-    "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed." : {
-
-    },
     "Saved Food" : {
       "comment" : "Saved Food Presets",
       "localizations" : {
@@ -260538,12 +260637,6 @@
     },
     "Score calculation" : {
       "comment" : "Expandable breakdown of the GRI score for the selected period."
-    },
-    "Screenshot %lld" : {
-
-    },
-    "Screenshots" : {
-
     },
     "SD" : {
       "comment" : "SD",
@@ -263157,15 +263250,6 @@
           }
         }
       }
-    },
-    "Send to the Trio Team" : {
-
-    },
-    "Sending" : {
-
-    },
-    "Sending Report" : {
-
     },
     "Sens Ratio" : {
       "comment" : "Name of the secondary attribute choice for the SwissAlpine watchface.",
@@ -265999,9 +266083,6 @@
           }
         }
       }
-    },
-    "Sent Reports" : {
-
     },
     "Series" : {
       "localizations" : {
@@ -279058,9 +279139,6 @@
         }
       }
     },
-    "Some files didn't reach the Trio team's server. Please try again." : {
-
-    },
     "Some helpful reminders:" : {
       "localizations" : {
         "bg" : {
@@ -280499,40 +280577,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "過期資料"
-          }
-        }
-      }
-    },
-    "Standard (%@)" : {
-      "comment" : "Standard lower threshold for TIR and TITR statistics",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard (%@)"
-          }
-        }
-      }
-    },
-    "Standard Lower Threshold" : {
-      "comment" : "Search term for the standard lower range threshold setting.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard Lower Threshold"
-          }
-        }
-      }
-    },
-    "Standard:" : {
-      "comment" : "Heading for the standard lower range threshold description.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard:"
           }
         }
       }
@@ -283196,7 +283240,7 @@
         }
       }
     },
-    "Stay Anonymous" : {
+    "Home Statistics Range" : {
 
     },
     "Stay in open loop (no automated dosing) for a bit to help Trio catch up to keep you safe" : {
@@ -285947,9 +285991,6 @@
           }
         }
       }
-    },
-    "Submit" : {
-
     },
     "Submodules" : {
       "localizations" : {
@@ -294373,9 +294414,6 @@
         }
       }
     },
-    "Thank you. Your report ID is %@. Mention it if you ask about this on Discord or Facebook." : {
-
-    },
     "The Adjustment Factor (AF) allows you to control how quickly and effectively Dynamic ISF responds to changes in glucose levels." : {
       "localizations" : {
         "bg" : {
@@ -300012,12 +300050,6 @@
         }
       }
     },
-    "The report is too large. Try fewer or smaller screenshots." : {
-
-    },
-    "The report won't include your name or contact details." : {
-
-    },
     "The Sensitivity Ratio is used to calculate the amount of adjustment needed to basal rates and ISF." : {
       "localizations" : {
         "bg" : {
@@ -300147,9 +300179,6 @@
           }
         }
       }
-    },
-    "The settings analysis rule catalog is missing from the app bundle." : {
-
     },
     "The settings in this section typically do not require ANY modifications. Do not alter them without a solid understanding of what you are changing and the full impact it will have on the algorithm." : {
       "localizations" : {
@@ -300670,12 +300699,6 @@
           }
         }
       }
-    },
-    "The Trio team's server couldn't take the report right now (error %lld)." : {
-
-    },
-    "The Trio team's server sent an answer the app doesn't understand." : {
-
     },
     "The Upload Treatments toggle enables uploading of the following data sets to your connected Nightscout URL:" : {
       "localizations" : {
@@ -302903,9 +302926,6 @@
         }
       }
     },
-    "This build of Trio can't send reports. Please share your logs on Discord or Facebook instead." : {
-
-    },
     "This cap prevents the system from overestimating how much insulin is needed when carb absorption isn't visible, offering a safeguard for accurate dosing." : {
       "localizations" : {
         "bg" : {
@@ -303165,9 +303185,6 @@
           }
         }
       }
-    },
-    "This creates synthetic Total Daily Dose (TDD) history so Dynamic ISF's 7-day data requirement can be satisfied immediately. Intended to be run once, typically right after a fresh install." : {
-
     },
     "This delay accounts for the slower absorption of fat and protein, as calculated by the Warsaw Method, ensuring insulin delivery is properly timed to manage glucose spikes caused by high-fat, high-protein meals." : {
       "localizations" : {
@@ -305288,9 +305305,6 @@
           }
         }
       }
-    },
-    "This fetches carb entries, boluses, temp basals, and glucose readings from your connected Nightscout URL for the selected number of days, up to the moment you start the backfill, imports them into Trio, and computes Total Daily Dose history from them so Dynamic ISF can activate right away instead of waiting a week.\n\nData uploaded by Trio, Loop, or AndroidAPS is supported; priming boluses and deleted entries are left out.\n\nRequires a paired pump. Imported doses may show as active insulin-on-board immediately after backfilling, since they reflect real insulin you already took. Safe to rerun; it will not duplicate already-imported or locally recorded data. If Nightscout has no bolus/temp-basal history for a given day, no TDD is synthesized for that day, since it would only reflect scheduled basal." : {
-
     },
     "This helps reduce the risk of incorrect insulin dosing based on inaccurate sensor data, ensuring safer insulin adjustments during periods of poor CGM accuracy." : {
       "localizations" : {
@@ -311395,9 +311409,6 @@
         }
       }
     },
-    "Tidepool Login Required" : {
-
-    },
     "Time" : {
       "comment" : "Time basal profile",
       "localizations" : {
@@ -311663,7 +311674,6 @@
 
     },
     "Time in Normoglycemia (TING)" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311794,7 +311804,6 @@
       }
     },
     "Time in Normoglycemia (TING):" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -312186,7 +312195,6 @@
       }
     },
     "Time in Range Type" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -312317,7 +312325,6 @@
       }
     },
     "Time in Tight Range (TITR)" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -312448,7 +312455,6 @@
       }
     },
     "Time in Tight Range (TITR):" : {
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -312847,8 +312853,8 @@
       }
     },
     "time unknown" : {
-      "comment" : "Accessibility: elapsed time unavailable",
       "extractionState" : "stale",
+      "comment" : "Accessibility: elapsed time unavailable",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -314144,42 +314150,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提示：當您開始添加脂肪和蛋白質的輸入時，您會發現您的正常碳水比需要增加到更大的數字。因此，最好從約 50% 的因子開始。"
-          }
-        }
-      }
-    },
-    "TIR (%@-%@)" : {
-      "comment" : "Time in Range with the selected lower threshold and the upper threshold.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TIR (%@-%@)"
-          }
-        }
-      }
-    },
-    "TIR Lower Threshold" : {
-      "comment" : "Setting for the lower glucose boundary shared by TIR and TITR statistics.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TIR Lower Threshold"
-          }
-        }
-      }
-    },
-    "Title (optional)" : {
-
-    },
-    "TITR (%@-%@)" : {
-      "comment" : "Time in Tight Range with either the Standard or Extended lower threshold.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TITR (%@-%@)"
           }
         }
       }
@@ -317059,9 +317029,6 @@
           }
         }
       }
-    },
-    "Top Scenario Advice" : {
-
     },
     "Top target" : {
       "comment" : "Upper temp target limit",
@@ -321278,9 +321245,6 @@
           }
         }
       }
-    },
-    "Trio couldn't confirm with Apple that this copy of the app is genuine. Please try again later." : {
-
     },
     "Trio Docs" : {
       "localizations" : {
@@ -327014,9 +326978,6 @@
         }
       }
     },
-    "Try Again" : {
-
-    },
     "Try again in a moment, or configure your Therapy Settings manually instead." : {
       "localizations" : {
         "bg" : {
@@ -331361,9 +331322,6 @@
         }
       }
     },
-    "Up to %lld screenshots or photos." : {
-
-    },
     "up to date" : {
       "comment" : "Accessibility: version status",
       "localizations" : {
@@ -333605,9 +333563,6 @@
           }
         }
       }
-    },
-    "Uploads to Tidepool are paused. Tap to log in." : {
-
     },
     "Upper limit of the Autosens Ratio." : {
       "localizations" : {
@@ -336383,20 +336338,8 @@
         }
       }
     },
-    "Uses the established lower threshold of %@." : {
-      "comment" : "Standard lower range threshold description",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uses the established lower threshold of %@."
-          }
-        }
-      }
-    },
     "Uses the fairly established Time in Tight Range definition, which is defined as time between %@ and %@  %@." : {
       "comment" : "Time in Tight Range (TITR) verbose hint description",
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -336662,20 +336605,8 @@
         }
       }
     },
-    "Uses the newer Time in Normoglycemia (TING) lower threshold of %@." : {
-      "comment" : "Extended lower range threshold description",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uses the newer Time in Normoglycemia (TING) lower threshold of %@."
-          }
-        }
-      }
-    },
     "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts its range as all values between the normoglycemic minimum threshold (%@ %@) and %@ %@." : {
       "comment" : "Time in Normoglycemia (TING) verbose hint description",
-      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -344697,9 +344628,6 @@
         }
       }
     },
-    "When lows follow unannounced meals, the prebolus and the SMB and UAM limits matter more than the carb ratio. Look at this before raising any limits for meal highs (guard P10)." : {
-
-    },
     "When Remote Control is enabled, you can send boluses, overrides, temporary targets, carbs, and other commands to Trio via push notifications." : {
       "localizations" : {
         "bg" : {
@@ -349584,9 +349512,6 @@
         }
       }
     },
-    "You've sent several reports today. Please try again tomorrow." : {
-
-    },
     "You've successfully completed the initial setup of Trio. Tap 'Get Started' to save your settings and start using Trio." : {
       "localizations" : {
         "bg" : {
@@ -351154,15 +351079,6 @@
           }
         }
       }
-    },
-    "Your Logs" : {
-
-    },
-    "Your logs are too large to send. Turn off Attach My Logs and share them on Discord or Facebook instead." : {
-
-    },
-    "Your logs couldn't be prepared. Try again, or turn off Attach My Logs." : {
-
     },
     "Your most-used amounts at similar times on similar days. Tap a bolus, a carb amount, or both." : {
       "comment" : "Subtitle of the quick-pick treatments pill rows",

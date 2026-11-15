@@ -33,7 +33,7 @@ extension SettingsAnalysis {
         case missing
 
         var errorDescription: String? {
-            String(localized: "The settings analysis rule catalog is missing from the app bundle.")
+            String(localized: "Settings checks could not be loaded.")
         }
     }
 

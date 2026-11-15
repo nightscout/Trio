@@ -16,7 +16,7 @@
       "modes": ["all"],
       "finding": "Your DIA is set shorter than 8 hours.",
       "advice": "A short DIA usually makes Trio underestimate insulin on board, which can make other settings look wrong. Trio's default is 10 hours; differences between insulins are set through the insulin peak time, not the DIA.",
-      "rationale": "Insulin on board depends only on doses and the insulin curve. Pattern analysis treats time frames with a DIA under 8 hours as less reliable (guard P9).",
+      "rationale": "Insulin on board depends only on doses and the insulin curve. Pattern analysis treats time frames with a DIA under 8 hours as less reliable.",
       "guards": ["P9"]
     },
     {
@@ -50,7 +50,7 @@
       "modes": ["all"],
       "finding": "Your SMB Delivery Ratio differs from Trio's default of 0.5.",
       "advice": "If SMBs feel too big or too small, this usually points to a core setting (basal, ISF or carb ratio) rather than the delivery ratio. Returning the ratio to the default is usually recommended.",
-      "rationale": "The ratio only changes how much of a calculated dose is given at once, not how much insulin Trio thinks you need (see also M07).",
+      "rationale": "The ratio only changes how much of a calculated dose is given at once, not how much insulin Trio thinks you need.",
       "guards": ["P1"]
     },
     {
@@ -101,7 +101,7 @@
       "modes": ["logarithmic"],
       "finding": "You are using the logarithmic Dynamic ISF formula.",
       "advice": "The current community recommendation is the sigmoid formula. If you switch, profile ISF usually needs to be retuned to its value at your target, which is often weaker than an ISF tested on the logarithmic formula.",
-      "rationale": "Switching without retuning profile ISF is a common cause of overcorrection (S01).",
+      "rationale": "Switching without retuning profile ISF is a common cause of overcorrection.",
       "guards": ["P3"]
     },
     {
@@ -147,7 +147,7 @@
     { "id": "P5", "phase": 2, "text": "If results are good, don't change settings just to match a formula or default." },
     { "id": "P6", "phase": 2, "text": "Exclude confounders: a treated low before the window, high-fat/protein meals, site problems, a noisy sensor." },
     { "id": "P7", "phase": 2, "text": "Basal tests only while fasting, for at most 8 hours." },
-    { "id": "P8", "phase": 0, "text": "When guidance conflicts, the most recent guidance wins. Applied when curating this catalog." },
+    { "id": "P8", "phase": 0, "text": "When guidance conflicts, the most recent guidance wins." },
     { "id": "P9", "phase": 1, "text": "Use the DIA in effect for the data. With a DIA under 8 hours, results are less reliable." },
     { "id": "P10", "phase": 3, "text": "Don't relax limits when highs are followed by over-correction lows; look at the core setting first." },
     { "id": "P11", "phase": 2, "text": "When lows come before highs, look at the cause of the lows first." },

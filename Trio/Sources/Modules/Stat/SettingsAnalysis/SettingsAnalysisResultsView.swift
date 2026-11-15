@@ -28,8 +28,6 @@ struct SettingsAnalysisResultsView: View {
             } footer: {
                 Text("Sorted by how often they occur. Tap a scenario to see the advice.")
             }
-
-            topAdviceCard
         }
 
         if !report.unavailable.isEmpty {
@@ -58,7 +56,6 @@ struct SettingsAnalysisResultsView: View {
     private var overviewCard: some View {
         SettingsAnalysisCard(Text("Overview")) {
             LabeledContent("Time Frame", value: report.timeFrame.formatted)
-            LabeledContent("Glucose Readings", value: report.readings.formatted())
             LabeledContent("CGM Coverage", value: "\(report.coverage) %")
             LabeledContent {
                 Text(report.timeInRange.map { "\($0) %" } ?? "–")
@@ -70,6 +67,15 @@ struct SettingsAnalysisResultsView: View {
                 "Scenarios Found",
                 value: "\(report.findings.count) / \(report.findings.count + report.notDetected.count + report.unavailable.count)"
             )
+            if report.mealProfile.style == .unannounced {
+                Label {
+                    Text("Few or no meals are logged, so meals are recognised from fast rises instead of carb entries.")
+                        .font(.footnote)
+                } icon: {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundStyle(.orange)
+                }
+            }
         } footer: {
             VStack(alignment: .leading, spacing: 4) {
                 if report.readings == 0 {
@@ -77,13 +83,8 @@ struct SettingsAnalysisResultsView: View {
                 } else if report.coverage < 70 {
                     Text("CGM data covers only part of this time frame. Scenarios in the gaps are missed.")
                 }
-                switch report.mealProfile.style {
-                case .announced:
-                    EmptyView()
-                case .partial:
+                if report.mealProfile.style == .partial {
                     Text("Only some meals are logged, so carb-based scenarios have lower confidence.")
-                case .unannounced:
-                    Text("Few or no meals are logged, so meals are recognised from fast rises instead of carb entries.")
                 }
             }
         }
@@ -94,23 +95,6 @@ struct SettingsAnalysisResultsView: View {
         let low = SettingsAnalysis.Detectors.Threshold.low.formatted(for: units)
         let high = SettingsAnalysis.Detectors.Threshold.high.formatted(withUnits: units)
         return "\(low)–\(high)"
-    }
-
-    private var topAdviceCard: some View {
-        SettingsAnalysisCard(Text("Top Scenario Advice")) {
-            ForEach(Array(report.findings.prefix(3).enumerated()), id: \.element.id) { index, finding in
-                if index > 0 { Divider() }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(finding.scenario.title)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(finding.advice.target)
-                        .font(.subheadline.weight(.semibold))
-                    Text(finding.advice.recommendation)
-                        .font(.subheadline)
-                }
-            }
-        }
     }
 }
 
@@ -256,8 +240,8 @@ struct SettingsAnalysisFindingView: View {
 
     private func guardNote(for id: String) -> String {
         switch id {
-        case "P9": return String(localized: "P9: confidence lowered because your DIA is under 8 hours.")
-        case "P12": return String(localized: "P12: confidence lowered because only some meals were logged in this time frame.")
+        case "P9": return String(localized: "Confidence lowered because your DIA is under 8 hours.")
+        case "P12": return String(localized: "Confidence lowered because only some meals were logged in this time frame.")
         default: return id
         }
     }

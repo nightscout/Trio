@@ -144,7 +144,7 @@ private enum AdviceLibrary {
                     localized: "This pattern usually indicates that too much insulin is given for meals that are not announced: a manual prebolus that is too large, or SMBs that keep going after the meal is covered."
                 ),
                 String(
-                    localized: "When lows follow unannounced meals, the prebolus and the SMB and UAM limits matter more than the carb ratio. Look at this before raising any limits for meal highs (guard P10)."
+                    localized: "When lows follow unannounced meals, the prebolus and the SMB and UAM limits matter more than the carb ratio. Look at this before raising any limits for meal highs."
                 ),
                 .medium
             )

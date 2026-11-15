@@ -26,26 +26,13 @@ struct SettingsChecksCards: View {
                     Label("No settings stood out.", systemImage: "checkmark.seal")
                         .foregroundStyle(.green)
                 }
-                ForEach(Array(checks.flagged.dropFirst().enumerated()), id: \.element.id) { index, result in
-                    if index > 0 { Divider() }
-                    link(for: result, showsFinding: true)
-                }
-                if !checks.passed.isEmpty {
-                    if checks.flagged.count > 1 { Divider() }
-                    DisclosureGroup {
-                        VStack(alignment: .leading, spacing: 10) {
-                            ForEach(checks.passed) { result in
-                                Divider()
-                                link(for: result, showsFinding: false)
-                            }
-                        }
-                        .padding(.top, 6)
-                    } label: {
-                        Text("Passed (\(checks.passed.count))")
-                    }
+                // Every check is listed, including ones that don't apply to the current setup.
+                ForEach(Array(checks.listed.enumerated()), id: \.element.id) { index, result in
+                    if index > 0 || checks.flagged.isEmpty { Divider() }
+                    link(for: result, showsFinding: result.isFlagged)
                 }
             } footer: {
-                Text("Based on your current settings. Rule catalog \(checks.catalogVersion).")
+                Text("Based on your current settings.")
             }
         }
     }
@@ -61,17 +48,22 @@ struct SettingsCheckRow: View {
     let result: SettingsAnalysis.CheckResult
     let showsFinding: Bool
 
+    private var icon: (name: String, color: Color) {
+        switch result.outcome {
+        case .flagged: return ("exclamationmark.circle.fill", .orange)
+        case .passed: return ("checkmark.circle.fill", .green)
+        case .notApplicable: return ("minus.circle.fill", .secondary)
+        }
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: result.isFlagged ? "exclamationmark.circle.fill" : "checkmark.circle.fill")
-                .foregroundStyle(result.isFlagged ? .orange : .green)
+            Image(systemName: icon.name)
+                .foregroundStyle(icon.color)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                HStack {
-                    Text(result.rule.title)
-                    Spacer()
-                    RuleIDChip(id: result.rule.id)
-                }
+                Text(result.rule.title)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 if showsFinding {
                     Text(result.rule.finding)
                         .font(.caption)
@@ -81,23 +73,13 @@ struct SettingsCheckRow: View {
                     Text(observed)
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
+                } else if case let .notApplicable(reason) = result.outcome {
+                    Text(reason)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
         }
-    }
-}
-
-struct RuleIDChip: View {
-    let id: String
-
-    var body: some View {
-        Text(verbatim: id)
-            .font(.caption2.monospaced().weight(.semibold))
-            .padding(.horizontal, 5)
-            .padding(.vertical, 1)
-            .foregroundStyle(.secondary)
-            .background(Color.secondary.opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
-            .accessibilityLabel(Text("Rule \(id)"))
     }
 }
 
@@ -114,11 +96,7 @@ struct SettingsCheckDetailView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text(rule.title).font(.headline)
-                        Spacer()
-                        RuleIDChip(id: rule.id)
-                    }
+                    Text(rule.title).font(.headline)
                     Text(rule.finding)
                         .font(.subheadline)
                     if let observed = result.observed {
@@ -161,11 +139,7 @@ struct SettingsCheckDetailView: View {
                     LabeledContent("Last Confirmed", value: lastSeen)
                 }
             } header: {
-                Text("About This Rule")
-            } footer: {
-                if let catalog {
-                    Text(catalog.source)
-                }
+                Text("About This Check")
             }
             .listRowBackground(Color.chart)
 
@@ -183,7 +157,7 @@ struct SettingsCheckDetailView: View {
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
-        .navigationTitle(rule.id)
+        .navigationTitle("Settings Check")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -192,21 +166,18 @@ struct GuardRow: View {
     let item: SettingsAnalysis.Guard
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            RuleIDChip(id: item.id)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(item.text)
-                    .font(.subheadline)
-                Text(statusText)
-                    .font(.caption)
-                    .foregroundStyle(item.phase == 1 ? .green : .secondary)
-            }
+        VStack(alignment: .leading, spacing: 2) {
+            Text(item.text)
+                .font(.subheadline)
+            Text(statusText)
+                .font(.caption)
+                .foregroundStyle(item.phase == 1 ? .green : .secondary)
         }
     }
 
     private var statusText: String {
         switch item.phase {
-        case 0: return String(localized: "Applied when curating the catalog")
+        case 0: return String(localized: "Applied when writing the checks")
         case 1: return String(localized: "Enforced")
         default: return String(localized: "Planned (Phase \(item.phase))")
         }
