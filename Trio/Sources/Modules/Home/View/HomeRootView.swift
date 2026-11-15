@@ -624,22 +624,6 @@ func is24HourFormat() -> Bool {
     return !dateString.contains("AM") && !dateString.contains("PM")
 }
 
-/// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
-func formatHrMin(_ durationInMinutes: Int) -> String {
-    let hours = durationInMinutes / 60
-    let minutes = durationInMinutes % 60
-
-    switch (hours, minutes) {
-    case let (0, m):
-        return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-    case let (h, 0):
-        return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
-    default:
-        return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
-            .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-    }
-}
-
 // Helper function to convert a start and end hour to either 24-hour or AM/PM format
 func formatTimeRange(start: String?, end: String?) -> String {
     guard let start = start, let end = end else {

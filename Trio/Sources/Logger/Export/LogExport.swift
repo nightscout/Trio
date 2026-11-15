@@ -271,6 +271,7 @@ final class LogExport: Injectable {
                 try Task.checkCancellation()
                 for entry in await deviceLogStore.entries(in: slice) {
                     values.add(entry.deviceIdentifier, .device)
+                    values.add(deviceLogMessage: entry.message)
                 }
             }
         }

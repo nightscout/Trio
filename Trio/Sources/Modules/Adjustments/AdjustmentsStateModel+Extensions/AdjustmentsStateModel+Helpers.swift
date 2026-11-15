@@ -5,18 +5,16 @@ extension Adjustments.StateModel {
     func percentageDescription(_ percent: Double) -> Text? {
         if percent.isNaN || percent == 100 { return nil }
 
-        var description: String = "Insulin doses will be "
-
-        if percent < 100 {
-            description += "decreased by "
-        } else {
-            description += "increased by "
-        }
-
-        let deviationFrom100 = abs(percent - 100)
-        description += String(format: "%.0f% %.", deviationFrom100)
-
-        return Text(description)
+        let change = (abs(percent - 100) / 100).formatted(.wholePercent)
+        return percent < 100
+            ? Text(
+                "Insulin doses will be decreased by \(change).",
+                comment: "Adjustment footer; the value is a percentage, e.g. 20%"
+            )
+            : Text(
+                "Insulin doses will be increased by \(change).",
+                comment: "Adjustment footer; the value is a percentage, e.g. 20%"
+            )
     }
 
     /// Checks if the device is using a 24-hour time format.
@@ -45,22 +43,6 @@ extension Adjustments.StateModel {
     /// Formats a given 24-hour time number as a two-digit string.
     func format24Hour(_ hour: Int) -> String {
         String(format: "%02d", hour)
-    }
-
-    /// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
-    func formatHoursAndMinutes(_ durationInMinutes: Int) -> String {
-        let hours = durationInMinutes / 60
-        let minutes = durationInMinutes % 60
-
-        switch (hours, minutes) {
-        case let (0, m):
-            return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-        case let (h, 0):
-            return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
-        default:
-            return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
-                .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-        }
     }
 
     /// Converts hours and minutes to total minutes as a `Decimal`.

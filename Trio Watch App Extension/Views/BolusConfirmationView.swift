@@ -52,11 +52,7 @@ struct BolusConfirmationView: View {
             Spacer()
 
             Button("Cancel") {
-                if state.carbsAmount > 0 {
-                    state.carbsAmount = 0 // reset carbs in state
-                }
-                bolusAmount = 0 // reset bolus in state
-                confirmationProgress = 0 // reset auth progress
+                state.clearEntry()
                 navigationPath.removeLast(navigationPath.count)
             }
             .buttonStyle(.bordered)
@@ -80,13 +76,8 @@ struct BolusConfirmationView: View {
                 WKInterfaceDevice.current().play(.success)
 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    if state.carbsAmount > 0 {
-                        state.sendCarbsRequest(state.carbsAmount, Date())
-                        state.carbsAmount = 0 // reset carbs in state
-                    }
-                    state.sendBolusRequest(Decimal(bolusAmount))
-                    bolusAmount = 0 // reset bolus in state
-                    confirmationProgress = 0 // reset auth progress
+                    // Sends carbs and bolus, or refuses an entry older than 2 min; either way the entry is cleared
+                    state.sendConfirmedEntry(bolusAmount: bolusAmount)
                     navigationPath.append(NavigationDestinations.acknowledgmentPending)
                 }
             } else if newValue > 0 {

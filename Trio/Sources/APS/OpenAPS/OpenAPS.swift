@@ -528,7 +528,7 @@ final class OpenAPS {
                         halfBasalTarget: effectiveHBT,
                         target: targetValue,
                         autosensMax: preferences.autosensMax
-                    ))
+                    ).rounded())
                     debug(
                         .algorithm,
                         "Temp target \(targetValue) mg/dL: half basal target \(defaultHalfBasalTarget) -> \(effectiveHBT) mg/dL, \(percentage)%"
