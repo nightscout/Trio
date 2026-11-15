@@ -38,7 +38,7 @@ struct SettingsChecksCards: View {
     }
 
     private func link(for result: SettingsAnalysis.CheckResult, showsFinding: Bool) -> some View {
-        SettingsAnalysisLinkRow(destination: SettingsCheckDetailView(result: result, catalog: report.catalog)) {
+        SettingsAnalysisLinkRow(destination: SettingsCheckDetailView(result: result)) {
             SettingsCheckRow(result: result, showsFinding: showsFinding)
         }
     }
@@ -85,7 +85,6 @@ struct SettingsCheckRow: View {
 
 struct SettingsCheckDetailView: View {
     let result: SettingsAnalysis.CheckResult
-    let catalog: SettingsAnalysis.Catalog?
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(AppState.self) private var appState
@@ -130,57 +129,11 @@ struct SettingsCheckDetailView: View {
                 }
                 .listRowBackground(Color.chart)
             }
-
-            Section {
-                LabeledContent("Direction", value: rule.direction.displayName)
-                LabeledContent("Readiness", value: rule.readiness.confidence.displayName)
-                LabeledContent("Evidence", value: String(localized: "\(rule.evidenceCount) messages"))
-                if let lastSeen = rule.lastSeen {
-                    LabeledContent("Last Confirmed", value: lastSeen)
-                }
-            } header: {
-                Text("About This Check")
-            }
-            .listRowBackground(Color.chart)
-
-            let guards = rule.guards.compactMap { catalog?.guard($0) }
-            if !guards.isEmpty {
-                Section {
-                    ForEach(guards) { item in
-                        GuardRow(item: item)
-                    }
-                } header: {
-                    Text("Related Guards")
-                }
-                .listRowBackground(Color.chart)
-            }
         }
         .scrollContentBackground(.hidden)
         .background(appState.trioBackgroundColor(for: colorScheme))
         .navigationTitle("Settings Check")
         .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct GuardRow: View {
-    let item: SettingsAnalysis.Guard
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(item.text)
-                .font(.subheadline)
-            Text(statusText)
-                .font(.caption)
-                .foregroundStyle(item.phase == 1 ? .green : .secondary)
-        }
-    }
-
-    private var statusText: String {
-        switch item.phase {
-        case 0: return String(localized: "Applied when writing the checks")
-        case 1: return String(localized: "Enforced")
-        default: return String(localized: "Planned (Phase \(item.phase))")
-        }
     }
 }
 

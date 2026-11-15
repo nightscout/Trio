@@ -14,7 +14,7 @@
       "evidenceCount": 1,
       "lastSeen": "2024-10-30",
       "modes": ["all"],
-      "finding": "Your DIA is set shorter than 8 hours.",
+      "finding": "Checks if your DIA is set shorter than 8 hours.",
       "advice": "A short DIA usually makes Trio underestimate insulin on board, which can make other settings look wrong. Trio's default is 10 hours; differences between insulins are set through the insulin peak time, not the DIA.",
       "rationale": "Insulin on board depends only on doses and the insulin curve. Pattern analysis treats time frames with a DIA under 8 hours as less reliable.",
       "guards": ["P9"]
@@ -31,7 +31,7 @@
       "evidenceCount": 2,
       "lastSeen": "2025-11-19",
       "modes": ["all"],
-      "finding": "Max IOB is 0 while Dosing Mode is Closed Loop.",
+      "finding": "Checks if Max IOB is 0 while Dosing Mode is Closed Loop.",
       "advice": "With Max IOB at 0, Trio cannot give more than your scheduled basal, so highs are not corrected automatically. This setting usually needs to be raised once you are ready for closed loop.",
       "rationale": "Max IOB 0 is meant for testing setups. In Closed Loop it limits Trio to reducing insulin only.",
       "guards": []
@@ -48,7 +48,7 @@
       "evidenceCount": 3,
       "lastSeen": "2026-06-12",
       "modes": ["all"],
-      "finding": "Your SMB Delivery Ratio differs from Trio's default of 0.5.",
+      "finding": "Checks if your SMB Delivery Ratio differs from Trio's default of 0.5.",
       "advice": "If SMBs feel too big or too small, this usually points to a core setting (basal, ISF or carb ratio) rather than the delivery ratio. Returning the ratio to the default is usually recommended.",
       "rationale": "The ratio only changes how much of a calculated dose is given at once, not how much insulin Trio thinks you need.",
       "guards": ["P1"]
@@ -65,7 +65,7 @@
       "evidenceCount": 2,
       "lastSeen": "2026-02-16",
       "modes": ["all"],
-      "finding": "Max Allowed Glucose Rise for SMB is below Trio's default of 20%.",
+      "finding": "Checks if Max Allowed Glucose Rise for SMB is below Trio's default of 20%.",
       "advice": "A lowered value can stop SMBs during normal rises and lead to highs. If the reason was a noisy sensor, glucose smoothing is usually the better fix.",
       "rationale": "SMBs are skipped whenever glucose rises faster than this limit. Sensor noise is best handled before judging other settings (N01).",
       "guards": ["P6"]
@@ -82,7 +82,7 @@
       "evidenceCount": 3,
       "lastSeen": "2026-01-22",
       "modes": ["logarithmic", "sigmoid"],
-      "finding": "Dynamic ISF is on, but there is less than a week of total daily dose history.",
+      "finding": "Checks if Dynamic ISF is on with less than a week of total daily dose history.",
       "advice": "Dynamic ISF is calculated from your total daily dose. With less than about a week of history, it usually works better to wait before relying on it.",
       "rationale": "A short history makes the daily dose, and with it the calculated ISF, less stable.",
       "guards": []
@@ -99,7 +99,7 @@
       "evidenceCount": 1,
       "lastSeen": "2026-10-31",
       "modes": ["logarithmic"],
-      "finding": "You are using the logarithmic Dynamic ISF formula.",
+      "finding": "Checks if you are using the logarithmic Dynamic ISF formula.",
       "advice": "The current community recommendation is the sigmoid formula. If you switch, profile ISF usually needs to be retuned to its value at your target, which is often weaker than an ISF tested on the logarithmic formula.",
       "rationale": "Switching without retuning profile ISF is a common cause of overcorrection.",
       "guards": ["P3"]
@@ -116,7 +116,7 @@
       "evidenceCount": 5,
       "lastSeen": "2026-10-14",
       "modes": ["sigmoid"],
-      "finding": "Your Sigmoid Adjustment Factor is above 100%.",
+      "finding": "Checks if your Sigmoid Adjustment Factor is above 100%.",
       "advice": "Above 100%, ISF changes very steeply around your target, especially with a high Autosens Max. Adjusting slowly from the default is usually recommended.",
       "rationale": "The Adjustment Factor changes how fast ISF moves with glucose, not the range it can move in.",
       "guards": ["P3"]
@@ -133,7 +133,7 @@
       "evidenceCount": 3,
       "lastSeen": "2026-10-14",
       "modes": ["logarithmic", "sigmoid"],
-      "finding": "Weighted Average of TDD differs from the recommended 35%.",
+      "finding": "Checks if Weighted Average of TDD differs from the recommended 35%.",
       "advice": "This setting changes how much recent days count when Dynamic ISF calculates your total daily dose. Keeping the recommended value is usually advised.",
       "rationale": "Community guidance has consistently recommended 35%.",
       "guards": ["P5"]
