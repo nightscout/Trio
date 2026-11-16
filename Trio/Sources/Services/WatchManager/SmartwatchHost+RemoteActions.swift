@@ -6,8 +6,7 @@ import os
 /// snoozes. Each gets the checks Trio applies to any request of that kind, such
 /// as Max Bolus, Max IOB and Max Carbs, and only the current watch manager's
 /// requests are acted on. Whether the watch may ask at all, and how fresh or
-/// frequent its requests must be, is the plugin's own setting and policy
-/// (LoopKit's `SmartwatchRemoteActionPolicy.swift` with the plugin's limits).
+/// frequent its requests must be, is the plugin's own setting and policy.
 /// Every request and its outcome goes to the device log.
 extension BaseSmartwatchHost {
     // MARK: - Watch bolus
@@ -70,7 +69,7 @@ extension BaseSmartwatchHost {
         // starting now leaves that check nothing to count.
         //
         // What stands in for it no longer runs here but in the watch plugin, with
-        // LoopKit's `SmartwatchBolusPolicy` and the plugin's own limits: the bolus
+        // the plugin's own checks and limits: the bolus
         // was confirmed on the watch moments ago, with recent glucose, at most
         // Trio's recommendation read for it (which counts insulin given since the
         // determination, `smartwatchManager(_:recommendBolusForCarbs:)`), and at
