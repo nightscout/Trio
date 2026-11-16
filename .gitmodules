@@ -65,4 +65,4 @@
 [submodule "TandemKit"]
 	path = TandemKit
 	url = https://github.com/jwoglom/TandemKit.git
-	branch = trio-next-dev
+	branch = next-dev
