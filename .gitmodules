@@ -1,7 +1,7 @@
 [submodule "LoopKit"]
 	path = LoopKit
 	url = https://github.com/dabear/LoopKit.git
-	branch = smartwatch-manager-review
+	branch = smartwatch-manager-trio
 [submodule "CGMBLEKit"]
 	path = CGMBLEKit
 	url = https://github.com/loopandlearn/CGMBLEKit.git
