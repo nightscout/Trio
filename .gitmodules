@@ -61,6 +61,7 @@
 [submodule "SyaiKit"]
 	path = SyaiKit
 	url = https://github.com/nightscout/SyaiKit
+	branch = trio-next-dev
 [submodule "TandemKit"]
 	path = TandemKit
 	url = https://github.com/jwoglom/TandemKit.git

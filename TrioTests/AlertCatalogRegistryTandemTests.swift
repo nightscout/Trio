@@ -12,7 +12,7 @@ import Testing
 /// `<category>.<slug>` prefix and falls back to `<category>.other`.
 @Suite("TrioAlert: CatalogRegistry — Tandem slug resolver") struct AlertCatalogRegistryTandemTests {
     private func tandemID(_ alertID: String) -> Alert.Identifier {
-        Alert.Identifier(managerIdentifier: "Tandem", alertIdentifier: alertID)
+        Alert.Identifier(managerIdentifier: "TandemPumpManager", alertIdentifier: alertID)
     }
 
     @Test(
@@ -116,11 +116,11 @@ import Testing
         #expect(AlertCatalogRegistry.lookup(tandemID(alertID)) == nil)
     }
 
-    /// The plugin identifier is "TandemPumpManager"; alerts are issued under
-    /// `TandemPumpManager.managerIdentifier`, which is "Tandem". Only the latter resolves.
+    /// Alerts are issued under the plugin identifier, "TandemPumpManager", not
+    /// `TandemPumpManager.managerIdentifier` ("Tandem"). Only the former resolves.
     @Test("Tandem slugs under another manager return nil") func wrongManagerReturnsNil() {
         let identifier = Alert.Identifier(
-            managerIdentifier: "TandemPumpManager",
+            managerIdentifier: "Tandem",
             alertIdentifier: "alarm.occlusion.2"
         )
         #expect(AlertCatalogRegistry.lookup(identifier) == nil)
