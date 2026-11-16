@@ -31,8 +31,8 @@ import Testing
         }
     }
 
-    @Test("Nothing is stored before the first save") func emptyStore() throws {
-        #expect(try storage.fetchProfiles() == StoredTherapyProfiles(activeProfileName: nil, inactiveProfiles: []))
+    @Test("Nothing is stored before the first save") func emptyStore() async throws {
+        #expect(try await storage.fetchProfiles() == StoredTherapyProfiles(activeProfileName: nil, inactiveProfiles: []))
     }
 
     @Test("Profiles round-trip, the active one by name only") func roundTrip() async throws {
@@ -50,7 +50,7 @@ import Testing
         try await storage.storeProfiles(StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [sport]))
         try await storage.storeProfiles(stored)
 
-        let fetched = try storage.fetchProfiles()
+        let fetched = try await storage.fetchProfiles()
         #expect(fetched.activeProfileName == "Sport")
         #expect(fetched.inactiveProfiles.sorted { $0.name < $1.name } == stored.inactiveProfiles)
         #expect(try await rowCount(TherapyProfileStored.self) == 3)
@@ -62,16 +62,16 @@ import Testing
         try await storage.storeProfiles(
             StoredTherapyProfiles(activeProfileName: "Sport", inactiveProfiles: [], activeProfileValues: live)
         )
-        #expect(try storage.fetchProfiles().activeProfileValues == live.renamed("Sport"))
+        #expect(try await storage.fetchProfiles().activeProfileValues == live.renamed("Sport"))
 
         try await storage.storeProfiles(StoredTherapyProfiles(activeProfileName: "Sport", inactiveProfiles: []))
-        #expect(try storage.fetchProfiles().activeProfileValues == nil)
+        #expect(try await storage.fetchProfiles().activeProfileValues == nil)
     }
 
     @Test("Schedules come back in time order") func scheduleOrder() async throws {
         let profile = TherapyProfileFixtures.profile("Order", basal: [(0, 1), (1800, 1.1), (3600, 1.2), (84600, 0.9)])
         try await storage.storeProfiles(StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [profile]))
-        #expect(try storage.fetchProfiles().inactiveProfiles == [profile])
+        #expect(try await storage.fetchProfiles().inactiveProfiles == [profile])
     }
 
     @Test("Scheduled switches and the settled instant are stored and replaced with the profiles") func scheduledSwitches() async throws {
@@ -86,16 +86,16 @@ import Testing
             scheduledSwitches: entries,
             scheduledSwitchesSettledAt: settledAt
         ))
-        var fetched = try storage.fetchProfiles()
+        var fetched = try await storage.fetchProfiles()
         #expect(fetched.scheduledSwitches == entries.sortedByWeek)
         #expect(fetched.scheduledSwitchesSettledAt == settledAt)
 
         try await storage.settleScheduledSwitches(at: settledAt.addingTimeInterval(60))
-        #expect(try storage.fetchProfiles().scheduledSwitchesSettledAt == settledAt.addingTimeInterval(60))
+        #expect(try await storage.fetchProfiles().scheduledSwitchesSettledAt == settledAt.addingTimeInterval(60))
 
         fetched.scheduledSwitches = [entries[1]]
         try await storage.storeProfiles(fetched)
-        #expect(try storage.fetchProfiles().scheduledSwitches == [entries[1]])
+        #expect(try await storage.fetchProfiles().scheduledSwitches == [entries[1]])
         #expect(try await rowCount(ScheduledProfileSwitchStored.self) == 1)
     }
 
@@ -109,38 +109,120 @@ import Testing
         try await storage.storeProfiles(StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [sport]))
         try await storage.storeProfiles(stored, switchDate: switchDate, switchTrigger: .scheduled)
 
-        #expect(try storage.profilesNotYetUploaded())
+        #expect(try await storage.profilesNotYetUploaded())
         #expect(
-            try storage.profileSwitchesNotYetUploaded() ==
+            try await storage.profileSwitchesNotYetUploaded() ==
                 [TherapyProfileSwitch(name: "Sport", date: switchDate, trigger: .scheduled)]
         )
 
         try await storage.markProfilesUploaded(StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [sport]))
-        #expect(try storage.profilesNotYetUploaded())
+        #expect(try await storage.profilesNotYetUploaded())
 
         try await storage.markProfilesUploaded(stored)
         try await storage.markSwitchUploaded(TherapyProfileSwitch(name: "Sport", date: switchDate))
-        #expect(try !storage.profilesNotYetUploaded())
-        #expect(try storage.profileSwitchesNotYetUploaded().isEmpty)
+        #expect(try await !storage.profilesNotYetUploaded())
+        #expect(try await storage.profileSwitchesNotYetUploaded().isEmpty)
     }
 
     @Test("A changed list of scheduled switches is pending upload, settling is not") func scheduledSwitchUploadTracking() async throws {
         var stored = StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [])
         try await storage.storeProfiles(stored)
         try await storage.markProfilesUploaded(stored)
-        #expect(try !storage.profilesNotYetUploaded())
+        #expect(try await !storage.profilesNotYetUploaded())
 
         try await storage.settleScheduledSwitches(at: Date(timeIntervalSince1970: 1_800_000_000))
-        #expect(try !storage.profilesNotYetUploaded())
+        #expect(try await !storage.profilesNotYetUploaded())
 
         stored.scheduledSwitches = [ScheduledProfileSwitch(id: "s", profileName: "Default", weekday: 2, time: 21600)]
         stored.scheduledSwitchesSettledAt = Date(timeIntervalSince1970: 1_800_000_060)
         try await storage.storeProfiles(stored)
-        #expect(try storage.profilesNotYetUploaded())
+        #expect(try await storage.profilesNotYetUploaded())
         try await storage.markProfilesUploaded(StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: []))
-        #expect(try storage.profilesNotYetUploaded())
+        #expect(try await storage.profilesNotYetUploaded())
         stored.scheduledSwitchesSettledAt = nil
         try await storage.markProfilesUploaded(stored)
-        #expect(try !storage.profilesNotYetUploaded())
+        #expect(try await !storage.profilesNotYetUploaded())
+    }
+
+    @Test("Two profiles with the same name ignoring case are refused and nothing changes") func duplicateNames() async throws {
+        let stored = StoredTherapyProfiles(
+            activeProfileName: "Default",
+            inactiveProfiles: [TherapyProfileFixtures.profile("Sport")]
+        )
+        try await storage.storeProfiles(stored)
+
+        let duplicates = [
+            StoredTherapyProfiles(activeProfileName: "Default", inactiveProfiles: [TherapyProfileFixtures.profile("default")]),
+            StoredTherapyProfiles(
+                activeProfileName: "Default",
+                inactiveProfiles: [TherapyProfileFixtures.profile("Sport"), TherapyProfileFixtures.profile("SPORT")]
+            )
+        ]
+        for profiles in duplicates {
+            await #expect(throws: TherapyProfileStorageError.duplicateName) { try await storage.storeProfiles(profiles) }
+        }
+        #expect(try await storage.fetchProfiles() == stored)
+    }
+
+    @Test("Out-of-range weekdays, times and schedule offsets are refused and nothing changes") func outOfRange() async throws {
+        let stored = StoredTherapyProfiles(
+            activeProfileName: "Default",
+            inactiveProfiles: [TherapyProfileFixtures.profile("Sport")],
+            scheduledSwitches: [ScheduledProfileSwitch(id: "s", profileName: "Sport", weekday: 2, time: 21600)]
+        )
+        try await storage.storeProfiles(stored)
+
+        let switches: [(weekday: Int, time: Int, error: String)] = [
+            (0, 0, "weekday 0"),
+            (8, 0, "weekday 8"),
+            (1, 86400, "time 86400"),
+            (1, -60, "time -60"),
+            (1, 30, "time 30"),
+            (1, Int(Int32.max) + 61, "time \(Int(Int32.max) + 61)")
+        ]
+        for entry in switches {
+            var profiles = stored
+            profiles.scheduledSwitches = [ScheduledProfileSwitch(profileName: "Sport", weekday: entry.weekday, time: entry.time)]
+            await #expect(throws: TherapyProfileStorageError.valueOutOfRange(entry.error)) {
+                try await storage.storeProfiles(profiles)
+            }
+        }
+        for offset in [-1800, 86400, Int(Int32.max) + 1] {
+            let profile = TherapyProfileFixtures.profile("Sport", basal: [(0, 1), (offset, 1.2)])
+            var inactive = stored
+            inactive.inactiveProfiles = [profile]
+            var active = stored
+            active.activeProfileValues = profile
+            for profiles in [inactive, active] {
+                await #expect(throws: TherapyProfileStorageError.valueOutOfRange("schedule offset \(offset)")) {
+                    try await storage.storeProfiles(profiles)
+                }
+            }
+        }
+        #expect(try await storage.fetchProfiles() == stored)
+    }
+
+    @Test("Values, scheduled switches or a settled instant without an active profile are refused") func noActiveProfile() async throws {
+        let refused = [
+            StoredTherapyProfiles(
+                activeProfileName: nil,
+                inactiveProfiles: [],
+                scheduledSwitches: [ScheduledProfileSwitch(profileName: "Default", weekday: 2, time: 0)]
+            ),
+            StoredTherapyProfiles(activeProfileName: nil, inactiveProfiles: [], scheduledSwitchesSettledAt: Date()),
+            StoredTherapyProfiles(
+                activeProfileName: nil,
+                inactiveProfiles: [],
+                activeProfileValues: TherapyProfileFixtures.profile("Default")
+            )
+        ]
+        for profiles in refused {
+            await #expect(throws: TherapyProfileStorageError.noActiveProfile) { try await storage.storeProfiles(profiles) }
+        }
+        await #expect(throws: TherapyProfileStorageError.noActiveProfile) {
+            try await storage.settleScheduledSwitches(at: Date())
+        }
+        #expect(try await rowCount(TherapyProfileStored.self) == 0)
+        #expect(try await rowCount(ScheduledProfileSwitchStored.self) == 0)
     }
 }

@@ -271,6 +271,6 @@ import Testing
             scheduledSwitches: imported.scheduledSwitches
         )
         #expect(context.manager.scheduledSwitches().map(\.id) == ["s", "w"])
-        #expect(try context.profileStorage.fetchProfiles().scheduledSwitchesSettledAt == context.recorder.now)
+        #expect(try await context.profileStorage.fetchProfiles().scheduledSwitchesSettledAt == context.recorder.now)
     }
 }
