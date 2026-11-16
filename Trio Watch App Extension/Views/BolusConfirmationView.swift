@@ -89,8 +89,10 @@ struct BolusConfirmationView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Image(
-                    systemName: WKInterfaceDevice.current()
-                        .wristLocation == .left ? "digitalcrown.arrow.clockwise.fill" : "digitalcrown.arrow.counterclockwise.fill"
+                    systemName: Self.crownHintSymbolName(
+                        wristLocation: WKInterfaceDevice.current().wristLocation,
+                        crownOrientation: WKInterfaceDevice.current().crownOrientation
+                    )
                 )
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(Color.insulin, Color.primary)
@@ -100,5 +102,18 @@ struct BolusConfirmationView: View {
                 )
             }
         }
+    }
+}
+
+extension BolusConfirmationView {
+    /// SF Symbol shown in the toolbar to hint which way to turn the Digital Crown to confirm the bolus.
+    ///
+    /// Takes both settings the watch has for how it is worn, so tests can check the hint for every combination.
+    /// Only the wrist is used to pick the arrow today.
+    static func crownHintSymbolName(
+        wristLocation: WKInterfaceDeviceWristLocation,
+        crownOrientation _: WKInterfaceDeviceCrownOrientation
+    ) -> String {
+        wristLocation == .left ? "digitalcrown.arrow.clockwise.fill" : "digitalcrown.arrow.counterclockwise.fill"
     }
 }
