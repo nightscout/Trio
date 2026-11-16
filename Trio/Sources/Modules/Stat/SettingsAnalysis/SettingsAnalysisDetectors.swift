@@ -49,6 +49,9 @@ extension SettingsAnalysis {
             static let mealRise = 60
             static let dawnRise = 50
             static let activityDrop = 50
+            /// A temp target or override starting this soon after a low ends protects against
+            /// the treatment carbs, so it is not activity.
+            static let postLowWindow: TimeInterval = 30 * 60
             /// A rise this large within `unannouncedRiseWindow` with no logged carbs is treated as a meal.
             static let unannouncedRise = 45
             static let unannouncedRiseWindow: TimeInterval = 30 * 60
@@ -111,7 +114,6 @@ extension SettingsAnalysis {
             switch scenario {
             case .mealSpike: return mealSpike()
             case .bolusThenHypo: return bolusThenHypo()
-            case .reboundHigh: return reboundHigh()
             case .dawnPhenomenon: return dawnPhenomenon()
             case .overnightLow: return overnightLow()
             case .persistentHigh: return persistentHigh()
@@ -205,32 +207,6 @@ extension SettingsAnalysis {
                 variant = (causes[.prebolus] ?? 0) >= (causes[.unannouncedSMB] ?? 0) ? .prebolus : .unannounced
             }
             return Detection(occurrences: sorted(occurrences), pattern: pattern, variant: variant)
-        }
-
-        /// Low, then above 180 within 3 h of the low ending.
-        private func reboundHigh() -> Detection {
-            var occurrences: [Occurrence] = []
-            var largeTreatments = 0
-            for low in lowEpisodes where inFrame(low.start) {
-                guard let peak = glucose(in: low.end ... low.end.addingTimeInterval(3 * 3600)).max(by: { $0.value < $1.value }),
-                      peak.value > Threshold.high
-                else { continue }
-                let treatment = carbs(in: low.start.addingTimeInterval(-15 * 60) ... low.end.addingTimeInterval(30 * 60))
-                    .reduce(0) { $0 + $1.grams }
-                if treatment > 20 { largeTreatments += 1 }
-                let peakText = peak.value.formatted(withUnits: units)
-                let detail = treatment > 0
-                    ? String(localized: "\(Int(treatment.rounded())) g treatment, then peak \(peakText)")
-                    : String(localized: "No carbs logged, then peak \(peakText)")
-                occurrences.append(Occurrence(date: low.start, detail: detail))
-            }
-            let pattern = largeTreatments * 2 >= occurrences.count && largeTreatments > 0
-                ?
-                String(
-                    localized: "\(percent(largeTreatments, of: occurrences.count))% after treating a low with more than 20 g carbs"
-                )
-                : timeOfDayPattern(occurrences.map(\.date))
-            return Detection(occurrences: sorted(occurrences), pattern: pattern)
         }
 
         /// Rise of more than 50 mg/dL between 03:00 and 08:00 with no low that night. The window ends at
@@ -426,11 +402,13 @@ extension SettingsAnalysis {
         }
 
         /// Drop of more than 50 mg/dL within 1 h, during an activity period or the hour after it.
+        /// Periods that start during a low or right after it are skipped: they are set to
+        /// stop the loop from dosing for the treatment carbs, not for exercise.
         private func exerciseDrop() -> Detection {
             var occurrences: [Occurrence] = []
             var withIOB = 0
             var highIOB = 0
-            for activity in history.activity {
+            for activity in history.activity where !startsAfterLow(activity) {
                 let window = glucose(in: activity.start ... activity.end.addingTimeInterval(3600))
                 guard let drop = largestDrop(in: window, within: 3600), drop.amount > Threshold.activityDrop,
                       inFrame(drop.start)
@@ -449,6 +427,12 @@ extension SettingsAnalysis {
                 ? String(localized: "\(percent(highIOB, of: withIOB))% with more than 2 U insulin on board")
                 : timeOfDayPattern(occurrences.map(\.date))
             return Detection(occurrences: sorted(occurrences), pattern: pattern)
+        }
+
+        private func startsAfterLow(_ activity: DateInterval) -> Bool {
+            lowEpisodes.contains {
+                activity.start >= $0.start && activity.start <= $0.end.addingTimeInterval(Threshold.postLowWindow)
+            }
         }
 
         // MARK: Glucose helpers

@@ -200,17 +200,6 @@ private enum AdviceLibrary {
                 ),
                 .medium
             )
-        case .reboundHigh:
-            base = (
-                String(localized: "Low treatment"),
-                String(
-                    localized: "This pattern usually indicates that lows are treated with more carbs than needed, rather than a problem with your settings."
-                ),
-                String(
-                    localized: "If lows themselves are frequent, look at the cause of the lows first. The highs that follow a low are hard to judge on their own."
-                ),
-                .high
-            )
         case .dawnPhenomenon:
             base = (
                 String(localized: "Basal (early morning)"),

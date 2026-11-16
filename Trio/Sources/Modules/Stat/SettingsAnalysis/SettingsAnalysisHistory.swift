@@ -197,28 +197,46 @@ extension SettingsAnalysis {
                 intervals.append(interval(runStart, runEnd))
             }
 
+            // A run links to its override only until that preset runs again (the relationship is
+            // to-one), so older runs of a preset find their percentage through the preset's name.
+            let overridePresets: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
+            overridePresets.predicate = NSPredicate(format: "isPreset == YES")
+            var presetPercentage: [String: Double] = [:]
+            for preset in (try? context.fetch(overridePresets)) ?? [] {
+                if let name = preset.name { presetPercentage[name] = preset.percentage }
+            }
+
             let overrideRuns: NSFetchRequest<OverrideRunStored> = OverrideRunStored.fetchRequest()
             overrideRuns.predicate = overlaps
             overrideRuns.relationshipKeyPathsForPrefetching = ["override"]
             for run in (try? context.fetch(overrideRuns)) ?? [] {
+                let percentage = run.override?.percentage ?? run.name.flatMap { presetPercentage[$0] }
                 guard let runStart = run.startDate, let runEnd = run.endDate,
-                      isActivity(target: run.target as Decimal?, percentage: run.override?.percentage)
+                      isActivity(target: run.target as Decimal?, percentage: percentage)
                 else { continue }
                 intervals.append(interval(runStart, runEnd))
             }
 
-            // Rows that were not cancelled: date + duration (minutes).
+            // Rows without a run: the enabled one (however long ago it started) and older one-off
+            // rows. Their end is date + duration (minutes). A row that has a run already ended
+            // there, often earlier than its duration.
             let rowWindow = NSPredicate(
                 format: "date >= %@ AND date <= %@",
                 start.addingTimeInterval(-86400) as NSDate,
                 end as NSDate
             )
+            func rows(runKey: String) -> NSPredicate {
+                NSCompoundPredicate(orPredicateWithSubpredicates: [
+                    NSPredicate(format: "enabled == YES AND date <= %@", end as NSDate),
+                    NSCompoundPredicate(andPredicateWithSubpredicates: [
+                        rowWindow,
+                        NSPredicate(format: "isPreset == NO AND %K == nil", runKey)
+                    ])
+                ])
+            }
 
             let tempTargets: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
-            tempTargets.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                rowWindow,
-                NSPredicate(format: "isPreset == NO OR enabled == YES")
-            ])
+            tempTargets.predicate = rows(runKey: "tempTargetRun")
             for row in (try? context.fetch(tempTargets)) ?? [] {
                 guard let rowStart = row.date, (row.target as Decimal?) ?? 0 >= activityTarget,
                       let minutes = (row.duration as Decimal?).map({ NSDecimalNumber(decimal: $0).doubleValue }), minutes > 0
@@ -227,10 +245,7 @@ extension SettingsAnalysis {
             }
 
             let overrides: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
-            overrides.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                rowWindow,
-                NSPredicate(format: "isPreset == NO OR enabled == YES")
-            ])
+            overrides.predicate = rows(runKey: "overrideRun")
             for row in (try? context.fetch(overrides)) ?? [] {
                 guard let rowStart = row.date,
                       isActivity(target: row.target as Decimal?, percentage: row.percentage) else { continue }

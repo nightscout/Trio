@@ -1,3 +1,4 @@
+import CoreData
 import Foundation
 import Testing
 @testable import Trio
@@ -96,16 +97,6 @@ import Testing
         #expect(detection.pattern.contains("100%"))
     }
 
-    @Test("Low followed by a high is a rebound high") func testReboundHigh() {
-        var history = History()
-        history.glucose = cgm(10, 15) { hour in hour < 11 ? 60 : hour < 12 ? 120 : 210 }
-        history.carbs = [SettingsAnalysis.CarbEvent(date: at(10.2), grams: 40)]
-
-        let detection = detect(.reboundHigh, history)
-        #expect(detection.occurrences.count == 1)
-        #expect(detection.pattern.contains("20 g"))
-    }
-
     // MARK: Nights
 
     @Test("Early-morning rise without treatments is dawn phenomenon") func testDawnPhenomenon() {
@@ -182,6 +173,20 @@ import Testing
         var history = History()
         history.glucose = cgm(16, 20) { hour in hour < 17.5 ? 180 : max(180 - Int((hour - 17.5) * 120), 90) }
         #expect(detect(.exerciseDrop, history).occurrences.isEmpty)
+    }
+
+    @Test("A temp target set right after a low is not activity") func testExerciseDropIgnoresPostLowTarget() {
+        var history = History()
+        // Low until 16:30, high temp target from 16:45, then a fast drop.
+        history.glucose = cgm(16, 20) { hour in
+            hour < 16.5 ? 60 : hour < 17.5 ? 180 : max(180 - Int((hour - 17.5) * 120), 90)
+        }
+        history.activity = [DateInterval(start: at(16.75), end: at(18.5))]
+        #expect(detect(.exerciseDrop, history).occurrences.isEmpty)
+
+        // The same target an hour later counts.
+        history.activity = [DateInterval(start: at(17.25), end: at(18.5))]
+        #expect(detect(.exerciseDrop, history).occurrences.count == 1)
     }
 
     // MARK: Unannounced meals
@@ -362,5 +367,225 @@ import Testing
             DateInterval(start: at(14), end: at(15))
         ])
         #expect(merged == [DateInterval(start: at(10), end: at(12)), DateInterval(start: at(14), end: at(15))])
+    }
+}
+
+/// Runs the loader against an in-memory store holding records the way the app writes them.
+@Suite("Settings Analysis History Loader Tests", .serialized) struct SettingsAnalysisHistoryLoaderTests {
+    let stack: CoreDataStack
+    let context: NSManagedObjectContext
+
+    /// Midnight UTC, 2026-03-02; the time frame is that day.
+    let day = Date(timeIntervalSince1970: 1_772_409_600)
+    var frame: SettingsAnalysis.TimeFrame { SettingsAnalysis.TimeFrame(start: day, end: day.addingTimeInterval(86400)) }
+
+    init() async throws {
+        stack = try await CoreDataStack.createForTests()
+        context = stack.newTaskContext()
+    }
+
+    private func at(_ hour: Double) -> Date { day.addingTimeInterval(hour * 3600) }
+
+    private func seed(_ build: @escaping (NSManagedObjectContext) -> Void) async throws {
+        try await context.perform {
+            build(context)
+            try context.save()
+        }
+    }
+
+    private func load() async -> SettingsAnalysis.History {
+        await SettingsAnalysis.HistoryLoader.load(frame, context: context)
+    }
+
+    private static func glucose(_ value: Int, at date: Date, manual: Bool = false, in context: NSManagedObjectContext) {
+        let row = GlucoseStored(context: context)
+        row.id = UUID()
+        row.date = date
+        row.glucose = Int16(value)
+        row.isManual = manual
+    }
+
+    private static func bolus(_ units: Double, at date: Date, smb: Bool, in context: NSManagedObjectContext) {
+        let event = PumpEventStored(context: context)
+        event.id = UUID().uuidString
+        event.timestamp = date
+        event.type = smb ? PumpEventStored.EventType.smb.rawValue : PumpEventStored.EventType.bolus.rawValue
+        let bolus = BolusStored(context: context)
+        bolus.amount = NSDecimalNumber(value: units)
+        bolus.isSMB = smb
+        bolus.pumpEvent = event
+    }
+
+    private static func pumpEvent(_ type: PumpEventStored.EventType, at date: Date, in context: NSManagedObjectContext) {
+        let event = PumpEventStored(context: context)
+        event.id = UUID().uuidString
+        event.timestamp = date
+        event.type = type.rawValue
+    }
+
+    @Test("Glucose, carbs, boluses and site changes are read from the store") func testTreatments() async throws {
+        try await seed { context in
+            Self.glucose(110, at: at(8), in: context)
+            Self.glucose(120, at: at(8.1), in: context)
+            Self.glucose(95, at: at(9), manual: true, in: context)
+            Self.glucose(300, at: at(-12), in: context) // before the lookback
+
+            let meal = CarbEntryStored(context: context)
+            meal.date = at(12)
+            meal.carbs = 40
+            meal.isFPU = false
+            let fpu = CarbEntryStored(context: context)
+            fpu.date = at(14)
+            fpu.carbs = 20
+            fpu.isFPU = true
+
+            Self.bolus(3, at: at(12), smb: false, in: context)
+            Self.bolus(0.4, at: at(12.5), smb: true, in: context)
+            Self.pumpEvent(.tempBasal, at: at(13), in: context)
+            Self.pumpEvent(.rewind, at: at(20), in: context)
+            Self.pumpEvent(.prime, at: at(20.1), in: context)
+        }
+
+        let history = await load()
+        #expect(history.glucose.map(\.value) == [110, 120])
+        #expect(history.carbs == [SettingsAnalysis.CarbEvent(date: at(12), grams: 40)])
+        #expect(history.boluses.map(\.isSMB) == [false, true])
+        #expect(history.boluses.map(\.units) == [3, 0.4])
+        #expect(history.siteChanges == [at(20)])
+        #expect(history.activity.isEmpty)
+        #expect(history.iob.isEmpty)
+    }
+
+    @Test("Activity periods come from runs and rows the way adjustments are stored") func testActivity() async throws {
+        try await seed { context in
+            // A preset that ran twice: the older run lost its link when the preset ran again.
+            let exercise = OverrideStored(context: context)
+            exercise.id = UUID().uuidString
+            exercise.name = "Exercise"
+            exercise.isPreset = true
+            exercise.enabled = false
+            exercise.percentage = 50
+            exercise.date = at(17)
+            exercise.duration = 60
+            for (start, end, linked) in [(at(8), at(9), false), (at(17), at(18), true)] {
+                let run = OverrideRunStored(context: context)
+                run.id = UUID()
+                run.name = "Exercise"
+                run.startDate = start
+                run.endDate = end
+                run.target = 0
+                if linked { run.override = exercise }
+            }
+
+            // A one-off 60 min temp target cancelled after 20 min.
+            let target = TempTargetStored(context: context)
+            target.id = UUID()
+            target.isPreset = false
+            target.enabled = false
+            target.target = 140
+            target.date = at(12)
+            target.duration = 60
+            let targetRun = TempTargetRunStored(context: context)
+            targetRun.id = UUID()
+            targetRun.startDate = at(12)
+            targetRun.endDate = at(12) + 20 * 60
+            targetRun.target = 140
+            targetRun.tempTarget = target
+
+            // A preset that is not about activity.
+            let sleep = OverrideStored(context: context)
+            sleep.id = UUID().uuidString
+            sleep.name = "Sleep"
+            sleep.isPreset = true
+            sleep.enabled = false
+            sleep.percentage = 100
+            sleep.target = 100
+            let sleepRun = OverrideRunStored(context: context)
+            sleepRun.id = UUID()
+            sleepRun.name = "Sleep"
+            sleepRun.startDate = at(1)
+            sleepRun.endDate = at(6)
+            sleepRun.target = 100
+            sleepRun.override = sleep
+
+            // Indefinite reduced-insulin override still running since two days before the frame.
+            let running = OverrideStored(context: context)
+            running.id = UUID().uuidString
+            running.isPreset = false
+            running.enabled = true
+            running.indefinite = true
+            running.percentage = 80
+            running.date = at(-48)
+        }
+
+        let history = await load()
+        // The running override covers the whole frame (from its start), so check it separately.
+        #expect(history.activity == [DateInterval(start: at(-48), end: frame.end)])
+
+        try await context.perform {
+            let request: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
+            request.predicate = NSPredicate(format: "indefinite == YES")
+            for row in try context.fetch(request) { context.delete(row) }
+            try context.save()
+        }
+        let withoutRunning = await load()
+        #expect(withoutRunning.activity == [
+            DateInterval(start: at(8), end: at(9)),
+            DateInterval(start: at(12), end: at(12) + 20 * 60),
+            DateInterval(start: at(17), end: at(18))
+        ])
+    }
+
+    @Test("Stored records run through the whole analysis") func testEndToEnd() async throws {
+        try await seed { context in
+            // Every 5 min: low at 02:00–03:00, meal spike after 12:00, fast drop during the 17:00 exercise.
+            for step in stride(from: 0.0, through: 24, by: 5.0 / 60) {
+                let value: Int
+                switch step {
+                case 2 ..< 3: value = 60
+                case 12.5 ..< 14: value = 230
+                case 17.5 ..< 18: value = 90
+                default: value = 150
+                }
+                Self.glucose(value, at: at(step), in: context)
+            }
+            let meal = CarbEntryStored(context: context)
+            meal.date = at(12)
+            meal.carbs = 50
+            meal.isFPU = false
+            for hour in [7.5, 19.0] {
+                let other = CarbEntryStored(context: context)
+                other.date = at(hour)
+                other.carbs = 30
+                other.isFPU = false
+            }
+            Self.bolus(4, at: at(12), smb: false, in: context)
+
+            let exercise = OverrideStored(context: context)
+            exercise.id = UUID().uuidString
+            exercise.name = "Exercise"
+            exercise.isPreset = true
+            exercise.enabled = false
+            exercise.percentage = 50
+            let run = OverrideRunStored(context: context)
+            run.id = UUID()
+            run.name = "Exercise"
+            run.startDate = at(16.9)
+            run.endDate = at(18)
+            run.target = 0
+            run.override = exercise
+        }
+
+        var engine = SettingsAnalysis.Engine(units: .mgdL)
+        let context = self.context
+        engine.loadHistory = { await SettingsAnalysis.HistoryLoader.load($0, context: context) }
+        let report = await engine.analyze(timeFrame: frame, snapshot: .defaults, catalog: nil, catalogError: nil)
+
+        let found = Set(report.findings.map(\.scenario))
+        #expect(found.contains(.overnightLow))
+        #expect(found.contains(.mealSpike))
+        #expect(found.contains(.exerciseDrop))
+        #expect(!found.contains(.unannouncedMeal))
+        #expect(report.readings == 289)
     }
 }

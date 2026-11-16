@@ -10,7 +10,6 @@ extension SettingsAnalysis {
     enum Scenario: String, CaseIterable, Identifiable, Hashable {
         case mealSpike
         case bolusThenHypo
-        case reboundHigh
         case dawnPhenomenon
         case overnightLow
         case persistentHigh
@@ -24,7 +23,6 @@ extension SettingsAnalysis {
             switch self {
             case .mealSpike: return String(localized: "Post-Meal Spike")
             case .bolusThenHypo: return String(localized: "Bolus Then Hypo")
-            case .reboundHigh: return String(localized: "Rebound High")
             case .dawnPhenomenon: return String(localized: "Dawn Phenomenon")
             case .overnightLow: return String(localized: "Overnight Low")
             case .persistentHigh: return String(localized: "Persistent High")
@@ -38,7 +36,6 @@ extension SettingsAnalysis {
             switch self {
             case .mealSpike: return "fork.knife"
             case .bolusThenHypo: return "arrow.down.right"
-            case .reboundHigh: return "arrow.uturn.up"
             case .dawnPhenomenon: return "sunrise"
             case .overnightLow: return "moon.zzz"
             case .persistentHigh: return "arrow.up.to.line"
@@ -57,8 +54,7 @@ extension SettingsAnalysis {
                  .mealSpike,
                  .persistentHigh,
                  .unannouncedMeal: return .orange
-            case .dawnPhenomenon,
-                 .reboundHigh: return .yellow
+            case .dawnPhenomenon: return .yellow
             }
         }
 
@@ -71,10 +67,6 @@ extension SettingsAnalysis {
             case .bolusThenHypo:
                 return String(
                     localized: "A low follows within a few hours of a meal or correction bolus. Often a sign of too much insulin for the carbs or the correction."
-                )
-            case .reboundHigh:
-                return String(
-                    localized: "A low is treated and glucose then overshoots into a high. Usually caused by over-treating the low or by insulin being suspended for too long."
                 )
             case .dawnPhenomenon:
                 return String(
@@ -117,6 +109,7 @@ extension SettingsAnalysis {
             let high = Threshold.high.formatted(withUnits: units)
             let rise = Threshold.mealRise.formatted(withUnits: units)
             let drop = Threshold.activityDrop.formatted(withUnits: units)
+            let dawnRise = Threshold.dawnRise.formatted(withUnits: units)
             let fastRise = Threshold.unannouncedRise.formatted(withUnits: units)
 
             switch self {
@@ -126,11 +119,9 @@ extension SettingsAnalysis {
                 return String(
                     localized: "Manual bolus, or SMBs after an unannounced meal, then glucose below \(low) within 4 h, with no carbs in between."
                 )
-            case .reboundHigh:
-                return String(localized: "Glucose below \(low), then above \(high) within 3 h.")
             case .dawnPhenomenon:
                 return String(
-                    localized: "Rise of more than \(drop) between 03:00 and 08:00 with no low that night. The window ends at the first carbs, bolus or unannounced meal."
+                    localized: "Rise of more than \(dawnRise) between 03:00 and 08:00 with no low that night. The window ends at the first carbs, bolus or unannounced meal."
                 )
             case .overnightLow:
                 return String(localized: "Glucose below \(low) between 00:00 and 06:00.")
@@ -140,7 +131,7 @@ extension SettingsAnalysis {
                 return String(localized: "In range 2 h after a meal, then above \(high) 3–6 h after it.")
             case .exerciseDrop:
                 return String(
-                    localized: "Drop of more than \(drop) within 1 h, during a raised temp target or a reduced-insulin override, or the hour after it."
+                    localized: "Drop of more than \(drop) within 1 h, during a raised temp target or a reduced-insulin override, or the hour after it. Temp targets and overrides set during a low or within 30 min after it are not counted."
                 )
             case .unannouncedMeal:
                 return String(
