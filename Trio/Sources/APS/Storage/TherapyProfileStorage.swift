@@ -13,15 +13,24 @@ struct StoredTherapyProfiles: Equatable, Sendable {
     var scheduledSwitchesSettledAt: Date?
 }
 
+enum TherapyProfileStorageError: Error, Equatable {
+    case duplicateName
+    case valueOutOfRange(String)
+    case noActiveProfile
+}
+
 protocol TherapyProfileStorage {
-    func fetchProfiles() throws -> StoredTherapyProfiles
-    /// Replaces every stored profile and scheduled switch in one save.
+    func fetchProfiles() async throws -> StoredTherapyProfiles
+    /// Replaces every stored profile and scheduled switch in one save. Throws without changing anything when two profiles
+    /// have the same name ignoring case, a value is out of range, or there is no active profile for the active values, the
+    /// scheduled switches or the settled instant.
     func storeProfiles(_ profiles: StoredTherapyProfiles) async throws
-    /// Stores only the settled instant of the scheduled switches.
+    /// Stores only the settled instant of the scheduled switches. Throws `noActiveProfile` before the profiles are stored.
     func settleScheduledSwitches(at date: Date) async throws
 }
 
 final class BaseTherapyProfileStorage: TherapyProfileStorage {
+    /// One context for all operations, so each replace of the stored profiles runs in order with every other read and write.
     private let context: NSManagedObjectContext
 
     init(contextProvider: (() -> NSManagedObjectContext)? = nil) {
@@ -29,8 +38,8 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
         context.name = "therapyProfileStorage"
     }
 
-    func fetchProfiles() throws -> StoredTherapyProfiles {
-        try context.performAndWait {
+    func fetchProfiles() async throws -> StoredTherapyProfiles {
+        try await context.perform { [context] in
             let rows = try context.fetch(TherapyProfileStored.fetchRequest())
             let activeRow = rows.first(where: \.isActive)
             return StoredTherapyProfiles(
@@ -45,6 +54,12 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
     }
 
     func storeProfiles(_ profiles: StoredTherapyProfiles) async throws {
+        do {
+            try Self.validate(profiles)
+        } catch {
+            warning(.storage, "Therapy profiles not saved", error: error)
+            throw error
+        }
         try await context.perform { [context] in
             do {
                 for row in try context.fetch(TherapyProfileStored.fetchRequest()) {
@@ -78,10 +93,49 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
 
     func settleScheduledSwitches(at date: Date) async throws {
         try await context.perform { [context] in
-            let request = TherapyProfileStored.fetchRequest()
-            request.predicate = NSPredicate(format: "isActive == %@", true as NSNumber)
-            try context.fetch(request).forEach { $0.scheduledSwitchesSettledAt = date }
-            try context.save()
+            do {
+                let request = TherapyProfileStored.fetchRequest()
+                request.predicate = NSPredicate(format: "isActive == %@", true as NSNumber)
+                let rows = try context.fetch(request)
+                guard !rows.isEmpty else { throw TherapyProfileStorageError.noActiveProfile }
+                rows.forEach { $0.scheduledSwitchesSettledAt = date }
+                try context.save()
+            } catch {
+                context.rollback()
+                warning(.storage, "Saving the settled instant of the scheduled profile switches failed", error: error)
+                throw error
+            }
+        }
+    }
+
+    private static func validate(_ profiles: StoredTherapyProfiles) throws {
+        let hasActiveProfileState = profiles.activeProfileValues != nil || !profiles.scheduledSwitches.isEmpty ||
+            profiles.scheduledSwitchesSettledAt != nil
+        if profiles.activeProfileName == nil, hasActiveProfileState {
+            throw TherapyProfileStorageError.noActiveProfile
+        }
+
+        var names = Set<String>()
+        for name in profiles.inactiveProfiles.map(\.name) + [profiles.activeProfileName].compactMap({ $0 }) {
+            guard names.insert(name.folding(options: .caseInsensitive, locale: nil)).inserted else {
+                throw TherapyProfileStorageError.duplicateName
+            }
+        }
+
+        let day = 0 ..< 24 * 3600
+        for profile in profiles.inactiveProfiles + [profiles.activeProfileValues].compactMap({ $0 }) {
+            let offsets = (profile.basal + profile.carbRatio + profile.sensitivity).map(\.seconds) + profile.target.map(\.seconds)
+            if let offset = offsets.first(where: { !day.contains($0) }) {
+                throw TherapyProfileStorageError.valueOutOfRange("schedule offset \(offset)")
+            }
+        }
+        for entry in profiles.scheduledSwitches {
+            guard (1 ... 7).contains(entry.weekday) else {
+                throw TherapyProfileStorageError.valueOutOfRange("weekday \(entry.weekday)")
+            }
+            guard day.contains(entry.time), entry.time % 60 == 0 else {
+                throw TherapyProfileStorageError.valueOutOfRange("time \(entry.time)")
+            }
         }
     }
 }
