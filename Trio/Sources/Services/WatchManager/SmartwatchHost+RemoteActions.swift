@@ -23,21 +23,21 @@ extension BaseSmartwatchHost {
         log(manager, .receive, String(format: "Bolus request: %.3f U", units))
         guard isCurrentWatch(manager) else {
             log(manager, .error, "Bolus request rejected: notAllowed (the request isn't from the current watch)")
-            throw SmartwatchBolusError.notAllowed
+            throw SmartwatchActionError.notAllowed
         }
         // Checked and set with no suspension in between, so two requests can't
         // both pass.
         guard !isDeliveringWatchBolus else {
             log(manager, .error, "Bolus request answered with inProgress: a watch bolus is still being delivered")
-            throw SmartwatchBolusError.inProgress
+            throw SmartwatchActionError.inProgress
         }
         guard units.isFinite, units > 0 else {
             log(manager, .error, "Bolus request rejected: invalidAmount")
-            throw SmartwatchBolusError.invalidAmount
+            throw SmartwatchActionError.invalidAmount
         }
         guard let pumpManager = deviceDataManager.pumpManager else {
             log(manager, .error, "Bolus request rejected: no pump")
-            throw SmartwatchBolusError.refusedByHost("no pump")
+            throw SmartwatchActionError.refusedByHost("no pump")
         }
         let rounded = pumpManager.roundToSupportedBolusVolume(units: units)
         let maximumBolus = Double(truncating: settingsManager.pumpSettings.maxBolus as NSNumber)
@@ -45,16 +45,16 @@ extension BaseSmartwatchHost {
         // rounds. Trio's bolus safety checks below check Max Bolus again.
         guard units <= maximumBolus, rounded <= maximumBolus else {
             log(manager, .error, String(
-                format: "Bolus request rejected: exceedsMaximumBolus (%.3f U, rounded %.3f U; Max Bolus %.2f U)",
+                format: "Bolus request rejected: exceedsMaximum (%.3f U, rounded %.3f U; Max Bolus %.2f U)",
                 units,
                 rounded,
                 maximumBolus
             ))
-            throw SmartwatchBolusError.exceedsMaximumBolus
+            throw SmartwatchActionError.exceedsMaximum
         }
         guard rounded > 0 else {
             log(manager, .error, String(format: "Bolus request rejected: invalidAmount (%.3f U rounds to 0 U)", units))
-            throw SmartwatchBolusError.invalidAmount
+            throw SmartwatchActionError.invalidAmount
         }
 
         // Taken before the checks below, so a request that arrives while they run
@@ -84,18 +84,18 @@ extension BaseSmartwatchHost {
                 log(manager, .error, "Bolus request rejected by Trio's bolus safety checks: \(reason)")
                 throw Self.bolusError(for: reason)
             }
-        } catch let error as SmartwatchBolusError {
+        } catch let error as SmartwatchActionError {
             throw error
         } catch {
             log(manager, .error, "Bolus request rejected: Trio's bolus safety checks failed (\(error))")
-            throw SmartwatchBolusError.refusedByHost(String(describing: error))
+            throw SmartwatchActionError.refusedByHost(String(describing: error))
         }
 
         // Checked again after the await above, right before the pump call, so a
         // watch removed meanwhile can't bolus.
         guard isCurrentWatch(manager) else {
             log(manager, .error, "Bolus request rejected just before delivery: notAllowed (the watch was removed)")
-            throw SmartwatchBolusError.notAllowed
+            throw SmartwatchActionError.notAllowed
         }
         log(manager, .delegate, String(format: "Delivering watch bolus of %.3f U (Max Bolus %.2f U)", rounded, maximumBolus))
 
@@ -108,7 +108,7 @@ extension BaseSmartwatchHost {
         guard outcome.success else {
             log(manager, .error, "Watch bolus delivery failed: \(outcome.message)")
             signal(.loop)
-            throw SmartwatchBolusError.deliveryFailed(outcome.message)
+            throw SmartwatchActionError.deliveryFailed(outcome.message)
         }
         log(manager, .delegateResponse, String(format: "Watch bolus of %.3f U delivered", rounded))
         signal(.loop)
@@ -140,7 +140,7 @@ extension BaseSmartwatchHost {
         }
         guard isCurrentWatch(manager) else {
             log(manager, .error, "Bolus recommendation refused: the request isn't from the current watch")
-            throw SmartwatchBolusError.notAllowed
+            throw SmartwatchActionError.notAllowed
         }
         let maximumGrams = Double(truncating: settingsManager.settings.maxCarbs as NSNumber)
         guard grams.isFinite, grams >= 0, grams <= maximumGrams else {
@@ -149,7 +149,7 @@ extension BaseSmartwatchHost {
                 grams,
                 maximumGrams
             ))
-            throw SmartwatchBolusError.invalidAmount
+            throw SmartwatchActionError.invalidAmount
         }
         let determination = (try? await latestDetermination()) ?? nil
         let now = Date()
@@ -237,10 +237,10 @@ extension BaseSmartwatchHost {
 
     /// The watch's error for a rejection by Trio's bolus safety checks, so the
     /// plugin can tell the watch why (over Max Bolus, over Max IOB).
-    static func bolusError(for rejection: BolusSafetyRejection) -> SmartwatchBolusError {
+    static func bolusError(for rejection: BolusSafetyRejection) -> SmartwatchActionError {
         switch rejection {
         case .recentBolusWithinWindow: .rateLimited
-        case .exceedsMaxBolus: .exceedsMaximumBolus
+        case .exceedsMaxBolus: .exceedsMaximum
         case .exceedsMaxIOB,
              .iobUnavailable: .refusedByHost(String(describing: rejection))
         }
@@ -302,23 +302,23 @@ extension BaseSmartwatchHost {
         )
         guard isCurrentWatch(manager) else {
             log(manager, .error, "Carb entry request rejected: notAllowed (the request isn't from the current watch)")
-            throw SmartwatchCarbEntryError.notAllowed
+            throw SmartwatchActionError.notAllowed
         }
         guard grams.isFinite, grams > 0 else {
             log(manager, .error, "Carb entry request rejected: invalidAmount")
-            throw SmartwatchCarbEntryError.invalidAmount
+            throw SmartwatchActionError.invalidAmount
         }
         let maximumGrams = Double(truncating: settingsManager.settings.maxCarbs as NSNumber)
         guard grams <= maximumGrams else {
             log(manager, .error, String(format: "Carb entry request rejected: exceedsMaximum (Max Carbs %.0f g)", maximumGrams))
-            throw SmartwatchCarbEntryError.exceedsMaximum
+            throw SmartwatchActionError.exceedsMaximum
         }
         do {
             let entry = carbsStorage.makeCarbEntry(carbs: Decimal(grams), date: date)
             try await carbsStorage.storeCarbs([entry], areFetchedFromRemote: false)
         } catch {
             log(manager, .error, "Watch carb entry failed: \(error)")
-            throw SmartwatchCarbEntryError.failed(String(describing: error))
+            throw SmartwatchActionError.failed(String(describing: error))
         }
         // Counted from when it was stored: a determination from before then can't include it.
         watchCarbEntries.append(WatchCarbEntry(date: Date(), grams: grams))
@@ -338,11 +338,11 @@ extension BaseSmartwatchHost {
         log(manager, .receive, String(format: "Mute request: %.0f min", duration / 60))
         guard isCurrentWatch(manager) else {
             log(manager, .error, "Mute request rejected: notAllowed (the request isn't from the current watch)")
-            throw SmartwatchAlertMuteError.notAllowed
+            throw SmartwatchActionError.notAllowed
         }
         guard duration.isFinite, duration >= 0 else {
             log(manager, .error, "Mute request rejected: invalid duration")
-            throw SmartwatchAlertMuteError.notAllowed
+            throw SmartwatchActionError.notAllowed
         }
         if duration == 0 {
             await trioAlertManager.applySnooze(for: 0)
@@ -358,20 +358,20 @@ extension BaseSmartwatchHost {
 
     // MARK: - Overrides and temp targets
 
-    @MainActor func smartwatchManager(_ manager: SmartwatchManager, enactOverride action: SmartwatchPresetAction) async throws {
+    @MainActor func smartwatchManager(_ manager: SmartwatchManager, enactOverride presetID: String?) async throws {
         try await handlePresetRequest(
             kind: "Override",
-            action: action,
+            presetID: presetID,
             from: manager,
             activate: { try await self.adjustmentManager.activateOverride(.presetID($0), source: .watch) },
             cancel: { try await self.adjustmentManager.cancelOverride(source: .watch) }
         )
     }
 
-    @MainActor func smartwatchManager(_ manager: SmartwatchManager, enactTempTarget action: SmartwatchPresetAction) async throws {
+    @MainActor func smartwatchManager(_ manager: SmartwatchManager, enactTempTarget presetID: String?) async throws {
         try await handlePresetRequest(
             kind: "Temp target",
-            action: action,
+            presetID: presetID,
             from: manager,
             activate: { try await self.adjustmentManager.activateTempTarget(.presetID($0), source: .watch) },
             cancel: { try await self.adjustmentManager.cancelTempTarget(source: .watch) }
@@ -382,26 +382,22 @@ extension BaseSmartwatchHost {
     /// only for the current watch.
     @MainActor private func handlePresetRequest(
         kind: String,
-        action: SmartwatchPresetAction,
+        presetID: String?,
         from manager: SmartwatchManager,
         activate: (String) async throws -> AdjustmentOutcome,
         cancel: () async throws -> AdjustmentOutcome
     ) async throws {
-        let description = switch action {
-        case let .activate(presetID): "start preset \(presetID)"
-        case .cancel: "end the running one"
-        }
+        let description = presetID.map { "start preset \($0)" } ?? "end the running one"
         log(manager, .receive, "\(kind) request: \(description)")
         guard isCurrentWatch(manager) else {
             log(manager, .error, "\(kind) request rejected: notAllowed (the request isn't from the current watch)")
-            throw SmartwatchPresetError.notAllowed
+            throw SmartwatchActionError.notAllowed
         }
         do {
-            switch action {
-            case let .activate(presetID):
+            if let presetID {
                 let outcome = try await activate(presetID)
                 log(manager, .delegateResponse, "\(kind) \"\(outcome.started?.name ?? presetID)\" started from the watch")
-            case .cancel:
+            } else {
                 _ = try await cancel()
                 log(manager, .delegateResponse, "\(kind) ended from the watch")
             }
@@ -410,10 +406,10 @@ extension BaseSmartwatchHost {
             log(manager, .delegateResponse, "\(kind) end requested from the watch: nothing was running")
         } catch AdjustmentError.presetNotFound {
             log(manager, .error, "\(kind) request rejected: unknownPreset")
-            throw SmartwatchPresetError.unknownPreset
+            throw SmartwatchActionError.unknownPreset
         } catch {
             log(manager, .error, "\(kind) request from the watch failed: \(error)")
-            throw SmartwatchPresetError.failed(String(describing: error))
+            throw SmartwatchActionError.failed(String(describing: error))
         }
         signal(.presets)
     }

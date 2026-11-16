@@ -143,7 +143,7 @@ import Testing
 
     @Test("Trio's bolus safety rejections reach the watch with a reason where there is one") func bolusSafetyErrors() {
         #expect(BaseSmartwatchHost.bolusError(for: .recentBolusWithinWindow(totalRecent: 0.4)) == .rateLimited)
-        #expect(BaseSmartwatchHost.bolusError(for: .exceedsMaxBolus(maxBolus: 5)) == .exceedsMaximumBolus)
+        #expect(BaseSmartwatchHost.bolusError(for: .exceedsMaxBolus(maxBolus: 5)) == .exceedsMaximum)
         #expect(BaseSmartwatchHost.bolusError(for: .iobUnavailable) == .refusedByHost("iobUnavailable"))
         if case .refusedByHost = BaseSmartwatchHost.bolusError(for: .exceedsMaxIOB(currentIOB: 9, maxIOB: 10)) {} else {
             Issue.record("max IOB should stay refusedByHost")
@@ -384,8 +384,8 @@ private final class FakeSmartwatchManager: SmartwatchManager {
 @Suite("Smartwatch host: glucose display limits") struct SmartwatchDisplayLimitsTests {
     @Test("The display limits are Trio's low and high") func lowAndHigh() {
         let limits = BaseSmartwatchHost.displayLimits(low: 70, high: 180)
-        #expect(limits?.low == LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: 70))
-        #expect(limits?.high == LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: 180))
+        #expect(limits?.lowerBound == LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: 70))
+        #expect(limits?.upperBound == LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: 180))
     }
 
     @Test("No display limits when low isn't below high") func lowNotBelowHigh() {
