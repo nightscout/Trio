@@ -62,6 +62,8 @@ final class InMemoryFileStorage: FileStorage, @unchecked Sendable {
 final class FailableTherapyProfileStorage: TherapyProfileStorage, @unchecked Sendable {
     private let base: TherapyProfileStorage
     var failsToStore = false
+    var failsToFetch = false
+    let fetchCount = LockedCounter()
     /// Runs before every store; a throw stops the store.
     var beforeStore: (() throws -> Void)?
 
@@ -69,8 +71,10 @@ final class FailableTherapyProfileStorage: TherapyProfileStorage, @unchecked Sen
         self.base = base
     }
 
-    func fetchProfiles() throws -> StoredTherapyProfiles {
-        try base.fetchProfiles()
+    func fetchProfiles() async throws -> StoredTherapyProfiles {
+        fetchCount.increment()
+        if failsToFetch { throw TherapyProfileError.storageFailed }
+        return try await base.fetchProfiles()
     }
 
     func storeProfiles(_ profiles: StoredTherapyProfiles) async throws {
@@ -201,7 +205,9 @@ struct TherapyProfileTestContext {
         fileStorage.save(live.carbRatios, as: OpenAPS.Settings.carbRatios)
         fileStorage.save(live.insulinSensitivities, as: OpenAPS.Settings.insulinSensitivities)
         fileStorage.save(live.bgTargets, as: OpenAPS.Settings.bgTargets)
-        return try make(coreDataStack: try await CoreDataStack.createForTests(), fileStorage: fileStorage)
+        let context = try make(coreDataStack: try await CoreDataStack.createForTests(), fileStorage: fileStorage)
+        await context.manager.completeInterruptedSwitch()
+        return context
     }
 
     /// A new manager over the same Core Data store and settings files, as after an app restart.
@@ -253,6 +259,13 @@ actor AsyncGate {
         waiters.forEach { $0.resume() }
         waiters = []
     }
+}
+
+final class LockedCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    var value: Int { lock.withLock { count } }
+    func increment() { lock.withLock { count += 1 } }
 }
 
 final class LockedFlag: @unchecked Sendable {

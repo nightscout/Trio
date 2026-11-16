@@ -29,8 +29,8 @@ import Testing
         return context
     }
 
-    private func settledAt(_ context: TherapyProfileTestContext) throws -> Date? {
-        try context.profileStorage.fetchProfiles().scheduledSwitchesSettledAt
+    private func settledAt(_ context: TherapyProfileTestContext) async throws -> Date? {
+        try await context.profileStorage.fetchProfiles().scheduledSwitchesSettledAt
     }
 
     private func issued(_ context: TherapyProfileTestContext, _ name: String) -> [Alert] {
@@ -40,7 +40,7 @@ import Testing
     @Test("Saving the list names Default by its profile name, settles now and arms the next start") func saveList() async throws {
         let context = try await makeContext()
         #expect(context.manager.scheduledSwitches().map(\.profileName) == ["Default", "Weekend"])
-        #expect(try settledAt(context) == date("2026-11-13 12:00"))
+        #expect(try await settledAt(context) == date("2026-11-13 12:00"))
         let pending = try #require(issued(context, "pending").last)
         #expect(pending.trigger == .delayed(interval: date("2026-11-14 07:30").timeIntervalSince(date("2026-11-13 12:00"))))
         #expect(pending.backgroundContent.body.contains("Weekend"))
@@ -92,7 +92,7 @@ import Testing
             .profilesChanged,
             .recompute
         ])
-        #expect(try settledAt(context) == date("2026-11-14 07:00"))
+        #expect(try await settledAt(context) == date("2026-11-14 07:00"))
         let done = try #require(issued(context, "done").last)
         #expect(done.interruptionLevel == .active)
         #expect(done.backgroundContent.body.contains("as scheduled"))
@@ -138,7 +138,7 @@ import Testing
         await context.manager.runDueScheduledSwitch()
         #expect(context.recorder.pumpWrites == 0)
         #expect(context.manager.activeProfileName == "Default")
-        #expect(try settledAt(context) == date("2026-11-16 06:30"))
+        #expect(try await settledAt(context) == date("2026-11-16 06:30"))
     }
 
     @Test("A start older than the grace is not applied and the user is told") func missed() async throws {
@@ -148,7 +148,7 @@ import Testing
 
         #expect(context.recorder.pumpWrites == 0)
         #expect(context.manager.activeProfileName == "Default")
-        #expect(try settledAt(context) == date("2026-11-15 07:01"))
+        #expect(try await settledAt(context) == date("2026-11-15 07:01"))
         let failed = try #require(issued(context, "failed").last)
         #expect(failed.interruptionLevel == .timeSensitive)
         #expect(failed.backgroundContent.body.contains("Weekend"))
@@ -163,7 +163,7 @@ import Testing
 
         #expect(context.fileStorage.sameContents(as: before))
         #expect(context.manager.activeProfileName == "Default")
-        #expect(try settledAt(context) == date("2026-11-13 12:00"))
+        #expect(try await settledAt(context) == date("2026-11-13 12:00"))
         let pending = try #require(issued(context, "pending").last)
         #expect(pending.backgroundContent.body.contains("pump unreachable"))
         #expect(pending.trigger == .delayed(interval: 29 * 60))
@@ -223,7 +223,7 @@ import Testing
         context.recorder.now = date("2026-11-14 07:01")
         await context.manager.runDueScheduledSwitch()
         #expect(context.recorder.pumpWrites == 0)
-        #expect(try settledAt(context) == date("2026-11-13 12:00"))
+        #expect(try await settledAt(context) == date("2026-11-13 12:00"))
 
         context.recorder.bolusInProgress = false
         await context.manager.runDueScheduledSwitch()
@@ -237,7 +237,7 @@ import Testing
         await context.manager.runDueScheduledSwitch()
 
         #expect(context.recorder.pumpWrites == 0)
-        #expect(try settledAt(context) == date("2026-11-14 07:01"))
+        #expect(try await settledAt(context) == date("2026-11-14 07:01"))
         #expect(issued(context, "failed").last?.backgroundContent.body.contains("not supported by the pump") == true)
     }
 
@@ -252,7 +252,7 @@ import Testing
         #expect(context.fileStorage.sameContents(as: before))
         #expect(context.manager.activeProfileName == "Default")
         #expect(context.recorder.pumpWrites == 2)
-        #expect(try settledAt(context) == date("2026-11-14 07:01"))
+        #expect(try await settledAt(context) == date("2026-11-14 07:01"))
         let failed = try #require(issued(context, "failed").last)
         #expect(failed.interruptionLevel == .timeSensitive)
         #expect(
@@ -284,7 +284,7 @@ import Testing
         context.recorder.now = date("2026-11-14 07:01")
         await context.manager.runDueScheduledSwitch()
         #expect(context.recorder.pumpWrites == 0)
-        #expect(try settledAt(context) == date("2026-11-13 12:00"))
+        #expect(try await settledAt(context) == date("2026-11-13 12:00"))
 
         context.recorder.now = date("2026-11-14 07:10")
         var entries = context.manager.scheduledSwitches()

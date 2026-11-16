@@ -110,8 +110,9 @@ protocol TherapyProfileManager: AnyObject {
         writesBasalSchedule: Bool,
         write: @escaping @Sendable() async throws -> Void
     ) async throws -> TrioTherapyProfile
-    /// Makes the profile whose values the live settings hold active, when the app stopped during a switch after writing
-    /// the live settings and before storing the profiles.
+    /// Runs at launch, before the profiles are read: loads the stored profiles, and makes the profile whose values the live
+    /// settings hold active, when the app stopped during a switch after writing the live settings and before storing the
+    /// profiles.
     func completeInterruptedSwitch() async
 
     /// Ordered as a week from Monday.
@@ -163,6 +164,10 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     private let calendarOverride: Calendar?
     private let armedAlertLock = NSLock()
     private var armedAlert: ArmedScheduledSwitchAlert?
+    private let storedProfilesLock = NSLock()
+    /// The stored profiles as this manager last loaded or stored them. Every change of the stored profiles goes through this
+    /// manager, so the getters read these.
+    private var storedProfiles: StoredTherapyProfiles?
 
     /// Tests pass `syncBasalSchedule`, `basalLimits`, `pumpSuspended`, `bolusInProgress` and `recompute` in place of the
     /// pump and the determination.
@@ -203,19 +208,19 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     }
 
     var activeProfileName: String {
-        (try? loadState())?.activeProfileName ?? TrioTherapyProfile.defaultName
+        loadedState?.activeProfileName ?? TrioTherapyProfile.defaultName
     }
 
     func activeProfile() -> TrioTherapyProfile {
-        (try? loadState())?.activeProfile ?? liveProfile(named: TrioTherapyProfile.defaultName)
+        loadedState?.activeProfile ?? liveProfile(named: TrioTherapyProfile.defaultName)
     }
 
     func profiles() -> [TrioTherapyProfile] {
-        (try? loadState())?.profiles ?? [liveProfile(named: TrioTherapyProfile.defaultName)]
+        loadedState?.profiles ?? [liveProfile(named: TrioTherapyProfile.defaultName)]
     }
 
     func profile(named name: String) -> TrioTherapyProfile? {
-        (try? loadState())?.profile(named: name)
+        loadedState?.profile(named: name)
     }
 
     // MARK: State
@@ -250,8 +255,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     /// When the live settings differ from the values stored with the active profile and equal another stored profile's,
     /// a switch wrote the live settings and stopped before storing the profiles: that profile is active, and the stored
     /// values belong to the previously active one.
-    private func loadState() throws -> State {
-        let stored = try therapyProfileStorage.fetchProfiles()
+    private func state(from stored: StoredTherapyProfiles) -> State {
         var activeName = stored.activeProfileName ?? TrioTherapyProfile.defaultName
         var inactiveProfiles = stored.inactiveProfiles
         let live = liveProfile(named: activeName)
@@ -272,6 +276,47 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
             scheduledSwitches: stored.scheduledSwitches,
             scheduledSwitchesSettledAt: stored.scheduledSwitchesSettledAt
         )
+    }
+
+    private func loadState() async throws -> State {
+        state(from: try await loadStoredProfiles())
+    }
+
+    /// Nil until the stored profiles are first loaded.
+    private var loadedState: State? {
+        storedProfilesLock.withLock { storedProfiles }.map(state(from:))
+    }
+
+    /// Until the first load the getters return Default with the live settings; observers are told when a later load changes
+    /// that.
+    private func loadStoredProfiles(notifiesObservers: Bool = true) async throws -> StoredTherapyProfiles {
+        if let storedProfiles = storedProfilesLock.withLock({ storedProfiles }) {
+            return storedProfiles
+        }
+        let fetched = try await therapyProfileStorage.fetchProfiles()
+        let loaded = storedProfilesLock.withLock { () -> Bool in
+            guard storedProfiles == nil else { return false }
+            storedProfiles = fetched
+            return true
+        }
+        if loaded, notifiesObservers, fetched != StoredTherapyProfiles(activeProfileName: nil, inactiveProfiles: []) {
+            broadcaster.notify(TherapyProfilesObserver.self, on: .main) { $0.therapyProfilesDidChange() }
+        }
+        return storedProfilesLock.withLock { storedProfiles } ?? fetched
+    }
+
+    private func store(_ profiles: StoredTherapyProfiles) async throws {
+        do {
+            try await therapyProfileStorage.storeProfiles(profiles)
+        } catch is TherapyProfileStorageError {
+            throw TherapyProfileError.storageFailed
+        }
+        storedProfilesLock.withLock { storedProfiles = profiles }
+    }
+
+    private func settleScheduledSwitches(at date: Date) async throws {
+        try await therapyProfileStorage.settleScheduledSwitches(at: date)
+        storedProfilesLock.withLock { storedProfiles?.scheduledSwitchesSettledAt = date }
     }
 
     private func liveProfile(named name: String) -> TrioTherapyProfile {
@@ -312,7 +357,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     private func commit(_ state: State, live: TrioTherapyProfile, previousLive: TrioTherapyProfile) async throws {
         do {
             try writeLive(live)
-            try await therapyProfileStorage.storeProfiles(state.stored)
+            try await store(state.stored)
         } catch let commitError {
             try? writeLive(previousLive)
             if live.basal != previousLive.basal {
@@ -340,7 +385,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         write: @escaping @Sendable() async throws -> Void
     ) async throws -> TrioTherapyProfile {
         let (saved, stored) = try await serializer.run { () -> (TrioTherapyProfile, Bool) in
-            var state = try self.loadState()
+            var state = try await self.loadState()
             guard let active = state.activeProfile else { throw TherapyProfileError.storageFailed }
             guard active.name == expectedActiveName, active.matchesFingerprint(expectedFingerprint) else {
                 warning(.settings, "Therapy settings edit refused, the active profile changed while editing")
@@ -356,7 +401,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
                 state.profiles[index] = live
             }
             do {
-                try await self.therapyProfileStorage.storeProfiles(state.stored)
+                try await self.store(state.stored)
                 return (live, true)
             } catch {
                 warning(.settings, "Storing the therapy profiles after a therapy settings edit failed", error: error)
@@ -371,11 +416,12 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     func completeInterruptedSwitch() async {
         do {
             let switchedTo = try await serializer.run { () -> String? in
-                var state = try self.loadState()
-                let storedActiveName = try self.therapyProfileStorage.fetchProfiles().activeProfileName
+                let stored = try await self.loadStoredProfiles(notifiesObservers: false)
+                var state = self.state(from: stored)
+                let storedActiveName = stored.activeProfileName
                 guard let storedActiveName, storedActiveName != state.activeProfileName else { return nil }
                 state.scheduledSwitchesSettledAt = self.now()
-                try await self.therapyProfileStorage.storeProfiles(state.stored)
+                try await self.store(state.stored)
                 return state.activeProfileName
             }
             guard let switchedTo else { return }
@@ -388,7 +434,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     @discardableResult func activate(_ name: String, expectedFingerprint: String?) async throws -> TrioTherapyProfile {
         let (profile, switched) = try await serializer.run { () -> (TrioTherapyProfile, Bool) in
-            var state = try self.loadState()
+            var state = try await self.loadState()
             guard let target = state.profile(named: name) else { throw TherapyProfileError.notFound(name) }
             if let expectedFingerprint, !target.matchesFingerprint(expectedFingerprint) {
                 throw TherapyProfileError.conflict(target.name)
@@ -418,7 +464,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         baseFingerprint: String?
     ) async throws -> TrioTherapyProfile {
         let (saved, liveChanged, changed) = try await serializer.run { () -> (TrioTherapyProfile, Bool, Bool) in
-            var state = try self.loadState()
+            var state = try await self.loadState()
 
             var original: TrioTherapyProfile?
             if let originalName {
@@ -465,7 +511,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
             }
 
             guard let original, original.name == state.activeProfileName else {
-                try await self.therapyProfileStorage.storeProfiles(state.stored)
+                try await self.store(state.stored)
                 return (updated, false, true)
             }
             if updated.basal != original.basal {
@@ -484,7 +530,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     @discardableResult func delete(_ name: String, expectedFingerprint: String?) async throws -> Int {
         let (deleted, removedSwitches) = try await serializer.run { () -> (TrioTherapyProfile, Int) in
-            var state = try self.loadState()
+            var state = try await self.loadState()
             guard let target = state.profile(named: name) else { throw TherapyProfileError.notFound(name) }
             if target.isDefault { throw TherapyProfileError.cannotDeleteDefault }
             if target.name == state.activeProfileName { throw TherapyProfileError.cannotDeleteActive }
@@ -495,7 +541,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
             let remainingSwitches = state.scheduledSwitches.removingProfile(target.name)
             let removedSwitches = state.scheduledSwitches.count - remainingSwitches.count
             state.scheduledSwitches = remainingSwitches
-            try await self.therapyProfileStorage.storeProfiles(state.stored)
+            try await self.store(state.stored)
             return (target, removedSwitches)
         }
         info(.settings, "Therapy profile \(deleted.fingerprint(units: .mgdL)) deleted with \(removedSwitches) scheduled switches")
@@ -511,7 +557,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     static let scheduledSwitchAlertDelay: TimeInterval = 30 * 60
 
     func scheduledSwitches() -> [ScheduledProfileSwitch] {
-        (try? loadState())?.scheduledSwitches.sortedByWeek ?? []
+        loadedState?.scheduledSwitches.sortedByWeek ?? []
     }
 
     @discardableResult func saveScheduledSwitches(
@@ -519,7 +565,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         baseFingerprint: String?
     ) async throws -> [ScheduledProfileSwitch] {
         let saved = try await serializer.run { () -> [ScheduledProfileSwitch] in
-            var state = try self.loadState()
+            var state = try await self.loadState()
             if let baseFingerprint, !state.scheduledSwitches.matchesFingerprint(baseFingerprint) {
                 throw TherapyProfileError.scheduledSwitchesConflict
             }
@@ -535,7 +581,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
                 return entry
             }.sortedByWeek
             state.scheduledSwitchesSettledAt = self.now()
-            try await self.therapyProfileStorage.storeProfiles(state.stored)
+            try await self.store(state.stored)
             return state.scheduledSwitches
         }
         info(.settings, "\(saved.count) scheduled profile switches saved, \(saved.filter(\.paused).count) paused")
@@ -578,33 +624,33 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     }
 
     private func runDueScheduledSwitchStep() async throws -> ScheduledSwitchRun {
-        var state = try loadState()
+        var state = try await loadState()
         let now = self.now()
         guard !state.scheduledSwitches.isEmpty else { return .idle }
         guard let settledAt = state.scheduledSwitchesSettledAt else {
-            try await therapyProfileStorage.settleScheduledSwitches(at: now)
+            try await settleScheduledSwitches(at: now)
             return .idle
         }
         guard let due = state.scheduledSwitches.newestOccurrence(after: settledAt, upTo: now, calendar: calendar) else {
             return .idle
         }
         guard now.timeIntervalSince(due.date) <= Self.scheduledSwitchGrace else {
-            try await therapyProfileStorage.settleScheduledSwitches(at: now)
+            try await settleScheduledSwitches(at: now)
             return .failed(due, reason: String(localized: "Trio could not switch within 24 hours of the scheduled time."))
         }
         guard let target = state.profile(named: due.entry.profileName) else {
-            try await therapyProfileStorage.settleScheduledSwitches(at: now)
+            try await settleScheduledSwitches(at: now)
             return .failed(due, reason: TherapyProfileError.notFound(due.entry.profileName).localizedDescription)
         }
         guard target.name != state.activeProfileName else {
-            try await therapyProfileStorage.settleScheduledSwitches(at: now)
+            try await settleScheduledSwitches(at: now)
             return .idle
         }
         guard !isBolusInProgress else {
             return .retrying(due, reason: String(localized: "A bolus was in progress."))
         }
         if let reason = TherapyProfileValidator.validate(target, basalLimits: basalLimits) {
-            try await therapyProfileStorage.settleScheduledSwitches(at: now)
+            try await settleScheduledSwitches(at: now)
             return .failed(due, reason: reason)
         }
 
@@ -619,7 +665,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         do {
             try await commit(state, live: target, previousLive: previousLive)
         } catch {
-            try? await therapyProfileStorage.settleScheduledSwitches(at: now)
+            try? await settleScheduledSwitches(at: now)
             return .failed(due, reason: error.localizedDescription)
         }
         return .switched(due, target, at: now)
@@ -690,7 +736,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     /// alert that was delivered stays until its start is settled.
     private func armScheduledSwitchAlert(reason: String? = nil) async {
         let now = self.now()
-        let state = try? loadState()
+        let state = try? await loadState()
         if let state, let settledAt = state.scheduledSwitchesSettledAt,
            let unsettled = state.scheduledSwitches.nextOccurrence(after: settledAt, calendar: calendar),
            unsettled.date.addingTimeInterval(Self.scheduledSwitchAlertDelay) <= now

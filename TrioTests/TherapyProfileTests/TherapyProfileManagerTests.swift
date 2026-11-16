@@ -13,14 +13,14 @@ import Testing
         #expect(context.manager.activeProfileName == "Default")
         #expect(context.manager.profiles().map(\.name) == ["Default"])
         #expect(context.manager.activeProfile().hasSameValues(as: TherapyProfileFixtures.profile("Default")))
-        #expect(try context.profileStorage.fetchProfiles().activeProfileName == nil)
+        #expect(try await context.profileStorage.fetchProfiles().activeProfileName == nil)
     }
 
     @Test("Saving a new profile stores it and leaves the pump and live settings alone") func create() async throws {
         let context = try await TherapyProfileTestContext.make()
         try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
 
-        let stored = try context.profileStorage.fetchProfiles()
+        let stored = try await context.profileStorage.fetchProfiles()
         #expect(stored.activeProfileName == "Default")
         #expect(stored.inactiveProfiles == [sport])
         #expect(context.manager.profiles().map(\.name) == ["Default", "Sport"])
@@ -60,7 +60,7 @@ import Testing
         )
         #expect(context.fileStorage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)?.targets.map(\.low) == [120])
 
-        let stored = try context.profileStorage.fetchProfiles()
+        let stored = try await context.profileStorage.fetchProfiles()
         #expect(stored.activeProfileName == "Sport")
         #expect(stored.inactiveProfiles.map(\.name) == ["Default"])
         #expect(stored.inactiveProfiles.first?.hasSameValues(as: TherapyProfileFixtures.profile("Default")) == true)
@@ -181,14 +181,13 @@ import Testing
         _ = try? await context.manager.activate("Sport", expectedFingerprint: nil)
         fileStorage.failingWrites = []
         #expect(context.liveBasal == [0.5])
-        #expect(try context.profileStorage.fetchProfiles().activeProfileName == "Default")
+        #expect(try await context.profileStorage.fetchProfiles().activeProfileName == "Default")
 
         let relaunched = try context.relaunched()
+        await relaunched.manager.completeInterruptedSwitch()
         #expect(relaunched.manager.activeProfileName == "Sport")
         #expect(relaunched.manager.profile(named: "Default")?.hasSameValues(as: defaultValues) == true)
-
-        await relaunched.manager.completeInterruptedSwitch()
-        let stored = try relaunched.profileStorage.fetchProfiles()
+        let stored = try await relaunched.profileStorage.fetchProfiles()
         #expect(stored.activeProfileName == "Sport")
         #expect(stored.inactiveProfiles.map(\.name) == ["Default"])
         #expect(stored.inactiveProfiles.first?.hasSameValues(as: defaultValues) == true)
@@ -198,15 +197,95 @@ import Testing
         #expect(relaunched.liveBasal == defaultBasal)
     }
 
+    @Test("The profiles are read from Core Data once, and a failed store leaves them as they were") func readsOnce() async throws {
+        let context = try await TherapyProfileTestContext.make()
+        try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
+        try await context.manager.activate("Sport", expectedFingerprint: nil)
+        #expect(context.manager.profiles().map(\.name) == ["Default", "Sport"])
+        #expect(context.manager.activeProfileName == "Sport")
+        #expect(context.profileStorage.fetchCount.value == 1)
+
+        context.profileStorage.failsToStore = true
+        await #expect(throws: TherapyProfileError.self) {
+            try await context.manager.save(TherapyProfileFixtures.profile("Night"), originalName: nil, baseFingerprint: nil)
+        }
+        #expect(context.manager.profiles().map(\.name) == ["Default", "Sport"])
+        #expect(context.profileStorage.fetchCount.value == 1)
+    }
+
+    @Test("The getters read the same as a fresh load after every change") func matchesFreshLoad() async throws {
+        let context = try await TherapyProfileTestContext.make()
+        func expectFreshLoad() async throws {
+            let relaunched = try context.relaunched()
+            await relaunched.manager.completeInterruptedSwitch()
+            #expect(context.manager.activeProfileName == relaunched.manager.activeProfileName)
+            #expect(context.manager.profiles() == relaunched.manager.profiles())
+            #expect(context.manager.scheduledSwitches() == relaunched.manager.scheduledSwitches())
+        }
+
+        try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
+        try await expectFreshLoad()
+        try await context.manager.activate("Sport", expectedFingerprint: nil)
+        try await expectFreshLoad()
+        try await context.manager.saveScheduledSwitches(
+            [ScheduledProfileSwitch(profileName: "Default", weekday: 2, time: 21600)],
+            baseFingerprint: nil
+        )
+        try await expectFreshLoad()
+        try await context.manager.save(sport.renamed("Run"), originalName: "Sport", baseFingerprint: nil)
+        try await expectFreshLoad()
+        try await context.manager.save(TherapyProfileFixtures.profile("Night"), originalName: nil, baseFingerprint: nil)
+        try await context.manager.delete("Night", expectedFingerprint: nil)
+        try await expectFreshLoad()
+        context.profileStorage.failsToStore = true
+        _ = try? await context.manager.activate("Default", expectedFingerprint: nil)
+        context.profileStorage.failsToStore = false
+        try await expectFreshLoad()
+    }
+
+    @Test("Before the profiles are loaded the getters return Default, and an edit based on that is refused") func notLoaded() async throws {
+        let context = try await TherapyProfileTestContext.make()
+        try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
+        try await context.manager.activate("Sport", expectedFingerprint: nil)
+
+        let relaunched = try context.relaunched()
+        #expect(relaunched.manager.activeProfileName == "Default")
+        let fallback = relaunched.manager.activeProfile()
+        await #expect(throws: TherapyProfileError.activeProfileChanged(expected: "Default", current: "Sport")) {
+            try await relaunched.manager.saveLiveSettings(
+                expectedActiveName: fallback.name,
+                expectedFingerprint: fallback.fingerprint(units: .mgdL),
+                write: {}
+            )
+        }
+    }
+
+    @Test("A failed load at launch is retried by the next operation, which tells observers") func loadRetried() async throws {
+        let context = try await TherapyProfileTestContext.make()
+        try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
+        try await context.manager.activate("Sport", expectedFingerprint: nil)
+
+        let relaunched = try context.relaunched()
+        relaunched.profileStorage.failsToFetch = true
+        await relaunched.manager.completeInterruptedSwitch()
+        #expect(relaunched.manager.activeProfileName == "Default")
+        #expect(relaunched.recorder.events.isEmpty)
+
+        relaunched.profileStorage.failsToFetch = false
+        await relaunched.manager.runDueScheduledSwitch()
+        #expect(relaunched.manager.activeProfileName == "Sport")
+        #expect(relaunched.recorder.events == [.profilesChanged])
+    }
+
     @Test("A launch after completed changes leaves the stored profiles alone") func noInterruptedSwitch() async throws {
         let context = try await TherapyProfileTestContext.make()
         try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
         try await context.manager.activate("Sport", expectedFingerprint: nil)
-        let stored = try context.profileStorage.fetchProfiles()
+        let stored = try await context.profileStorage.fetchProfiles()
 
         let relaunched = try context.relaunched()
         await relaunched.manager.completeInterruptedSwitch()
-        #expect(try relaunched.profileStorage.fetchProfiles() == stored)
+        #expect(try await relaunched.profileStorage.fetchProfiles() == stored)
         #expect(relaunched.recorder.events.isEmpty)
     }
 
@@ -377,7 +456,7 @@ import Testing
         ) { fileStorage.save(carbRatios, as: OpenAPS.Settings.carbRatios) }
         #expect(saved.name == "Sport")
         #expect(saved.carbRatio.map(\.value) == [7])
-        #expect(try context.profileStorage.fetchProfiles().activeProfileValues?.carbRatio.map(\.value) == [7])
+        #expect(try await context.profileStorage.fetchProfiles().activeProfileValues?.carbRatio.map(\.value) == [7])
         #expect(context.recorder.events.suffix(2) == [.liveChanged, .profilesChanged])
 
         try await context.manager.activate("Default", expectedFingerprint: nil)
@@ -465,7 +544,7 @@ import Testing
         }
         try await context.manager.delete("Sport", expectedFingerprint: sport.fingerprint(units: .mgdL))
         #expect(context.manager.profiles().map(\.name) == ["Default"])
-        #expect(try context.profileStorage.fetchProfiles().inactiveProfiles.isEmpty)
+        #expect(try await context.profileStorage.fetchProfiles().inactiveProfiles.isEmpty)
     }
 
     @Test("Concurrent changes run one at a time") func serialized() async throws {
@@ -545,7 +624,7 @@ import Testing
             expectedActiveName: edited.name,
             expectedFingerprint: edited.fingerprint(units: .mgdL)
         ) { fileStorage.save(carbRatios, as: OpenAPS.Settings.carbRatios) }
-        #expect(try context.profileStorage.fetchProfiles().activeProfileValues?.carbRatio.map(\.value) == [7])
+        #expect(try await context.profileStorage.fetchProfiles().activeProfileValues?.carbRatio.map(\.value) == [7])
     }
 
     @Test("Dana rates stored with binary noise equal the same rates sent as exact decimals") func danaRatesKeepValues() async throws {
