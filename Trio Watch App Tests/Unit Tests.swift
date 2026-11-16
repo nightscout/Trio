@@ -311,15 +311,6 @@ import WatchKit
         crownOrientation == .right ? .clockwise : .counterclockwise
     }
 
-    /// Setups where the arrow points the wrong way today, because the icon is picked from the wrist alone.
-    static func isKnownMismatch(
-        wristLocation: WKInterfaceDeviceWristLocation,
-        crownOrientation: WKInterfaceDeviceCrownOrientation
-    ) -> Bool {
-        (wristLocation == .left && crownOrientation == .left) ||
-            (wristLocation == .right && crownOrientation == .right)
-    }
-
     @Test(
         "Crown hint arrow matches the turn that confirms a bolus",
         arguments: [WKInterfaceDeviceWristLocation.left, .right],
@@ -335,11 +326,7 @@ import WatchKit
         let shown = try #require(Self.shownTurn(symbolName: symbolName))
         let required = Self.requiredTurn(crownOrientation: crownOrientation)
 
-        withKnownIssue("The hint icon ignores the Digital Crown setting, so it points the wrong way here") {
-            #expect(shown == required)
-        } when: {
-            Self.isKnownMismatch(wristLocation: wristLocation, crownOrientation: crownOrientation)
-        }
+        #expect(shown == required)
     }
 
     @Test(

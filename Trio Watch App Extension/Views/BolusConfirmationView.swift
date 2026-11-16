@@ -108,12 +108,13 @@ struct BolusConfirmationView: View {
 extension BolusConfirmationView {
     /// SF Symbol shown in the toolbar to hint which way to turn the Digital Crown to confirm the bolus.
     ///
-    /// Takes both settings the watch has for how it is worn, so tests can check the hint for every combination.
-    /// Only the wrist is used to pick the arrow today.
+    /// watchOS measures crown turns relative to the screen, so the turn that fills the confirmation bar depends only on
+    /// which side of the screen the crown is on, not on the wrist. Both settings are taken so tests can check every
+    /// combination of how the watch is worn.
     static func crownHintSymbolName(
-        wristLocation: WKInterfaceDeviceWristLocation,
-        crownOrientation _: WKInterfaceDeviceCrownOrientation
+        wristLocation _: WKInterfaceDeviceWristLocation,
+        crownOrientation: WKInterfaceDeviceCrownOrientation
     ) -> String {
-        wristLocation == .left ? "digitalcrown.arrow.clockwise.fill" : "digitalcrown.arrow.counterclockwise.fill"
+        crownOrientation == .right ? "digitalcrown.arrow.clockwise.fill" : "digitalcrown.arrow.counterclockwise.fill"
     }
 }
