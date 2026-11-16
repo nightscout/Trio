@@ -195,14 +195,6 @@ import Testing
         }
     }
 
-    @Test("A context read is logged when its answer changes, not when it repeats") func contextRecommendationLog() {
-        var log = ContextRecommendationLog()
-        // The plugin reads 0 g after every change; only a new answer is logged,
-        // including a return to an earlier one.
-        let logged = [0, 0, 0, 1.25, 1.25, 0].map { log.shouldLog($0) }
-        #expect(logged == [true, false, false, true, false, true])
-    }
-
     @Test("Watch carbs stored while a determination ran count as in it, not twice") func carbsDuringADetermination() {
         // A loop starts calculating at 0 s (deliverAt) and fetches carbs at 2 s;
         // 40 g from the watch were stored at 1 s, so they are in its COB. The host

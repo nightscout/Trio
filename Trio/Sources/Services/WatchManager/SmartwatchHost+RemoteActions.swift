@@ -71,11 +71,10 @@ extension BaseSmartwatchHost {
         //
         // What stands in for it no longer runs here but in the watch plugin, with
         // LoopKit's `SmartwatchBolusPolicy` and the plugin's own limits: the bolus
-        // was confirmed on the watch moments ago, against a context issued from
-        // Trio's current recommendation (which counts insulin given since the
-        // determination, `smartwatchManager(_:recommendBolusForCarbs:)`), with
-        // recent glucose, at most that recommendation, and at most one every few
-        // minutes. Trio relies on the plugin for that freshness and pacing; here it
+        // was confirmed on the watch moments ago, with recent glucose, at most
+        // Trio's recommendation read for it (which counts insulin given since the
+        // determination, `smartwatchManager(_:recommendBolusForCarbs:)`), and at
+        // most one every few minutes. Trio relies on the plugin for that freshness and pacing; here it
         // keeps Max Bolus, Max IOB, one bolus at a time and a truthful outcome.
         do {
             if case let .rejected(reason) = try await bolusSafetyValidator
@@ -119,25 +118,19 @@ extension BaseSmartwatchHost {
     /// watch (0 for none), without adding them: Trio's bolus calculator, as for
     /// its Apple Watch app, with those carbs and any watch carbs no determination
     /// has counted yet, less insulin delivered since that determination. The
-    /// plugin also asks with 0 g for the bolus context it checks a bolus against.
+    /// plugin also asks with 0 g right before it checks a bolus against it.
     @MainActor func smartwatchManager(
         _ manager: SmartwatchManager,
         recommendBolusForCarbs grams: Double,
         absorptionTime: TimeInterval?
     ) async throws -> Double {
-        // With 0 g it's the plugin's read for its bolus context, made after every
-        // change: logged only when the answer changes. The watch's own questions
-        // come with carbs and are always logged.
-        let isContextRead = grams == 0
-        if !isContextRead {
-            log(
-                manager,
-                .receive,
-                String(format: "Bolus recommendation request with %.0f g of carbs", grams)
-                    // Trio's carb model has no per-entry absorption time.
-                    + (absorptionTime.map { String(format: ", %.0f min absorption (not used by Trio)", $0 / 60) } ?? "")
-            )
-        }
+        log(
+            manager,
+            .receive,
+            String(format: "Bolus recommendation request with %.0f g of carbs", grams)
+                // Trio's carb model has no per-entry absorption time.
+                + (absorptionTime.map { String(format: ", %.0f min absorption (not used by Trio)", $0 / 60) } ?? "")
+        )
         guard isCurrentWatch(manager) else {
             log(manager, .error, "Bolus recommendation refused: the request isn't from the current watch")
             throw SmartwatchActionError.notAllowed
@@ -170,9 +163,6 @@ extension BaseSmartwatchHost {
         // Rounded as a bolus is rounded.
         let units = deviceDataManager.pumpManager?.roundToSupportedBolusVolume(units: recommended) ?? recommended
         let maximumBolus = Double(truncating: settingsManager.pumpSettings.maxBolus as NSNumber)
-        if isContextRead, !contextRecommendationLog.shouldLog(units) {
-            return units
-        }
         if deliveredSince > 0 {
             log(manager, .delegateResponse, String(
                 format: "Bolus recommendation: %.2f U less %.2f U delivered since the determination it uses",
