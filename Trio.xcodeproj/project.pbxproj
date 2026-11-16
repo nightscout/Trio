@@ -1156,7 +1156,6 @@
 		4B2E5E56B4A54D5EA8608486 /* LoopKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; };
 		A4CEF7BBB9594AD1A935A000 /* LoopKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1EB5165261AB48C3AB179F12 /* G7SensorKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		E6F95378516C489AAF95C3D0 /* AlgorithmLoggingShim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 003825BBFA684CCFA8DA2929 /* AlgorithmLoggingShim.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2398,7 +2397,6 @@
 		A66C2B3CEBDE46809E8B522C /* WatchDeviceManagers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchDeviceManagers.swift; sourceTree = "<group>"; };
 		6688C245006345FDAB78C680 /* TrioWatchAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioWatchAppDelegate.swift; sourceTree = "<group>"; };
 		7C1E5A0B2F1D4E6A9B3C8D21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		003825BBFA684CCFA8DA2929 /* AlgorithmLoggingShim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trio/Sources/APS/OpenAPSSwift/AlgorithmLoggingShim.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -4406,19 +4404,10 @@
 		BDA25F1A2D26BCE800035F34 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				DD09D5C82D29F3D0000D82C9 /* AcknowledgementPendingView.swift */,
-				BD04ECCD2D299522008C5FEB /* BolusProgressOverlay.swift */,
-				DD8262CA2D289297009F6F62 /* BolusConfirmationView.swift */,
-				BDA25F212D26D62200035F34 /* BolusInputView.swift */,
-				BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */,
-				BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */,
-				DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */,
-				BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */,
-				BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */,
-				A1B2C3D40F00000000000001 /* AlarmSnoozeView.swift */,
-				DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */,
-				BDA25F1B2D26BD0300035F34 /* TrendShape.swift */,
-				BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */,
+				BD0E7342F372EE8F3A984435 /* Main */,
+				9FCE00A2F346EC1AC0523A27 /* Glucose */,
+				6C2212FA87C598FCF6FBF60E /* Treatments */,
+				262C1370489169CAEE248C52 /* Alarms */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -4455,21 +4444,15 @@
 		BDFF7A9C2D25FA730016C40C /* Trio Watch App Extension */ = {
 			isa = PBXGroup;
 			children = (
-				003825BBFA684CCFA8DA2929 /* AlgorithmLoggingShim.swift */,
-				7461B194383D4B959304E145 /* WatchAlarms.swift */,
-				32A6B8C5BEE64685991B67FD /* WatchCGMHost.swift */,
-				A66C2B3CEBDE46809E8B522C /* WatchDeviceManagers.swift */,
-				6688C245006345FDAB78C680 /* TrioWatchAppDelegate.swift */,
-				7C1E5A0B2F1D4E6A9B3C8D21 /* Info.plist */,
-				DDFF204D2DB2C00B00AB8A96 /* WatchStateSnapshot.swift */,
-				DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */,
-				BDA25EE52D260D5800035F34 /* WatchState.swift */,
-				BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */,
-				DD3A3CEC2D29CFBA00AE478E /* Helper */,
+				D0FBD91BDE9B89EBFB9CF48D /* App */,
+				845535CADD01C4DCE4A9B27D /* State */,
+				E73D684440233B0673C92B3E /* Devices */,
+				62369AA486A30E904000BCDE /* Alarms */,
 				BDA25F1A2D26BCE800035F34 /* Views */,
-				BDFF7A9E2D25FA970016C40C /* Preview Content */,
+				DD3A3CEC2D29CFBA00AE478E /* Helper */,
 				BDFF7A832D25F97D0016C40C /* Assets.xcassets */,
-				BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */,
+				BDFF7A9E2D25FA970016C40C /* Preview Content */,
+				7C1E5A0B2F1D4E6A9B3C8D21 /* Info.plist */,
 			);
 			path = "Trio Watch App Extension";
 			sourceTree = "<group>";
@@ -4851,10 +4834,10 @@
 		DD3A3CEC2D29CFBA00AE478E /* Helper */ = {
 			isa = PBXGroup;
 			children = (
-				DD09D5C62D29EB26000D82C9 /* Helper+Enums.swift */,
 				DD3A3CE82D29C97800AE478E /* Helper+ButtonStyles.swift */,
+				DD09D5C62D29EB26000D82C9 /* Helper+Enums.swift */,
 				DD3A3CE62D29C93F00AE478E /* Helper+Extensions.swift */,
-				C2BA6B962F758E7500348E6A /* WatchNotificationHandler.swift */,
+				DDFF20492DB29EF500AB8A96 /* WatchLogger.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -5320,6 +5303,84 @@
 				8A54068ABDAE4898B243DF14 /* QuickPickTreatmentsView.swift */,
 			);
 			path = QuickPickTreatments;
+			sourceTree = "<group>";
+		};
+		D0FBD91BDE9B89EBFB9CF48D /* App */ = {
+			isa = PBXGroup;
+			children = (
+				BDFF7A852D25F97D0016C40C /* TrioWatchApp.swift */,
+				6688C245006345FDAB78C680 /* TrioWatchAppDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		845535CADD01C4DCE4A9B27D /* State */ = {
+			isa = PBXGroup;
+			children = (
+				BDA25EE52D260D5800035F34 /* WatchState.swift */,
+				BDAE3FFF2D372BA8009C12B1 /* WatchState+Requests.swift */,
+				DDFF204D2DB2C00B00AB8A96 /* WatchStateSnapshot.swift */,
+			);
+			path = State;
+			sourceTree = "<group>";
+		};
+		E73D684440233B0673C92B3E /* Devices */ = {
+			isa = PBXGroup;
+			children = (
+				32A6B8C5BEE64685991B67FD /* WatchCGMHost.swift */,
+				A66C2B3CEBDE46809E8B522C /* WatchDeviceManagers.swift */,
+			);
+			path = Devices;
+			sourceTree = "<group>";
+		};
+		62369AA486A30E904000BCDE /* Alarms */ = {
+			isa = PBXGroup;
+			children = (
+				7461B194383D4B959304E145 /* WatchAlarms.swift */,
+				C2BA6B962F758E7500348E6A /* WatchNotificationHandler.swift */,
+			);
+			path = Alarms;
+			sourceTree = "<group>";
+		};
+		BD0E7342F372EE8F3A984435 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				BDFF7A842D25F97D0016C40C /* TrioMainWatchView.swift */,
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
+		9FCE00A2F346EC1AC0523A27 /* Glucose */ = {
+			isa = PBXGroup;
+			children = (
+				BDA25F1D2D26D5D800035F34 /* GlucoseChartView.swift */,
+				DD246F052D2836AA0027DDE0 /* GlucoseTrendView.swift */,
+				BDA25F1B2D26BD0300035F34 /* TrendShape.swift */,
+			);
+			path = Glucose;
+			sourceTree = "<group>";
+		};
+		6C2212FA87C598FCF6FBF60E /* Treatments */ = {
+			isa = PBXGroup;
+			children = (
+				DD6F63CB2D27F606007D94CF /* TreatmentMenuView.swift */,
+				BDA25F212D26D62200035F34 /* BolusInputView.swift */,
+				DD8262CA2D289297009F6F62 /* BolusConfirmationView.swift */,
+				BD04ECCD2D299522008C5FEB /* BolusProgressOverlay.swift */,
+				DD09D5C82D29F3D0000D82C9 /* AcknowledgementPendingView.swift */,
+				BDA25F1F2D26D5FB00035F34 /* CarbsInputView.swift */,
+				BD54A9582D27FB6A00F9C1EE /* OverridePresetsView.swift */,
+				BD54A9702D281A7A00F9C1EE /* TempTargetPresetsView.swift */,
+			);
+			path = Treatments;
+			sourceTree = "<group>";
+		};
+		262C1370489169CAEE248C52 /* Alarms */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3D40F00000000000001 /* AlarmSnoozeView.swift */,
+			);
+			path = Alarms;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -6714,7 +6775,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E6F95378516C489AAF95C3D0 /* AlgorithmLoggingShim.swift in Sources */,
 				272BFEADB1AE49E9AA5290ED /* WatchAlarms.swift in Sources */,
 				C788E1B5524B4596AC33BB7B /* WatchCGMHost.swift in Sources */,
 				E688674CA6A94925995C023E /* WatchDeviceManagers.swift in Sources */,
@@ -7236,7 +7296,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG TRIO_ALGORITHM_PACKAGE $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
@@ -7247,7 +7307,6 @@
 		BDFF79A22D25AA890016C40C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "TRIO_ALGORITHM_PACKAGE $(inherited)";
 				INFOPLIST_FILE = "Trio Watch App Extension/Info.plist";
 				PRODUCT_MODULE_NAME = Trio;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
