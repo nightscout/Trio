@@ -15,7 +15,6 @@ extension OpenAPS {
 
     enum Monitor {
         static let pumpHistory = "monitor/pumphistory-24h-zoned.json"
-        static let reservoir = "monitor/reservoir.json"
         static let carbHistory = "monitor/carbhistory.json"
         static let clock = "monitor/clock-zoned.json"
         static let tempBasal = "monitor/temp_basal.json"

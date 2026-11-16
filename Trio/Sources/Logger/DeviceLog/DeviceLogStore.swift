@@ -141,8 +141,8 @@ final class DeviceLogStore: @unchecked Sendable {
             })
             return
         }
-        deviceLog.getLogEntries(startDate: window.start, endDate: window.end) { result in
-            let entries = (try? result.get()) ?? []
+        Task {
+            let entries = (try? await deviceLog.fetch(startDate: window.start, endDate: window.end)) ?? []
             guard let managerIdentifier else {
                 continuation.resume(returning: entries)
                 return

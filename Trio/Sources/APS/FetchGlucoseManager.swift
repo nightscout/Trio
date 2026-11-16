@@ -1,7 +1,6 @@
 import Combine
 import CoreData
 import Foundation
-import HealthKit
 import LoopKit
 import LoopKitUI
 import SwiftDate
@@ -231,8 +230,8 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
     private func updateManagerUnits(_ manager: CGMManagerUI?) {
         let units = settingsManager.settings.units
         let managerName = cgmManager.map { "\(type(of: $0))" } ?? "nil"
-        let loopkitUnits: HKUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
-        debug(.cgm, "\(managerName) units set to \(loopkitUnits.description)")
+        let loopkitUnits: LoopUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
+        debug(.cgm, "\(managerName) units set to \(loopkitUnits.unitString)")
         manager?.unitDidChange(to: loopkitUnits)
     }
 

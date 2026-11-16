@@ -88,13 +88,13 @@ extension SMBSettings {
                         type: .boolean,
                         label: String(localized: "Enable SMB With Temptarget", comment: "Enable SMB With Temptarget"),
                         miniHint: String(
-                            localized: "Allow SMB when a manual Temporary Target is set under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue)."
+                            localized: "Allow SMB when a manual Temporary Target is set under \(100.formatted(for: state.units)) \(state.units.rawValue)."
                         ),
                         verboseHint:
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Default: OFF").bold()
                             Text(
-                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
+                                "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(100.formatted(for: state.units)) \(state.units.rawValue) is set."
                             )
                             Text(
                                 "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -184,13 +184,13 @@ extension SMBSettings {
                         comment: "Allow SMB With High Temptarget"
                     ),
                     miniHint: String(
-                        localized: "Allow SMB when a manual Temporary Target is set greater than \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue)."
+                        localized: "Allow SMB when a manual Temporary Target is set greater than \(100.formatted(for: state.units)) \(state.units.rawValue)."
                     ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
+                            "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(100.formatted(for: state.units)) \(state.units.rawValue) is set."
                         )
                         Text(
                             "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."

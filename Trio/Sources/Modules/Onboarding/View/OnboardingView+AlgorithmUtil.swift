@@ -147,22 +147,22 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         case .enableSMBAlways: return String(localized: "Allow SMBs at all times except when a high Temp Target is set.")
         case .enableSMBWithCOB: return String(localized: "Allow SMB when carbs are on board.")
         case .enableSMBWithTempTarget: return String(
-                localized: "Allow SMB when a manual Temporary Target is set under \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue)."
+                localized: "Allow SMB when a manual Temporary Target is set under \(100.formatted(for: units)) \(units.rawValue)."
             )
         case .enableSMBAfterCarbs: return String(localized: "Allow SMB for 6 hrs after a carb entry.")
         case .enableSMBWithHighGlucoseTarget: return String(localized: "Allow SMB when glucose is above the High Glucose Target value.")
         case .allowSMBWithHighTempTarget: return String(
-                localized: "Allow SMB when a manual Temporary Target is set greater than \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue)."
+                localized: "Allow SMB when a manual Temporary Target is set greater than \(100.formatted(for: units)) \(units.rawValue)."
             )
         case .enableUAM: return String(localized: "Enable Unannounced Meals SMB.")
         case .maxSMBMinutes: return String(localized: "Limits the size of a single Super Micro Bolus (SMB) dose.")
         case .maxUAMMinutes: return String(localized: "Limits the size of a single Unannounced Meal (UAM) SMB dose.")
         case .maxDeltaGlucoseThreshold: return String(localized: "Disables SMBs if last two glucose values differ by more than this percent.")
         case .highTempTargetRaisesSensitivity: return String(
-                localized: "Increase sensitivity when glucose is above target if a manual Temp Target > \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
+                localized: "Increase sensitivity when glucose is above target if a manual Temp Target > \(100.formatted(for: units)) \(units.rawValue) is set."
             )
         case .lowTempTargetLowersSensitivity: return String(
-                localized: "Decrease sensitivity when glucose is below target if a manual Temp Target < \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
+                localized: "Decrease sensitivity when glucose is below target if a manual Temp Target < \(100.formatted(for: units)) \(units.rawValue) is set."
             )
         case .sensitivityRaisesTarget: return String(localized: "Raise target glucose when Autosens Ratio is less than 1.")
         case .resistanceLowersTarget: return String(localized: "Lower target glucose when Autosens Ratio is greater than 1.")
@@ -244,7 +244,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             return VStack(alignment: .leading, spacing: 8) {
                 Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
-                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
+                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) at times when a manual Temporary Target under \(100.formatted(for: units)) \(units.rawValue) is set."
                 )
                 Text(
                     "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -274,7 +274,7 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             return VStack(alignment: .leading, spacing: 8) {
                 Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
-                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) is set."
+                    "Enabling this feature allows Trio to deliver insulin required using Super Micro Boluses (SMB) when a manual Temporary Target above \(100.formatted(for: units)) \(units.rawValue) is set."
                 )
                 Text(
                     "Note: If this is enabled and the criteria are met, SMBs could be utilized regardless of other SMB settings being enabled or not."
@@ -367,10 +367,10 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             return VStack(alignment: .leading, spacing: 8) {
                 Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
-                    "When this feature is enabled, manually setting a temporary target above \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
+                    "When this feature is enabled, manually setting a temporary target above \(100.formatted(for: units)) \(units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
                 )
                 Text(
-                    "If Half Basal Exercise Target is set to \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue), a temp target of \(units == .mgdL ? "120" : 120.formattedAsMmolL) \(units.rawValue) uses an Autosens Ratio of 0.75. A temp target of \(units == .mgdL ? "140" : 140.formattedAsMmolL) \(units.rawValue) uses an Autosens Ratio of 0.6."
+                    "If Half Basal Exercise Target is set to \(160.formatted(for: units)) \(units.rawValue), a temp target of \(120.formatted(for: units)) \(units.rawValue) uses an Autosens Ratio of 0.75. A temp target of \(140.formatted(for: units)) \(units.rawValue) uses an Autosens Ratio of 0.6."
                 )
                 Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
             }
@@ -378,10 +378,10 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
             return VStack(alignment: .leading, spacing: 8) {
                 Text("Default: OFF").bold().foregroundStyle(Color.primary)
                 Text(
-                    "When this feature is enabled, setting a temporary target below \(units == .mgdL ? "100" : 100.formattedAsMmolL) \(units.rawValue) will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used. It requires Algorithm Settings > Autosens > Autosens Max to be set to > 100% to work."
+                    "When this feature is enabled, setting a temporary target below \(100.formatted(for: units)) \(units.rawValue) will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used. It requires Algorithm Settings > Autosens > Autosens Max to be set to > 100% to work."
                 )
                 Text(
-                    "If Half Basal Exercise Target is \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue), a Temp Target of \(units == .mgdL ? "95" : 95.formattedAsMmolL) \(units.rawValue) uses an Autosens Ratio of 1.09. A Temp Target of \(units == .mgdL ? "85" : 85.formattedAsMmolL) \(units.rawValue) uses an Autosens Ratio of 1.33."
+                    "If Half Basal Exercise Target is \(160.formatted(for: units)) \(units.rawValue), a Temp Target of \(95.formatted(for: units)) \(units.rawValue) uses an Autosens Ratio of 1.09. A Temp Target of \(85.formatted(for: units)) \(units.rawValue) uses an Autosens Ratio of 1.33."
                 )
                 Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
             }
@@ -402,14 +402,14 @@ enum AlgorithmSettingsSubstep: Int, CaseIterable, Identifiable {
         case .halfBasalTarget:
             return VStack(alignment: .leading, spacing: 8) {
                 Text(
-                    "Default: \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue)"
+                    "Default: \(160.formatted(for: units)) \(units.rawValue)"
                 )
                 .bold().foregroundStyle(Color.primary)
                 Text(
                     "The Half Basal Exercise Target allows you to scale down your basal insulin during exercise or scale up your basal insulin when eating soon when a temporary glucose target is set."
                 )
                 Text(
-                    "For example, at a temp target of \(units == .mgdL ? "160" : 160.formattedAsMmolL) \(units.rawValue), your basal is reduced to 50%, but this scales depending on the target (e.g., 75% at \(units == .mgdL ? "120" : 120.formattedAsMmolL) \(units.rawValue), 60% at \(units == .mgdL ? "140" : 140.formattedAsMmolL) \(units.rawValue))."
+                    "For example, at a temp target of \(160.formatted(for: units)) \(units.rawValue), your basal is reduced to 50%, but this scales depending on the target (e.g., 75% at \(120.formatted(for: units)) \(units.rawValue), 60% at \(140.formatted(for: units)) \(units.rawValue))."
                 )
                 Text(
                     "Note: This setting is only utilized if the settings \"Low Temp Target Lowers Sensitivity\" OR \"High Temp Target Raises Sensitivity\" are enabled."

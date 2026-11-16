@@ -22,7 +22,7 @@ class BasePluginManager: Injectable, PluginManager {
 
     var availableCGMManagers: [CGMManagerDescriptor] {
         DeviceCatalog.cgmManagerEntries.map {
-            CGMManagerDescriptor(identifier: $0.id, localizedTitle: $0.name)
+            CGMManagerDescriptor(identifier: $0.id, localizedTitle: $0.name, manufacturer: nil, image: nil)
         }
     }
 }

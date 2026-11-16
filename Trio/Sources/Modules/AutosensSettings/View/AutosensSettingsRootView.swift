@@ -16,13 +16,6 @@ extension AutosensSettings {
         @EnvironmentObject var appIcons: Icons
         @Environment(AppState.self) var appState
 
-        private var rateFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 2
-            return formatter
-        }
-
         var autosensVerboseHint: some View {
             VStack(alignment: .leading, spacing: 15) {
                 Text(
@@ -75,28 +68,19 @@ extension AutosensSettings {
                     let newISF = state.autosensISF
                     let decimalValue = !state.settingsManager.preferences.useNewFormula ? state
                         .autosensRatio as NSDecimalNumber : dynamicRatio ?? 1
-                    let decimalValueText = rateFormatter
-                        .string(from: ((decimalValue as Decimal) * Decimal(100)) as NSNumber) ?? "100"
 
                     HStack {
                         Text("Sensitivity Ratio")
                         Spacer()
-                        Text("\(decimalValueText) \(String(localized: "%", comment: "Percentage symbol"))")
+                        Text((decimalValue as Decimal).formatted(.upToTwoDecimalPercent))
                     }.padding(.vertical)
                     HStack {
                         Text("Calculated Sensitivity")
                         Spacer()
-                        if state.units == .mgdL {
-                            Text(
-                                !state.settingsManager.preferences
-                                    .useNewFormula ? newISF!.description : (dynamicISF ?? 0).description
-                            )
-                        } else {
-                            Text((
-                                !state.settingsManager.preferences
-                                    .useNewFormula ? newISF!.formattedAsMmolL : dynamicISF?.decimalValue.formattedAsMmolL
-                            ) ?? "0")
-                        }
+                        Text(
+                            (!state.settingsManager.preferences.useNewFormula ? newISF! : dynamicISF?.decimalValue ?? 0)
+                                .formattedISF(for: state.units)
+                        )
                         Text(state.units.rawValue + "/U").foregroundColor(.secondary)
                     }
 

@@ -120,7 +120,6 @@ trailingClosures \
 --exclude OmnipodKit \
 --exclude LibreLoop \
 --exclude RoundWhiteDiscKit \
---exclude LoopAlgorithm \
 --exclude AccuChekKit \
 --exclude EversenseKit \
 --exclude SyaiKit \

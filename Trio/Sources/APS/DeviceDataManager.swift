@@ -1,10 +1,11 @@
 import Combine
 import CoreData
+import DanaKit
 import Foundation
-import HealthKit
 import LoopKit
 import LoopKitUI
 import MedtrumKit
+import MinimedKit
 import MockKit
 import MockKitUI
 import OmnipodKit
@@ -39,6 +40,7 @@ private let accessLock = NSRecursiveLock(label: "BaseDeviceDataManager.accessLoc
 
 final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     private let processQueue = DispatchQueue.markedQueue(label: "BaseDeviceDataManager.processQueue", qos: .userInitiated)
+    private static let legacyReservoirFile = "monitor/reservoir.json"
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var pumpStatusStorage: PumpStatusStorage!
     @Injected() var alertHistoryStorage: AlertHistoryStorage!
@@ -76,8 +78,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 trioAlertManager?.unregister(managerIdentifier: oldValue.pluginIdentifier)
             }
             if let pumpManager = pumpManager {
-                pumpManager.pumpManagerDelegate = self
+                // Queue before delegate, so no delegate call lands on the default main queue
                 pumpManager.delegateQueue = processQueue
+                pumpManager.pumpManagerDelegate = self
 
                 // Re-apply the latest CGM-aligned heartbeat request to a freshly set pump
                 if let heartbeatRequest = lastPumpHeartbeatRequest {
@@ -117,8 +120,8 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 // determines are within the user's configured maxBasal.
                 let pumpSettings = settingsManager.pumpSettings
                 let deliveryLimits = DeliveryLimits(
-                    maximumBasalRate: HKQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(pumpSettings.maxBasal)),
-                    maximumBolus: HKQuantity(unit: .internationalUnit(), doubleValue: Double(pumpSettings.maxBolus))
+                    maximumBasalRate: LoopQuantity(unit: .internationalUnitsPerHour, doubleValue: Double(pumpSettings.maxBasal)),
+                    maximumBolus: LoopQuantity(unit: .internationalUnit, doubleValue: Double(pumpSettings.maxBolus))
                 )
 
                 processQueue.async {
@@ -156,7 +159,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 if let simulatorPump = pumpManager as? MockPumpManager {
                     pumpDisplayState.value = PumpDisplayState(name: simulatorPump.localizedTitle, image: simulatorPump.smallImage)
                     pumpName.send(simulatorPump.localizedTitle)
-                    storage.save(Decimal(simulatorPump.pumpReservoirCapacity), as: OpenAPS.Monitor.reservoir)
                     DispatchQueue.main.async {
                         self.broadcaster.notify(PumpReservoirObserver.self, on: .main) {
                             $0.pumpReservoirDidChange(Decimal(simulatorPump.state.reservoirUnitsRemaining))
@@ -226,6 +228,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     init(resolver: Resolver) {
         self.resolver = resolver
         injectServices(resolver)
+        removeLegacyReservoirFile()
         setupPumpManager()
         UIDevice.current.isBatteryMonitoringEnabled = true
 
@@ -239,6 +242,10 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                     expectedCGMReadingInterval: self.lastPumpHeartbeatRequest?.expectedCGMReadingInterval
                 )
             }
+    }
+
+    private func removeLegacyReservoirFile() { // FIXME: this can be removed in later releases
+        storage.remove(Self.legacyReservoirFile)
     }
 
     func setupPumpManager() {
@@ -352,6 +359,9 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     var automaticDosingEnabled: Bool {
         settingsManager.settings.dosingMode.automation != .off // Trio may command the pump
     }
+
+    // Display-only hint for pump UIs; Trio doesn't report one.
+    var automatedTreatmentState: AutomatedTreatmentState? { nil }
 
     func pumpManager(
         _: LoopKit.PumpManager,
@@ -472,6 +482,8 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         case .suspended:
             suspended.send(true)
             scheduledBasal.send(false)
+        case .pumpInoperable:
+            scheduledBasal.send(nil) // pump is not currently available
         default:
             suspended.send(false)
             scheduledBasal.send(false)
@@ -489,9 +501,8 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         manualTempBasal.send(manualTempBasalActive)
 
         if let medtrumPump = pumpManager as? MedtrumPumpManager {
-            storage.save(Decimal(medtrumPump.state.reservoir), as: OpenAPS.Monitor.reservoir)
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
-                $0.pumpReservoirDidChange(Decimal(medtrumPump.state.reservoir))
+                $0.pumpReservoirDidChange(medtrumPump.currentReservoir)
             }
 
             // Medtrum's state.patchExpiresAt is actually lifespan + grace
@@ -512,13 +523,8 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         }
 
         if let omni = pumpManager as? OmniPumpManager {
-            let reservoirVal = omni.state.podState?.lastInsulinMeasurements?.reservoirLevel ?? 0xDEAD_BEEF
-            // TODO: find the value Pod.maximumReservoirReading
-            let reservoir = Decimal(reservoirVal) > 50.0 ? 0xDEAD_BEEF : reservoirVal
-
-            storage.save(Decimal(reservoir), as: OpenAPS.Monitor.reservoir)
             broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
-                $0.pumpReservoirDidChange(Decimal(reservoir))
+                $0.pumpReservoirDidChange(omni.currentReservoir)
             }
 
             guard let endTime = omni.state.podState?.expiresAt else {
@@ -539,11 +545,15 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         }
     }
 
-    func pumpManagerWillDeactivate(_: PumpManager) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        pumpManager = nil
-        broadcaster.notify(PumpDeactivatedObserver.self, on: processQueue) {
-            $0.pumpDeactivatedDidChange()
+    func pumpManagerWantsDeletion(_: PumpManager) async {
+        await withCheckedContinuation { continuation in
+            processQueue.async {
+                self.pumpManager = nil
+                self.broadcaster.notify(PumpDeactivatedObserver.self, on: self.processQueue) {
+                    $0.pumpDeactivatedDidChange()
+                }
+                continuation.resume()
+            }
         }
     }
 
@@ -607,7 +617,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     ) {
         dispatchPrecondition(condition: .onQueue(processQueue))
         debug(.pump, "Reservoir \(units) U")
-        storage.save(Decimal(units), as: OpenAPS.Monitor.reservoir)
         broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
             $0.pumpReservoirDidChange(Decimal(units))
         }
@@ -637,26 +646,23 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 // MARK: - DeviceManagerDelegate
 
 extension BaseDeviceDataManager: DeviceManagerDelegate {
-    func issueAlert(_ alert: Alert) {
+    nonisolated func issueAlert(_ alert: Alert) {
         debug(.alerts, "Pump alert issued: \(alert.identifier.alertIdentifier)")
-        trioAlertManager.issueAlert(alert)
+        processQueue.async { self.trioAlertManager.issueAlert(alert) }
     }
 
-    func retractAlert(identifier: Alert.Identifier) {
+    nonisolated func retractAlert(identifier: Alert.Identifier) {
         debug(.alerts, "Pump alert retracted: \(identifier.alertIdentifier)")
-        trioAlertManager.retractAlert(identifier: identifier)
+        processQueue.async { self.trioAlertManager.retractAlert(identifier: identifier) }
     }
 
-    func doesIssuedAlertExist(identifier _: Alert.Identifier, completion _: @escaping (Result<Bool, Error>) -> Void) {}
+    func doesIssuedAlertExist(identifier _: Alert.Identifier) async throws -> Bool { false }
 
-    func lookupAllUnretracted(managerIdentifier _: String, completion _: @escaping (Result<[PersistedAlert], Error>) -> Void) {}
+    func lookupAllUnretracted(managerIdentifier _: String) async throws -> [PersistedAlert] { [] }
 
-    func lookupAllUnacknowledgedUnretracted(
-        managerIdentifier _: String,
-        completion _: @escaping (Result<[PersistedAlert], Error>) -> Void
-    ) {}
+    func lookupAllUnacknowledgedUnretracted(managerIdentifier _: String) async throws -> [PersistedAlert] { [] }
 
-    func recordRetractedAlert(_: Alert, at _: Date) {}
+    func recordRetractedAlert(_: Alert, at _: Date) async throws {}
 
     func removeNotificationRequests(for _: DeviceManager, identifiers: [String]) {
         DispatchQueue.main.async {
@@ -688,8 +694,33 @@ extension BaseDeviceDataManager: DeviceManagerDelegate {
 
 // MARK: Others
 
+extension PumpManager {
+    /// The reservoir level held in the pump manager's own state, nil when it has none.
+    /// 0xDEADBEEF stands for an Omnipod reading above 50 U.
+    var currentReservoir: Decimal? {
+        switch self {
+        case let medtrum as MedtrumPumpManager:
+            // MedtrumKit keeps the last patch's reservoir until a new patch is activated
+            return medtrum.state.patchSessionEnded ? nil : Decimal(medtrum.state.reservoir)
+        case let omni as OmniPumpManager:
+            guard let podState = omni.state.podState else { return nil }
+            guard let level = podState.lastInsulinMeasurements?.reservoirLevel, level <= 50 else { return 0xDEAD_BEEF }
+            return Decimal(level)
+        case let dana as DanaKitPumpManager:
+            // pumpTime is set on the first sync, after the same connection has read the reservoir
+            return dana.state.pumpTime == nil ? nil : Decimal(dana.state.reservoirLevel)
+        case let minimed as MinimedPumpManager:
+            return minimed.state.lastReservoirReading.map { Decimal($0.units) }
+        case let mock as MockPumpManager:
+            return Decimal(mock.state.reservoirUnitsRemaining)
+        default:
+            return nil
+        }
+    }
+}
+
 protocol PumpReservoirObserver {
-    func pumpReservoirDidChange(_ reservoir: Decimal)
+    func pumpReservoirDidChange(_ reservoir: Decimal?)
 }
 
 protocol PumpDeactivatedObserver {

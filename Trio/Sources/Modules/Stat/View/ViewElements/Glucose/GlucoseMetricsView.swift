@@ -24,11 +24,11 @@ struct GlucoseMetricsView: View {
 
         // Format glucose statistics based on the selected unit
         let eA1cString = preferredUnit == .mgdL
-            ? (glucoseStats.ngsp.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%") : glucoseStats
+            ? (glucoseStats.ngsp / 100).formatted(.oneDecimalPercent) : glucoseStats
             .ifcc.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
 
         let gmiString = preferredUnit == .mgdL ?
-            (glucoseStats.gmiPercentage.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%") :
+            (glucoseStats.gmiPercentage / 100).formatted(.oneDecimalPercent) :
             glucoseStats.gmiMmolMol.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
 
         // glucoseStats already parsed to units - only format decimals
@@ -37,8 +37,7 @@ struct GlucoseMetricsView: View {
         ) : glucoseStats.sd.formatted(
             .number.grouping(.never).rounded().precision(.fractionLength(1))
         )
-        let coefficientOfVariationString = glucoseStats.cv
-            .formatted(.number.grouping(.never).rounded().precision(.fractionLength(1))) + "%"
+        let coefficientOfVariationString = (glucoseStats.cv / 100).formatted(.oneDecimalPercent)
         let daysTrackedString = totalDays.formatted(.number.grouping(.never).rounded().precision(.fractionLength(1)))
 
         VStack(alignment: .leading) {

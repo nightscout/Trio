@@ -452,14 +452,14 @@ enum DeliveryLimitSubstep: Int, CaseIterable, Identifiable {
                     }
                     VStack(alignment: .leading, spacing: 5) {
                         Text(
-                            "If your glucose target is \(units == .mgdL ? "110" : 110.formattedAsMmolL) \(units.rawValue), Trio will use a safety threshold of \(units == .mgdL ? "75" : 75.formattedAsMmolL) \(units.rawValue), unless you set Minimum Safety Threshold to something > \(units == .mgdL ? "75" : 75.formattedAsMmolL) \(units.rawValue)."
+                            "If your glucose target is \(110.formatted(for: units)) \(units.rawValue), Trio will use a safety threshold of \(75.formatted(for: units)) \(units.rawValue), unless you set Minimum Safety Threshold to something > \(75.formatted(for: units)) \(units.rawValue)."
                         )
                         Text(
-                            "\(units == .mgdL ? "110" : 110.formattedAsMmolL) - 0.5 × (\(units == .mgdL ? "110" : 110.formattedAsMmolL) - \(units == .mgdL ? "40" : 40.formattedAsMmolL)) = \(units == .mgdL ? "75" : 75.formattedAsMmolL)"
+                            "\(110.formatted(for: units)) - 0.5 × (\(110.formatted(for: units)) - \(40.formatted(for: units))) = \(75.formatted(for: units))"
                         )
                     }
                     Text(
-                        "This setting is limited to values between \(units == .mgdL ? "60" : 60.formattedAsMmolL) - \(units == .mgdL ? "120" : 120.formattedAsMmolL) \(units.rawValue)"
+                        "This setting is limited to values between \(60.formatted(for: units)) - \(120.formatted(for: units)) \(units.rawValue)"
                     )
                     Text(
                         "Note: Basal may be resumed if there is negative IOB and glucose is rising faster than the forecast."

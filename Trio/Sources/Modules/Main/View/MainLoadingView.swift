@@ -66,7 +66,8 @@ extension Main {
                     Image(systemName: "arrow.clockwise")
                     Text("Retry")
                 }
-                .frame(width: UIScreen.main.bounds.width - 60, height: 50)
+                .containerRelativeFrame(.horizontal) { width, _ in width - 60 }
+                .frame(height: 50)
                 .font(.title3).bold()
                 .background(
                     Capsule()

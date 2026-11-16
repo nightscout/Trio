@@ -8,9 +8,9 @@ import TidepoolKit
 @testable import Trio
 
 // Both Trio and TidepoolServiceKit define mgPerDL,
-// causing ambiguity. Use HealthKit's native API to avoid the conflict.
-private let mgPerDL = HKUnit.gramUnit(with: .milli).unitDivided(by: HKUnit.literUnit(with: .deci))
-private let mmolPerL = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassBloodGlucose).unitDivided(by: .liter())
+// causing ambiguity. Name the LoopKit units directly to avoid the conflict.
+private let mgPerDL = LoopUnit.milligramsPerDeciliter
+private let mmolPerL = LoopUnit.millimolesPerLiter
 
 // MARK: - StoredSettings → Tidepool Datum Tests
 
@@ -38,7 +38,6 @@ private let mmolPerL = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassB
             "\"bgTargets\"",
             "\"carbRatios\"",
             "\"insulinSensitivities\"",
-            "\"automatedDelivery\"",
             "\"name\" : \"Trio\"",
             "\"version\" : \"0.6.0\""
         ]
@@ -147,19 +146,6 @@ private let mmolPerL = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassB
         #expect(datum.bolus?.amountMaximum?.value == 1.0, "Should preserve low max bolus")
     }
 
-    // MARK: - Automated Delivery Flag
-
-    @Test("Automated delivery flag reflects dosing state") func automatedDeliveryFlag() {
-        let enabled = makeSettings(dosingEnabled: true)
-        let disabled = makeSettings(dosingEnabled: false)
-
-        let enabledDatum = enabled.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-        let disabledDatum = disabled.datumPumpSettings(for: "test", hostIdentifier: "Trio", hostVersion: "0.6.0")
-
-        #expect(enabledDatum.automatedDelivery == true)
-        #expect(disabledDatum.automatedDelivery == false)
-    }
-
     // MARK: - Unit Conversion
 
     @Test("mmol/L values are converted to mg/dL by Tidepool") func mmolLUnitConversion() {
@@ -240,7 +226,7 @@ private let mmolPerL = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassB
         insulinModel: StoredInsulinModel? = nil,
         cgmDevice: HKDevice? = nil,
         pumpDevice: HKDevice? = nil,
-        bgUnit: HKUnit = mgPerDL
+        bgUnit: LoopUnit = mgPerDL
     ) -> StoredSettings {
         let tz = TimeZone(secondsFromGMT: 0)!
 
@@ -268,7 +254,7 @@ private let mmolPerL = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassB
         )!
 
         let defaultCarb = CarbRatioSchedule(
-            unit: .gram(),
+            unit: .gram,
             dailyItems: [RepeatingScheduleValue(startTime: 0, value: 15.0)],
             timeZone: tz
         )!
@@ -279,10 +265,7 @@ private let mmolPerL = HKUnit.moleUnit(with: .milli, molarMass: HKUnitMolarMassB
             dosingEnabled: dosingEnabled,
             glucoseTargetRangeSchedule: glucoseTargetRangeSchedule ?? defaultTarget,
             preMealTargetRange: nil,
-            workoutTargetRange: nil,
-            overridePresets: nil,
-            scheduleOverride: nil,
-            preMealOverride: nil,
+            overridePresets: [],
             maximumBasalRatePerHour: maxBasal,
             maximumBolus: maxBolus,
             suspendThreshold: suspendThreshold,
@@ -499,10 +482,7 @@ private extension StoredSettings {
                 override: nil
             ),
             preMealTargetRange: nil,
-            workoutTargetRange: nil,
-            overridePresets: nil,
-            scheduleOverride: nil,
-            preMealOverride: nil,
+            overridePresets: [],
             maximumBasalRatePerHour: 5.0,
             maximumBolus: 10.0,
             suspendThreshold: nil,
@@ -520,7 +500,7 @@ private extension StoredSettings {
                 timeZone: tz
             )!,
             carbRatioSchedule: CarbRatioSchedule(
-                unit: .gram(),
+                unit: .gram,
                 dailyItems: [RepeatingScheduleValue(startTime: 0, value: 15.0)],
                 timeZone: tz
             )!,
@@ -549,10 +529,7 @@ private extension StoredSettings {
                 override: nil
             ),
             preMealTargetRange: nil,
-            workoutTargetRange: nil,
-            overridePresets: nil,
-            scheduleOverride: nil,
-            preMealOverride: nil,
+            overridePresets: [],
             maximumBasalRatePerHour: nil,
             maximumBolus: nil,
             suspendThreshold: nil,
@@ -568,7 +545,7 @@ private extension StoredSettings {
                 timeZone: tz
             )!,
             carbRatioSchedule: CarbRatioSchedule(
-                unit: .gram(),
+                unit: .gram,
                 dailyItems: [RepeatingScheduleValue(startTime: 0, value: 15.0)],
                 timeZone: tz
             )!,
@@ -579,5 +556,64 @@ private extension StoredSettings {
             bloodGlucoseUnit: mgPerDL,
             syncIdentifier: UUID()
         )
+    }
+}
+
+// MARK: - Dose annotation
+
+@Suite("Tidepool dose annotation Tests") struct TidepoolDoseAnnotationTests {
+    private static let start = Date(timeIntervalSince1970: 1_800_000_000)
+
+    private static func trioTempBasal(automatic: Bool?) -> DoseEntry {
+        DoseEntry(
+            type: .tempBasal,
+            startDate: start,
+            endDate: start.addingTimeInterval(30 * 60),
+            value: 0.5,
+            unit: .units,
+            decisionId: nil,
+            deliveredUnits: 0.5,
+            syncIdentifier: "temp-1",
+            scheduledBasalRate: LoopQuantity(unit: .internationalUnitsPerHour, doubleValue: 0.8),
+            insulinType: nil,
+            automatic: automatic,
+            manuallyEntered: false,
+            isMutable: false
+        )
+    }
+
+    @Test("Empty basal history leaves a Trio temp basal untouched") func emptyBasalHistoryKeepsDose() {
+        let dose = Self.trioTempBasal(automatic: true)
+
+        let annotated = [dose].annotated(with: [])
+
+        #expect(annotated.count == 1)
+        #expect(annotated[0].syncIdentifier == "temp-1")
+        #expect(annotated[0].startDate == dose.startDate)
+        #expect(annotated[0].endDate == dose.endDate)
+        #expect(annotated[0].deliveredUnits == 0.5)
+        #expect(annotated[0].scheduledBasalRate?.doubleValue(for: .internationalUnitsPerHour) == 0.8)
+    }
+
+    @Test("Automation history keeps an explicit automatic flag") func automationKeepsExplicitFlag() {
+        let dose = Self.trioTempBasal(automatic: true)
+        let history = [AbsoluteScheduleValue(startDate: dose.startDate, endDate: dose.endDate, value: false)]
+
+        let overlaid = [dose].overlayAutomationHistory(history)
+
+        #expect(overlaid.count == 1)
+        #expect(overlaid[0].automatic == true)
+        #expect(overlaid[0].syncIdentifier == "temp-1")
+    }
+
+    @Test("A single period over the whole range does not split a dose") func singlePeriodDoesNotSplit() {
+        let dose = Self.trioTempBasal(automatic: nil)
+        let history = [AbsoluteScheduleValue(startDate: dose.startDate, endDate: dose.endDate, value: true)]
+
+        let overlaid = [dose].overlayAutomationHistory(history)
+
+        #expect(overlaid.count == 1)
+        #expect(overlaid[0].automatic == true)
+        #expect(overlaid[0].deliveredUnits == 0.5)
     }
 }

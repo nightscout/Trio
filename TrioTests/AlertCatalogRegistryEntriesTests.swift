@@ -242,4 +242,11 @@ import Testing
             #expect(AlertCatalogRegistry.lookup(id("trio.aps", alertID))?.category == "Algorithm")
         }
     }
+
+    @Test("Tidepool re-login alert is a Normal-tier Services entry") func tidepoolLoginEntry() {
+        let entry = AlertCatalogRegistry.lookup(id("TidepoolService", "authentication-needed"))
+        #expect(entry?.interruptionLevel == .active)
+        #expect(entry?.category == "Services")
+        #expect(entry?.concept == .tidepoolLoginRequired)
+    }
 }

@@ -114,6 +114,8 @@ extension PumpStatusStored.DeliveryState {
             self = .unknown
         case let .active(since) where since == .distantPast:
             self = .inactive
+        case .pumpInoperable:
+            self = .inactive
         case .suspending:
             self = .suspending
         case .suspended:

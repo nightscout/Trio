@@ -218,7 +218,7 @@ struct MainChartView: View {
         }
         let unitLabel = units.spokenValue
         func format(_ value: Int16) -> String {
-            units == .mgdL ? Decimal(value).description : Decimal(value).formattedAsMmolL
+            Decimal(value).formatted(for: units)
         }
         let latestString = format(latest.glucose)
         let values = sample.map(\.glucose)

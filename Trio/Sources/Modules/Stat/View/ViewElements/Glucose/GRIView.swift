@@ -116,11 +116,11 @@ struct GRIExplanationView: View {
     }
 
     private func component(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(1))) + "%"
+        (value / 100).formatted(.oneDecimalPercent)
     }
 }
 
-private enum GRICalculationColors {
+enum GRICalculationColors {
     static let veryLow: Color = .dynamicRed
     static let low = veryLow.opacity(0.65)
     static let high = veryHigh.opacity(0.65)
@@ -221,11 +221,11 @@ private struct GRIScoreBreakdownView: View {
     }
 
     private func percentage(_ value: Double) -> String {
-        (value / 100).formatted(.percent.precision(.fractionLength(1)))
+        (value / 100).formatted(.oneDecimalPercent)
     }
 }
 
-private func griColor(_ score: Double) -> Color {
+func griColor(_ score: Double) -> Color {
     switch score {
     case ...20: return .green
     case ...40: return .yellow
@@ -235,7 +235,7 @@ private func griColor(_ score: Double) -> Color {
     }
 }
 
-private struct GRIRiskGridView: View {
+struct GRIRiskGridView: View {
     let result: GRICalculator.Result
     @Environment(\.colorScheme) private var colorScheme
 
@@ -334,7 +334,7 @@ private struct GRIRiskGridView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("GRI risk grid, zone \(result.zone)")
         .accessibilityValue(
-            "Hypoglycemia \(result.hypoComponent.formatted()) percent, hyperglycemia \(result.hyperComponent.formatted()) percent"
+            "Hypoglycemia \((result.hypoComponent / 100).formatted(.oneDecimalPercent)), hyperglycemia \((result.hyperComponent / 100).formatted(.oneDecimalPercent))"
         )
     }
 }

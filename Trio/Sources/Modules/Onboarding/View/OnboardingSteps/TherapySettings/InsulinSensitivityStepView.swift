@@ -81,19 +81,20 @@ struct InsulinSensitivityStepView: View {
 
                             VStack(alignment: .leading, spacing: 8) {
                                 // Current glucose is 40 mg/dL or 2.2 mmol/L above target
-                                let aboveTarget = state.units == .mgdL ? Decimal(40) : 40.asMmolL
+                                let aboveTarget = Decimal(40)
+                                let aboveTargetText = aboveTarget.formatted(for: state.units)
                                 let firstIsfRate: Decimal = state.isfRateValues[state.isfItems.first?.rateIndex ?? 0]
-                                let isfValue = state.units == .mgdL ? firstIsfRate : firstIsfRate.asMmolL
-                                let insulinNeeded = aboveTarget / isfValue
+                                let isfValueText = firstIsfRate.formatted(for: state.units)
+                                let insulinNeeded = aboveTarget.asUnit(state.units) / firstIsfRate.asUnit(state.units)
 
                                 Text(
-                                    "If you are \(numberFormatter.string(from: aboveTarget as NSNumber) ?? "--") \(state.units.rawValue) above target:"
+                                    "If you are \(aboveTargetText) \(state.units.rawValue) above target:"
                                 )
                                 .font(.subheadline)
                                 .padding(.horizontal)
 
                                 Text(
-                                    "\(aboveTarget.description) \(state.units.rawValue) / \(isfValue.description) \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(String(format: "%.1f", Double(insulinNeeded))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
+                                    "\(aboveTargetText) \(state.units.rawValue) / \(isfValueText) \(state.units.rawValue)/\(String(localized: "U", comment: "Insulin unit abbreviation")) = \(insulinNeeded.formatted(.number.precision(.fractionLength(1)))) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
                                 )
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundColor(.cyan)
@@ -113,7 +114,7 @@ struct InsulinSensitivityStepView: View {
                                 .padding(.horizontal)
 
                             VStack(alignment: .leading, spacing: 4) {
-                                let isfValue = "\(state.units == .mgdL ? Decimal(50) : 50.asMmolL)"
+                                let isfValue = 50.formatted(for: state.units)
                                 Text(
                                     "• An ISF of \(isfValue) \(state.units.rawValue)/U means 1 U lowers your glucose by \(isfValue) \(state.units.rawValue)"
                                 )

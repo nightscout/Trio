@@ -52,7 +52,8 @@ import Testing
             startDate: Date(),
             endDate: Date().addingTimeInterval(30 * 60),
             value: 1.2,
-            unit: .unitsPerHour
+            unit: .unitsPerHour,
+            decisionId: nil
         ))
     }
 
@@ -174,5 +175,12 @@ import Testing
         let unknown = try #require(await storage.lastPumpStatus())
         #expect(unknown.suspended)
         #expect(await storedRows().map(\.state) == ["suspended", "resuming", "unknown"])
+    }
+
+    @Test("An inoperable pump blocks the loop like a suspended one") func testInoperableBlocksLoop() {
+        #expect(status(.pumpInoperable).pumpStatus.suspended)
+        #expect(status(.suspended(Date())).pumpStatus.suspended)
+        #expect(!status(.active(Date())).pumpStatus.suspended)
+        #expect(!status(tempBasal()).pumpStatus.suspended)
     }
 }

@@ -94,7 +94,7 @@ extension History.RootView {
             guard let target = item.target, target != 0 else {
                 return ""
             }
-            return "\(state.units == .mgdL ? target : target.asMmolL) \(state.units.rawValue)"
+            return target.formatted(withUnits: state.units)
         }()
 
         let labels: [String] = [

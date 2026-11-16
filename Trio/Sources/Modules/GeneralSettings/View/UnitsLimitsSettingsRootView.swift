@@ -191,14 +191,14 @@ extension UnitsLimitsSettings {
                             }
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(
-                                    "If your glucose target is \(state.units == .mgdL ? "110" : 110.formattedAsMmolL) \(state.units.rawValue), Trio will use a safety threshold of \(state.units == .mgdL ? "75" : 75.formattedAsMmolL) \(state.units.rawValue), unless you set Minimum Safety Threshold to something > \(state.units == .mgdL ? "75" : 75.formattedAsMmolL) \(state.units.rawValue)."
+                                    "If your glucose target is \(110.formatted(for: state.units)) \(state.units.rawValue), Trio will use a safety threshold of \(75.formatted(for: state.units)) \(state.units.rawValue), unless you set Minimum Safety Threshold to something > \(75.formatted(for: state.units)) \(state.units.rawValue)."
                                 )
                                 Text(
-                                    "\(state.units == .mgdL ? "110" : 110.formattedAsMmolL) - 0.5 × (\(state.units == .mgdL ? "110" : 110.formattedAsMmolL) - \(state.units == .mgdL ? "40" : 40.formattedAsMmolL)) = \(state.units == .mgdL ? "75" : 75.formattedAsMmolL)"
+                                    "\(110.formatted(for: state.units)) - 0.5 × (\(110.formatted(for: state.units)) - \(40.formatted(for: state.units))) = \(75.formatted(for: state.units))"
                                 )
                             }
                             Text(
-                                "This setting is limited to values between \(state.units == .mgdL ? "60" : 60.formattedAsMmolL) - \(state.units == .mgdL ? "120" : 120.formattedAsMmolL) \(state.units.rawValue)"
+                                "This setting is limited to values between \(60.formatted(for: state.units)) - \(120.formatted(for: state.units)) \(state.units.rawValue)"
                             )
                             Text(
                                 "Note: Basal may be resumed if there is negative IOB and glucose is rising faster than the forecast."

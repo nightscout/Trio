@@ -116,54 +116,40 @@ extension PluginSource: CGMManagerDelegate {
     /// logging treatment as everything else. Used to be a no-op; on
     /// dev-libre3 / LibreLoop builds that meant CGM-issued alerts (sensor
     /// failure, signal loss, expiry, etc.) silently dropped.
-    func issueAlert(_ alert: LoopKit.Alert) {
-        glucoseManager?.trioAlertManager?.issueAlert(alert)
+    nonisolated func issueAlert(_ alert: LoopKit.Alert) {
+        processQueue.async { self.glucoseManager?.trioAlertManager?.issueAlert(alert) }
     }
 
-    func retractAlert(identifier: LoopKit.Alert.Identifier) {
-        glucoseManager?.trioAlertManager?.retractAlert(identifier: identifier)
+    nonisolated func retractAlert(identifier: LoopKit.Alert.Identifier) {
+        processQueue.async { self.glucoseManager?.trioAlertManager?.retractAlert(identifier: identifier) }
     }
 
     /// LoopKit asks this on reconnect to avoid re-issuing an alert that's
     /// still live. `TrioAlertManager` deduplicates downstream via its own
     /// throttler and live-alert table, so answering "no" here is safe — at
     /// worst we get one duplicate banner, which the throttler suppresses.
-    func doesIssuedAlertExist(identifier _: LoopKit.Alert.Identifier, completion: @escaping (Result<Bool, Error>) -> Void) {
-        completion(.success(false))
+    func doesIssuedAlertExist(identifier _: LoopKit.Alert.Identifier) async throws -> Bool {
+        false
     }
 
-    func lookupAllUnretracted(
-        managerIdentifier _: String,
-        completion: @escaping (Result<[LoopKit.PersistedAlert], Error>) -> Void
-    ) {
-        completion(.success([]))
+    func lookupAllUnretracted(managerIdentifier _: String) async throws -> [LoopKit.PersistedAlert] {
+        []
     }
 
-    func lookupAllUnacknowledgedUnretracted(
-        managerIdentifier _: String,
-        completion: @escaping (Result<[LoopKit.PersistedAlert], Error>) -> Void
-    ) {
-        completion(.success([]))
+    func lookupAllUnacknowledgedUnretracted(managerIdentifier _: String) async throws -> [LoopKit.PersistedAlert] {
+        []
     }
 
     /// LoopKit calls this when a manager itself decides an alert is no
     /// longer relevant. Mirror the action on our pipeline so the in-app
     /// banner, scheduled UN, and history all clear.
-    func recordRetractedAlert(_ alert: LoopKit.Alert, at _: Date) {
-        glucoseManager?.trioAlertManager?.retractAlert(identifier: alert.identifier)
+    nonisolated func recordRetractedAlert(_ alert: LoopKit.Alert, at _: Date) async throws {
+        processQueue.async { self.glucoseManager?.trioAlertManager?.retractAlert(identifier: alert.identifier) }
     }
 
-    func cgmManagerWantsDeletion(_ manager: CGMManager) {
-        processQueue.async { [weak self] in
-            guard let self = self else { return }
-
-            dispatchPrecondition(condition: .onQueue(self.processQueue))
-
-            info(.cgm, "CGM \(manager.pluginIdentifier) requested removal")
-            Task {
-                await self.glucoseManager?.deleteGlucoseSource()
-            }
-        }
+    func cgmManagerWantsDeletion(_ manager: CGMManager) async {
+        info(.cgm, "CGM \(manager.pluginIdentifier) requested removal")
+        await glucoseManager?.deleteGlucoseSource()
     }
 
     func cgmManager(_: CGMManager, hasNew readingResult: CGMReadingResult) {
