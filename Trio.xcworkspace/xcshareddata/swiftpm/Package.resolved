@@ -1,5 +1,5 @@
 {
-  "originHash" : "b6849bbe8c7c9cbf89c4de4031277272f796315b7a0ddf5eaa5c6828b70764b1",
+  "originHash" : "40163eb3567c0eeccc48df8bfb7bddc607bfa690abba7a1383d0755c0f6de6a1",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -87,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dabear/elbbepTransport.git",
       "state" : {
-        "revision" : "06dd9c60ff9c74d2d9bd3e92d86d7407492771eb",
-        "version" : "1.4.11"
+        "revision" : "38aaf269e495af3a5fab1ad23de0e574c8fc57b3",
+        "version" : "1.4.12"
       }
     },
     {

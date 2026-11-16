@@ -672,15 +672,16 @@ extension BaseSmartwatchHost: SmartwatchManagerDelegate {
 
     /// The low and high Trio's statistics and home screen show glucose against
     /// (not its glucose alarms' thresholds, which are the alarms' own).
-    func smartwatchManagerGlucoseDisplayLimits(_: SmartwatchManager) async -> SmartwatchGlucoseDisplayLimits? {
+    func smartwatchManagerGlucoseDisplayLimits(_: SmartwatchManager) async -> ClosedRange<LoopQuantity>? {
         Self.displayLimits(low: settingsManager.settings.low, high: settingsManager.settings.high)
     }
 
-    static func displayLimits(low: Decimal, high: Decimal) -> SmartwatchGlucoseDisplayLimits? {
-        SmartwatchGlucoseDisplayLimits(
-            low: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(truncating: low as NSNumber)),
-            high: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(truncating: high as NSNumber))
-        )
+    static func displayLimits(low: Decimal, high: Decimal) -> ClosedRange<LoopQuantity>? {
+        guard low < high else {
+            return nil
+        }
+        return LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(truncating: low as NSNumber))
+            ... LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(truncating: high as NSNumber))
     }
 
     func smartwatchManagerOverridePresets(_ manager: SmartwatchManager) async -> [TemporaryPreset] {
