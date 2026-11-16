@@ -126,7 +126,8 @@ struct TherapySchedulePDFContent: View {
 
     /// Calculated like the basal editor's total.
     private var basalTotal: Decimal {
-        let ends: [TimeInterval] = data.entries.dropFirst().map(\.start) + [24 * 60 * 60]
+        let dayEnd: TimeInterval = 24 * 60 * 60
+        let ends: [TimeInterval] = data.entries.dropFirst().map(\.start) + [dayEnd]
         var total: Decimal = 0
         for (entry, end) in zip(data.entries, ends) {
             let hours = Decimal((end - entry.start) / 3600)
