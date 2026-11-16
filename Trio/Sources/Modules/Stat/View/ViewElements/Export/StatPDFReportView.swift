@@ -11,6 +11,8 @@ struct StatPDFPage<Content: View>: View {
     let periodEnd: Date
     let generatedAt: Date
     let reportMetadata: Stat.StateModel.ReportMetadata
+    /// Off for pages that show current settings rather than data from the range.
+    let showsDateRange: Bool
     let content: Content
 
     init(
@@ -22,6 +24,7 @@ struct StatPDFPage<Content: View>: View {
         periodEnd: Date,
         generatedAt: Date,
         reportMetadata: Stat.StateModel.ReportMetadata,
+        showsDateRange: Bool = true,
         @ViewBuilder content: () -> Content
     ) {
         self.reportName = reportName
@@ -32,6 +35,7 @@ struct StatPDFPage<Content: View>: View {
         self.periodEnd = periodEnd
         self.generatedAt = generatedAt
         self.reportMetadata = reportMetadata
+        self.showsDateRange = showsDateRange
         self.content = content()
     }
 
@@ -66,9 +70,15 @@ struct StatPDFPage<Content: View>: View {
                     .font(.headline)
             }
 
-            Text("\(dataTypeDisplayName) · \(chartTypeDisplayName) · \(rangeDisplayName) (\(dateRangeText))")
-                .font(.subheadline)
-                .foregroundStyle(Color.secondary)
+            Group {
+                if showsDateRange {
+                    Text("\(dataTypeDisplayName) · \(chartTypeDisplayName) · \(rangeDisplayName) (\(dateRangeText))")
+                } else {
+                    Text("\(dataTypeDisplayName) · \(chartTypeDisplayName)")
+                }
+            }
+            .font(.subheadline)
+            .foregroundStyle(Color.secondary)
 
             Text("Generated \(generatedAt.formatted(date: .abbreviated, time: .shortened))")
                 .font(.caption)

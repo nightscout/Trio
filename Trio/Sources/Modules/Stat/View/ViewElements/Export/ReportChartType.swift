@@ -12,6 +12,18 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
     case insulinBolusDistribution
     case loopingPerformance
     case mealsTotalMeals
+    case therapyBasalRates
+    case therapyGlucoseTargets
+    case therapyCarbRatios
+    case therapyInsulinSensitivities
+
+    /// Therapy settings in export menu order.
+    static let therapySettings: [Self] = [
+        .therapyBasalRates,
+        .therapyGlucoseTargets,
+        .therapyCarbRatios,
+        .therapyInsulinSensitivities
+    ]
 
     var id: String { rawValue }
 
@@ -55,7 +67,12 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
         self == .glucosePercentileByDay || self == .glucoseDistributionByDay
     }
 
-    var dataType: Stat.StateModel.StatisticViewType {
+    /// False for therapy settings, which show the current schedule.
+    var usesDateRange: Bool {
+        category != .therapySettings
+    }
+
+    var category: ReportCategory {
         switch self {
         case .glucoseDistributionByDay,
              .glucoseDistributionByTime,
@@ -70,10 +87,15 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
             return .looping
         case .mealsTotalMeals:
             return .meals
+        case .therapyBasalRates,
+             .therapyCarbRatios,
+             .therapyGlucoseTargets,
+             .therapyInsulinSensitivities:
+            return .therapySettings
         }
     }
 
-    /// Same localized names as the Statistics chart pickers.
+    /// Same localized names as the Statistics chart pickers and settings screens.
     var displayName: String {
         switch self {
         case .glucoseDistributionByTime:
@@ -94,6 +116,45 @@ enum ReportChartType: String, Codable, CaseIterable, Identifiable {
             return Stat.StateModel.LoopingChartType.loopingPerformance.displayName
         case .mealsTotalMeals:
             return Stat.StateModel.MealChartType.totalMeals.displayName
+        case .therapyBasalRates:
+            return String(localized: "Basal Rates")
+        case .therapyGlucoseTargets:
+            return String(localized: "Glucose Targets")
+        case .therapyCarbRatios:
+            return String(localized: "Carb Ratios")
+        case .therapyInsulinSensitivities:
+            return String(localized: "Insulin Sensitivities")
+        }
+    }
+}
+
+/// Export menu groups: the Statistics data types plus therapy settings.
+enum ReportCategory: Hashable, Identifiable {
+    case glucose
+    case meals
+    case insulin
+    case looping
+    case therapySettings
+
+    /// Export menu order, which is also the PDF page order.
+    static let exportOrder: [Self] = [.glucose, .meals, .insulin, .looping, .therapySettings]
+
+    var id: Self { self }
+
+    /// Name for the export menu and PDF header. Meals is shown as "Carbs", which is what
+    /// its charts report.
+    var displayName: String {
+        switch self {
+        case .glucose:
+            return Stat.StateModel.StatisticViewType.glucose.displayName
+        case .meals:
+            return String(localized: "Carbs")
+        case .insulin:
+            return Stat.StateModel.StatisticViewType.insulin.displayName
+        case .looping:
+            return Stat.StateModel.StatisticViewType.looping.displayName
+        case .therapySettings:
+            return String(localized: "Therapy Settings")
         }
     }
 }

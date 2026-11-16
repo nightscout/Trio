@@ -16,8 +16,8 @@ struct StatExportMenuView: View {
     @State private var showPatientNamePrompt = false
     @State private var patientNameInput: String = ""
 
-    /// Data types currently expanded to show their charts.
-    @State private var expandedDataTypes: Set<Stat.StateModel.StatisticViewType> = []
+    /// Categories currently expanded to show their charts.
+    @State private var expandedCategories: Set<ReportCategory> = []
     @State private var selectedCharts: Set<ReportChartType> = []
     @State private var savedPresets: [ReportPreset] = []
     @State private var presetToDelete: ReportPreset?
@@ -163,7 +163,7 @@ struct StatExportMenuView: View {
         // Presets don't include a patient name, so leave it unchanged.
         withAnimation {
             selectedCharts = Set(preset.chartTypes)
-            expandedDataTypes = Set(preset.chartTypes.map(\.dataType))
+            expandedCategories = Set(preset.chartTypes.map(\.category))
             selectedRange = preset.range
         }
     }
@@ -213,15 +213,22 @@ struct StatExportMenuView: View {
     /// Indent for chart rows under their data type.
     private static let chartRowInset: CGFloat = 20
 
-    /// One expandable row per data type with a toggle per chart. Collapsed rows show the
+    /// One expandable row per category with a toggle per chart. Collapsed rows show the
     /// selected count.
     private var includeInReportSection: some View {
-        Section(header: Text("Include")) {
-            ForEach(Stat.StateModel.StatisticViewType.exportOrder) { dataType in
-                categoryRow(for: dataType)
+        Section(
+            header: Text("Include"),
+            footer: Group {
+                if orderedSelectedCharts.contains(where: { !$0.usesDateRange }) {
+                    Text("Therapy settings show the current schedules. The range doesn't apply to them.")
+                }
+            }
+        ) {
+            ForEach(ReportCategory.exportOrder) { category in
+                categoryRow(for: category)
 
-                if expandedDataTypes.contains(dataType) {
-                    ForEach(chartOptions(for: dataType), id: \.title) { option in
+                if expandedCategories.contains(category) {
+                    ForEach(chartOptions(for: category), id: \.title) { option in
                         chartRow(title: option.title, chart: option.chart)
                     }
                 }
@@ -229,21 +236,21 @@ struct StatExportMenuView: View {
         }
     }
 
-    private func categoryRow(for dataType: Stat.StateModel.StatisticViewType) -> some View {
-        let isExpanded = expandedDataTypes.contains(dataType)
-        let selectedCount = orderedSelectedCharts.filter { $0.dataType == dataType }.count
+    private func categoryRow(for category: ReportCategory) -> some View {
+        let isExpanded = expandedCategories.contains(category)
+        let selectedCount = orderedSelectedCharts.filter { $0.category == category }.count
 
         return Button {
             withAnimation {
                 if isExpanded {
-                    expandedDataTypes.remove(dataType)
+                    expandedCategories.remove(category)
                 } else {
-                    expandedDataTypes.insert(dataType)
+                    expandedCategories.insert(category)
                 }
             }
         } label: {
             HStack {
-                Text(dataType.exportDisplayName)
+                Text(category.displayName)
                     .foregroundStyle(Color.primary)
                 Spacer()
                 if selectedCount > 0 {
@@ -295,10 +302,10 @@ struct StatExportMenuView: View {
         )
     }
 
-    /// All chart types the Statistics screen offers for `dataType`, in order. `chart` is `nil`
+    /// All chart types the Statistics screen offers for `category`, in order. `chart` is `nil`
     /// for ones not exportable yet.
-    private func chartOptions(for dataType: Stat.StateModel.StatisticViewType) -> [(title: String, chart: ReportChartType?)] {
-        switch dataType {
+    private func chartOptions(for category: ReportCategory) -> [(title: String, chart: ReportChartType?)] {
+        switch category {
         case .glucose:
             return Stat.StateModel.GlucoseChartType.allCases.map { ($0.displayName, ReportChartType($0)) }
         case .insulin:
@@ -307,12 +314,14 @@ struct StatExportMenuView: View {
             return Stat.StateModel.LoopingChartType.allCases.map { ($0.displayName, ReportChartType($0)) }
         case .meals:
             return Stat.StateModel.MealChartType.allCases.map { ($0.displayName, ReportChartType($0)) }
+        case .therapySettings:
+            return ReportChartType.therapySettings.map { ($0.displayName, $0) }
         }
     }
 
     /// Selected charts available for the current range, in page order.
     private var orderedSelectedCharts: [ReportChartType] {
-        Stat.StateModel.StatisticViewType.exportOrder
+        ReportCategory.exportOrder
             .flatMap { chartOptions(for: $0).compactMap(\.chart) }
             .filter { selectedCharts.contains($0) && isAvailable($0) }
     }
@@ -365,7 +374,7 @@ struct StatExportMenuView: View {
         periodStart: Date,
         periodEnd: Date
     ) async -> AnyView {
-        let dataTypeDisplayName = chartType.dataType.exportDisplayName
+        let dataTypeDisplayName = chartType.category.displayName
         let chartTypeDisplayName = chartType.displayName
 
         func page(@ViewBuilder content: () -> some View) -> some View {
@@ -378,6 +387,7 @@ struct StatExportMenuView: View {
                 periodEnd: periodEnd,
                 generatedAt: Date(),
                 reportMetadata: reportMetadata,
+                showsDateRange: chartType.usesDateRange,
                 content: content
             )
         }
@@ -470,6 +480,22 @@ struct StatExportMenuView: View {
                     useFPUconversion: data.useFPUconversion
                 )
             })
+
+        case .therapyBasalRates:
+            let data = state.prepareTherapyScheduleExportData(for: .basalRates)
+            return AnyView(page { TherapySchedulePDFContent(data: data) })
+
+        case .therapyGlucoseTargets:
+            let data = state.prepareTherapyScheduleExportData(for: .glucoseTargets)
+            return AnyView(page { TherapySchedulePDFContent(data: data) })
+
+        case .therapyCarbRatios:
+            let data = state.prepareTherapyScheduleExportData(for: .carbRatios)
+            return AnyView(page { TherapySchedulePDFContent(data: data) })
+
+        case .therapyInsulinSensitivities:
+            let data = state.prepareTherapyScheduleExportData(for: .insulinSensitivities)
+            return AnyView(page { TherapySchedulePDFContent(data: data) })
         }
     }
 }
@@ -501,24 +527,6 @@ extension Stat.StateModel.StatsTimeInterval {
             return Date.oneMonthAgo
         case .total:
             return Date.threeMonthsAgo
-        }
-    }
-}
-
-extension Stat.StateModel.StatisticViewType {
-    /// Export menu order, which is also the PDF page order.
-    static let exportOrder: [Self] = [.glucose, .meals, .insulin, .looping]
-
-    /// Name for the export menu and PDF header. Meals is shown as "Carbs", which is what
-    /// its charts report.
-    var exportDisplayName: String {
-        switch self {
-        case .meals:
-            return String(localized: "Carbs")
-        case .glucose,
-             .insulin,
-             .looping:
-            return displayName
         }
     }
 }

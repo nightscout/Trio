@@ -244,3 +244,75 @@ extension Stat.StateModel {
         }
     }
 }
+
+extension Stat.StateModel {
+    enum TherapySchedule {
+        case basalRates
+        case glucoseTargets
+        case carbRatios
+        case insulinSensitivities
+    }
+
+    /// A therapy setting schedule for the PDF export, with values in display units.
+    struct TherapyScheduleExportData {
+        let schedule: TherapySchedule
+        let entries: [TherapyProfileChart.Entry]
+        let unit: TherapySettingUnit
+        let units: GlucoseUnits
+    }
+
+    /// Reads the current schedule from storage. Legacy mmol/L values are converted but not saved.
+    func prepareTherapyScheduleExportData(for schedule: TherapySchedule) -> TherapyScheduleExportData {
+        let entries: [TherapyProfileChart.Entry]
+        let unit: TherapySettingUnit
+
+        switch schedule {
+        case .basalRates:
+            let profile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
+                ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
+                ?? []
+            entries = profile.map { TherapyProfileChart.Entry(start: TimeInterval($0.minutes * 60), value: $0.rate) }
+            unit = .unitPerHour
+
+        case .glucoseTargets:
+            let targets = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+                ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+                ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+            let storedInMmolL = targets.units == .mmolL || targets.userPreferredUnits == .mmolL
+            entries = targets.targets.map {
+                let low = storedInMmolL ? storage.parseSettingIfMmolL(value: $0.low) : $0.low
+                return TherapyProfileChart.Entry(start: TimeInterval($0.offset * 60), value: displayValue(low))
+            }
+            unit = units == .mgdL ? .mgdL : .mmolL
+
+        case .carbRatios:
+            let ratios = storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
+                ?? CarbRatios(from: OpenAPS.defaults(for: OpenAPS.Settings.carbRatios))
+                ?? CarbRatios(units: .grams, schedule: [])
+            entries = ratios.schedule.map { TherapyProfileChart.Entry(start: TimeInterval($0.offset * 60), value: $0.ratio) }
+            unit = .gramPerUnit
+
+        case .insulinSensitivities:
+            let sensitivities = storage.retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self)
+                ?? InsulinSensitivities(from: OpenAPS.defaults(for: OpenAPS.Settings.insulinSensitivities))
+                ?? InsulinSensitivities(units: .mgdL, userPreferredUnits: .mgdL, sensitivities: [])
+            let storedInMmolL = sensitivities.units == .mmolL || sensitivities.userPreferredUnits == .mmolL
+            entries = sensitivities.sensitivities.map {
+                let isf = storedInMmolL ? storage.parseSettingIfMmolL(value: $0.sensitivity) : $0.sensitivity
+                return TherapyProfileChart.Entry(start: TimeInterval($0.offset * 60), value: displayValue(isf))
+            }
+            unit = units == .mgdL ? .mgdLPerUnit : .mmolLPerUnit
+        }
+
+        return TherapyScheduleExportData(
+            schedule: schedule,
+            entries: entries.sorted { $0.start < $1.start },
+            unit: unit,
+            units: units
+        )
+    }
+
+    private func displayValue(_ mgdL: Decimal) -> Decimal {
+        units == .mgdL ? mgdL : mgdL.asMmolL
+    }
+}
