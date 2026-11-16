@@ -52,7 +52,7 @@ extension BaseSmartwatchHost {
             .filter { Self.glucoseAlertType(of: $0) != nil }
         let toRetract = Set(restoredAlerts.toRetract(alarmAlerts: alarmAlerts.map(\.value)))
         for identifier in alarmAlerts where toRetract.contains(identifier.value) {
-            manager.watchAlertDidRetract(identifier)
+            manager.hostDidRetractAlert(identifier)
         }
     }
 }
@@ -91,7 +91,7 @@ extension BaseSmartwatchHost: TrioAlertForwarder {
         let issuedAt = Date()
         watchAlertOrder.enqueue {
             self.restoredAlerts.forwarded.insert(alert.identifier.value)
-            manager.watchAlertDidIssue(alert, glucoseAlertType: glucoseAlertType, issuedAt: issuedAt)
+            manager.hostDidIssueAlert(alert, glucoseAlertType: glucoseAlertType, issuedAt: issuedAt)
         }
     }
 
@@ -99,7 +99,7 @@ extension BaseSmartwatchHost: TrioAlertForwarder {
         guard let manager = smartwatchManager, Self.glucoseAlertType(of: identifier) != nil else { return }
         watchAlertOrder.enqueue {
             self.restoredAlerts.forwarded.remove(identifier.value)
-            manager.watchAlertDidRetract(identifier)
+            manager.hostDidRetractAlert(identifier)
         }
     }
 }
