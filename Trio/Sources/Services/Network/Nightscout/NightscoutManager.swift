@@ -795,7 +795,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     }
                 }()
 
-                let storedProfiles = try therapyProfileStorage.fetchProfiles()
+                let storedProfiles = try await therapyProfileStorage.fetchProfiles()
                 let activeProfile = TrioTherapyProfile(
                     name: storedProfiles.activeProfileName ?? TrioTherapyProfile.defaultName,
                     basalProfile: basalProfile,
@@ -1336,7 +1336,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
     private func performUploadTherapyProfiles() async {
         do {
-            for profileSwitch in try therapyProfileStorage.profileSwitchesNotYetUploaded() {
+            for profileSwitch in try await therapyProfileStorage.profileSwitchesNotYetUploaded() {
                 let profileName = profileSwitch.name == TrioTherapyProfile.defaultName
                     ? TrioTherapyProfile.defaultStoreKey : profileSwitch.name
                 let treatment = NightscoutTreatment(
@@ -1353,7 +1353,7 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 try await therapyProfileStorage.markSwitchUploaded(profileSwitch)
                 info(.nightscout, "Profile switch of \(profileSwitch.date) uploaded")
             }
-            if try therapyProfileStorage.profilesNotYetUploaded() {
+            if try await therapyProfileStorage.profilesNotYetUploaded() {
                 try await uploadProfiles()
             }
         } catch {

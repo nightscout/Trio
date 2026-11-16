@@ -119,6 +119,7 @@ extension TrioRemoteControl {
         }
 
         do {
+            await therapyProfileManager.loadProfiles()
             let original = originalName.flatMap { therapyProfileManager.profile(named: $0) }
             let profile = try compact.therapyProfile(named: name, original: original)
             let saved = try await therapyProfileManager.save(

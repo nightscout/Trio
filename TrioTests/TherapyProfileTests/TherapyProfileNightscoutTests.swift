@@ -152,6 +152,6 @@ import Testing
         )
         context.recorder.now = start.addingTimeInterval(180)
         await context.manager.runDueScheduledSwitch()
-        #expect(try context.profileStorage.profileSwitchesNotYetUploaded().map(\.trigger) == [.local, .remote, .scheduled])
+        #expect(try await context.profileStorage.profileSwitchesNotYetUploaded().map(\.trigger) == [.local, .remote, .scheduled])
     }
 }

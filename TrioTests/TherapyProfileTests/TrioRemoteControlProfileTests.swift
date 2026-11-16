@@ -476,6 +476,6 @@ private final class ProfileTestAssembly: Assembly {
         _ = try await send(command("switch_profile", [
             "profile_name": "Sport", "base_fingerprint": sport.fingerprint(units: .mgdL)
         ]))
-        #expect(try context.profileStorage.profileSwitchesNotYetUploaded().map(\.trigger) == [.remote])
+        #expect(try await context.profileStorage.profileSwitchesNotYetUploaded().map(\.trigger) == [.remote])
     }
 }
