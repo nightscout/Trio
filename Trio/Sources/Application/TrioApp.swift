@@ -197,6 +197,7 @@ extension Notification.Name {
                 await Task { @MainActor in
                     // Only load services after successful Core Data initialization
                     loadServices()
+                    await resolver.resolve(TherapyProfileManager.self)?.completeInterruptedSwitch()
 
                     // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
                     cleanupOldData()
@@ -215,6 +216,7 @@ extension Notification.Name {
                     } catch {
                         warning(.nightscout, "Uploading profile after build change failed", error: error)
                     }
+                    await resolver.resolve(TherapyProfileManager.self)?.runDueScheduledSwitch()
                 }.value
             } catch let initError {
                 error(.storage, "Core Data stack could not be initialized", error: initError)

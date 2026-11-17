@@ -99,4 +99,13 @@ import Testing
         )
         #expect(back == profile)
     }
+
+    @Test("Start times are whole seconds from midnight, without a time zone") func startTimesIgnoreTimeZone() throws {
+        let profile = TherapyProfileFixtures.profile("Travel", basal: [(0, 0.5), (5400, 0.6), (7200, 0.7), (9000, 0.8)])
+        #expect(profile.basalProfileEntries.map(\.start) == ["00:00:00", "01:30:00", "02:00:00", "02:30:00"])
+        #expect(profile.basalProfileEntries.map(\.minutes) == [0, 90, 120, 150])
+        #expect(profile.bgTargets.targets.map(\.offset) == [0])
+        #expect(TherapyProfileValidator.timeString(5400).contains("1:30"))
+        #expect(TherapyProfileValidator.timeString(9000).contains("2:30"))
+    }
 }

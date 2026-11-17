@@ -4,6 +4,8 @@ import Swinject
 extension CarbRatioEditor {
     struct RootView: BaseView {
         let resolver: Resolver
+        /// A stored profile to edit; nil edits the live settings.
+        var profileName: String? = nil
         @StateObject var state = StateModel()
         @State private var refreshUI = UUID()
         @Namespace private var bottomID
@@ -62,6 +64,10 @@ extension CarbRatioEditor {
                     ScrollView {
                         LazyVStack {
                             VStack(alignment: .leading, spacing: 0) {
+                                if let bannerInfo = state.bannerInfo {
+                                    TherapyProfileBanner(info: bannerInfo)
+                                }
+
                                 // Chart visualization
                                 if !state.items.isEmpty {
                                     carbRatioChart
@@ -111,9 +117,20 @@ extension CarbRatioEditor {
                     }
 
                     saveButton
+                        .alert(
+                            "Unable to Save",
+                            isPresented: Binding(
+                                get: { state.profileSaveError != nil },
+                                set: { if !$0 { state.profileSaveError = nil } }
+                            )
+                        ) {
+                            Button("OK", role: .cancel) {}
+                        } message: {
+                            Text(state.profileSaveError ?? "")
+                        }
                 }
                 .background(appState.trioBackgroundColor(for: colorScheme))
-                .onAppear(perform: configureView)
+                .onAppear { configureView { state.profileName = profileName } }
                 .navigationTitle("Carb Ratios")
                 .navigationBarTitleDisplayMode(.automatic)
                 .onAppear {
