@@ -23,6 +23,7 @@ struct TrioMainWatchView: View {
 
     /// Ticks the bubble's staleness and the switch to the watch's own readings.
     @State private var now = Date()
+    private static let ticker = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
 
     /// The bubble is dated by its newest reading, the watch's own included; without readings, by the last update.
     private var isReadingDated: Bool {
@@ -32,13 +33,9 @@ struct TrioMainWatchView: View {
 
     var isWatchStateDated: Bool {
         // If `lastWatchStateUpdate` is nil, treat as "dated"
-        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else {
-            return true
-        }
-        let now = Date().timeIntervalSince1970
-        let secondsSinceUpdate = now - lastUpdateTimestamp
+        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else { return true }
         // Return true if last update older than 5 min, so 1 loop cycle
-        return secondsSinceUpdate > 5 * 60
+        return now.timeIntervalSince1970 - lastUpdateTimestamp > 5 * 60
     }
 
     /// Left of the bubble: the phone while it syncs; the watch with waves while its link to the sensor is up; the
@@ -270,7 +267,7 @@ struct TrioMainWatchView: View {
             }
         }
         .ignoresSafeArea()
-        .onReceive(Timer.publish(every: 30, on: .main, in: .common).autoconnect()) { now = $0 }
+        .onReceive(Self.ticker) { now = $0 }
     }
 
     private func updateRotation(for trend: String?) {

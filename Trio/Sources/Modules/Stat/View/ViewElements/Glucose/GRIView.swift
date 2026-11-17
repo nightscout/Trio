@@ -120,7 +120,7 @@ struct GRIExplanationView: View {
     }
 }
 
-private enum GRICalculationColors {
+enum GRICalculationColors {
     static let veryLow: Color = .dynamicRed
     static let low = veryLow.opacity(0.65)
     static let high = veryHigh.opacity(0.65)
@@ -225,7 +225,7 @@ private struct GRIScoreBreakdownView: View {
     }
 }
 
-private func griColor(_ score: Double) -> Color {
+func griColor(_ score: Double) -> Color {
     switch score {
     case ...20: return .green
     case ...40: return .yellow
@@ -235,7 +235,7 @@ private func griColor(_ score: Double) -> Color {
     }
 }
 
-private struct GRIRiskGridView: View {
+struct GRIRiskGridView: View {
     let result: GRICalculator.Result
     @Environment(\.colorScheme) private var colorScheme
 

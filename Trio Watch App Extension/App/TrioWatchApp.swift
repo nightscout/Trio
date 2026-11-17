@@ -18,6 +18,7 @@ import UserNotifications
             TrioMainWatchView()
         }
         .onChange(of: scenePhase) { _, newScenePhase in
+            WatchState.shared.setAppActive(newScenePhase == .active)
             if newScenePhase == .background {
                 WatchLogger.shared.info(.lifecycle, "App moved to background")
                 WatchLogger.shared.didEnterBackground()
@@ -26,6 +27,7 @@ import UserNotifications
                 WatchCGMHost.shared.recheckAcquisition()
                 // the watch's own reading may have aged out while the app was suspended
                 WatchState.shared.refreshShownReading()
+                WatchState.shared.refreshIfNeeded()
             }
         }
     }
