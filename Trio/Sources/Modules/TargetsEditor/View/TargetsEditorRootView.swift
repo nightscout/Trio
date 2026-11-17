@@ -1,4 +1,3 @@
-import Charts
 import SwiftUI
 import Swinject
 
@@ -9,7 +8,6 @@ extension TargetsEditor {
         var profileName: String? = nil
         @StateObject var state = StateModel()
         @State private var refreshUI = UUID()
-        @State private var now = Date()
         @Namespace private var bottomID
 
         @Environment(\.colorScheme) var colorScheme
@@ -148,55 +146,22 @@ extension TargetsEditor {
 
         // Chart for visualizing glucose targets
         private var glucoseTargetChart: some View {
-            Chart {
-                ForEach(Array(state.items.enumerated()), id: \.element.id) { index, item in
-                    let rawValue = state.rateValues[item.lowIndex]
-                    let displayValue = state.units == .mgdL ? rawValue : rawValue.asMmolL
-
-                    let startDate = Calendar.current
-                        .startOfDay(for: now)
-                        .addingTimeInterval(state.timeValues[item.timeIndex])
-
-                    var offset: TimeInterval {
-                        if state.items.count > index + 1 {
-                            return state.timeValues[state.items[index + 1].timeIndex]
-                        } else {
-                            return state.timeValues.last! + 30 * 60
-                        }
-                    }
-
-                    let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
-
-                    LineMark(x: .value("End Date", startDate), y: .value("Ratio", displayValue))
-                        .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green)
-
-                    LineMark(x: .value("Start Date", endDate), y: .value("Ratio", displayValue))
-                        .lineStyle(.init(lineWidth: 2.5)).foregroundStyle(Color.green)
-                }
-            }
+            TherapyProfileChart(
+                entries: state.items.map {
+                    let value = state.rateValues[$0.lowIndex]
+                    return TherapyProfileChart.Entry(
+                        start: state.timeValues[$0.timeIndex],
+                        value: state.units == .mgdL ? value : value.asMmolL
+                    )
+                },
+                color: .green,
+                fillsArea: false,
+                lineWidth: 2.5,
+                yDomain: (state.units == .mgdL ? Decimal(72) : Decimal(72).asMmolL) ...
+                    (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL),
+                accessibilityLabel: Text("Glucose target profile chart, 24 hours")
+            )
             .id(refreshUI) // Force chart update
-            .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
-                    AxisValueLabel(format: .dateTime.hour())
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }
-            .chartXScale(
-                domain: Calendar.current.startOfDay(for: now) ... Calendar.current.startOfDay(for: now)
-                    .addingTimeInterval(60 * 60 * 24)
-            )
-            .chartYAxis {
-                AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                    AxisValueLabel()
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }
-            .chartYScale(
-                domain: (state.units == .mgdL ? Decimal(72) : Decimal(72).asMmolL) ...
-                    (state.units == .mgdL ? Decimal(180) : Decimal(180).asMmolL)
-            )
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("Glucose target profile chart, 24 hours"))
         }
     }
 }

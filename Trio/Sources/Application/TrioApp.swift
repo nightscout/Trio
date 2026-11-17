@@ -35,7 +35,7 @@ extension Notification.Name {
     let initState = InitState()
 
     @State private var appState = AppState()
-    @StateObject private var developmentBranchAlerter = DevelopmentBranchAlerter.shared
+    @State private var developmentBranchAlerter = DevelopmentBranchAlerter.shared
     @State private var showLoadingView = true
     @State private var showLoadingError = false
     @State private var showOnboardingCompletedSplash = false
