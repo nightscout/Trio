@@ -1,4 +1,5 @@
 import Foundation
+import LoopKit
 
 /// The therapy editors' value ranges, glucose in mg/dL.
 enum TherapyProfileLimits {
@@ -34,6 +35,14 @@ struct TherapyBasalLimits: Equatable, Sendable {
     static let fallbackRates: [Decimal] = stride(from: 5.0, to: 1001.0, by: 5.0).map { ($0.decimal ?? .zero) / 100 }
 
     static let editorLimits = TherapyBasalLimits(supportedRates: fallbackRates, maxBasal: fallbackRates.last ?? 0)
+}
+
+extension TherapyBasalLimits {
+    /// The pump's nonzero rates, or the basal editor's rates without a pump.
+    init(pumpManager: PumpManager?, maxBasal: Decimal) {
+        let rates = pumpManager?.supportedBasalRates.filter { $0 > 0 }.map { Decimal($0).rounded(scale: 3) }
+        self.init(supportedRates: rates ?? Self.fallbackRates, maxBasal: maxBasal)
+    }
 }
 
 enum TherapyProfileValidator {

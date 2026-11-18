@@ -10736,6 +10736,15 @@
         }
       }
     },
+    "%@: each entry needs a start time and a value." : {
+
+    },
+    "Invalid value %@." : {
+
+    },
+    "Unknown glucose units %@." : {
+
+    },
     "%@ is used by 1 scheduled switch, which will be removed." : {
 
     },

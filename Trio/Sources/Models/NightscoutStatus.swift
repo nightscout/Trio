@@ -80,9 +80,55 @@ struct NightscoutProfileStore: JSON {
     let expirationDate: Date?
     /// Remote command types this build accepts; followers hide unsupported actions.
     let remoteCommands: [String]?
+    var profileEditLimits: NightscoutProfileEditLimits? = nil
     /// Default is named by its store key.
     var scheduledSwitches: [ScheduledProfileSwitch]? = nil
     var scheduledSwitchesFingerprint: String? = nil
+}
+
+/// The values a remote profile editor may offer, glucose in `units`.
+struct NightscoutProfileEditLimits: JSON, Equatable {
+    struct Limit: JSON, Equatable {
+        let min: Decimal
+        let max: Decimal
+        let step: Decimal
+    }
+
+    let units: String
+    let maxBasal: Decimal
+    let basalRates: [Decimal]
+    let basalMinimum: Decimal?
+    let carbRatio: Limit
+    let sensitivity: Limit
+    let target: Limit
+    let maxSegments: Int
+    let segmentSeconds: Int
+
+    init(units: GlucoseUnits, basalLimits: TherapyBasalLimits) {
+        /// mmol/L bounds are the outermost 0.1 steps that convert back to whole mg/dL within the range.
+        func glucoseLimit(_ range: TherapyProfileLimits.Range) -> Limit {
+            guard units == .mmolL else { return Limit(min: range.min, max: range.max, step: range.step) }
+            var min = range.min.asMmolL
+            while min.asMgdL < range.min { min += 0.1 }
+            var max = range.max.asMmolL
+            while max.asMgdL > range.max { max -= 0.1 }
+            return Limit(min: min, max: max, step: 0.1)
+        }
+        let rates = basalLimits.allowedRates.map { $0.rounded(toPlaces: 3) }
+        self.units = units == .mmolL ? "mmol/L" : "mg/dL"
+        maxBasal = basalLimits.maxBasal
+        basalRates = rates
+        basalMinimum = rates.first
+        carbRatio = Limit(
+            min: TherapyProfileLimits.carbRatio.min,
+            max: TherapyProfileLimits.carbRatio.max,
+            step: TherapyProfileLimits.carbRatio.step
+        )
+        sensitivity = glucoseLimit(TherapyProfileLimits.sensitivity)
+        target = glucoseLimit(TherapyProfileLimits.target)
+        maxSegments = TherapyProfileLimits.maxSegments
+        segmentSeconds = TherapyProfileLimits.segmentSeconds
+    }
 }
 
 extension ScheduledNightscoutProfile {

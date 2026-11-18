@@ -88,6 +88,8 @@ protocol TherapyProfileManager: AnyObject {
     func profiles() -> [TrioTherapyProfile]
     /// `default` also names the Default profile.
     func profile(named name: String) -> TrioTherapyProfile?
+    /// Loads the stored profiles the getters read, when they are not loaded yet.
+    func loadProfiles() async
 
     /// Validates, writes the basal schedule to the pump, then makes the profile's values the live settings.
     @discardableResult func activate(
@@ -213,13 +215,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     private var basalLimits: TherapyBasalLimits {
         if let basalLimitsOverride { return basalLimitsOverride() }
-        let rates = deviceDataManager.pumpManager?.supportedBasalRates
-            .filter { $0 > 0 }
-            .map { Decimal($0).rounded(scale: 3) }
-        return TherapyBasalLimits(
-            supportedRates: rates ?? TherapyBasalLimits.fallbackRates,
-            maxBasal: settingsManager.pumpSettings.maxBasal
-        )
+        return TherapyBasalLimits(pumpManager: deviceDataManager.pumpManager, maxBasal: settingsManager.pumpSettings.maxBasal)
     }
 
     var activeProfileName: String {
@@ -236,6 +232,14 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     func profile(named name: String) -> TrioTherapyProfile? {
         loadedState?.profile(named: name)
+    }
+
+    func loadProfiles() async {
+        do {
+            _ = try await loadStoredProfiles()
+        } catch {
+            warning(.settings, "Loading the therapy profiles failed", error: error)
+        }
     }
 
     // MARK: State
