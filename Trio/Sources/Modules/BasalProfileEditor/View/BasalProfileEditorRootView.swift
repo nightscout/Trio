@@ -1,4 +1,3 @@
-import Charts
 import SwiftUI
 import Swinject
 
@@ -7,7 +6,6 @@ extension BasalProfileEditor {
         let resolver: Resolver
         @State var state = StateModel()
         @State private var refreshUI = UUID()
-        @State private var now = Date()
         @Namespace private var bottomID
 
         @Environment(\.colorScheme) var colorScheme
@@ -21,66 +19,14 @@ extension BasalProfileEditor {
 
         // Chart for visualizing basal profile
         private var basalProfileChart: some View {
-            Chart {
-                ForEach(Array(state.items.enumerated()), id: \.element.id) { index, item in
-                    let displayValue = state.rateValues[item.rateIndex]
-
-                    let startDate = Calendar.current
-                        .startOfDay(for: now)
-                        .addingTimeInterval(state.timeValues[item.timeIndex])
-
-                    var offset: TimeInterval {
-                        if state.items.count > index + 1 {
-                            return state.timeValues[state.items[index + 1].timeIndex]
-                        } else {
-                            return state.timeValues.last! + 30 * 60
-                        }
-                    }
-
-                    let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
-
-                    RectangleMark(
-                        xStart: .value("start", startDate),
-                        xEnd: .value("end", endDate),
-                        yStart: .value("rate-start", displayValue),
-                        yEnd: .value("rate-end", 0)
-                    ).foregroundStyle(
-                        .linearGradient(
-                            colors: [
-                                Color.purple.opacity(0.6),
-                                Color.purple.opacity(0.1)
-                            ],
-                            startPoint: .bottom,
-                            endPoint: .top
-                        )
-                    ).alignsMarkStylesWithPlotArea()
-
-                    LineMark(x: .value("End Date", startDate), y: .value("Rate", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.purple)
-
-                    LineMark(x: .value("Start Date", endDate), y: .value("Rate", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.purple)
-                }
-            }
-            .id(refreshUI) // Force chart update
-            .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
-                    AxisValueLabel(format: .dateTime.hour())
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }
-            .chartXScale(
-                domain: Calendar.current.startOfDay(for: now) ... Calendar.current.startOfDay(for: now)
-                    .addingTimeInterval(60 * 60 * 24)
+            TherapyProfileChart(
+                entries: state.items.map {
+                    TherapyProfileChart.Entry(start: state.timeValues[$0.timeIndex], value: state.rateValues[$0.rateIndex])
+                },
+                color: .purple,
+                accessibilityLabel: Text("Basal rate profile chart, 24 hours")
             )
-            .chartYAxis {
-                AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                    AxisValueLabel()
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("Basal rate profile chart, 24 hours"))
+            .id(refreshUI) // Force chart update
         }
 
         var saveButton: some View {
