@@ -358,13 +358,10 @@ extension Settings {
                                 Button {
                                     askDocsAssistant()
                                 } label: {
-                                    HStack(alignment: .top, spacing: 12) {
-                                        Image(systemName: "sparkles")
-                                            .foregroundColor(.accentColor)
-                                            .padding(.top, 2)
-                                            .accessibilityHidden(true)
+                                    HStack(alignment: .center, spacing: 12) {
+                                        TrioneerMascot(size: 40)
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Ask Trio Docs")
+                                            Text("Ask Trioneer!")
                                                 .bold()
                                                 .foregroundColor(.primary)
                                             Text(

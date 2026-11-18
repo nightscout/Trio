@@ -6,6 +6,82 @@ struct DocsAssistantQuery: Identifiable, Hashable {
     let question: String
 }
 
+/// "Trioneer", the little robot that fronts the docs assistant.
+///
+/// Drawn from plain shapes because SF Symbols has no robot glyph. The three lights in its mouth stand for Trio.
+struct TrioneerMascot: View {
+    var size: CGFloat = 40
+
+    private var gradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(hue: 0.52, saturation: 0.75, brightness: 0.95),
+                Color(hue: 0.62, saturation: 0.75, brightness: 0.95),
+                Color(hue: 0.75, saturation: 0.65, brightness: 0.90)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    var body: some View {
+        ZStack {
+            // Antenna
+            Capsule()
+                .fill(gradient)
+                .frame(width: size * 0.06, height: size * 0.2)
+                .offset(y: -size * 0.34)
+            Circle()
+                .fill(Color.orange)
+                .frame(width: size * 0.16, height: size * 0.16)
+                .offset(y: -size * 0.42)
+
+            // Ears
+            HStack(spacing: size * 0.8) {
+                Capsule().fill(gradient).frame(width: size * 0.1, height: size * 0.26)
+                Capsule().fill(gradient).frame(width: size * 0.1, height: size * 0.26)
+            }
+            .offset(y: size * 0.1)
+
+            // Head
+            RoundedRectangle(cornerRadius: size * 0.22, style: .continuous)
+                .fill(gradient)
+                .frame(width: size * 0.8, height: size * 0.62)
+                .offset(y: size * 0.1)
+
+            // Eyes
+            HStack(spacing: size * 0.16) {
+                eye
+                eye
+            }
+            .offset(y: size * 0.02)
+
+            // Mouth: three lights, one per "Trio"
+            HStack(spacing: size * 0.05) {
+                ForEach(0 ..< 3, id: \.self) { _ in
+                    Circle()
+                        .fill(Color.white.opacity(0.9))
+                        .frame(width: size * 0.07, height: size * 0.07)
+                }
+            }
+            .offset(y: size * 0.26)
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+
+    private var eye: some View {
+        Circle()
+            .fill(Color.white)
+            .frame(width: size * 0.2, height: size * 0.2)
+            .overlay(
+                Circle()
+                    .fill(Color.black.opacity(0.75))
+                    .frame(width: size * 0.09, height: size * 0.09)
+            )
+    }
+}
+
 /// Answers free-text questions about Trio on this device, based on the bundled Trio documentation.
 ///
 /// Presented as a sheet from the settings search. Every question is answered on its own; there is no chat history.
