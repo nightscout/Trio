@@ -68,13 +68,17 @@ extension BaseSmartwatchHost {
         // small bolus for more carbs was refused after almost every SMB. A window
         // starting now leaves that check nothing to count.
         //
-        // What stands in for it no longer runs here but in the watch plugin, with
-        // the plugin's own checks and limits: the bolus
-        // was confirmed on the watch moments ago, with recent glucose, at most
-        // Trio's recommendation read for it (which counts insulin given since the
-        // determination, `smartwatchManager(_:recommendBolusForCarbs:)`), and at
-        // most one every few minutes. Trio relies on the plugin for that freshness and pacing; here it
-        // keeps Max Bolus, Max IOB, one bolus at a time and a truthful outcome.
+        // What stands in for it no longer runs here but in each watch plugin, with
+        // its own checks and limits. Luped: the bolus was confirmed on the watch
+        // moments ago, with recent glucose, at most Trio's recommendation read for it
+        // (`smartwatchManager(_:recommendBolusForCarbs:)`, which counts insulin given
+        // since the determination) unless forced, at most one every 5 minutes and a
+        // daily total. Garmin: a command at most 2 minutes old, a glucose reading from
+        // the last 15 minutes and at most one watch bolus every 6 minutes, with no cap
+        // at the recommendation (its watch apps aren't shown it); a phone bolus just
+        // before is stopped only by Max Bolus and Max IOB. Trio relies on the plugin
+        // for that freshness and pacing; here it keeps Max Bolus, Max IOB, one bolus
+        // at a time and a truthful outcome.
         do {
             if case let .rejected(reason) = try await bolusSafetyValidator
                 .validate(bolusAmount: Decimal(rounded), lookbackStart: Date())
