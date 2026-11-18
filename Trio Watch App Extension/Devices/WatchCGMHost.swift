@@ -196,7 +196,7 @@ extension WatchCGMHost: CGMManagerDelegate {
                 let readings = Self.readings(from: samples)
                 guard !readings.isEmpty else { return }
                 WatchLogger.shared.info(.data, "Direct reading: \(readings.count) sample(s)")
-                noteSensorProblem(cgmManager?.watchHasSensorProblem ?? false)
+                updateStatus()
                 WatchState.shared.applyOwnReadings(readings)
                 WatchAlarms.shared.check(own: readings)
                 scheduleAcquisitionBackstop()
@@ -204,6 +204,8 @@ extension WatchCGMHost: CGMManagerDelegate {
                 noteSensorProblem(true)
             case let .error(error):
                 WatchLogger.shared.warning(.data, "CGM reading failed", error: error)
+                // a reading the sensor withholds arrives as an error
+                updateStatus()
             case .noData:
                 break
             }

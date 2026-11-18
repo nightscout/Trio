@@ -53,8 +53,13 @@ extension G7CGMManager: WatchReadableCGM {
         case .warmup: return String(localized: "Sensor warmup")
         case .failed: return String(localized: "Sensor failed")
         case .expired: return String(localized: "Sensor expired")
-        default: return nil
+        default: return hasTemporarySensorIssue ? String(localized: "Sensor issue") : nil
         }
+    }
+
+    /// The sensor's newest reading is one it withholds (the G7 app's "Sensor issue"); cleared by its next good one.
+    private var hasTemporarySensorIssue: Bool {
+        latestReading?.algorithmState.hasTemporaryError == true
     }
 
     var watchSensorNote: String? {
@@ -83,7 +88,7 @@ extension G7CGMManager: WatchReadableCGM {
              .failed,
              .gracePeriod,
              .warmup: return true
-        default: return false
+        default: return hasTemporarySensorIssue
         }
     }
 }
