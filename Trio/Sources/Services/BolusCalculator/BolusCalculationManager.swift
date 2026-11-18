@@ -19,6 +19,7 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var fileStorage: FileStorage!
+    @Injected() private var therapyProfileStorage: TherapyProfileStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
 
     init(resolver: Resolver) {
@@ -143,37 +144,25 @@ final class BaseBolusCalculationManager: BolusCalculationManager, Injectable {
     /// Retrieves the basal profile from storage
     /// - Returns: Array of BasalProfileEntry objects
     private func getBasalProfile() async -> [BasalProfileEntry] {
-        await fileStorage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-            ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
-            ?? []
+        therapyProfileStorage.liveSettings.basalProfileEntries
     }
 
     /// Retrieves carb ratios from storage
     /// - Returns: CarbRatios object containing carb ratio schedule
     private func getCarbRatios() async -> CarbRatios {
-        await fileStorage.retrieveAsync(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
-            ?? CarbRatios(from: OpenAPS.defaults(for: OpenAPS.Settings.carbRatios))
-            ?? CarbRatios(units: .grams, schedule: [])
+        therapyProfileStorage.liveSettings.carbRatios
     }
 
     /// Retrieves blood glucose targets from storage
     /// - Returns: BGTargets object containing target schedule
     private func getBGTargets() async -> BGTargets {
-        await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        therapyProfileStorage.liveSettings.bgTargets
     }
 
     /// Retrieves insulin sensitivity factors from storage
     /// - Returns: InsulinSensitivities object containing sensitivity schedule
     private func getISFValues() async -> InsulinSensitivities {
-        await fileStorage.retrieveAsync(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self)
-            ?? InsulinSensitivities(from: OpenAPS.defaults(for: OpenAPS.Settings.insulinSensitivities))
-            ?? InsulinSensitivities(
-                units: .mgdL,
-                userPreferredUnits: .mgdL,
-                sensitivities: []
-            )
+        therapyProfileStorage.liveSettings.insulinSensitivities
     }
 
     /// Retrieves Preferences from storage

@@ -29,6 +29,7 @@ final class BaseTidepoolManager: TidepoolManager, Injectable {
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var storage: FileStorage!
+    @Injected() private var therapyProfileStorage: TherapyProfileStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
@@ -720,9 +721,7 @@ extension BaseTidepoolManager {
         let now = Date()
         let calendar = Calendar.current
 
-        let basalEntries = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-            ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
-            ?? []
+        let basalEntries = therapyProfileStorage.liveSettings.basalProfileEntries
 
         var currentRate: BasalProfileEntry = basalEntries[0]
 
@@ -930,18 +929,14 @@ extension BaseTidepoolManager {
     /// Creates a StoredSettings object from current Trio settings
     /// - Parameter cgmDevice: Optional CGM device info (pass from FetchGlucoseManager to avoid circular dependency)
     func createStoredSettings(cgmDevice: HKDevice? = nil) -> StoredSettings? {
-        guard let basalProfile: [BasalProfileEntry] = storage
-            .retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self),
-            let carbRatios: CarbRatios = storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self),
-            let insulinSensitivities: InsulinSensitivities = storage.retrieve(
-                OpenAPS.Settings.insulinSensitivities,
-                as: InsulinSensitivities.self
-            ),
-            let bgTargets: BGTargets = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-        else {
+        guard let therapySettings = therapyProfileStorage.storedLiveSettings else {
             warning(.tidepool, "Tidepool settings upload skipped: therapy settings could not be loaded")
             return nil
         }
+        let basalProfile = therapySettings.basalProfileEntries
+        let carbRatios = therapySettings.carbRatios
+        let insulinSensitivities = therapySettings.insulinSensitivities
+        let bgTargets = therapySettings.bgTargets
 
         let pumpSettings = settingsManager.pumpSettings
         let preferences: Preferences? = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self)

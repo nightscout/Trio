@@ -25,6 +25,8 @@
 		1241A3B92274E49DA13ED16B /* TherapyProfilesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8455FADF6E568CC8EB60179D /* TherapyProfilesProvider.swift */; };
 		2CFCD32805483B56CAC24A22 /* TherapyProfilesDataFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA1E47EECE94B4BB64890B9 /* TherapyProfilesDataFlow.swift */; };
 		D6F50C3876B5674958527B59 /* TherapyProfileValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A712CE0C6D40CF4D137FBA7 /* TherapyProfileValidator.swift */; };
+		7C1E5A0B2F3D4E6A8B9C0D11 /* LegacyTherapySettingsImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1E5A0B2F3D4E6A8B9C0D12 /* LegacyTherapySettingsImporter.swift */; };
+		7C1E5A0B2F3D4E6A8B9C0D13 /* LegacyTherapySettingsImporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1E5A0B2F3D4E6A8B9C0D14 /* LegacyTherapySettingsImporterTests.swift */; };
 		4EB32F0F40BA94F5C4F0ACAB /* TherapyProfileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9AE91E1B8BC5FDD7E747CB3 /* TherapyProfileManager.swift */; };
 		D7603A9F59EE737CBBC3F435 /* TherapyProfileStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E993A3FD2BAE8C6E6DF32B8E /* TherapyProfileStorageTests.swift */; };
 		5DE7733DEEBD70FA4D751AED /* TherapyProfileModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA34F9AF0721CBCB42544FA6 /* TherapyProfileModelTests.swift */; };
@@ -1313,6 +1315,8 @@
 		8455FADF6E568CC8EB60179D /* TherapyProfilesProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapyProfilesProvider.swift; sourceTree = "<group>"; };
 		4AA1E47EECE94B4BB64890B9 /* TherapyProfilesDataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapyProfilesDataFlow.swift; sourceTree = "<group>"; };
 		5A712CE0C6D40CF4D137FBA7 /* TherapyProfileValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapyProfileValidator.swift; sourceTree = "<group>"; };
+		7C1E5A0B2F3D4E6A8B9C0D12 /* LegacyTherapySettingsImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyTherapySettingsImporter.swift; sourceTree = "<group>"; };
+		7C1E5A0B2F3D4E6A8B9C0D14 /* LegacyTherapySettingsImporterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyTherapySettingsImporterTests.swift; sourceTree = "<group>"; };
 		F9AE91E1B8BC5FDD7E747CB3 /* TherapyProfileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapyProfileManager.swift; sourceTree = "<group>"; };
 		E993A3FD2BAE8C6E6DF32B8E /* TherapyProfileStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapyProfileStorageTests.swift; sourceTree = "<group>"; };
 		FA34F9AF0721CBCB42544FA6 /* TherapyProfileModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapyProfileModelTests.swift; sourceTree = "<group>"; };
@@ -2571,6 +2575,7 @@
 			isa = PBXGroup;
 			children = (
 				5A712CE0C6D40CF4D137FBA7 /* TherapyProfileValidator.swift */,
+				7C1E5A0B2F3D4E6A8B9C0D12 /* LegacyTherapySettingsImporter.swift */,
 				F9AE91E1B8BC5FDD7E747CB3 /* TherapyProfileManager.swift */,
 			);
 			path = TherapyProfiles;
@@ -2586,6 +2591,7 @@
 				65D1A14225A834783985279A /* TherapyProfileManagerTests.swift */,
 				D685926BD90E8FCA8C120DE5 /* TherapyProfileScheduledSwitchTests.swift */,
 				C4AFBBC37AE1BD25CCD7A2B1 /* TherapyProfileValidatorTests.swift */,
+				7C1E5A0B2F3D4E6A8B9C0D14 /* LegacyTherapySettingsImporterTests.swift */,
 				31EBEDF70A7D773310122A8B /* TherapyProfileTestSupport.swift */,
 				FA34F9AF0721CBCB42544FA6 /* TherapyProfileModelTests.swift */,
 				4C050E01F84907A0F7C7D8C0 /* ScheduledProfileSwitchTests.swift */,
@@ -5928,6 +5934,7 @@
 				1241A3B92274E49DA13ED16B /* TherapyProfilesProvider.swift in Sources */,
 				2CFCD32805483B56CAC24A22 /* TherapyProfilesDataFlow.swift in Sources */,
 				D6F50C3876B5674958527B59 /* TherapyProfileValidator.swift in Sources */,
+				7C1E5A0B2F3D4E6A8B9C0D11 /* LegacyTherapySettingsImporter.swift in Sources */,
 				4EB32F0F40BA94F5C4F0ACAB /* TherapyProfileManager.swift in Sources */,
 				0F050878B60A48744261343B /* TherapyProfileStorage.swift in Sources */,
 				97DFEE7C7C527FB6A91C78D8 /* TherapyProfile.swift in Sources */,
@@ -6728,6 +6735,7 @@
 				6BF1EE1E9121CCA6E1E091BC /* TherapyProfileManagerTests.swift in Sources */,
 				8F569A8567A106FF51ED2AFE /* TherapyProfileScheduledSwitchTests.swift in Sources */,
 				3B0A39F5919F61CD561A3C08 /* TherapyProfileValidatorTests.swift in Sources */,
+				7C1E5A0B2F3D4E6A8B9C0D13 /* LegacyTherapySettingsImporterTests.swift in Sources */,
 				7F48062E52A281BECC73C94D /* TherapyProfileTestSupport.swift in Sources */,
 				D7603A9F59EE737CBBC3F435 /* TherapyProfileStorageTests.swift in Sources */,
 				5DE7733DEEBD70FA4D751AED /* TherapyProfileModelTests.swift in Sources */,

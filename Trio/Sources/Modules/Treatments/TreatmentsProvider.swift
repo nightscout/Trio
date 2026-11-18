@@ -7,31 +7,19 @@ extension Treatments {
         }
 
         func getBasalProfile() async -> [BasalProfileEntry] {
-            await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-                ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
-                ?? []
+            therapyProfileStorage.liveSettings.basalProfileEntries
         }
 
         func getCarbRatios() async -> CarbRatios {
-            await storage.retrieveAsync(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
-                ?? CarbRatios(from: OpenAPS.defaults(for: OpenAPS.Settings.carbRatios))
-                ?? CarbRatios(units: .grams, schedule: [])
+            therapyProfileStorage.liveSettings.carbRatios
         }
 
         func getBGTargets() async -> BGTargets {
-            await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-                ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-                ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+            therapyProfileStorage.liveSettings.bgTargets
         }
 
         func getISFValues() async -> InsulinSensitivities {
-            await storage.retrieveAsync(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self)
-                ?? InsulinSensitivities(from: OpenAPS.defaults(for: OpenAPS.Settings.insulinSensitivities))
-                ?? InsulinSensitivities(
-                    units: .mgdL,
-                    userPreferredUnits: .mgdL,
-                    sensitivities: []
-                )
+            therapyProfileStorage.liveSettings.insulinSensitivities
         }
 
         func getPreferences() async -> Preferences {

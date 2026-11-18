@@ -15,6 +15,7 @@ import Testing
     @Injected() var calculator: BolusCalculationManager!
     @Injected() var settingsManager: SettingsManager!
     @Injected() var fileStorage: FileStorage!
+    @Injected() var therapyProfileStorage: TherapyProfileStorage!
     @Injected() var apsManager: APSManager!
     let resolver = TrioApp.resolver
 
@@ -534,13 +535,7 @@ import Testing
 
     @Test("Verify getCurrentSettingValue returns correct values based on time") func testGetCurrentSettingValue() async throws {
         // STEP 1: Backup current settings
-        let originalBasalProfile = await fileStorage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-        let originalCarbRatios = await fileStorage.retrieveAsync(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
-        let originalBGTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-        let originalISFValues = await fileStorage.retrieveAsync(
-            OpenAPS.Settings.insulinSensitivities,
-            as: InsulinSensitivities.self
-        )
+        let originalProfiles = try await therapyProfileStorage.fetchProfiles()
 
         // STEP 2: Setup test data with known values
         // Note: Entries must be sorted by time for the algorithm to work correctly
@@ -577,11 +572,18 @@ import Testing
             ]
         )
 
-        // STEP 3: Store test data
-        fileStorage.save(basalProfile, as: OpenAPS.Settings.basalProfile)
-        fileStorage.save(carbRatios, as: OpenAPS.Settings.carbRatios)
-        fileStorage.save(bgTargets, as: OpenAPS.Settings.bgTargets)
-        fileStorage.save(isfValues, as: OpenAPS.Settings.insulinSensitivities)
+        // STEP 3: Store test data as the active therapy profile's values
+        var testProfiles = originalProfiles
+        let activeName = originalProfiles.activeProfileName ?? TrioTherapyProfile.defaultName
+        testProfiles.activeProfileName = activeName
+        testProfiles.activeProfileValues = TrioTherapyProfile(
+            name: activeName,
+            basalProfile: basalProfile,
+            carbRatios: carbRatios,
+            insulinSensitivities: isfValues,
+            bgTargets: bgTargets
+        )
+        try await therapyProfileStorage.storeProfiles(testProfiles)
 
         // STEP 4: Define test cases with specific times and expected values
         // Format: (hour, minute, [setting type: expected value])
@@ -649,18 +651,7 @@ import Testing
         }
 
         // STEP 6: Cleanup - Restore original settings
-        if let originalBasalProfile = originalBasalProfile {
-            fileStorage.save(originalBasalProfile, as: OpenAPS.Settings.basalProfile)
-        }
-        if let originalCarbRatios = originalCarbRatios {
-            fileStorage.save(originalCarbRatios, as: OpenAPS.Settings.carbRatios)
-        }
-        if let originalBGTargets = originalBGTargets {
-            fileStorage.save(originalBGTargets, as: OpenAPS.Settings.bgTargets)
-        }
-        if let originalISFValues = originalISFValues {
-            fileStorage.save(originalISFValues, as: OpenAPS.Settings.insulinSensitivities)
-        }
+        try await therapyProfileStorage.storeProfiles(originalProfiles)
     }
 
     @Test(
@@ -902,36 +893,24 @@ extension BolusCalculatorTests {
     /// Retrieves the basal profile from storage
     /// - Returns: Array of BasalProfileEntry objects
     private func getBasalProfile() async -> [BasalProfileEntry] {
-        await fileStorage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-            ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
-            ?? []
+        therapyProfileStorage.liveSettings.basalProfileEntries
     }
 
     /// Retrieves carb ratios from storage
     /// - Returns: CarbRatios object containing carb ratio schedule
     private func getCarbRatios() async -> CarbRatios {
-        await fileStorage.retrieveAsync(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
-            ?? CarbRatios(from: OpenAPS.defaults(for: OpenAPS.Settings.carbRatios))
-            ?? CarbRatios(units: .grams, schedule: [])
+        therapyProfileStorage.liveSettings.carbRatios
     }
 
     /// Retrieves blood glucose targets from storage
     /// - Returns: BGTargets object containing target schedule
     private func getBGTargets() async -> BGTargets {
-        await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        therapyProfileStorage.liveSettings.bgTargets
     }
 
     /// Retrieves insulin sensitivity factors from storage
     /// - Returns: InsulinSensitivities object containing sensitivity schedule
     private func getISFValues() async -> InsulinSensitivities {
-        await fileStorage.retrieveAsync(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self)
-            ?? InsulinSensitivities(from: OpenAPS.defaults(for: OpenAPS.Settings.insulinSensitivities))
-            ?? InsulinSensitivities(
-                units: .mgdL,
-                userPreferredUnits: .mgdL,
-                sensitivities: []
-            )
+        therapyProfileStorage.liveSettings.insulinSensitivities
     }
 }

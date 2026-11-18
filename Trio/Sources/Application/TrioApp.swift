@@ -197,7 +197,6 @@ extension Notification.Name {
                 await Task { @MainActor in
                     // Only load services after successful Core Data initialization
                     loadServices()
-                    await resolver.resolve(TherapyProfileManager.self)?.completeInterruptedSwitch()
 
                     // Clear the persistentHistory and the NSManagedObjects that are older than 90 days every time the app starts
                     cleanupOldData()
@@ -266,8 +265,36 @@ extension Notification.Name {
             warning(.storage, "Importing legacy determinations failed", error: error)
         }
 
+        if let importError = await importLegacyTherapySettings() {
+            importErrors.append(importError)
+        }
+
         initState.migrationErrors = importErrors
         initState.migrationFailed = importErrors.isNotEmpty
+    }
+
+    /// Takes the therapy settings files of earlier versions over into Core Data and loads the stored profiles, before any
+    /// service reads them. When the files cannot be imported, the stored profiles are blocked, so that oref does not dose
+    /// with other values than the files hold. Returns the message for the user when the import failed.
+    @MainActor private func importLegacyTherapySettings() async -> String? {
+        guard let fileStorage = resolver.resolve(FileStorage.self),
+              let profileStorage = resolver.resolve(TherapyProfileStorage.self)
+        else { return nil }
+        do {
+            try await LegacyTherapySettingsImporter(fileStorage: fileStorage, profileStorage: profileStorage).importIfNeeded()
+        } catch {
+            profileStorage.blockProfiles(.legacyImportFailed(error.localizedDescription))
+            warning(.storage, "Importing legacy therapy settings failed", error: error)
+            return String(
+                localized: "Failed to import therapy settings. Trio cannot loop until they are imported. Restart Trio to try again."
+            )
+        }
+        do {
+            _ = try profileStorage.storedProfiles()
+        } catch {
+            warning(.storage, "Loading the therapy profiles failed", error: error)
+        }
+        return nil
     }
 
     /// Clears any legacy (Trio 0.2.x) delivered and pending notifications related to non-looping alerts.

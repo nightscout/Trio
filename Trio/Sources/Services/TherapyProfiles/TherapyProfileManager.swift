@@ -17,7 +17,6 @@ enum TherapyProfileError: Error, LocalizedError, Equatable {
     case pumpSuspended
     case pumpRestoreFailed(pumpProfile: String, liveProfile: String)
     case storageFailed
-    case liveSettingsNotStored
     case activeProfileChanged(expected: String, current: String)
     case scheduledSwitchesConflict
     case invalidScheduledSwitches(String)
@@ -55,10 +54,6 @@ enum TherapyProfileError: Error, LocalizedError, Equatable {
             )
         case .storageFailed:
             return String(localized: "The profiles could not be saved.")
-        case .liveSettingsNotStored:
-            return String(
-                localized: "Trio uses the new settings, but could not store them with the active profile. Save again to retry."
-            )
         case let .activeProfileChanged(expected, current) where expected == current:
             return String(
                 localized: "Profile \(current) was changed while you were editing, so your changes were not saved. Open this screen again to edit the current values."
@@ -79,8 +74,8 @@ protocol TherapyProfilesObserver {
     func therapyProfilesDidChange()
 }
 
-/// Named therapy profiles. The active profile's values are the live settings files oref reads; the others are stored in
-/// Core Data. Every change runs one at a time, in the order the calls arrive.
+/// Named therapy profiles, stored in Core Data. The active profile's values are the therapy settings oref and the app use.
+/// Every change runs one at a time, in the order the calls arrive.
 protocol TherapyProfileManager: AnyObject {
     var activeProfileName: String { get }
     func activeProfile() -> TrioTherapyProfile
@@ -91,14 +86,14 @@ protocol TherapyProfileManager: AnyObject {
     /// Loads the stored profiles the getters read, when they are not loaded yet.
     func loadProfiles() async
 
-    /// Validates, writes the basal schedule to the pump, then makes the profile's values the live settings.
+    /// Validates, writes the basal schedule to the pump, then makes the profile active.
     @discardableResult func activate(
         _ name: String,
         expectedFingerprint: String?,
         trigger: TherapyProfileSwitch.Trigger
     ) async throws -> TrioTherapyProfile
     /// Creates the profile when `originalName` is nil, otherwise updates or renames that profile. Saving the active
-    /// profile writes a changed basal schedule to the pump and changes the live settings.
+    /// profile writes a changed basal schedule to the pump and changes the therapy settings in use.
     @discardableResult func save(
         _ profile: TrioTherapyProfile,
         originalName: String?,
@@ -106,27 +101,26 @@ protocol TherapyProfileManager: AnyObject {
     ) async throws -> TrioTherapyProfile
     /// Also removes the scheduled switches to the profile and returns how many there were.
     @discardableResult func delete(_ name: String, expectedFingerprint: String?) async throws -> Int
-    /// Runs `write`, a therapy editor's save of the live settings, in turn with the other changes. Throws
-    /// `activeProfileChanged` without running `write` when another profile is active or the active profile's values no
-    /// longer match `expectedFingerprint`, and `pumpSuspended` when `write` sends the basal schedule to a suspended pump.
-    /// Throws `liveSettingsNotStored` when `write` succeeded but storing the active profile's values failed.
+    /// A therapy editor's save: stores what `update` makes of the active profile's values, in turn with the other changes.
+    /// With `writesBasalSchedule`, sends the basal schedule to the pump first. Throws `activeProfileChanged` without
+    /// changing anything when another profile is active or the active profile's values no longer match
+    /// `expectedFingerprint`, and `pumpSuspended` when the basal schedule would go to a suspended pump.
     @discardableResult func saveLiveSettings(
         expectedActiveName: String,
         expectedFingerprint: String,
         writesBasalSchedule: Bool,
-        write: @escaping @Sendable() async throws -> Void
+        update: @escaping @Sendable(TrioTherapyProfile) -> TrioTherapyProfile
     ) async throws -> TrioTherapyProfile
-    /// Replaces the stored profiles and scheduled switches and makes `activeProfileName` active. The live settings already
-    /// hold the active profile's values, and Default takes them too when `profiles` has none for it.
+    /// Onboarding's save: makes `settings` the active profile's values as they are, without sending the basal schedule to
+    /// the pump.
+    func storeLiveSettings(_ settings: TrioTherapyProfile) async throws
+    /// Replaces the stored profiles and scheduled switches and makes `activeProfileName` active. The therapy settings in
+    /// use become the active profile's values, and Default takes them too when `profiles` has none for it.
     func replaceProfiles(
         _ profiles: [TrioTherapyProfile],
         activeProfileName: String,
         scheduledSwitches: [ScheduledProfileSwitch]
     ) async throws
-    /// Runs at launch, before the profiles are read: loads the stored profiles, and makes the profile whose values the live
-    /// settings hold active, when the app stopped during a switch after writing the live settings and before storing the
-    /// profiles.
-    func completeInterruptedSwitch() async
 
     /// Ordered as a week from Monday.
     func scheduledSwitches() -> [ScheduledProfileSwitch]
@@ -149,20 +143,19 @@ extension TherapyProfileManager {
     @discardableResult func saveLiveSettings(
         expectedActiveName: String,
         expectedFingerprint: String,
-        write: @escaping @Sendable() async throws -> Void
+        update: @escaping @Sendable(TrioTherapyProfile) -> TrioTherapyProfile
     ) async throws -> TrioTherapyProfile {
         try await saveLiveSettings(
             expectedActiveName: expectedActiveName,
             expectedFingerprint: expectedFingerprint,
             writesBasalSchedule: false,
-            write: write
+            update: update
         )
     }
 }
 
 final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unchecked Sendable {
     @Injected() private var therapyProfileStorage: TherapyProfileStorage!
-    @Injected() private var fileStorage: FileStorage!
     @Injected() private var deviceDataManager: DeviceDataManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var broadcaster: Broadcaster!
@@ -181,10 +174,6 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     private let calendarOverride: Calendar?
     private let armedAlertLock = NSLock()
     private var armedAlert: ArmedScheduledSwitchAlert?
-    private let storedProfilesLock = NSLock()
-    /// The stored profiles as this manager last loaded or stored them. Every change of the stored profiles goes through this
-    /// manager, so the getters read these.
-    private var storedProfiles: StoredTherapyProfiles?
 
     /// Tests pass `syncBasalSchedule`, `basalLimits`, `pumpSuspended`, `bolusInProgress` and `recompute` in place of the
     /// pump and the determination.
@@ -218,25 +207,30 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         return TherapyBasalLimits(pumpManager: deviceDataManager.pumpManager, maxBasal: settingsManager.pumpSettings.maxBasal)
     }
 
+    /// The getters show Default with the bundled defaults while the stored profiles cannot be read; every change throws then.
+    private var readableState: State {
+        (try? loadState()) ?? state(from: .empty)
+    }
+
     var activeProfileName: String {
-        loadedState?.activeProfileName ?? TrioTherapyProfile.defaultName
+        readableState.activeProfileName
     }
 
     func activeProfile() -> TrioTherapyProfile {
-        loadedState?.activeProfile ?? liveProfile(named: TrioTherapyProfile.defaultName)
+        readableState.activeProfile ?? TrioTherapyProfile.bundledDefaults
     }
 
     func profiles() -> [TrioTherapyProfile] {
-        loadedState?.profiles ?? [liveProfile(named: TrioTherapyProfile.defaultName)]
+        readableState.profiles
     }
 
     func profile(named name: String) -> TrioTherapyProfile? {
-        loadedState?.profile(named: name)
+        readableState.profile(named: name)
     }
 
     func loadProfiles() async {
         do {
-            _ = try await loadStoredProfiles()
+            _ = try loadState()
         } catch {
             warning(.settings, "Loading the therapy profiles failed", error: error)
         }
@@ -246,7 +240,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     private struct State {
         var activeProfileName: String
-        /// The active profile carries the live settings.
+        /// Holds the active profile, whose values are the therapy settings in use.
         var profiles: [TrioTherapyProfile]
         var scheduledSwitches: [ScheduledProfileSwitch]
         var scheduledSwitchesSettledAt: Date?
@@ -271,57 +265,28 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         }
     }
 
-    /// When the live settings differ from the values stored with the active profile and equal another stored profile's,
-    /// a switch wrote the live settings and stopped before storing the profiles: that profile is active, and the stored
-    /// values belong to the previously active one.
+    /// Until therapy settings are first stored, Default is active with the bundled defaults.
     private func state(from stored: StoredTherapyProfiles) -> State {
-        var activeName = stored.activeProfileName ?? TrioTherapyProfile.defaultName
-        var inactiveProfiles = stored.inactiveProfiles
-        let live = liveProfile(named: activeName)
-        if let storedValues = stored.activeProfileValues, !storedValues.hasSameValues(as: live),
-           let index = inactiveProfiles.firstIndex(where: { $0.hasSameValues(as: live) })
-        {
-            let switchedTo = inactiveProfiles.remove(at: index)
-            inactiveProfiles.append(storedValues.renamed(activeName))
-            activeName = switchedTo.name
-        }
-        let profiles = (inactiveProfiles + [live.renamed(activeName)]).sorted { lhs, rhs in
+        let active = stored.liveSettings
+        let profiles = (stored.inactiveProfiles + [active]).sorted { lhs, rhs in
             if lhs.isDefault != rhs.isDefault { return lhs.isDefault }
             return lhs.name.localizedStandardCompare(rhs.name) == .orderedAscending
         }
         return State(
-            activeProfileName: activeName,
+            activeProfileName: active.name,
             profiles: profiles,
             scheduledSwitches: stored.scheduledSwitches,
             scheduledSwitchesSettledAt: stored.scheduledSwitchesSettledAt
         )
     }
 
-    private func loadState() async throws -> State {
-        state(from: try await loadStoredProfiles())
-    }
-
-    /// Nil until the stored profiles are first loaded.
-    private var loadedState: State? {
-        storedProfilesLock.withLock { storedProfiles }.map(state(from:))
-    }
-
-    /// Until the first load the getters return Default with the live settings; observers are told when a later load changes
-    /// that.
-    private func loadStoredProfiles(notifiesObservers: Bool = true) async throws -> StoredTherapyProfiles {
-        if let storedProfiles = storedProfilesLock.withLock({ storedProfiles }) {
-            return storedProfiles
+    /// The storage keeps the stored profiles in memory, so this reads Core Data only the first time.
+    private func loadState() throws -> State {
+        do {
+            return state(from: try therapyProfileStorage.storedProfiles())
+        } catch is TherapyProfileStorageError {
+            throw TherapyProfileError.storageFailed
         }
-        let fetched = try await therapyProfileStorage.fetchProfiles()
-        let loaded = storedProfilesLock.withLock { () -> Bool in
-            guard storedProfiles == nil else { return false }
-            storedProfiles = fetched
-            return true
-        }
-        if loaded, notifiesObservers, fetched != StoredTherapyProfiles(activeProfileName: nil, inactiveProfiles: []) {
-            broadcaster.notify(TherapyProfilesObserver.self, on: .main) { $0.therapyProfilesDidChange() }
-        }
-        return storedProfilesLock.withLock { storedProfiles } ?? fetched
     }
 
     private func store(
@@ -334,49 +299,14 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         } catch is TherapyProfileStorageError {
             throw TherapyProfileError.storageFailed
         }
-        storedProfilesLock.withLock { storedProfiles = profiles }
     }
 
     private func settleScheduledSwitches(at date: Date) async throws {
         try await therapyProfileStorage.settleScheduledSwitches(at: date)
-        storedProfilesLock.withLock { storedProfiles?.scheduledSwitchesSettledAt = date }
     }
 
-    private func liveProfile(named name: String) -> TrioTherapyProfile {
-        let basal = fileStorage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-            ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
-            ?? []
-        let carbRatios = fileStorage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
-            ?? CarbRatios(from: OpenAPS.defaults(for: OpenAPS.Settings.carbRatios))
-            ?? CarbRatios(units: .grams, schedule: [])
-        let sensitivities = fileStorage.retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self)
-            ?? InsulinSensitivities(from: OpenAPS.defaults(for: OpenAPS.Settings.insulinSensitivities))
-            ?? InsulinSensitivities(units: .mgdL, userPreferredUnits: .mgdL, sensitivities: [])
-        let targets = fileStorage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
-        return TrioTherapyProfile(
-            name: name,
-            basalProfile: basal,
-            carbRatios: carbRatios,
-            insulinSensitivities: sensitivities,
-            bgTargets: targets
-        )
-    }
-
-    /// Writes the live settings files and checks that they read back as written.
-    private func writeLive(_ profile: TrioTherapyProfile) throws {
-        fileStorage.save(profile.basalProfileEntries, as: OpenAPS.Settings.basalProfile)
-        fileStorage.save(profile.carbRatios, as: OpenAPS.Settings.carbRatios)
-        fileStorage.save(profile.insulinSensitivities, as: OpenAPS.Settings.insulinSensitivities)
-        fileStorage.save(profile.bgTargets, as: OpenAPS.Settings.bgTargets)
-        guard liveProfile(named: profile.name).hasSameValues(as: profile) else {
-            warning(.settings, "Live therapy settings did not read back as written")
-            throw TherapyProfileError.storageFailed
-        }
-    }
-
-    /// Writes the live settings, then the stored profiles. A failure restores the previous live settings and basal schedule.
+    /// Stores the profiles, whose active one has the values `live`, in one save. The pump already runs `live`'s basal
+    /// schedule; a failed save puts `previousLive`'s back on the pump.
     private func commit(
         _ state: State,
         live: TrioTherapyProfile,
@@ -385,10 +315,8 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         switchTrigger: TherapyProfileSwitch.Trigger? = nil
     ) async throws {
         do {
-            try writeLive(live)
             try await store(state.stored, switchDate: switchDate, switchTrigger: switchTrigger)
         } catch let commitError {
-            try? writeLive(previousLive)
             if live.basal != previousLive.basal {
                 do {
                     try await syncBasalSchedule(previousLive.basalProfileEntries)
@@ -411,58 +339,42 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         expectedActiveName: String,
         expectedFingerprint: String,
         writesBasalSchedule: Bool,
-        write: @escaping @Sendable() async throws -> Void
+        update: @escaping @Sendable(TrioTherapyProfile) -> TrioTherapyProfile
     ) async throws -> TrioTherapyProfile {
-        let (saved, stored) = try await serializer.run { () -> (TrioTherapyProfile, Bool) in
-            var state = try await self.loadState()
-            guard let active = state.activeProfile else { throw TherapyProfileError.storageFailed }
+        let saved = try await serializer.run { () -> TrioTherapyProfile in
+            var state = try self.loadState()
+            guard let active = state.activeProfile,
+                  let index = state.profiles.firstIndex(where: { $0.name == active.name })
+            else { throw TherapyProfileError.storageFailed }
             guard active.name == expectedActiveName, active.matchesFingerprint(expectedFingerprint) else {
                 warning(.settings, "Therapy settings edit refused, the active profile changed while editing")
                 throw TherapyProfileError.activeProfileChanged(expected: expectedActiveName, current: active.name)
             }
-            if writesBasalSchedule, self.isPumpSuspended {
-                warning(.settings, "Basal schedule not sent, the pump is suspended")
-                throw TherapyProfileError.pumpSuspended
+            let updated = update(active).renamed(active.name)
+            if writesBasalSchedule {
+                try await self.syncPump(updated)
             }
-            try await write()
-            let live = self.liveProfile(named: active.name)
-            if let index = state.profiles.firstIndex(where: { $0.name == active.name }) {
-                state.profiles[index] = live
-            }
-            do {
-                try await self.store(state.stored)
-                return (live, true)
-            } catch {
-                warning(.settings, "Storing the therapy profiles after a therapy settings edit failed", error: error)
-                return (live, false)
-            }
+            state.profiles[index] = updated
+            try await self.commit(state, live: updated, previousLive: active)
+            return updated
         }
-        await didChange(liveSettings: saved, fromEditor: true, profilesStored: stored)
-        guard stored else { throw TherapyProfileError.liveSettingsNotStored }
+        await didChange(liveSettings: saved, fromEditor: true)
         return saved
     }
 
-    func completeInterruptedSwitch() async {
-        do {
-            let switchedTo = try await serializer.run { () -> TrioTherapyProfile? in
-                let stored = try await self.loadStoredProfiles(notifiesObservers: false)
-                var state = self.state(from: stored)
-                let storedActiveName = stored.activeProfileName
-                guard let storedActiveName, storedActiveName != state.activeProfileName else { return nil }
-                let switchDate = self.now()
-                state.scheduledSwitchesSettledAt = switchDate
-                try await self.store(state.stored, switchDate: switchDate, switchTrigger: nil)
-                return state.activeProfile
+    func storeLiveSettings(_ settings: TrioTherapyProfile) async throws {
+        let saved = try await serializer.run { () -> TrioTherapyProfile in
+            var state = try self.loadState()
+            guard let index = state.profiles.firstIndex(where: { $0.name == state.activeProfileName }) else {
+                throw TherapyProfileError.storageFailed
             }
-            guard let switchedTo else { return }
-            warning(
-                .settings,
-                "A switch to therapy profile \(switchedTo.fingerprint(units: .mgdL)) was interrupted and is now completed"
-            )
-            await didChange(liveSettings: nil)
-        } catch {
-            warning(.settings, "Checking for an interrupted therapy profile switch failed", error: error)
+            let updated = settings.renamed(state.activeProfileName)
+            state.profiles[index] = updated
+            try await self.store(state.stored)
+            return updated
         }
+        info(.settings, "Therapy settings \(saved.fingerprint(units: .mgdL)) stored")
+        await notifyObservers(liveSettings: saved)
     }
 
     @discardableResult func activate(
@@ -471,7 +383,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         trigger: TherapyProfileSwitch.Trigger
     ) async throws -> TrioTherapyProfile {
         let (profile, switchDate) = try await serializer.run { () -> (TrioTherapyProfile, Date?) in
-            var state = try await self.loadState()
+            var state = try self.loadState()
             guard let target = state.profile(named: name) else { throw TherapyProfileError.notFound(name) }
             if let expectedFingerprint, !target.matchesFingerprint(expectedFingerprint) {
                 throw TherapyProfileError.conflict(target.name)
@@ -481,7 +393,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
                 throw TherapyProfileError.invalidValues(reason)
             }
 
-            let previousLive = self.liveProfile(named: state.activeProfileName)
+            guard let previousLive = state.activeProfile else { throw TherapyProfileError.storageFailed }
             try await self.syncPump(target)
             state.activeProfileName = target.name
             let switchDate = self.now()
@@ -508,7 +420,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         baseFingerprint: String?
     ) async throws -> TrioTherapyProfile {
         let (saved, liveChanged, changed) = try await serializer.run { () -> (TrioTherapyProfile, Bool, Bool) in
-            var state = try await self.loadState()
+            var state = try self.loadState()
 
             var original: TrioTherapyProfile?
             if let originalName {
@@ -574,7 +486,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     @discardableResult func delete(_ name: String, expectedFingerprint: String?) async throws -> Int {
         let (deleted, removedSwitches) = try await serializer.run { () -> (TrioTherapyProfile, Int) in
-            var state = try await self.loadState()
+            var state = try self.loadState()
             guard let target = state.profile(named: name) else { throw TherapyProfileError.notFound(name) }
             if target.isDefault { throw TherapyProfileError.cannotDeleteDefault }
             if target.name == state.activeProfileName { throw TherapyProfileError.cannotDeleteActive }
@@ -599,15 +511,16 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         scheduledSwitches: [ScheduledProfileSwitch]
     ) async throws {
         try await serializer.run {
+            guard let live = try self.loadState().activeProfile else { throw TherapyProfileError.storageFailed }
             var inactiveProfiles = profiles.filter { $0.name != activeProfileName }
             if activeProfileName != TrioTherapyProfile.defaultName, !inactiveProfiles.contains(where: \.isDefault) {
-                inactiveProfiles.append(self.liveProfile(named: TrioTherapyProfile.defaultName))
+                inactiveProfiles.append(live.renamed(TrioTherapyProfile.defaultName))
             }
             try await self.store(
                 StoredTherapyProfiles(
                     activeProfileName: activeProfileName,
                     inactiveProfiles: inactiveProfiles,
-                    activeProfileValues: self.liveProfile(named: activeProfileName),
+                    activeProfileValues: live.renamed(activeProfileName),
                     scheduledSwitches: scheduledSwitches,
                     scheduledSwitchesSettledAt: self.now()
                 )
@@ -625,7 +538,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     static let scheduledSwitchAlertDelay: TimeInterval = 30 * 60
 
     func scheduledSwitches() -> [ScheduledProfileSwitch] {
-        loadedState?.scheduledSwitches.sortedByWeek ?? []
+        readableState.scheduledSwitches.sortedByWeek
     }
 
     @discardableResult func saveScheduledSwitches(
@@ -633,7 +546,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         baseFingerprint: String?
     ) async throws -> [ScheduledProfileSwitch] {
         let saved = try await serializer.run { () -> [ScheduledProfileSwitch] in
-            var state = try await self.loadState()
+            var state = try self.loadState()
             if let baseFingerprint, !state.scheduledSwitches.matchesFingerprint(baseFingerprint) {
                 throw TherapyProfileError.scheduledSwitchesConflict
             }
@@ -692,7 +605,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     }
 
     private func runDueScheduledSwitchStep() async throws -> ScheduledSwitchRun {
-        var state = try await loadState()
+        var state = try loadState()
         let now = self.now()
         guard !state.scheduledSwitches.isEmpty else { return .idle }
         guard let settledAt = state.scheduledSwitchesSettledAt else {
@@ -722,7 +635,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
             return .failed(due, reason: reason)
         }
 
-        let previousLive = liveProfile(named: state.activeProfileName)
+        guard let previousLive = state.activeProfile else { throw TherapyProfileError.storageFailed }
         do {
             try await syncPump(target)
         } catch {
@@ -804,7 +717,7 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     /// alert that was delivered stays until its start is settled.
     private func armScheduledSwitchAlert(reason: String? = nil) async {
         let now = self.now()
-        let state = try? await loadState()
+        let state = try? loadState()
         if let state, let settledAt = state.scheduledSwitchesSettledAt,
            let unsettled = state.scheduledSwitches.nextOccurrence(after: settledAt, calendar: calendar),
            unsettled.date.addingTimeInterval(Self.scheduledSwitchAlertDelay) <= now
@@ -906,46 +819,18 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
 
     // MARK: Side effects
 
-    /// Notifies observers and uploads the profiles. When the live settings changed, also refreshes the determination and
-    /// uploads the settings to Tidepool. A therapy editor's save refreshes no determination and does not wait for the
-    /// uploads; when its values could not be stored, the profile document is uploaded from the live settings directly.
-    private func didChange(
-        liveSettings profile: TrioTherapyProfile?,
-        fromEditor: Bool = false,
-        profilesStored: Bool = true
-    ) async {
-        await MainActor.run {
-            if let profile {
-                let basal = profile.basalProfileEntries
-                let targets = profile.bgTargets
-                let carbRatios = profile.carbRatios
-                let sensitivities = profile.insulinSensitivities
-                broadcaster.notify(BasalProfileObserver.self, on: .main) { $0.basalProfileDidChange(basal) }
-                broadcaster.notify(BGTargetsObserver.self, on: .main) { $0.bgTargetsDidChange(targets) }
-                broadcaster.notify(CarbRatiosObserver.self, on: .main) { $0.carbRatiosDidChange(carbRatios) }
-                broadcaster.notify(InsulinSensitivitiesObserver.self, on: .main) {
-                    $0.insulinSensitivitiesDidChange(sensitivities)
-                }
-            }
-            broadcaster.notify(TherapyProfilesObserver.self, on: .main) { $0.therapyProfilesDidChange() }
-        }
+    /// Notifies observers and uploads the profiles. When the therapy settings in use changed, also refreshes the
+    /// determination and uploads the settings to Tidepool. A therapy editor's save refreshes no determination and does not
+    /// wait for the uploads.
+    private func didChange(liveSettings profile: TrioTherapyProfile?, fromEditor: Bool = false) async {
+        await notifyObservers(liveSettings: profile)
 
         if !fromEditor {
             await armScheduledSwitchAlert()
         }
 
         if fromEditor {
-            if profilesStored {
-                requestNightscoutUpload([.profiles], source: "TherapyProfileManager")
-            } else {
-                Task.detached(priority: .low) { [nightscoutManager] in
-                    do {
-                        try await nightscoutManager?.uploadProfiles()
-                    } catch {
-                        warning(.nightscout, "Uploading the profiles after a therapy settings edit failed", error: error)
-                    }
-                }
-            }
+            requestNightscoutUpload([.profiles], source: "TherapyProfileManager")
             Task.detached(priority: .low) { [tidepoolManager] in
                 await tidepoolManager?.uploadSettings()
             }
@@ -966,6 +851,24 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
         await nightscoutManager.uploadTherapyProfiles()
         if profile != nil {
             await tidepoolManager.uploadSettings()
+        }
+    }
+
+    private func notifyObservers(liveSettings profile: TrioTherapyProfile?) async {
+        await MainActor.run {
+            if let profile {
+                let basal = profile.basalProfileEntries
+                let targets = profile.bgTargets
+                let carbRatios = profile.carbRatios
+                let sensitivities = profile.insulinSensitivities
+                broadcaster.notify(BasalProfileObserver.self, on: .main) { $0.basalProfileDidChange(basal) }
+                broadcaster.notify(BGTargetsObserver.self, on: .main) { $0.bgTargetsDidChange(targets) }
+                broadcaster.notify(CarbRatiosObserver.self, on: .main) { $0.carbRatiosDidChange(carbRatios) }
+                broadcaster.notify(InsulinSensitivitiesObserver.self, on: .main) {
+                    $0.insulinSensitivitiesDidChange(sensitivities)
+                }
+            }
+            broadcaster.notify(TherapyProfilesObserver.self, on: .main) { $0.therapyProfilesDidChange() }
         }
     }
 }

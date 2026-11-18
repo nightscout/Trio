@@ -646,81 +646,88 @@ extension Onboarding {
 
         // MARK: - Save
 
-        /// Saves the carb ratio items to file storage and sets them as initial values.
-        func saveCarbRatios() {
+        /// The carb ratio items as a schedule; sets them as initial values.
+        private func carbRatiosToSave() -> CarbRatios {
             let schedule = carbRatioItems.map { item in
                 let time = timeFormatter.string(from: Date(timeIntervalSince1970: carbRatioTimeValues[item.timeIndex]))
                 let offset = Int(carbRatioTimeValues[item.timeIndex] / 60)
                 let value = carbRatioRateValues[item.rateIndex]
                 return CarbRatioEntry(start: time, offset: offset, ratio: value)
             }
-            fileStorage.save(CarbRatios(units: .grams, schedule: schedule), as: OpenAPS.Settings.carbRatios)
             initialCarbRatioItems = carbRatioItems
+            return CarbRatios(units: .grams, schedule: schedule)
         }
 
-        /// Saves the basal profile items to file storage and sets them as initial values.
-        func saveBasalProfile() {
+        /// The basal profile items as a schedule; sets them as initial values.
+        private func basalProfileToSave() -> [BasalProfileEntry] {
             let profile = basalProfileItems.map { item in
                 let time = timeFormatter.string(from: Date(timeIntervalSince1970: basalProfileTimeValues[item.timeIndex]))
                 let offset = Int(basalProfileTimeValues[item.timeIndex] / 60)
                 let rate = basalProfileRateValues[item.rateIndex]
                 return BasalProfileEntry(start: time, minutes: offset, rate: rate)
             }
-            fileStorage.save(profile, as: OpenAPS.Settings.basalProfile)
             initialBasalProfileItems = basalProfileItems
+            return profile
         }
 
-        /// Saves the insulin sensitivity (ISF) items to file storage and sets them as initial values.
-        func saveISFValues() {
+        /// The insulin sensitivity (ISF) items as a schedule; sets them as initial values.
+        private func isfValuesToSave() -> InsulinSensitivities {
             let sensitivities = isfItems.map { item in
                 let time = timeFormatter.string(from: Date(timeIntervalSince1970: isfTimeValues[item.timeIndex]))
                 let offset = Int(isfTimeValues[item.timeIndex] / 60)
                 let value = isfRateValues[item.rateIndex]
                 return InsulinSensitivityEntry(sensitivity: value, offset: offset, start: time)
             }
-            let profile = InsulinSensitivities(units: .mgdL, userPreferredUnits: .mgdL, sensitivities: sensitivities)
-            fileStorage.save(profile, as: OpenAPS.Settings.insulinSensitivities)
             initialISFItems = isfItems
+            return InsulinSensitivities(units: .mgdL, userPreferredUnits: .mgdL, sensitivities: sensitivities)
         }
 
-        /// Saves the glucose target items to file storage and sets them as initial values.
-        func saveTargets() {
+        /// The glucose target items as a schedule; sets them as initial values.
+        private func targetsToSave() -> BGTargets {
             let targets = targetItems.map { item in
                 let time = timeFormatter.string(from: Date(timeIntervalSince1970: targetTimeValues[item.timeIndex]))
                 let offset = Int(targetTimeValues[item.timeIndex] / 60)
                 let value = targetRateValues[item.lowIndex]
                 return BGTargetEntry(low: value, high: value, start: time, offset: offset)
             }
-            let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
-            fileStorage.save(profile, as: OpenAPS.Settings.bgTargets)
             initialTargetItems = targetItems
+            return BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
         }
 
-        /// Persists all onboarding data by applying settings and saving therapy values.
-        func saveOnboardingData() {
+        /// Persists all onboarding data by applying settings and storing the therapy values as the active profile's.
+        /// Returns false when the therapy values could not be stored; onboarding is not complete then.
+        @MainActor func saveOnboardingData() async -> Bool {
             applyToSettings()
             applyToPreferences()
             applyToPumpSettings()
-            saveTargets()
-            saveBasalProfile()
-            saveCarbRatios()
-            saveISFValues()
-            saveImportedTherapyProfiles()
+            let therapySettings = TrioTherapyProfile(
+                name: therapyProfileManager.activeProfileName,
+                basalProfile: basalProfileToSave(),
+                carbRatios: carbRatiosToSave(),
+                insulinSensitivities: isfValuesToSave(),
+                bgTargets: targetsToSave()
+            )
+            do {
+                try await therapyProfileManager.storeLiveSettings(therapySettings)
+            } catch let storeError {
+                error(.settings, "Storing the therapy settings from onboarding failed", error: storeError)
+                return false
+            }
+            await saveImportedTherapyProfiles()
+            return true
         }
 
-        /// Stores the profiles imported from Nightscout. The active one holds the therapy settings saved above.
-        func saveImportedTherapyProfiles() {
+        /// Stores the profiles imported from Nightscout. The active one holds the therapy settings stored before.
+        private func saveImportedTherapyProfiles() async {
             guard nightscoutImportOption == .useImport, let imported = importedTherapyProfiles else { return }
-            Task {
-                do {
-                    try await therapyProfileManager.replaceProfiles(
-                        imported.profiles,
-                        activeProfileName: imported.activeProfileName,
-                        scheduledSwitches: imported.scheduledSwitches
-                    )
-                } catch {
-                    warning(.settings, "Storing the therapy profiles imported from Nightscout failed", error: error)
-                }
+            do {
+                try await therapyProfileManager.replaceProfiles(
+                    imported.profiles,
+                    activeProfileName: imported.activeProfileName,
+                    scheduledSwitches: imported.scheduledSwitches
+                )
+            } catch {
+                warning(.settings, "Storing the therapy profiles imported from Nightscout failed", error: error)
             }
         }
 

@@ -15,9 +15,7 @@ extension PumpConfig {
         }
 
         func getBasalProfile() async -> [BasalProfileEntry] {
-            await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-                ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
-                ?? []
+            therapyProfileStorage.liveSettings.basalProfileEntries
         }
 
         func pumpSettings() -> PumpSettings {
