@@ -371,7 +371,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 }
                 watchState.glucoseRangeLow = self.lowGlucose
                 watchState.glucoseRangeHigh = self.highGlucose
-                watchState.glucoseRangeTarget = self.currentGlucoseTarget
+                watchState.glucoseRangeTarget = currentGlucoseTarget
                 watchState.glucoseColorScheme = self.glucoseColorScheme.rawValue
 
                 // Forecast data comes from OrefDetermination's `forecasts` CoreData
