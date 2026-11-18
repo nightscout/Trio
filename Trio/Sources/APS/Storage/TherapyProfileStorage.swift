@@ -13,6 +13,30 @@ struct StoredTherapyProfiles: Equatable, Sendable {
     var scheduledSwitchesSettledAt: Date?
 }
 
+/// A switch to another profile, kept until it is uploaded to Nightscout.
+struct TherapyProfileSwitch: Equatable, Sendable {
+    enum Trigger: String, Sendable {
+        case local
+        case remote
+        case scheduled
+    }
+
+    let name: String
+    let date: Date
+    var trigger: Trigger?
+}
+
+extension TherapyProfileSwitch.Trigger {
+    /// The `notes` of the Profile Switch treatment; a local switch has none.
+    var nightscoutNote: String? {
+        switch self {
+        case .local: return nil
+        case .remote: return "Remote"
+        case .scheduled: return "Scheduled"
+        }
+    }
+}
+
 enum TherapyProfileStorageError: Error, Equatable {
     case duplicateName
     case valueOutOfRange(String)
@@ -21,12 +45,30 @@ enum TherapyProfileStorageError: Error, Equatable {
 
 protocol TherapyProfileStorage {
     func fetchProfiles() async throws -> StoredTherapyProfiles
-    /// Replaces every stored profile and scheduled switch in one save. Throws without changing anything when two profiles
-    /// have the same name ignoring case, a value is out of range, or there is no active profile for the active values, the
-    /// scheduled switches or the settled instant.
-    func storeProfiles(_ profiles: StoredTherapyProfiles) async throws
+    /// Replaces every stored profile and scheduled switch in one save. With `switchDate`, the same save records that
+    /// `profiles.activeProfileName` became active then. Throws without changing anything when two profiles have the same
+    /// name ignoring case, a value is out of range, or there is no active profile for the active values, the scheduled
+    /// switches or the settled instant.
+    func storeProfiles(
+        _ profiles: StoredTherapyProfiles,
+        switchDate: Date?,
+        switchTrigger: TherapyProfileSwitch.Trigger?
+    ) async throws
     /// Stores only the settled instant of the scheduled switches. Throws `noActiveProfile` before the profiles are stored.
     func settleScheduledSwitches(at date: Date) async throws
+    /// True when the stored profiles or scheduled switches changed after they were last uploaded to Nightscout.
+    func profilesNotYetUploaded() async throws -> Bool
+    /// Marks the stored profiles and scheduled switches uploaded, unless they changed from `profiles` since.
+    func markProfilesUploaded(_ profiles: StoredTherapyProfiles) async throws
+    /// Profile switches not yet uploaded to Nightscout, oldest first.
+    func profileSwitchesNotYetUploaded() async throws -> [TherapyProfileSwitch]
+    func markSwitchUploaded(_ profileSwitch: TherapyProfileSwitch) async throws
+}
+
+extension TherapyProfileStorage {
+    func storeProfiles(_ profiles: StoredTherapyProfiles) async throws {
+        try await storeProfiles(profiles, switchDate: nil, switchTrigger: nil)
+    }
 }
 
 final class BaseTherapyProfileStorage: TherapyProfileStorage {
@@ -40,20 +82,32 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
 
     func fetchProfiles() async throws -> StoredTherapyProfiles {
         try await context.perform { [context] in
-            let rows = try context.fetch(TherapyProfileStored.fetchRequest())
-            let activeRow = rows.first(where: \.isActive)
-            return StoredTherapyProfiles(
-                activeProfileName: activeRow?.name,
-                inactiveProfiles: rows.filter { !$0.isActive }.compactMap(\.therapyProfile),
-                activeProfileValues: (activeRow?.entries?.count ?? 0) > 0 ? activeRow?.therapyProfile : nil,
-                scheduledSwitches: try context.fetch(ScheduledProfileSwitchStored.fetchRequest())
-                    .compactMap(\.scheduledProfileSwitch).sortedByWeek,
-                scheduledSwitchesSettledAt: activeRow?.scheduledSwitchesSettledAt
+            Self.profiles(
+                in: try context.fetch(TherapyProfileStored.fetchRequest()),
+                switches: try context.fetch(ScheduledProfileSwitchStored.fetchRequest())
             )
         }
     }
 
-    func storeProfiles(_ profiles: StoredTherapyProfiles) async throws {
+    private static func profiles(
+        in rows: [TherapyProfileStored],
+        switches: [ScheduledProfileSwitchStored]
+    ) -> StoredTherapyProfiles {
+        let activeRow = rows.first(where: \.isActive)
+        return StoredTherapyProfiles(
+            activeProfileName: activeRow?.name,
+            inactiveProfiles: rows.filter { !$0.isActive }.compactMap(\.therapyProfile).sorted { $0.name < $1.name },
+            activeProfileValues: (activeRow?.entries?.count ?? 0) > 0 ? activeRow?.therapyProfile : nil,
+            scheduledSwitches: switches.compactMap(\.scheduledProfileSwitch).sortedByWeek,
+            scheduledSwitchesSettledAt: activeRow?.scheduledSwitchesSettledAt
+        )
+    }
+
+    func storeProfiles(
+        _ profiles: StoredTherapyProfiles,
+        switchDate: Date?,
+        switchTrigger: TherapyProfileSwitch.Trigger?
+    ) async throws {
         do {
             try Self.validate(profiles)
         } catch {
@@ -75,6 +129,12 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
                     row.name = activeProfileName
                     row.isActive = true
                     row.scheduledSwitchesSettledAt = profiles.scheduledSwitchesSettledAt
+                    if let switchDate {
+                        let profileSwitch = TherapyProfileSwitchStored(context: context)
+                        profileSwitch.name = activeProfileName
+                        profileSwitch.date = switchDate
+                        profileSwitch.trigger = switchTrigger?.rawValue
+                    }
                 }
                 for profile in profiles.inactiveProfiles {
                     TherapyProfileStored.insert(profile, into: context)
@@ -103,6 +163,73 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
             } catch {
                 context.rollback()
                 warning(.storage, "Saving the settled instant of the scheduled profile switches failed", error: error)
+                throw error
+            }
+        }
+    }
+
+    func profilesNotYetUploaded() async throws -> Bool {
+        try await context.perform { [context] in
+            let predicate = NSPredicate(format: "isUploadedToNS == %@", false as NSNumber)
+            let profiles = TherapyProfileStored.fetchRequest()
+            profiles.predicate = predicate
+            let switches = ScheduledProfileSwitchStored.fetchRequest()
+            switches.predicate = predicate
+            return try context.count(for: profiles) > 0 || context.count(for: switches) > 0
+        }
+    }
+
+    /// The settled instant is not part of the profile document, so it is not compared.
+    func markProfilesUploaded(_ profiles: StoredTherapyProfiles) async throws {
+        try await context.perform { [context] in
+            let rows = try context.fetch(TherapyProfileStored.fetchRequest())
+            let switches = try context.fetch(ScheduledProfileSwitchStored.fetchRequest())
+            var uploaded = profiles
+            uploaded.inactiveProfiles.sort { $0.name < $1.name }
+            uploaded.scheduledSwitches = uploaded.scheduledSwitches.sortedByWeek
+            var current = Self.profiles(in: rows, switches: switches)
+            current.scheduledSwitchesSettledAt = uploaded.scheduledSwitchesSettledAt
+            guard current == uploaded else { return }
+            rows.forEach { $0.isUploadedToNS = true }
+            switches.forEach { $0.isUploadedToNS = true }
+            do {
+                try context.save()
+            } catch {
+                context.rollback()
+                throw error
+            }
+        }
+    }
+
+    func profileSwitchesNotYetUploaded() async throws -> [TherapyProfileSwitch] {
+        try await context.perform { [context] in
+            let request = TherapyProfileSwitchStored.fetchRequest()
+            request.predicate = NSPredicate(format: "isUploadedToNS == %@", false as NSNumber)
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \TherapyProfileSwitchStored.date, ascending: true)]
+            return try context.fetch(request).compactMap { row in
+                guard let name = row.name, let date = row.date else { return nil }
+                return TherapyProfileSwitch(
+                    name: name,
+                    date: date,
+                    trigger: row.trigger.flatMap(TherapyProfileSwitch.Trigger.init)
+                )
+            }
+        }
+    }
+
+    func markSwitchUploaded(_ profileSwitch: TherapyProfileSwitch) async throws {
+        try await context.perform { [context] in
+            let request = TherapyProfileSwitchStored.fetchRequest()
+            request.predicate = NSPredicate(
+                format: "name == %@ AND date == %@",
+                profileSwitch.name,
+                profileSwitch.date as NSDate
+            )
+            try context.fetch(request).forEach { $0.isUploadedToNS = true }
+            do {
+                try context.save()
+            } catch {
+                context.rollback()
                 throw error
             }
         }

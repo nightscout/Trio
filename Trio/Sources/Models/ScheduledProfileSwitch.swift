@@ -132,3 +132,42 @@ extension Array where Element == ScheduledProfileSwitch {
         return candidate == self.fingerprint || candidate == withStoreKeys.fingerprint
     }
 }
+
+/// The compact form in the Nightscout profile document and in remote commands. `paused` is left out when false.
+extension ScheduledProfileSwitch: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case profileName = "profile"
+        case weekday
+        case date
+        case time
+        case paused
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        guard !container.contains(.date) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .date,
+                in: container,
+                debugDescription: "Scheduled switches on a date are not supported."
+            )
+        }
+        id = try container.decode(String.self, forKey: .id)
+        profileName = try container.decode(String.self, forKey: .profileName)
+        weekday = try container.decode(Int.self, forKey: .weekday)
+        time = try container.decode(Int.self, forKey: .time)
+        paused = try container.decodeIfPresent(Bool.self, forKey: .paused) ?? false
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(profileName, forKey: .profileName)
+        try container.encode(weekday, forKey: .weekday)
+        try container.encode(time, forKey: .time)
+        if paused {
+            try container.encode(true, forKey: .paused)
+        }
+    }
+}

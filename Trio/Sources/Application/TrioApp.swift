@@ -216,6 +216,7 @@ extension Notification.Name {
                     } catch {
                         warning(.nightscout, "Uploading profile after build change failed", error: error)
                     }
+                    requestNightscoutUpload([.profiles], source: "TrioApp")
                     await resolver.resolve(TherapyProfileManager.self)?.runDueScheduledSwitch()
                 }.value
             } catch let initError {
@@ -526,6 +527,8 @@ extension Notification.Name {
             .batchDeleteOlderThan(OverrideStored.self, dateKey: "date", days: 3, isPresetKey: "isPreset")
         async let overrideRunDeletion: () = coreDataStack
             .batchDeleteOlderThan(OverrideRunStored.self, dateKey: "startDate", days: 3)
+        async let profileSwitchDeletion: () = coreDataStack
+            .batchDeleteOlderThan(TherapyProfileSwitchStored.self, dateKey: "date", days: 90)
 
         // Await each task to ensure they are all completed
         try await glucoseDeletion
@@ -541,6 +544,7 @@ extension Notification.Name {
         try await forecastValueDeletion
         try await overrideDeletion
         try await overrideRunDeletion
+        try await profileSwitchDeletion
     }
 
     private func handleURL(_ url: URL) {

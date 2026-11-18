@@ -66,6 +66,16 @@ import Testing
         #expect(stored.inactiveProfiles.first?.hasSameValues(as: TherapyProfileFixtures.profile("Default")) == true)
     }
 
+    @Test("A switch is kept until it is uploaded, a rename adds none") func switchKeptForUpload() async throws {
+        let context = try await TherapyProfileTestContext.make()
+        try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
+        try await context.manager.activate("Sport", expectedFingerprint: nil)
+        try await context.manager.save(sport.renamed("Sports"), originalName: "Sport", baseFingerprint: nil)
+
+        #expect(try await context.profileStorage.profileSwitchesNotYetUploaded().map(\.name) == ["Sport"])
+        #expect(try await context.profileStorage.profilesNotYetUploaded())
+    }
+
     @Test("Activating the active profile changes nothing") func switchToActive() async throws {
         let context = try await TherapyProfileTestContext.make()
         try await context.manager.activate("default", expectedFingerprint: nil)
@@ -192,6 +202,9 @@ import Testing
         #expect(stored.inactiveProfiles.map(\.name) == ["Default"])
         #expect(stored.inactiveProfiles.first?.hasSameValues(as: defaultValues) == true)
         #expect(relaunched.recorder.events == [.profilesChanged])
+        #expect(try await relaunched.profileStorage.profileSwitchesNotYetUploaded() == [
+            TherapyProfileSwitch(name: "Sport", date: relaunched.recorder.now)
+        ])
 
         try await relaunched.manager.activate("Default", expectedFingerprint: defaultValues.fingerprint(units: .mgdL))
         #expect(relaunched.liveBasal == defaultBasal)
@@ -462,6 +475,23 @@ import Testing
         try await context.manager.activate("Default", expectedFingerprint: nil)
         #expect(context.manager.profile(named: "Sport")?.carbRatio.map(\.value) == [7])
         #expect(context.manager.activeProfile().carbRatio.map(\.value) == [10])
+    }
+
+    @Test("A live settings save leaves the profiles to upload") func liveSaveUpload() async throws {
+        let context = try await TherapyProfileTestContext.make()
+        try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
+        try await context.profileStorage.markProfilesUploaded(context.profileStorage.fetchProfiles())
+        #expect(try await !context.profileStorage.profilesNotYetUploaded())
+        let base = context.manager.activeProfile()
+        let carbRatios = TherapyProfileFixtures.profile("x", carbratio: [(0, 7)]).carbRatios
+        let fileStorage = context.fileStorage
+
+        try await context.manager.saveLiveSettings(
+            expectedActiveName: base.name,
+            expectedFingerprint: base.fingerprint(units: .mgdL)
+        ) { fileStorage.save(carbRatios, as: OpenAPS.Settings.carbRatios) }
+
+        #expect(try await context.profileStorage.profilesNotYetUploaded())
     }
 
     @Test("A live settings save is refused after a switch") func liveSaveAfterSwitch() async throws {
