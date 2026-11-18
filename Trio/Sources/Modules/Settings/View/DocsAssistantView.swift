@@ -101,8 +101,8 @@ struct DocsAssistantView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    questionView
+                VStack(alignment: .leading, spacing: 24) {
+                    questionBubble
 
                     if model.status == .available {
                         answerView
@@ -113,18 +113,27 @@ struct DocsAssistantView: View {
                     disclaimer
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .animation(.smooth, value: model.phase)
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(appState.trioBackgroundColor(for: colorScheme))
             .safeAreaInset(edge: .bottom) { inputBar }
-            .navigationTitle("Ask Trio Docs")
+            .navigationTitle("Trioneer")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Done")
+                    if #available(iOS 26.0, *) {
+                        Button(role: .close) {
+                            dismiss()
+                        }
+                    } else {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Done")
+                        }
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -135,22 +144,40 @@ struct DocsAssistantView: View {
                 }
             }
         }
+        .presentationDragIndicator(.visible)
         .task { model.ask(initialQuestion) }
         .onDisappear { model.cancel() }
     }
 
     // MARK: - Sections
 
-    private var questionView: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "questionmark.bubble")
-                .foregroundColor(.accentColor)
-                .padding(.top, 2)
-                .accessibilityHidden(true)
+    /// The user's question, trailing-aligned like an outgoing message.
+    private var questionBubble: some View {
+        HStack {
+            Spacer(minLength: 48)
             Text(model.question)
-                .font(.headline)
+                .font(.body)
+                .foregroundStyle(.white)
                 .textSelection(.enabled)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    Color.accentColor,
+                    in: RoundedRectangle(cornerRadius: 22, style: .continuous)
+                )
         }
+    }
+
+    /// Mascot and name above everything Trioneer says.
+    private var answerHeader: some View {
+        HStack(spacing: 8) {
+            TrioneerMascot(size: 28)
+            Text("Trioneer")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
     }
 
     @ViewBuilder private var answerView: some View {
@@ -159,16 +186,23 @@ struct DocsAssistantView: View {
             EmptyView()
 
         case .searching:
-            HStack(spacing: 10) {
-                ProgressView()
-                Text("Searching the Trio documentation…")
-                    .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 12) {
+                answerHeader
+                HStack(spacing: 10) {
+                    ProgressView()
+                    Text("Searching the Trio documentation…")
+                        .foregroundStyle(.secondary)
+                }
             }
 
         case .answering,
              .finished:
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
+                answerHeader
+
                 Text(attributedAnswer)
+                    .font(.body)
+                    .lineSpacing(3)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -178,70 +212,100 @@ struct DocsAssistantView: View {
                         .accessibilityLabel(Text("Writing the answer"))
                 } else if !model.sources.isEmpty {
                     sourcesView
+                        .padding(.top, 12)
                 }
             }
 
         case let .failed(message):
             VStack(alignment: .leading, spacing: 12) {
-                Label(message, systemImage: "exclamationmark.triangle")
-                    .foregroundColor(.secondary)
-                Button {
-                    model.ask(model.question)
-                } label: {
-                    Text("Try Again")
+                answerHeader
+                VStack(alignment: .leading, spacing: 12) {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.secondary)
+                    Button {
+                        model.ask(model.question)
+                    } label: {
+                        Label("Try Again", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
                 }
-                .buttonStyle(.bordered)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(Color.chart, in: Self.cardShape)
             }
         }
     }
+
+    private static let cardShape = RoundedRectangle(cornerRadius: 20, style: .continuous)
 
     private var sourcesView: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("From the Trio documentation", comment: "Heading above the documentation sections an answer was based on")
-                .font(.subheadline)
-                .bold()
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16)
+                .accessibilityAddTraits(.isHeader)
 
-            ForEach(model.sources) { source in
-                if let url = source.url {
-                    SwiftUI.Link(destination: url) {
-                        sourceRow(source)
+            VStack(spacing: 0) {
+                ForEach(Array(model.sources.enumerated()), id: \.element.id) { index, source in
+                    if index > 0 {
+                        Divider().padding(.leading, 52)
                     }
-                } else {
-                    sourceRow(source)
+                    if let url = source.url {
+                        SwiftUI.Link(destination: url) {
+                            sourceRow(source, opensLink: true)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        sourceRow(source, opensLink: false)
+                    }
                 }
             }
+            .background(Color.chart, in: Self.cardShape)
         }
     }
 
-    private func sourceRow(_ source: DocsAssistantSource) -> some View {
-        HStack(alignment: .firstTextBaseline) {
+    private func sourceRow(_ source: DocsAssistantSource, opensLink: Bool) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "doc.text")
+                .font(.body)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 24)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(source.section)
                     .font(.subheadline)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
                 Text(source.page)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
             }
-            Spacer()
-            Image(systemName: "arrow.up.right.square")
-                .foregroundColor(.secondary)
-                .accessibilityHidden(true)
+            Spacer(minLength: 8)
+            if opensLink {
+                Image(systemName: "arrow.up.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
         }
-        .padding(10)
-        .background(Color.chart, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .frame(minHeight: 52)
+        .contentShape(Rectangle())
     }
 
     private var unavailableView: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        ContentUnavailableView {
             Label(
                 String(localized: "Apple Intelligence isn't available", comment: "Docs assistant unavailable heading"),
                 systemImage: "sparkles"
             )
-            .font(.headline)
-
+        } description: {
             Text(DocsAssistantError.unavailable(model.status).errorDescription ?? "")
-                .foregroundColor(.secondary)
-
+        } actions: {
             SwiftUI.Link(destination: Self.docsURL) {
                 Label(
                     String(
@@ -251,40 +315,56 @@ struct DocsAssistantView: View {
                     systemImage: "safari"
                 )
             }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var disclaimer: some View {
-        Text(
-            "Answers are created on your iPhone from the Trio documentation and can be incomplete or wrong. They are not medical advice. Talk to your diabetes care team before you change your therapy settings.",
-            comment: "Disclaimer below every answer of the on-device docs assistant"
-        )
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "info.circle")
+                .accessibilityHidden(true)
+            Text(
+                "Answers are created on your iPhone from the Trio documentation and can be incomplete or wrong. They are not medical advice. Talk to your diabetes care team before you change your therapy settings.",
+                comment: "Disclaimer below every answer of the on-device docs assistant"
+            )
+        }
         .font(.footnote)
-        .foregroundColor(.secondary)
-        .padding(.top, 8)
+        .foregroundStyle(.secondary)
     }
 
+    /// Floating input field: Liquid Glass on iOS 26 and later, material below.
     private var inputBar: some View {
-        HStack(spacing: 8) {
+        let canSend = !trimmedDraft.isEmpty && !model.isBusy
+        return HStack(spacing: 8) {
             TextField(
                 String(localized: "Ask another question", comment: "Placeholder of the docs assistant input field"),
                 text: $draft
             )
-            .textFieldStyle(.roundedBorder)
             .submitLabel(.send)
             .focused($draftIsFocused)
             .onSubmit(submitDraft)
+            .padding(.leading, 16)
+            .frame(minHeight: 44)
 
             Button(action: submitDraft) {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.title2)
+                Image(systemName: "arrow.up")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 34, height: 34)
+                    .background(canSend ? Color.accentColor : Color.secondary.opacity(0.35), in: Circle())
+                    .frame(width: 44, height: 44)
+                    .contentShape(Circle())
             }
-            .disabled(trimmedDraft.isEmpty || model.isBusy)
+            .buttonStyle(.plain)
+            .disabled(!canSend)
             .accessibilityLabel(Text("Ask"))
         }
-        .padding(.horizontal)
+        .padding(.trailing, 2)
+        .modifier(DocsInputBarBackground())
+        .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(.bar)
         .disabled(model.status != .available)
     }
 
@@ -305,6 +385,29 @@ struct DocsAssistantView: View {
         draft = ""
         draftIsFocused = false
         model.ask(question)
+    }
+}
+
+/// Capsule behind the docs assistant input field.
+///
+/// Liquid Glass on iOS 26 and later, material below, and an opaque fill with a visible rim when
+/// Reduce Transparency or Increase Contrast is on.
+private struct DocsInputBarBackground: ViewModifier {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
+
+    func body(content: Content) -> some View {
+        if reduceTransparency || colorSchemeContrast == .increased {
+            content.background(
+                Capsule()
+                    .fill(Color(.secondarySystemBackground))
+                    .overlay(Capsule().strokeBorder(Color.primary.opacity(0.4), lineWidth: 1))
+            )
+        } else if #available(iOS 26.0, *) {
+            content.glassEffect(.regular.interactive(), in: .capsule)
+        } else {
+            content.background(.regularMaterial, in: Capsule())
+        }
     }
 }
 
