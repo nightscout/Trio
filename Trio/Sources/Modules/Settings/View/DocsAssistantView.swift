@@ -84,7 +84,9 @@ struct TrioneerMascot: View {
 
 /// Answers free-text questions about Trio on this device, based on the bundled Trio documentation.
 ///
-/// Presented as a sheet from the settings search. Every question is answered on its own; there is no chat history.
+/// Presented as a sheet from the settings search. The questions and answers stay on screen for as long as the sheet is
+/// open and are discarded when it closes. Every question is still answered on its own: earlier exchanges are not
+/// passed to the model.
 struct DocsAssistantView: View {
     let initialQuestion: String
 
@@ -100,24 +102,38 @@ struct DocsAssistantView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    questionBubble
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        ForEach(model.exchanges) { exchange in
+                            questionBubble(exchange.question)
+                                .id(exchange.id)
 
-                    if model.status == .available {
-                        answerView
-                    } else {
-                        unavailableView
+                            if model.status == .available {
+                                answerView(exchange)
+                            }
+                        }
+
+                        if model.status != .available {
+                            unavailableView
+                        }
+
+                        disclaimer
                     }
-
-                    disclaimer
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                    .animation(.smooth, value: model.phase)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .animation(.smooth, value: model.phase)
+                .scrollDismissesKeyboard(.interactively)
+                .onChange(of: model.exchanges.last?.id) { _, newest in
+                    guard let newest else { return }
+                    // Bring the new question to the top so its answer has room to grow below it.
+                    withAnimation(.smooth) {
+                        proxy.scrollTo(newest, anchor: .top)
+                    }
+                }
             }
-            .scrollDismissesKeyboard(.interactively)
             .background(appState.trioBackgroundColor(for: colorScheme))
             .safeAreaInset(edge: .bottom) { inputBar }
             .navigationTitle("Trioneer")
@@ -151,11 +167,11 @@ struct DocsAssistantView: View {
 
     // MARK: - Sections
 
-    /// The user's question, trailing-aligned like an outgoing message.
-    private var questionBubble: some View {
+    /// One of the user's questions, trailing-aligned like an outgoing message.
+    private func questionBubble(_ question: String) -> some View {
         HStack {
             Spacer(minLength: 48)
-            Text(model.question)
+            Text(question)
                 .font(.body)
                 .foregroundStyle(.white)
                 .textSelection(.enabled)
@@ -180,8 +196,8 @@ struct DocsAssistantView: View {
         .accessibilityAddTraits(.isHeader)
     }
 
-    @ViewBuilder private var answerView: some View {
-        switch model.phase {
+    @ViewBuilder private func answerView(_ exchange: DocsAssistantViewModel.Exchange) -> some View {
+        switch exchange.phase {
         case .idle:
             EmptyView()
 
@@ -200,18 +216,18 @@ struct DocsAssistantView: View {
             VStack(alignment: .leading, spacing: 12) {
                 answerHeader
 
-                Text(attributedAnswer)
+                Text(attributedAnswer(exchange.answer))
                     .font(.body)
                     .lineSpacing(3)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                if model.phase == .answering {
+                if exchange.phase == .answering {
                     ProgressView()
                         .controlSize(.small)
                         .accessibilityLabel(Text("Writing the answer"))
-                } else if !model.sources.isEmpty {
-                    sourcesView
+                } else if !exchange.sources.isEmpty {
+                    sourcesView(exchange.sources)
                         .padding(.top, 12)
                 }
             }
@@ -223,7 +239,7 @@ struct DocsAssistantView: View {
                     Label(message, systemImage: "exclamationmark.triangle")
                         .foregroundStyle(.secondary)
                     Button {
-                        model.ask(model.question)
+                        model.retry()
                     } label: {
                         Label("Try Again", systemImage: "arrow.clockwise")
                     }
@@ -239,7 +255,7 @@ struct DocsAssistantView: View {
 
     private static let cardShape = RoundedRectangle(cornerRadius: 20, style: .continuous)
 
-    private var sourcesView: some View {
+    private func sourcesView(_ sources: [DocsAssistantSource]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("From the Trio documentation", comment: "Heading above the documentation sections an answer was based on")
                 .font(.footnote.weight(.semibold))
@@ -248,7 +264,7 @@ struct DocsAssistantView: View {
                 .accessibilityAddTraits(.isHeader)
 
             VStack(spacing: 0) {
-                ForEach(Array(model.sources.enumerated()), id: \.element.id) { index, source in
+                ForEach(Array(sources.enumerated()), id: \.element.id) { index, source in
                     if index > 0 {
                         Divider().padding(.leading, 52)
                     }
@@ -374,9 +390,9 @@ struct DocsAssistantView: View {
         draft.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var attributedAnswer: AttributedString {
+    private func attributedAnswer(_ answer: String) -> AttributedString {
         let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return (try? AttributedString(markdown: model.answer, options: options)) ?? AttributedString(model.answer)
+        return (try? AttributedString(markdown: answer, options: options)) ?? AttributedString(answer)
     }
 
     private func submitDraft() {
@@ -411,7 +427,9 @@ private struct DocsInputBarBackground: ViewModifier {
     }
 }
 
-/// Drives one question at a time through `DocsAssistant` and exposes its progress to the view.
+/// Drives one question at a time through `DocsAssistant` and keeps the exchanges of the current sheet.
+///
+/// The conversation lives only in memory: it is gone as soon as the sheet, and with it this model, is released.
 @MainActor @Observable final class DocsAssistantViewModel {
     enum Phase: Equatable {
         case idle
@@ -421,13 +439,25 @@ private struct DocsInputBarBackground: ViewModifier {
         case failed(String)
     }
 
-    private(set) var question = ""
-    private(set) var answer = ""
-    private(set) var sources: [DocsAssistantSource] = []
-    private(set) var phase: Phase = .idle
+    /// One question together with the answer it got.
+    struct Exchange: Identifiable {
+        let id = UUID()
+        let question: String
+        var answer = ""
+        var sources: [DocsAssistantSource] = []
+        var phase: Phase = .idle
+    }
+
+    /// All questions asked since the sheet was opened, oldest first.
+    private(set) var exchanges: [Exchange] = []
     private(set) var status = DocsAssistantSupport.status
 
     private var task: Task<Void, Never>?
+
+    /// Progress of the newest exchange.
+    var phase: Phase {
+        exchanges.last?.phase ?? .idle
+    }
 
     var isBusy: Bool {
         phase == .searching || phase == .answering
@@ -437,17 +467,17 @@ private struct DocsInputBarBackground: ViewModifier {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        task?.cancel()
-        question = trimmed
-        answer = ""
-        sources = []
+        stopCurrentAnswer()
         status = DocsAssistantSupport.status
 
+        var exchange = Exchange(question: trimmed)
         guard status == .available else {
-            phase = .idle
+            exchanges.append(exchange)
             return
         }
-        phase = .searching
+        exchange.phase = .searching
+        exchanges.append(exchange)
+        let id = exchange.id
 
         task = Task { [weak self] in
             guard let self else { return }
@@ -458,31 +488,55 @@ private struct DocsInputBarBackground: ViewModifier {
                             if Task.isCancelled { return }
                             switch event {
                             case .searching:
-                                phase = .searching
+                                update(id) { $0.phase = .searching }
                             case let .sources(sources):
-                                self.sources = sources
+                                update(id) { $0.sources = sources }
                             case let .answer(text):
-                                answer = text
-                                phase = .answering
+                                update(id) {
+                                    $0.answer = text
+                                    $0.phase = .answering
+                                }
                             case .finished:
-                                phase = .finished
+                                update(id) { $0.phase = .finished }
                             }
                         }
-                        if phase == .answering || phase == .searching {
-                            phase = .finished
+                        update(id) {
+                            if $0.phase == .answering || $0.phase == .searching {
+                                $0.phase = .finished
+                            }
                         }
                     } catch is CancellationError {
                         return
                     } catch {
                         if !Task.isCancelled {
-                            phase = .failed(error.localizedDescription)
+                            update(id) { $0.phase = .failed(error.localizedDescription) }
                         }
                     }
                     return
                 }
             #endif
-            phase = .failed(DocsAssistantError.unavailable(.unsupportedOS).localizedDescription)
+            update(id) { $0.phase = .failed(DocsAssistantError.unavailable(.unsupportedOS).localizedDescription) }
         }
+    }
+
+    /// Asks the newest question again, replacing its failed attempt.
+    func retry() {
+        guard let last = exchanges.last, !isBusy else { return }
+        exchanges.removeLast()
+        ask(last.question)
+    }
+
+    private func update(_ id: Exchange.ID, _ change: (inout Exchange) -> Void) {
+        guard let index = exchanges.lastIndex(where: { $0.id == id }) else { return }
+        change(&exchanges[index])
+    }
+
+    /// Cancels a running answer and keeps what was written so far.
+    private func stopCurrentAnswer() {
+        task?.cancel()
+        task = nil
+        guard isBusy, let id = exchanges.last?.id else { return }
+        update(id) { $0.phase = .finished }
     }
 
     func cancel() {

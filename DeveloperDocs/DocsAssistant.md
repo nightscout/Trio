@@ -1,6 +1,6 @@
 # On-device docs assistant (settings search)
 
-Typing a free-text question into the settings search bar offers **Ask Trio Docs**. The answer is
+Typing a free-text question into the settings search bar offers **Ask Trioneer!**. The answer is
 generated on the phone by the Apple Intelligence model (Foundation Models framework, iOS 26+) from a
 copy of https://triodocs.org that ships inside the app. Nothing leaves the device, and the feature is
 hidden on devices that can never run it (iOS < 26, hardware without Apple Intelligence).
@@ -30,7 +30,8 @@ hidden on devices that can never run it (iOS < 26, hardware without Apple Intell
    language for very short questions) and flags passages from pages the docs mark as not yet updated (✏️).
    If the context window overflows, the question is retried once with half the passages.
 
-Every question is independent; there is no chat history.
+Every question is answered independently: earlier exchanges are not passed to the model. The sheet keeps the
+questions and answers on screen while it is open and discards them when it closes; nothing is written to disk.
 
 ## Safety framing
 
