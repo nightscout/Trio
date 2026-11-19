@@ -20,14 +20,19 @@ protocol FileStorage {
 
 final class BaseFileStorage: FileStorage {
     private let processQueue = DispatchQueue.markedQueue(label: "BaseFileStorage.processQueue", qos: .utility)
+    private let directory: Disk.Directory
+
+    init(directory: Disk.Directory = .documents) {
+        self.directory = directory
+    }
 
     func save<Value: JSON>(_ value: Value, as name: String) {
         processQueue.safeSync {
             do {
                 if let value = value as? RawJSON, let data = value.data(using: .utf8) {
-                    try Disk.save(data, to: .documents, as: name)
+                    try Disk.save(data, to: directory, as: name)
                 } else {
-                    try Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
+                    try Disk.save(value, to: directory, as: name, encoder: JSONCoding.encoder)
                 }
             } catch {
                 warning(.storage, "Saving file '\(name)' failed", error: error)
@@ -40,9 +45,9 @@ final class BaseFileStorage: FileStorage {
             processQueue.safeSync {
                 do {
                     if let value = value as? RawJSON, let data = value.data(using: .utf8) {
-                        try Disk.save(data, to: .documents, as: name)
+                        try Disk.save(data, to: directory, as: name)
                     } else {
-                        try Disk.save(value, to: .documents, as: name, encoder: JSONCoding.encoder)
+                        try Disk.save(value, to: directory, as: name, encoder: JSONCoding.encoder)
                     }
                 } catch {
                     warning(.storage, "Saving file '\(name)' failed", error: error)
@@ -55,7 +60,7 @@ final class BaseFileStorage: FileStorage {
     func retrieve<Value: JSON>(_ name: String, as type: Value.Type) -> Value? {
         processQueue.safeSync {
             do {
-                return try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
+                return try Disk.retrieve(name, from: directory, as: type, decoder: JSONCoding.decoder)
             } catch {
                 logFailure("Reading file '\(name)' failed", error: error)
                 return nil
@@ -67,7 +72,7 @@ final class BaseFileStorage: FileStorage {
         await withCheckedContinuation { continuation in
             processQueue.safeSync {
                 do {
-                    let result = try Disk.retrieve(name, from: .documents, as: type, decoder: JSONCoding.decoder)
+                    let result = try Disk.retrieve(name, from: directory, as: type, decoder: JSONCoding.decoder)
                     continuation.resume(returning: result)
                 } catch {
                     logFailure("Reading file '\(name)' failed", error: error)
@@ -80,7 +85,7 @@ final class BaseFileStorage: FileStorage {
     func retrieveRaw(_ name: String) -> RawJSON? {
         processQueue.safeSync {
             do {
-                let data = try Disk.retrieve(name, from: .documents, as: Data.self)
+                let data = try Disk.retrieve(name, from: directory, as: Data.self)
                 guard let string = String(data: data, encoding: .utf8) else {
                     warning(.storage, "File '\(name)' is not valid UTF-8")
                     return nil
@@ -97,7 +102,7 @@ final class BaseFileStorage: FileStorage {
         await withCheckedContinuation { continuation in
             processQueue.safeSync {
                 do {
-                    let data = try Disk.retrieve(name, from: .documents, as: Data.self)
+                    let data = try Disk.retrieve(name, from: directory, as: Data.self)
                     guard let string = String(data: data, encoding: .utf8) else {
                         warning(.storage, "File '\(name)' is not valid UTF-8")
                         continuation.resume(returning: nil)
@@ -115,7 +120,7 @@ final class BaseFileStorage: FileStorage {
     func append<Value: JSON>(_ newValue: Value, to name: String) {
         processQueue.safeSync {
             do {
-                try Disk.append(newValue, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
+                try Disk.append(newValue, to: name, in: directory, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
             } catch {
                 warning(.storage, "Appending to file '\(name)' failed", error: error)
             }
@@ -125,7 +130,7 @@ final class BaseFileStorage: FileStorage {
     func append<Value: JSON>(_ newValues: [Value], to name: String) {
         processQueue.safeSync {
             do {
-                try Disk.append(newValues, to: name, in: .documents, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
+                try Disk.append(newValues, to: name, in: directory, decoder: JSONCoding.decoder, encoder: JSONCoding.encoder)
             } catch {
                 warning(.storage, "Appending to file '\(name)' failed", error: error)
             }
@@ -171,7 +176,7 @@ final class BaseFileStorage: FileStorage {
     func remove(_ name: String) {
         processQueue.safeSync {
             do {
-                try Disk.remove(name, from: .documents)
+                try Disk.remove(name, from: directory)
             } catch {
                 logFailure("Removing file '\(name)' failed", error: error)
             }
@@ -181,7 +186,7 @@ final class BaseFileStorage: FileStorage {
     func rename(_ name: String, to newName: String) {
         processQueue.safeSync {
             do {
-                try Disk.rename(name, in: .documents, to: newName)
+                try Disk.rename(name, in: directory, to: newName)
             } catch {
                 warning(.storage, "Renaming file '\(name)' to '\(newName)' failed", error: error)
             }
@@ -196,7 +201,7 @@ final class BaseFileStorage: FileStorage {
 
     func urlFor(file: String) -> URL? {
         do {
-            return try Disk.url(for: file, in: .documents)
+            return try Disk.url(for: file, in: directory)
         } catch {
             warning(.storage, "Resolving URL for file '\(file)' failed", error: error)
             return nil

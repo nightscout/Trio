@@ -22,12 +22,13 @@ struct IOBEntry: JSON {
         let time: Date
     }
 
+    /// Only `date` is set (0) until the first temp basal, like `IobResult.LastTemp`.
     struct LastTemp: JSON {
-        let rate: Decimal
-        let timestamp: Date
-        let started_at: Date
+        let rate: Decimal?
+        let timestamp: Date?
+        let started_at: Date?
         let date: UInt64
-        let duration: Decimal
+        let duration: Decimal?
     }
 }
 
