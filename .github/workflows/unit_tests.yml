@@ -1,28 +1,9 @@
 name: zzz [DO NOT RUN] Automated unit tests
 
+# Called from upstream_automation.yml; see that file for why there is a single dispatcher.
+# Triggers, the paths-ignore filter and concurrency are handled by the caller.
 on:
-  pull_request:
-    branches:
-      - dev
-    types: [opened, synchronize]
-    paths-ignore:
-      - '**.md'
-      - '**/README'
-      - '**.yml'
-      - '**.txt'
-
-  push:
-    branches:
-      - dev
-    paths-ignore:
-      - '**.md'
-      - '**/README'
-      - '**.yml'
-      - '**.txt'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 
 jobs:
   algorithm-package:

@@ -2,9 +2,13 @@ import SwiftUI
 
 extension CarbRatioEditor {
     final class StateModel: BaseStateModel<Provider> {
-        @Injected() private var nightscout: NightscoutManager!
-        @Injected() private var tidepoolManager: TidepoolManager!
-        @Injected() private var broadcaster: Broadcaster!
+        @Injected() private var therapyProfileManager: TherapyProfileManager!
+        var profileName: String?
+        private var editedProfile: TrioTherapyProfile?
+        /// The active profile when the editor opened; a save of the live settings is refused once it changed.
+        private var liveBase: TrioTherapyProfile?
+        @Published var bannerInfo: TherapyProfileBannerInfo?
+        @Published var profileSaveError: String?
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
         @Published var therapyItems: [TherapySettingItem] = []
@@ -53,7 +57,10 @@ extension CarbRatioEditor {
         }
 
         override func subscribe() {
-            items = provider.profile.schedule.map { value in
+            editedProfile = profileName.flatMap { therapyProfileManager.profile(named: $0) }
+            liveBase = profileName == nil ? therapyProfileManager.activeProfile() : nil
+            bannerInfo = TherapyProfileBannerInfo.make(manager: therapyProfileManager, profileName: profileName)
+            items = (editedProfile?.carbRatios ?? provider.profile).schedule.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
                 let rateIndex = rateValues.firstIndex(of: value.ratio) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
@@ -89,26 +96,39 @@ extension CarbRatioEditor {
                 return CarbRatioEntry(start: fotmatter.string(from: date), offset: minutes, ratio: rate)
             }
             let profile = CarbRatios(units: .grams, schedule: schedule)
-            provider.saveProfile(profile)
-            info(.settings, "Carb ratio schedule saved with \(schedule.count) entries")
-            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
-
-            DispatchQueue.main.async {
-                self.broadcaster.notify(CarbRatiosObserver.self, on: .main) {
-                    $0.carbRatiosDidChange(profile)
-                }
+            if let profileName, let editedProfile {
+                saveToProfile(profileName, base: editedProfile, updated: editedProfile.replacing(carbRatios: profile))
+                return
             }
-
-            Task.detached(priority: .low) {
+            guard let liveBase, let provider else { return }
+            Task { @MainActor in
                 do {
-                    try await self.nightscout.uploadProfiles()
+                    self.liveBase = try await therapyProfileManager.saveLiveSettings(
+                        expectedActiveName: liveBase.name,
+                        expectedFingerprint: liveBase.fingerprint(units: .mgdL)
+                    ) { provider.saveProfile(profile) }
                 } catch {
-                    warning(.nightscout, "Uploading profile after carb ratio change failed", error: error)
+                    profileSaveError = error.localizedDescription
+                    return
                 }
+                info(.settings, "Carb ratio schedule saved with \(schedule.count) entries")
+                initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
             }
+        }
 
-            Task.detached(priority: .low) {
-                await self.tidepoolManager.uploadSettings()
+        private func saveToProfile(_ name: String, base: TrioTherapyProfile, updated: TrioTherapyProfile) {
+            Task { @MainActor in
+                do {
+                    editedProfile = try await therapyProfileManager.save(
+                        updated,
+                        originalName: name,
+                        baseFingerprint: base.fingerprint(units: .mgdL)
+                    )
+                    initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+                    info(.settings, "Carb ratio schedule of profile \(updated.fingerprint(units: .mgdL)) saved")
+                } catch {
+                    profileSaveError = error.localizedDescription
+                }
             }
         }
 

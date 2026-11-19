@@ -120,6 +120,8 @@ private actor LoopGuard {
 
 final class BaseAPSManager: APSManager, Injectable {
     private let processQueue = DispatchQueue(label: "BaseAPSManager.processQueue")
+    private let therapyProfileManagerLock = NSLock()
+    private var resolvedTherapyProfileManager: TherapyProfileManager?
     @Injected() private var storage: FileStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var carbsStorage: CarbsStorage!
@@ -186,6 +188,17 @@ final class BaseAPSManager: APSManager, Injectable {
     var settings: TrioSettings {
         get { settingsManager.settings }
         set { settingsManager.settings = newValue }
+    }
+
+    /// The profile manager depends on this manager, so it is resolved on first use, through the app's locked resolver:
+    /// the loop runs on several threads, and Swinject's container is not safe to use from more than one at a time.
+    private var therapyProfileManager: TherapyProfileManager? {
+        therapyProfileManagerLock.lock()
+        defer { therapyProfileManagerLock.unlock() }
+        if resolvedTherapyProfileManager == nil {
+            resolvedTherapyProfileManager = TrioApp.resolver.resolve(TherapyProfileManager.self)
+        }
+        return resolvedTherapyProfileManager
     }
 
     init(resolver: Resolver) {
@@ -293,6 +306,9 @@ final class BaseAPSManager: APSManager, Injectable {
                 return
             }
 
+            // Before the loop starts, so the loop doses with the new profile.
+            await self.therapyProfileManager?.runDueScheduledSwitch()
+
             // Atomic check-and-set via actor — eliminates the race between
             // checking isLooping.value and sending isLooping(true).
             guard await loopGuard.tryStart(
@@ -337,7 +353,7 @@ final class BaseAPSManager: APSManager, Injectable {
             do {
                 let enacted = try await executeLoop(loopStatRecord: &loopStatRecord)
                 requestNightscoutUpload(
-                    [.carbs, .pumpHistory, .overrides, .tempTargets],
+                    [.carbs, .pumpHistory, .overrides, .tempTargets, .profiles],
                     source: "APSManager"
                 )
                 await finalizeLoop(enacted: enacted, loopStatRecord: loopStatRecord)
@@ -618,7 +634,10 @@ final class BaseAPSManager: APSManager, Injectable {
     }
 
     func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
-        if amount <= 0 {
+        // Answer every caller: a silent return here left the watch waiting on "Processing…" forever
+        guard amount > 0 else {
+            warning(.bolus, "Bolus of \(amount) U not enacted, amount must be above 0")
+            callback?(false, Self.invalidBolusAmountMessage)
             return
         }
 
@@ -642,6 +661,12 @@ final class BaseAPSManager: APSManager, Injectable {
         }
 
         let roundedAmount = pump.roundToSupportedBolusVolume(units: amount)
+
+        guard roundedAmount > 0 else {
+            warning(.bolus, "Bolus of \(amount) U not enacted, rounds to 0 U on this pump")
+            callback?(false, Self.invalidBolusAmountMessage)
+            return
+        }
 
         debug(.bolus, "Enacting bolus \(roundedAmount) U, \(isSMB ? "automatic" : "manual")")
 
@@ -680,6 +705,11 @@ final class BaseAPSManager: APSManager, Injectable {
             )
         }
     }
+
+    static let invalidBolusAmountMessage = String(
+        localized: "Error! Bolus amount must be greater than 0 U.",
+        comment: "Error message when a bolus of zero or less is requested"
+    )
 
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async {
         guard let pump = pumpManager, pump.status.pumpStatus.bolusing else { return }

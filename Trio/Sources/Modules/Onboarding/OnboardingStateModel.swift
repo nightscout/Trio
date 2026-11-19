@@ -19,6 +19,7 @@ extension Onboarding {
         @ObservationIgnored @Injected() var notificationsManager: UserNotificationsManager!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
         @ObservationIgnored @Injected() var apsManager: APSManager!
+        @ObservationIgnored @Injected() var therapyProfileManager: TherapyProfileManager!
 
         private let settingsProvider = PickerSettingsProvider.shared
 
@@ -80,6 +81,11 @@ extension Onboarding {
         var isConnectedToNS: Bool = false
         var nightscoutImportError: NightscoutImportError?
         var nightscoutImportStatus: ImportStatus = .none
+        /// The profiles of the imported Nightscout profile document, stored when onboarding completes.
+        @ObservationIgnored var importedTherapyProfiles: NightscoutProfileImport?
+        var skippedImportedProfiles: [NightscoutProfileImport.Skipped] = []
+        /// Moves on from the import step once the skipped profiles are acknowledged.
+        @ObservationIgnored var continueAfterImport: (() -> Void)?
         var isUploadEnabled: Bool = true
         var uploadGlucose: Bool = true
         var uploadCGMSensorStates: Bool = true
@@ -699,6 +705,23 @@ extension Onboarding {
             saveBasalProfile()
             saveCarbRatios()
             saveISFValues()
+            saveImportedTherapyProfiles()
+        }
+
+        /// Stores the profiles imported from Nightscout. The active one holds the therapy settings saved above.
+        func saveImportedTherapyProfiles() {
+            guard nightscoutImportOption == .useImport, let imported = importedTherapyProfiles else { return }
+            Task {
+                do {
+                    try await therapyProfileManager.replaceProfiles(
+                        imported.profiles,
+                        activeProfileName: imported.activeProfileName,
+                        scheduledSwitches: imported.scheduledSwitches
+                    )
+                } catch {
+                    warning(.settings, "Storing the therapy profiles imported from Nightscout failed", error: error)
+                }
+            }
         }
 
         /// Applies the selected glucose units to the app's settings.

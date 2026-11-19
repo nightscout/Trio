@@ -205,8 +205,9 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
         // notifies this observer rather than firing settingsDidChange.
         broadcaster.register(BGTargetsObserver.self, observer: self)
 
+        // Upload flags change nothing the watchface shows.
         coreDataPublisher =
-            CoreDataStack.shared.entityChangePublisher
+            CoreDataStack.shared.contentChangePublisher
                 .receive(on: queue)
                 .share()
                 .eraseToAnyPublisher()

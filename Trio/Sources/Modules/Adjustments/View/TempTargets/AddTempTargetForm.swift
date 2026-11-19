@@ -183,7 +183,7 @@ struct AddTempTargetForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHoursAndMinutes(Int(state.tempTargetDuration)))
+                        Text(Duration(minutes: state.tempTargetDuration).formattedTimeSpan())
                             .foregroundColor(
                                 !displayPickerDuration ?
                                     (state.tempTargetDuration > 0 ? .primary : .secondary) : .accentColor
