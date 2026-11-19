@@ -10,6 +10,7 @@ extension Stat {
         @ObservationIgnored @Injected() var apsManager: APSManager!
         @ObservationIgnored @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @ObservationIgnored @Injected() var storage: FileStorage!
+        @ObservationIgnored @Injected() var therapyProfileStorage: TherapyProfileStorage!
         var highLimit: Decimal = 180
         var lowLimit: Decimal = 70
         var eA1cDisplayUnit: EstimatedA1cDisplayUnit = .percent

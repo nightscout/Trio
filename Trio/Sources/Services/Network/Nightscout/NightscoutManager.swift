@@ -764,24 +764,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     func uploadProfiles() async throws {
         if isUploadEnabled {
             do {
-                guard let sensitivities = await storage.retrieveAsync(
-                    OpenAPS.Settings.insulinSensitivities,
-                    as: InsulinSensitivities.self
-                ) else {
-                    warning(.nightscout, "Profile upload skipped: insulin sensitivities could not be loaded")
-                    return
-                }
-                guard let targets = await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self) else {
-                    warning(.nightscout, "Profile upload skipped: glucose targets could not be loaded")
-                    return
-                }
-                guard let carbRatios = await storage.retrieveAsync(OpenAPS.Settings.carbRatios, as: CarbRatios.self) else {
-                    warning(.nightscout, "Profile upload skipped: carb ratios could not be loaded")
-                    return
-                }
-                guard let basalProfile = await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-                else {
-                    warning(.nightscout, "Profile upload skipped: basal profile could not be loaded")
+                let storedProfiles = try therapyProfileStorage.storedProfiles()
+                guard let activeProfile = storedProfiles.activeProfile else {
+                    warning(.nightscout, "Profile upload skipped: no therapy settings stored yet")
                     return
                 }
 
@@ -795,14 +780,6 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     }
                 }()
 
-                let storedProfiles = try await therapyProfileStorage.fetchProfiles()
-                let activeProfile = TrioTherapyProfile(
-                    name: storedProfiles.activeProfileName ?? TrioTherapyProfile.defaultName,
-                    basalProfile: basalProfile,
-                    carbRatios: carbRatios,
-                    insulinSensitivities: sensitivities,
-                    bgTargets: targets
-                )
                 let store = ScheduledNightscoutProfile.store(
                     profiles: storedProfiles.inactiveProfiles + [activeProfile],
                     units: units,

@@ -77,6 +77,18 @@ extension TrioTherapyProfile {
         )
     }
 
+    /// The settings bundled with the app, in use until therapy settings are first stored.
+    static let bundledDefaults = TrioTherapyProfile(
+        name: defaultName,
+        basalProfile: [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile)) ?? [],
+        carbRatios: CarbRatios(from: OpenAPS.defaults(for: OpenAPS.Settings.carbRatios))
+            ?? CarbRatios(units: .grams, schedule: []),
+        insulinSensitivities: InsulinSensitivities(from: OpenAPS.defaults(for: OpenAPS.Settings.insulinSensitivities))
+            ?? InsulinSensitivities(units: .mgdL, userPreferredUnits: .mgdL, sensitivities: []),
+        bgTargets: BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
+            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+    )
+
     static func startString(seconds: Int) -> String {
         String(format: "%02d:%02d:%02d", seconds / 3600, (seconds % 3600) / 60, seconds % 60)
     }

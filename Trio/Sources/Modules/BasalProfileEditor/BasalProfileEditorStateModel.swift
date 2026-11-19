@@ -153,19 +153,18 @@ extension BasalProfileEditor {
                 saveToProfile(profileName, base: editedProfile, updated: editedProfile.replacing(basalProfile: profile))
                 return
             }
-            guard let liveBase, let provider else {
+            guard let liveBase else {
                 syncInProgress = false
                 return
             }
             Task { @MainActor in
                 do {
+                    // The pump takes the schedule first; it is stored only once the pump has it.
                     self.liveBase = try await therapyProfileManager.saveLiveSettings(
                         expectedActiveName: liveBase.name,
                         expectedFingerprint: liveBase.fingerprint(units: .mgdL),
                         writesBasalSchedule: true
-                    ) {
-                        for try await _ in provider.saveProfile(profile).values {}
-                    }
+                    ) { $0.replacing(basalProfile: profile) }
                     info(.settings, "Basal profile saved with \(profile.count) entries")
                     initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
                     hasUnsupportedRates = false

@@ -6,6 +6,8 @@ final class OpenAPS {
     private let processQueue = DispatchQueue(label: "OpenAPS.processQueue", qos: .utility)
 
     private let storage: FileStorage
+    /// Holds the basal rates, carb ratios, insulin sensitivities and glucose targets in use.
+    private let therapyProfileStorage: TherapyProfileStorage
     private let tddStorage: TDDStorage
     private let glucoseStorage: GlucoseStorage
     private let carbsStorage: CarbsStorage
@@ -18,8 +20,15 @@ final class OpenAPS {
         return context
     }
 
-    init(storage: FileStorage, tddStorage: TDDStorage, glucoseStorage: GlucoseStorage, carbsStorage: CarbsStorage) {
+    init(
+        storage: FileStorage,
+        therapyProfileStorage: TherapyProfileStorage,
+        tddStorage: TDDStorage,
+        glucoseStorage: GlucoseStorage,
+        carbsStorage: CarbsStorage
+    ) {
         self.storage = storage
+        self.therapyProfileStorage = therapyProfileStorage
         self.tddStorage = tddStorage
         self.glucoseStorage = glucoseStorage
         self.carbsStorage = carbsStorage
@@ -263,7 +272,6 @@ final class OpenAPS {
 
         async let prepareTrioCustomOrefVariables = prepareTrioCustomOrefVariables(on: context)
         async let profileAsync = loadFileFromStorageAsync(name: Settings.profile)
-        async let basalAsync = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let autosenseAsync = loadFileFromStorageAsync(name: Settings.autosense)
         async let hasSufficientTddForDynamic = tddStorage.hasSufficientTDD()
 
@@ -274,7 +282,6 @@ final class OpenAPS {
             glucose,
             rawTrioCustomOrefVariables,
             rawProfile,
-            rawBasalProfile,
             rawAutosens,
             hasSufficientTdd
         ) = await (
@@ -283,7 +290,6 @@ final class OpenAPS {
             try glucoseFetch,
             try prepareTrioCustomOrefVariables,
             profileAsync,
-            basalAsync,
             autosenseAsync,
             try hasSufficientTddForDynamic
         )
@@ -294,7 +300,8 @@ final class OpenAPS {
         profile.supportedBasalRates = supportedBasalRates
         // derived here, not baked into profile.json, which the JS parity goldens compare
         profile.suspendOnly = dosingMode.automation == .hypoSuspendOnly
-        let basalProfile = try JSONBridge.basalProfile(from: rawBasalProfile)
+        // throws rather than dose with other basal rates when the stored ones cannot be read
+        let basalProfile = try therapyProfileStorage.requireLiveSettings().basalProfileEntries
         let autosens = try JSONBridge.autosens(from: rawAutosens.isEmpty ? .null : rawAutosens)
         let trioCustomOrefVariables = try JSONBridge.trioCustomOrefVariables(from: rawTrioCustomOrefVariables)
 
@@ -446,22 +453,20 @@ final class OpenAPS {
             fetchHours: 24
         )
         async let getProfile = loadFileFromStorageAsync(name: Settings.profile)
-        async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
 
         // Await the results of asynchronous tasks
-        let (pumpHistory, carbs, glucose, rawProfile, rawBasalProfile, rawTempTargets) = await (
+        let (pumpHistory, carbs, glucose, rawProfile, rawTempTargets) = await (
             try parsePumpHistory(on: context, await pumpHistoryObjectIDs),
             try carbsFetch,
             try glucoseFetch,
             getProfile,
-            getBasalProfile,
             getTempTargets
         )
 
         // Decode the JSON-at-rest inputs into native models at the call boundary.
         let profile = try JSONBridge.profile(from: rawProfile)
-        let basalProfile = try JSONBridge.basalProfile(from: rawBasalProfile)
+        let basalProfile = try therapyProfileStorage.requireLiveSettings().basalProfileEntries
         let tempTargets = try JSONBridge.tempTargets(from: rawTempTargets)
 
         // Autosense
@@ -487,20 +492,12 @@ final class OpenAPS {
 
         // Load required settings and profiles asynchronously
         async let getPumpSettings = loadFileFromStorageAsync(name: Settings.settings)
-        async let getBGTargets = loadFileFromStorageAsync(name: Settings.bgTargets)
-        async let getBasalProfile = loadFileFromStorageAsync(name: Settings.basalProfile)
-        async let getInsulinSensitivities = loadFileFromStorageAsync(name: Settings.insulinSensitivities)
-        async let getCarbRatios = loadFileFromStorageAsync(name: Settings.carbRatios)
         async let getTempTargets = loadFileFromStorageAsync(name: Settings.tempTargets)
 
-        let (pumpSettings, bgTargets, basalProfile, insulinSensitivities, carbRatios, tempTargets) = await (
-            getPumpSettings,
-            getBGTargets,
-            getBasalProfile,
-            getInsulinSensitivities,
-            getCarbRatios,
-            getTempTargets
-        )
+        let (pumpSettings, tempTargets) = await (getPumpSettings, getTempTargets)
+        // The four schedules of one profile, read together. Throws rather than build a profile from other values when
+        // the stored ones cannot be read.
+        let therapySettings = try therapyProfileStorage.requireLiveSettings()
 
         // Retrieve user preferences, or set defaults if not available
         let preferences = storage.retrieve(OpenAPS.Settings.preferences, as: Preferences.self) ?? Preferences()
@@ -550,11 +547,12 @@ final class OpenAPS {
             // Decode the raw settings into native models. The bundled-defaults
             // fallback still happens in loadFileFromStorageAsync above, so decoding
             // here preserves the same behavior it previously had inside makeProfile.
+            // The therapy settings come from the active therapy profile as native models.
             let pumpSettings = try JSONBridge.pumpSettings(from: pumpSettings)
-            let bgTargets = try JSONBridge.bgTargets(from: bgTargets)
-            let basalProfile = try JSONBridge.basalProfile(from: basalProfile)
-            let insulinSensitivities = try JSONBridge.insulinSensitivities(from: insulinSensitivities)
-            let carbRatios = try JSONBridge.carbRatios(from: carbRatios)
+            let bgTargets = therapySettings.bgTargets
+            let basalProfile = therapySettings.basalProfileEntries
+            let insulinSensitivities = therapySettings.insulinSensitivities
+            let carbRatios = therapySettings.carbRatios
             let tempTargets = try JSONBridge.tempTargets(from: tempTargets)
 
             let pumpProfile = try ProfileGenerator.generate(

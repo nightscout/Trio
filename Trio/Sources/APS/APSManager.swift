@@ -123,6 +123,7 @@ final class BaseAPSManager: APSManager, Injectable {
     private let therapyProfileManagerLock = NSLock()
     private var resolvedTherapyProfileManager: TherapyProfileManager?
     @Injected() private var storage: FileStorage!
+    @Injected() private var therapyProfileStorage: TherapyProfileStorage!
     @Injected() private var pumpHistoryStorage: PumpHistoryStorage!
     @Injected() private var carbsStorage: CarbsStorage!
     @Injected() private var glucoseStorage: GlucoseStorage!
@@ -203,7 +204,13 @@ final class BaseAPSManager: APSManager, Injectable {
 
     init(resolver: Resolver) {
         injectServices(resolver)
-        openAPS = OpenAPS(storage: storage, tddStorage: tddStorage, glucoseStorage: glucoseStorage, carbsStorage: carbsStorage)
+        openAPS = OpenAPS(
+            storage: storage,
+            therapyProfileStorage: therapyProfileStorage,
+            tddStorage: tddStorage,
+            glucoseStorage: glucoseStorage,
+            carbsStorage: carbsStorage
+        )
         lastDosingMode = settingsManager.settings.dosingMode
         broadcaster.register(SettingsObserver.self, observer: self)
         subscribe()
@@ -473,7 +480,7 @@ final class BaseAPSManager: APSManager, Injectable {
     private func calculateAndStoreTDD() async throws {
         guard let pumpManager else { return }
 
-        let basalProfile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ?? []
+        let basalProfile = therapyProfileStorage.storedLiveSettings?.basalProfileEntries ?? []
 
         // Calculate TDD; uncovered gaps are inferred from the basal profile in memory
         let tddResult = try await tddStorage.calculateTDD(

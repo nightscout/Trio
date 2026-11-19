@@ -26,5 +26,4 @@ enum CarbRatioEditor {
 
 protocol CarbRatioEditorProvider: Provider {
     var profile: CarbRatios { get }
-    func saveProfile(_ profile: CarbRatios)
 }

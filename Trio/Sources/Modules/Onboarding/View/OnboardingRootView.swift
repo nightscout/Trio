@@ -810,9 +810,12 @@ struct OnboardingNavigationButtons: View {
             }
 
         case .completed:
-            state.saveOnboardingData()
-            onboardingManager.completeOnboarding()
-            Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
+            Task { @MainActor in
+                // Onboarding completes only once the therapy settings are stored, so that Trio never starts without them.
+                guard await state.saveOnboardingData() else { return }
+                onboardingManager.completeOnboarding()
+                Foundation.NotificationCenter.default.post(name: .onboardingCompleted, object: nil)
+            }
 
         default:
             if let next = currentStep.next {

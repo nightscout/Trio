@@ -9,6 +9,7 @@ extension SettingsExport {
         @Injected() private var broadcaster: Broadcaster!
         @Injected() private var fileManager: FileManager!
         @Injected() private var storage: FileStorage!
+        @Injected() private var therapyProfileStorage: TherapyProfileStorage!
         @Injected() var overrideStorage: OverrideStorage!
         @Injected() var tempTargetsStorage: TempTargetsStorage!
         @Injected() private var therapyProfileManager: TherapyProfileManager!
@@ -244,10 +245,11 @@ extension SettingsExport {
                 )
 
                 // Get therapy profiles from storage
-                let basalProfile = storage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self) ?? []
-                let isfProfileContainer = storage.retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self)
-                let crProfileContainer = storage.retrieve(OpenAPS.Settings.carbRatios, as: CarbRatios.self)
-                let targetProfileContainer = storage.retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self)
+                let therapySettings = therapyProfileStorage.storedLiveSettings
+                let basalProfile = therapySettings?.basalProfileEntries ?? []
+                let isfProfileContainer = therapySettings?.insulinSensitivities
+                let crProfileContainer = therapySettings?.carbRatios
+                let targetProfileContainer = therapySettings?.bgTargets
 
                 // Glucose Targets subcategory
                 let glucoseTargetsSubcategory = String(localized: "Glucose Targets")

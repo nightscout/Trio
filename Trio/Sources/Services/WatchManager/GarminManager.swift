@@ -56,6 +56,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
     /// JSON settings store, used here to read the glucose target profile.
     @Injected() private var fileStorage: FileStorage!
+    @Injected() private var therapyProfileStorage: TherapyProfileStorage!
 
     @Injected() private var iobService: IOBService!
     @Injected() private var trioAlertManager: TrioAlertManager!
@@ -567,9 +568,7 @@ final class BaseGarminManager: NSObject, GarminManager, Injectable {
 
         // Scheduled profile target only, matching the Home chart -- overrides and temp
         // targets are not reflected.
-        let bgTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        let bgTargets = therapyProfileStorage.liveSettings.bgTargets
         let targetGlucoseValue = bgTargets.currentTarget().map { Int16(truncating: $0 as NSDecimalNumber) }
 
         // Extract all needed values from self before entering perform block (Sendable compliance)

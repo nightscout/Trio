@@ -23,6 +23,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
     @Injected() private var contactImageStorage: ContactImageStorage!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var fileStorage: FileStorage!
+    @Injected() private var therapyProfileStorage: TherapyProfileStorage!
     @Injected() private var iobService: IOBService!
 
     private let contactStore = CNContactStore()
@@ -133,9 +134,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
         let now = Date()
         let calendar = Calendar.current
 
-        let bgTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        let bgTargets = therapyProfileStorage.liveSettings.bgTargets
         let entries: [(start: String, value: Decimal)] = bgTargets.targets
             .map { ($0.start.trimmingCharacters(in: .whitespacesAndNewlines), $0.low) }
 
