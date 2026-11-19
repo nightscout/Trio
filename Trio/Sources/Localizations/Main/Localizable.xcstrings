@@ -192209,6 +192209,16 @@
         }
       }
     },
+    "Lowest %@, %lld min below range" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lowest %1$@, %2$lld min below range"
+          }
+        }
+      }
+    },
     "m" : {
       "comment" : "Abbreviation for Minutes\nabbreviation for minutes",
       "extractionState" : "stale",
@@ -208463,16 +208473,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "靜音 Trio 警報"
-          }
-        }
-      }
-    },
-    "Nadir %@, %lld min below range" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Nadir %1$@, %2$lld min below range"
           }
         }
       }

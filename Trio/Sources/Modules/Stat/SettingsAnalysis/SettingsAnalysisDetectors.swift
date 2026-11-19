@@ -274,7 +274,7 @@ extension SettingsAnalysis {
                 guard hour < 6 else { continue }
                 hourCounts[hour] += 1
                 let minutes = Int((low.duration / 60).rounded()) + 5
-                let detail = String(localized: "Nadir \(low.nadir.formatted(withUnits: units)), \(minutes) min below range")
+                let detail = String(localized: "Lowest \(low.nadir.formatted(withUnits: units)), \(minutes) min below range")
                 occurrences.append(Occurrence(date: low.start, detail: detail))
             }
 
