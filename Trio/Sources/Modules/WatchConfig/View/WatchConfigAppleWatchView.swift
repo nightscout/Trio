@@ -64,6 +64,52 @@ struct WatchConfigAppleWatchView: BaseView {
                 headerText: String(localized: "Apple Watch Configuration")
             )
 
+            SettingInputSection(
+                decimalValue: $decimalPlaceholder,
+                booleanValue: $state.useCriticalAlertsWatch,
+                shouldDisplayHint: $shouldDisplayHint,
+                selectedVerboseHint: Binding(
+                    get: { selectedVerboseHint },
+                    set: {
+                        selectedVerboseHint = $0.map { AnyView($0) }
+                        hintLabel = String(localized: "Critical Alerts on Watch")
+                    }
+                ),
+                units: state.units,
+                type: .boolean,
+                label: String(localized: "Critical Alerts on Watch"),
+                miniHint: String(localized: "The watch’s urgent low alarm sounds through Silent Mode"),
+                verboseHint: Text(
+                    "When this is on, the urgent low alarm the watch raises for its own readings sounds even in Silent Mode. The watch asks for permission the first time."
+                )
+            )
+
+            if state.cgmSharesWithWatch {
+                Section(
+                    header: Text("Glucose on the Watch"),
+                    footer: Text(
+                        String(
+                            localized: "The watch reads the \(state.cgmName) itself while “Read on Apple Watch” is on in its settings. It shows the iPhone’s readings while they come, and its own, with a watch symbol in the glucose bubble, once they stop."
+                        )
+                    ),
+                    content: {
+                        HStack {
+                            Text("Read on Apple Watch")
+                            Spacer()
+                            Text(state.watchReadsSensor ? "On" : "Off").foregroundStyle(.secondary)
+                        }
+                        NavigationLink(String(localized: "Change in the \(state.cgmName) Settings")) {
+                            CGMSettings.RootView(
+                                resolver: resolver,
+                                displayClose: false,
+                                bluetoothManager: resolver.resolve(BluetoothStateManager.self)!
+                            )
+                        }
+                        .foregroundStyle(Color.accentColor)
+                    }
+                ).listRowBackground(Color.chart)
+            }
+
             Section(
                 header: Text("Contact Image"),
                 content: {
@@ -78,6 +124,8 @@ struct WatchConfigAppleWatchView: BaseView {
             ).listRowBackground(Color.chart)
         }
         .listSectionSpacing(sectionSpacing)
+        // back from the CGM's settings
+        .onAppear { state.refreshWatchSensor() }
         .sheet(isPresented: $shouldDisplayHint) {
             SettingInputHintView(
                 hintDetent: $hintDetent,
