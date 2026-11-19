@@ -34,7 +34,7 @@ extension CGMSettings {
         static var shared: StateModel {
             if _shared == nil {
                 _shared = StateModel()
-                _shared?.resolver = TrioApp().resolver
+                _shared?.resolver = TrioApp.resolver
             }
             return _shared!
         }

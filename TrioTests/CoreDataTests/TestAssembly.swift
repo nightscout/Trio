@@ -20,6 +20,10 @@ class TestAssembly: Assembly {
             BasePumpStatusStorage(resolver: r, contextProvider: { self.testContext })
         }.inObjectScope(.container)
 
+        container.register(TherapyProfileStorage.self) { _ in
+            BaseTherapyProfileStorage(contextProvider: { self.testContext })
+        }.inObjectScope(.container)
+
         // Override DeterminationStorage registration for tests
         container.register(DeterminationStorage.self) { r in
             BaseDeterminationStorage(resolver: r, contextProvider: { self.testContext })

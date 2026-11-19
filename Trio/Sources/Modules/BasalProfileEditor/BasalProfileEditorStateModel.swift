@@ -1,11 +1,30 @@
 import Observation
 import SwiftUI
 
+extension [Decimal] {
+    /// The index of the ascending rate nearest to `rate`, when `rate` is less than half a step from it.
+    func indexOfRate(_ rate: Decimal) -> Int? {
+        guard let index = findClosestIndex(to: rate) else { return nil }
+        let steps = [
+            index > startIndex ? self[index] - self[index - 1] : nil,
+            index < endIndex - 1 ? self[index + 1] - self[index] : nil
+        ].compactMap { $0 }
+        let halfStep = (steps.min() ?? 0.001) / 2
+        return abs(self[index] - rate) < halfStep ? index : nil
+    }
+}
+
 extension BasalProfileEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
-        @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
-        @ObservationIgnored @Injected() private var tidepoolManager: TidepoolManager!
-        @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() private var therapyProfileManager: TherapyProfileManager!
+        @ObservationIgnored var profileName: String?
+        @ObservationIgnored private var editedProfile: TrioTherapyProfile?
+        /// The active profile when the editor opened; a save of the live settings is refused once it changed.
+        @ObservationIgnored private var liveBase: TrioTherapyProfile?
+        var bannerInfo: TherapyProfileBannerInfo?
+        var profileSaveError: String?
+        /// A rate of the schedule is not one the pump supports; its row shows the nearest supported rate.
+        var hasUnsupportedRates = false
 
         var syncInProgress: Bool = false
         var initialItems: [Item] = []
@@ -25,7 +44,7 @@ extension BasalProfileEditor {
         }
 
         var hasChanges: Bool {
-            initialItems != items
+            initialItems != items || hasUnsupportedRates
         }
 
         // Convert items to TherapySettingItem format
@@ -42,7 +61,8 @@ extension BasalProfileEditor {
         func updateFromTherapyItems(_ therapyItems: [TherapySettingItem]) {
             items = therapyItems.map { therapyItem in
                 let timeIndex = timeValues.firstIndex(where: { abs($0 - therapyItem.time) < 1 }) ?? 0
-                let rateIndex = rateValues.lastIndex(where: { $0 <= therapyItem.value.rounded(scale: 3) }) ?? 0
+                let rateIndex = rateValues.indexOfRate(therapyItem.value) ?? rateValues
+                    .findClosestIndex(to: therapyItem.value) ?? 0
                 return Item(rateIndex: rateIndex, timeIndex: timeIndex)
             }
         }
@@ -50,17 +70,39 @@ extension BasalProfileEditor {
         override func subscribe() {
             rateValues = provider.supportedBasalRates ?? stride(from: 5.0, to: 1001.0, by: 5.0)
                 .map { ($0.decimal ?? .zero) / 100 }
-            let profile = provider.profile
-            items = profile.map { value in
-                let timeIndex = timeValues.firstIndex(of: Double(value.minutes * 60)) ?? 0
-                let rateIndex = rateValues.lastIndex(where: { $0 <= value.rate.rounded(scale: 3) }) ?? 0
-                return Item(rateIndex: rateIndex, timeIndex: timeIndex)
-            }
+            editedProfile = profileName.flatMap { therapyProfileManager.profile(named: $0) }
+            liveBase = profileName == nil ? therapyProfileManager.activeProfile() : nil
+            bannerInfo = TherapyProfileBannerInfo.make(manager: therapyProfileManager, profileName: profileName)
+            (items, hasUnsupportedRates) = Self.items(
+                for: editedProfile?.basalProfileEntries ?? provider.profile,
+                rateValues: rateValues,
+                timeValues: timeValues
+            )
 
-            let ratesMatch = zip(profile, items).allSatisfy { $0.rate == rateValues[$1.rateIndex] }
-            initialItems = ratesMatch ? items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) } : []
+            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
             calcTotal()
+        }
+
+        /// The picker rows of a schedule. A rate the pump does not support takes the nearest supported rate, and
+        /// `hasUnsupportedRates` is true.
+        static func items(
+            for entries: [BasalProfileEntry],
+            rateValues: [Decimal],
+            timeValues: [TimeInterval]
+        ) -> (items: [Item], hasUnsupportedRates: Bool) {
+            var hasUnsupportedRates = false
+            let items = entries.map { value in
+                let timeIndex = timeValues.firstIndex(of: Double(value.minutes * 60)) ?? 0
+                let rateIndex = rateValues.indexOfRate(value.rate) ?? rateValues.findClosestIndex(to: value.rate) ?? 0
+                if !rateValues.indices.contains(rateIndex) || rateValues[rateIndex].rounded(scale: 3) != value.rate
+                    .rounded(scale: 3)
+                {
+                    hasUnsupportedRates = true
+                }
+                return Item(rateIndex: rateIndex, timeIndex: timeIndex)
+            }
+            return (items, hasUnsupportedRates)
         }
 
         func calcTotal() {
@@ -107,42 +149,52 @@ extension BasalProfileEditor {
                 let rate = self.rateValues[item.rateIndex]
                 return BasalProfileEntry(start: formatter.string(from: date), minutes: minutes, rate: rate)
             }
-            provider.saveProfile(profile)
-                .receive(on: DispatchQueue.main)
-                .sink { completion in
-                    self.syncInProgress = false
-                    switch completion {
-                    case .finished:
-                        info(.settings, "Basal profile saved with \(profile.count) entries")
-                        // Successfully saved and synced
-                        self.initialItems = self.items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
-
-                        DispatchQueue.main.async {
-                            self.broadcaster.notify(BasalProfileObserver.self, on: .main) {
-                                $0.basalProfileDidChange(profile)
-                            }
-                        }
-
-                        Task.detached(priority: .low) {
-                            do {
-                                try await self.nightscout.uploadProfiles()
-                            } catch {
-                                warning(.nightscout, "Uploading profile after basal change failed", error: error)
-                            }
-                        }
-
-                        Task.detached(priority: .low) {
-                            await self.tidepoolManager.uploadSettings()
-                        }
-                    case let .failure(saveError):
-                        error(.settings, "Saving basal profile failed", error: saveError)
-                        // Handle the error, show error message
-                        self.showAlert = true
+            if let profileName, let editedProfile {
+                saveToProfile(profileName, base: editedProfile, updated: editedProfile.replacing(basalProfile: profile))
+                return
+            }
+            guard let liveBase, let provider else {
+                syncInProgress = false
+                return
+            }
+            Task { @MainActor in
+                do {
+                    self.liveBase = try await therapyProfileManager.saveLiveSettings(
+                        expectedActiveName: liveBase.name,
+                        expectedFingerprint: liveBase.fingerprint(units: .mgdL),
+                        writesBasalSchedule: true
+                    ) {
+                        for try await _ in provider.saveProfile(profile).values {}
                     }
-                } receiveValue: {
-                    // Handle any successful value if needed
+                    info(.settings, "Basal profile saved with \(profile.count) entries")
+                    initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+                    hasUnsupportedRates = false
+                } catch let profileError as TherapyProfileError {
+                    profileSaveError = profileError.localizedDescription
+                } catch let saveError {
+                    error(.settings, "Saving basal profile failed", error: saveError)
+                    showAlert = true
                 }
-                .store(in: &lifetime)
+                syncInProgress = false
+            }
+        }
+
+        private func saveToProfile(_ name: String, base: TrioTherapyProfile, updated: TrioTherapyProfile) {
+            Task { @MainActor in
+                do {
+                    editedProfile = try await therapyProfileManager.save(
+                        updated,
+                        originalName: name,
+                        baseFingerprint: base.fingerprint(units: .mgdL)
+                    )
+                    initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+                    hasUnsupportedRates = false
+                    info(.settings, "Basal schedule of profile \(updated.fingerprint(units: .mgdL)) saved")
+                } catch {
+                    profileSaveError = error.localizedDescription
+                }
+                syncInProgress = false
+            }
         }
 
         @MainActor func validate() {

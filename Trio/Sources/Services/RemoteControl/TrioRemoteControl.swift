@@ -14,6 +14,7 @@ class TrioRemoteControl: Injectable {
     @Injected() internal var bolusSafetyValidator: BolusSafetyValidator!
     @Injected() internal var carbEntryMutationService: CarbEntryMutationService!
     @Injected() internal var apsManager: APSManager!
+    @Injected() internal var therapyProfileManager: TherapyProfileManager!
 
     /// How long before now a command may have been sent.
     static let timeWindow: TimeInterval = 720
@@ -41,6 +42,9 @@ class TrioRemoteControl: Injectable {
             pendingRemoteBolusValue = newValue
         }
     }
+
+    /// Command ids of profile commands, kept for twice the accepted clock skew.
+    let seenProfileCommands = RemoteCommandReplayGuard(window: 1200)
 
     init(resolver: Resolver) {
         injectServices(resolver)
@@ -114,7 +118,7 @@ class TrioRemoteControl: Injectable {
         }
 
         // A repeat of a handled command is logged only, also when it arrives after the time window
-        if handledCommands.handledCommandId(of: commandPayload, at: Date()) {
+        if !commandPayload.commandType.hasOwnReplayGuard, handledCommands.handledCommandId(of: commandPayload, at: Date()) {
             warning(.remote, "Command already handled. Details: \(commandPayload.humanReadableDescription())")
             return
         }
@@ -133,7 +137,7 @@ class TrioRemoteControl: Injectable {
 
         debug(.remote, "Command authenticated, sent \(Int(timeDifference)) s ago")
 
-        guard markFirstHandling(of: commandPayload, at: Date()) else { return }
+        guard commandPayload.commandType.hasOwnReplayGuard || markFirstHandling(of: commandPayload, at: Date()) else { return }
 
         switch commandPayload.commandType {
         case .bolus:
@@ -152,6 +156,14 @@ class TrioRemoteControl: Injectable {
             try await handleDeleteMealCommand(commandPayload)
         case .editMeal:
             try await handleEditMealCommand(commandPayload)
+        case .switchProfile:
+            await handleSwitchProfileCommand(commandPayload)
+        case .saveProfile:
+            await handleSaveProfileCommand(commandPayload)
+        case .deleteProfile:
+            await handleDeleteProfileCommand(commandPayload)
+        case .saveScheduledSwitches:
+            await handleSaveScheduledSwitchesCommand(commandPayload)
         case .unknown:
             await logError(
                 "Command rejected: unsupported command type.",
@@ -225,5 +237,20 @@ struct HandledRemoteCommands: Codable, Equatable {
             payload.mealId ?? "-"
         ]
         return "content:" + values.joined(separator: "|")
+    }
+}
+
+extension TrioRemoteControl.CommandType {
+    /// Profile commands reject a repeated `command_id` with a reply, through `seenProfileCommands`
+    var hasOwnReplayGuard: Bool {
+        switch self {
+        case .deleteProfile,
+             .saveProfile,
+             .saveScheduledSwitches,
+             .switchProfile:
+            return true
+        default:
+            return false
+        }
     }
 }
