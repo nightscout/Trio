@@ -15,9 +15,13 @@ extension [Decimal] {
 extension ISFEditor {
     @Observable final class StateModel: BaseStateModel<Provider> {
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
-        @ObservationIgnored @Injected() private var nightscout: NightscoutManager!
-        @ObservationIgnored @Injected() private var tidepoolManager: TidepoolManager!
-        @ObservationIgnored @Injected() private var broadcaster: Broadcaster!
+        @ObservationIgnored @Injected() private var therapyProfileManager: TherapyProfileManager!
+        @ObservationIgnored var profileName: String?
+        @ObservationIgnored private var editedProfile: TrioTherapyProfile?
+        /// The active profile when the editor opened; a save of the live settings is refused once it changed.
+        @ObservationIgnored private var liveBase: TrioTherapyProfile?
+        var bannerInfo: TherapyProfileBannerInfo?
+        var profileSaveError: String?
 
         var items: [Item] = []
         var initialItems: [Item] = []
@@ -65,7 +69,10 @@ extension ISFEditor {
         override func subscribe() {
             units = settingsManager.settings.units
 
-            let profile = provider.profile
+            editedProfile = profileName.flatMap { therapyProfileManager.profile(named: $0) }
+            liveBase = profileName == nil ? therapyProfileManager.activeProfile() : nil
+            bannerInfo = TherapyProfileBannerInfo.make(manager: therapyProfileManager, profileName: profileName)
+            let profile = editedProfile?.insulinSensitivities ?? provider.profile
 
             items = profile.sensitivities.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
@@ -115,26 +122,39 @@ extension ISFEditor {
                 userPreferredUnits: .mgdL,
                 sensitivities: sensitivities
             )
-            provider.saveProfile(profile)
-            info(.settings, "Insulin sensitivity schedule saved with \(sensitivities.count) entries")
-            initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
-
-            DispatchQueue.main.async {
-                self.broadcaster.notify(InsulinSensitivitiesObserver.self, on: .main) {
-                    $0.insulinSensitivitiesDidChange(profile)
-                }
+            if let profileName, let editedProfile {
+                saveToProfile(profileName, base: editedProfile, updated: editedProfile.replacing(insulinSensitivities: profile))
+                return
             }
-
-            Task.detached(priority: .low) {
+            guard let liveBase, let provider else { return }
+            Task { @MainActor in
                 do {
-                    try await self.nightscout.uploadProfiles()
+                    self.liveBase = try await therapyProfileManager.saveLiveSettings(
+                        expectedActiveName: liveBase.name,
+                        expectedFingerprint: liveBase.fingerprint(units: .mgdL)
+                    ) { provider.saveProfile(profile) }
                 } catch {
-                    warning(.nightscout, "Uploading profile after insulin sensitivity change failed", error: error)
+                    profileSaveError = error.localizedDescription
+                    return
                 }
+                info(.settings, "Insulin sensitivity schedule saved with \(sensitivities.count) entries")
+                initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
             }
+        }
 
-            Task.detached(priority: .low) {
-                await self.tidepoolManager.uploadSettings()
+        private func saveToProfile(_ name: String, base: TrioTherapyProfile, updated: TrioTherapyProfile) {
+            Task { @MainActor in
+                do {
+                    editedProfile = try await therapyProfileManager.save(
+                        updated,
+                        originalName: name,
+                        baseFingerprint: base.fingerprint(units: .mgdL)
+                    )
+                    initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
+                    info(.settings, "Insulin sensitivity schedule of profile \(updated.fingerprint(units: .mgdL)) saved")
+                } catch {
+                    profileSaveError = error.localizedDescription
+                }
             }
         }
 

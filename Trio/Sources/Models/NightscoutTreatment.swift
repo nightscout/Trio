@@ -24,6 +24,8 @@ struct NightscoutTreatment: JSON, Hashable, Equatable {
     var id: String?
     var fpuID: String?
     var isProgrammedByPumpUI: Bool?
+    /// Name of the profile a `Profile Switch` activates.
+    var profile: String? = nil
 
     static let local = "Trio"
 
@@ -63,5 +65,6 @@ extension NightscoutTreatment {
         case id
         case fpuID
         case isProgrammedByPumpUI
+        case profile
     }
 }
