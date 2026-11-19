@@ -45,7 +45,7 @@ extension History.RootView {
 
                 Spacer()
 
-                Text(Formatter.dateFormatter.string(from: meal.date ?? Date()))
+                Text(meal.date ?? Date(), format: .timeOfDay)
                     .moveDisabled(true)
             }
             if let note = meal.note, note != "" {

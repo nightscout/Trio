@@ -17,34 +17,6 @@ extension Adjustments.StateModel {
             )
     }
 
-    /// Checks if the device is using a 24-hour time format.
-    func is24HourFormat() -> Bool {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.dateStyle = .none
-        formatter.timeStyle = .short
-        let dateString = formatter.string(from: Date())
-
-        return !dateString.contains("AM") && !dateString.contains("PM")
-    }
-
-    /// Converts a given hour to a 12-hour AM/PM format string.
-    func convertTo12HourFormat(_ hour: Int) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h a"
-
-        let calendar = Calendar.current
-        let components = DateComponents(hour: hour)
-        let date = calendar.date(from: components) ?? Date()
-
-        return formatter.string(from: date)
-    }
-
-    /// Formats a given 24-hour time number as a two-digit string.
-    func format24Hour(_ hour: Int) -> String {
-        String(format: "%02d", hour)
-    }
-
     /// Converts hours and minutes to total minutes as a `Decimal`.
     func convertToMinutes(_ hours: Int, _ minutes: Int) -> Decimal {
         let totalMinutes = (hours * 60) + minutes

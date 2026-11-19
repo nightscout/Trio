@@ -117,16 +117,11 @@ struct GlucoseDailyPercentileChart: View {
         )
     }
 
-    // Format a single date for display
-    private func formatDate(_ date: Date) -> String {
-        date.formatted(.dateTime.weekday(.wide).month(.wide).day().year())
-    }
-
     // Get the appropriate detail view data
     private var detailViewData: (data: GlucoseDailyPercentileStats, dateText: String)? {
         if let selectedData = selectedDateStats {
             // Case 1: Selected specific day
-            return (selectedData, selectedData.date.formatted(.dateTime.weekday(.wide).month(.wide).day().year()))
+            return (selectedData, selectedData.date.formatted(date: .complete, time: .omitted))
         } else if let aggregatedData = aggregatedVisibleStats {
             // Case 2: Using aggregated data
             return (aggregatedData, StatChartUtils.formatVisibleDateRange(
