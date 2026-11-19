@@ -24,6 +24,9 @@ protocol WatchReadableCGM: CGMManager & DeviceConfigurationSharing {
     func recheckAcquisition()
     /// The sensor link came up (true) or went down (false), as this log line of the manager's tells; nil otherwise.
     static func watchLinkIsUp(afterLog message: String) -> Bool?
+    /// Whether two of the phone's exports name the same sensor: only then may the watch keep its manager, and with
+    /// it the sensor it has found and bonded. A key a kit update adds to the export is no new sensor.
+    static func sameSensor(_ a: [String: Any], _ b: [String: Any]) -> Bool
 }
 
 /// Keyed by each manager's `pluginIdentifier`, which is what its export carries. Stated, as Trio's device catalog
@@ -72,6 +75,16 @@ extension G7CGMManager: WatchReadableCGM {
 
     var watchWarmupEndsAt: Date? {
         lifecycleState == .warmup ? sensorFinishesWarmupAt : nil
+    }
+
+    static func sameSensor(_ a: [String: Any], _ b: [String: Any]) -> Bool {
+        ["sensorID", "activatedAt", "pairingCode"].allSatisfy { key in
+            switch (a[key] as AnyObject?, b[key] as AnyObject?) {
+            case (nil, nil): return true
+            case let (x?, y?): return x.isEqual(y)
+            default: return false
+            }
+        }
     }
 
     // ponytail: the kit tells its observers of scans only, so its connect and disconnect are read from its log

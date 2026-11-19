@@ -62,7 +62,9 @@ import WatchKit
             }
             return
         }
-        if cgmManager != nil, let builtFrom, (builtFrom as NSDictionary).isEqual(to: configuration.state) {
+        if let cgmManager, let builtFrom, cgmManager.pluginIdentifier == configuration.managerIdentifier,
+           type(of: cgmManager).sameSensor(builtFrom, configuration.state)
+        {
             recheckAcquisition()
             return
         }

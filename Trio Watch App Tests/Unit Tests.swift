@@ -343,4 +343,15 @@ import WatchKit
         )
         #expect(UIImage(systemName: symbolName) != nil)
     }
+
+    @Test("A key a kit update adds to the CGM export keeps the watch's manager") func testSameSensorIgnoresNewKeys() throws {
+        let g7 = try #require(watchCGMManagersByIdentifier["G7CGMManager"])
+        let built: [String: Any] = ["sensorID": "ABC123", "activatedAt": Date(timeIntervalSince1970: 1000), "pairingCode": "1234"]
+        var updated = built
+        updated["calibrationAdviceSeen"] = false
+        #expect(g7.sameSensor(built, updated))
+        updated["sensorID"] = "XYZ789"
+        #expect(!g7.sameSensor(built, updated))
+        #expect(!g7.sameSensor(built, ["sensorID": "ABC123", "activatedAt": Date(timeIntervalSince1970: 1000)]))
+    }
 }
