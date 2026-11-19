@@ -34,6 +34,7 @@ final class SpyAlertManager: TrioAlertManager {
     func register(responder _: AlertResponder, for _: String) {}
     func register(soundVendor _: AlertSoundVendor, for _: String) {}
     func unregister(managerIdentifier _: String) {}
+    func addAlertForwarder(_: TrioAlertForwarder) {}
 
     func handleAcknowledgement(identifier _: Alert.Identifier) {}
     func handleNotificationResponse(_: UNNotificationResponse) {}
