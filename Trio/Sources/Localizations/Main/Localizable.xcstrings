@@ -278894,6 +278894,9 @@
         }
       }
     },
+    "snoozed, %@ remaining" : {
+      "comment" : "Accessibility: alarm snooze; %@ is a duration like \"15 minutes\". Word it so %@ stays unchanged."
+    },
     "snoozed, %d minutes remaining" : {
       "comment" : "Accessibility: alarm snooze",
       "localizations" : {
