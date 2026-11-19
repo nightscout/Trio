@@ -229,7 +229,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
 
     private func updateManagerUnits(_ manager: CGMManagerUI?) {
         let units = settingsManager.settings.units
-        let managerName = cgmManager.map { "\(type(of: $0))" } ?? "nil"
+        let managerName = manager.map { "\(type(of: $0))" } ?? "nil"
         let loopkitUnits: LoopUnit = units == .mgdL ? .milligramsPerDeciliter : .millimolesPerLiter
         debug(.cgm, "\(managerName) units set to \(loopkitUnits.unitString)")
         manager?.unitDidChange(to: loopkitUnits)
@@ -255,6 +255,7 @@ final class BaseFetchGlucoseManager: FetchGlucoseManager, Injectable {
         // if plugin, if not the same pluginID, need to reset the cgmManager
         // if plugin and newManager provides, update cgmManager
         if let manager = newManager {
+            updateManagerUnits(manager)
             cgmManager = manager
             removeCalibrations()
         } else if self.cgmGlucoseSourceType == .plugin, cgmManager == nil, let rawCGMManager = rawCGMManager {
@@ -426,6 +427,7 @@ extension CGMManager {
 extension BaseFetchGlucoseManager: SettingsObserver {
     /// Smooth glucose data when smoothing is turned on.
     func settingsDidChange(_: TrioSettings) {
+        updateManagerUnits(cgmManager)
         let smoothingWasEnabled = shouldSmoothGlucose
         let smoothingIsEnabled = settingsManager.settings.smoothGlucose
         shouldSmoothGlucose = smoothingIsEnabled

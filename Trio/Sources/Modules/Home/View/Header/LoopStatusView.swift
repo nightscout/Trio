@@ -85,11 +85,10 @@ struct LoopStatusView: View {
                     Text("Current Algorithm Reasoning").bold().padding(.top)
 
                     Text(
-                        self
-                            .parseReasonConclusion(
-                                determination.reasonConclusion,
-                                isMmolL: state.units == .mmolL
-                            )
+                        Self.parseReasonConclusion(
+                            determination.reasonConclusion,
+                            isMmolL: state.units == .mmolL
+                        )
                     )
                     .font(.subheadline)
                     .lineLimit(nil)
@@ -225,11 +224,13 @@ struct LoopStatusView: View {
     }
 
     // TODO: Consolidate all mmol parsing methods (in TagCloudView, NightscoutManager and HomeRootView) to one central func
-    private func parseReasonConclusion(_ reasonConclusion: String, isMmolL: Bool) -> String {
+    static func parseReasonConclusion(_ reasonConclusion: String, isMmolL: Bool) -> String {
         let patterns = [
             "minGuardBG\\s*-?\\d+\\.?\\d*<-?\\d+\\.?\\d*", // minGuardBG x<y
             "Eventual BG\\s*-?\\d+\\.?\\d*\\s*>=\\s*-?\\d+\\.?\\d*", // Eventual BG x >= target
             "Eventual BG\\s*-?\\d+\\.?\\d*\\s*<\\s*-?\\d+\\.?\\d*", // Eventual BG x < target
+            "Eventual BG\\s*-?\\d+\\.?\\d*\\s*>\\s*-?\\d+\\.?\\d*", // Eventual BG x > target
+            "(?<![A-Za-z])(?:expectedDelta|Min\\.\\s+Delta|Exp\\.\\s+Delta|Delta)\\s+-?\\d+\\.?\\d*", // delta values
             "(\\S+)\\s+(-?\\d+\\.?\\d*)\\s*>\\s*(\\d+)%\\s+of\\s+BG\\s+(-?\\d+\\.?\\d*)" // maxDelta x > y% of BG z
         ]
         let pattern = patterns.joined(separator: "|")
@@ -288,6 +289,31 @@ struct LoopStatusView: View {
                         let formattedSecondValue = convertToMmolL(secondValue)
                         let formattedString = "Eventual BG \(formattedFirstValue) >= \(formattedSecondValue)"
                         updatedConclusion.replaceSubrange(range, with: formattedString)
+                    }
+                } else if matchedString.hasPrefix("Eventual BG") {
+                    // Handle "Eventual BG x > target" pattern
+                    let parts = matchedString.components(separatedBy: ">")
+                    if parts.count == 2 {
+                        let bgPart = parts[0].replacingOccurrences(of: "Eventual BG", with: "")
+                            .trimmingCharacters(in: .whitespaces)
+                        let targetValue = parts[1].trimmingCharacters(in: .whitespaces)
+                        let formattedBGPart = convertToMmolL(bgPart)
+                        let formattedTargetValue = convertToMmolL(targetValue)
+                        updatedConclusion.replaceSubrange(
+                            range,
+                            with: "Eventual BG \(formattedBGPart) > \(formattedTargetValue)"
+                        )
+                    }
+                } else if matchedString.hasPrefix("Delta ") || matchedString.hasPrefix("expectedDelta ")
+                    || matchedString.hasPrefix("Min. Delta ") || matchedString.hasPrefix("Exp. Delta ")
+                {
+                    if let valueRange = matchedString.range(
+                        of: #"-?\d+(?:\.\d+)?$"#,
+                        options: .regularExpression
+                    ) {
+                        let label = String(matchedString[..<valueRange.lowerBound])
+                        let value = String(matchedString[valueRange])
+                        updatedConclusion.replaceSubrange(range, with: label + convertToMmolL(value))
                     }
                 } else if let localMatch = regex.firstMatch(
                     in: matchedString,
