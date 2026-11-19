@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CD5433515FD75D1421AFE509 /* RemoteTreatmentGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B55FF1780B839DC309AE2581 /* RemoteTreatmentGuardTests.swift */; };
+		59590795A904CD4E7C8AA7CD /* NightscoutObjectIdStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B9CAF7E4571224EBB2EF567 /* NightscoutObjectIdStore.swift */; };
+		034BF913F9639417555E1B4A /* TrioRemoteControl+TreatmentGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CFC1FA4917A7921B13B88A /* TrioRemoteControl+TreatmentGuard.swift */; };
+		6B8993C91BED4001A5D8304A /* RemoteTreatmentGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E21E5C9279F886D2BE46E3 /* RemoteTreatmentGuard.swift */; };
 		0EE3091BCB5620EA4AA5A757 /* TherapyProfileRemoteValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4827A4B7DD2D3BFD529DE267 /* TherapyProfileRemoteValuesTests.swift */; };
 		1994FB53A99174972EF458B0 /* TrioRemoteControlProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1042483A35E77F38E714A9C2 /* TrioRemoteControlProfileTests.swift */; };
 		662B8B7A520F2A09917A1F48 /* TrioRemoteControl+Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35347DB1DA2F240DA37B5571 /* TrioRemoteControl+Profile.swift */; };
@@ -1295,6 +1299,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B55FF1780B839DC309AE2581 /* RemoteTreatmentGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTreatmentGuardTests.swift; sourceTree = "<group>"; };
+		4B9CAF7E4571224EBB2EF567 /* NightscoutObjectIdStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NightscoutObjectIdStore.swift; sourceTree = "<group>"; };
+		F2CFC1FA4917A7921B13B88A /* TrioRemoteControl+TreatmentGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+TreatmentGuard.swift"; sourceTree = "<group>"; };
+		77E21E5C9279F886D2BE46E3 /* RemoteTreatmentGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteTreatmentGuard.swift; sourceTree = "<group>"; };
 		4827A4B7DD2D3BFD529DE267 /* TherapyProfileRemoteValuesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TherapyProfileRemoteValuesTests.swift; sourceTree = "<group>"; };
 		1042483A35E77F38E714A9C2 /* TrioRemoteControlProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrioRemoteControlProfileTests.swift; sourceTree = "<group>"; };
 		35347DB1DA2F240DA37B5571 /* TrioRemoteControl+Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TrioRemoteControl+Profile.swift"; sourceTree = "<group>"; };
@@ -3724,6 +3732,7 @@
 				CE1F6DD82BADF4620064EB8D /* PluginManagerTests.swift */,
 				DC01A00D2E9F100000000004 /* DeviceCatalogTests.swift */,
 				98546920BB7247B0AC73449A /* ContainerResolutionTests.swift */,
+				B55FF1780B839DC309AE2581 /* RemoteTreatmentGuardTests.swift */,
 				7AF74BBFE9F7B8CA9187C4DB /* RemoteMealMutationPayloadTests.swift */,
 				3B5CD2C72D4AECD500CE213C /* OpenAPSSwiftTests */,
 				B3919BBB515547118D684CA2 /* SettingsSearchTests.swift */,
@@ -5070,6 +5079,8 @@
 		DD9ECB662CA99EFE00AA7C45 /* RemoteControl */ = {
 			isa = PBXGroup;
 			children = (
+				77E21E5C9279F886D2BE46E3 /* RemoteTreatmentGuard.swift */,
+				F2CFC1FA4917A7921B13B88A /* TrioRemoteControl+TreatmentGuard.swift */,
 				35347DB1DA2F240DA37B5571 /* TrioRemoteControl+Profile.swift */,
 				DD485F172E466F1800CE8CBF /* SecureMessenger.swift */,
 				DD17A0312E3FEA1F008E1BF0 /* RemoteNotificationResponseManager.swift */,
@@ -5128,6 +5139,7 @@
 				DD906BF32EA6AA0100262772 /* NightscoutUploadPipeline.swift */,
 				10E61A0885164081B57C357C /* NightscoutUploadSerializer.swift */,
 				3811DE9725C9D88300A708ED /* NightscoutManager.swift */,
+				4B9CAF7E4571224EBB2EF567 /* NightscoutObjectIdStore.swift */,
 				38FE826C25CC8461001FF17A /* NightscoutAPI.swift */,
 				DD906BF52EA6AAE900262772 /* BaseNightscoutManager+Subscribers.swift */,
 			);
@@ -6145,6 +6157,7 @@
 				3811DEAF25C9D88300A708ED /* KeyValueStorage.swift in Sources */,
 				DDD6D4D32CDE90720029439A /* EstimatedA1cDisplayUnit.swift in Sources */,
 				DDA6E3572D25988500C2988C /* ContactImageHelpView.swift in Sources */,
+				59590795A904CD4E7C8AA7CD /* NightscoutObjectIdStore.swift in Sources */,
 				38FE826D25CC8461001FF17A /* NightscoutAPI.swift in Sources */,
 				388358C825EEF6D200E024B2 /* BasalProfileEntry.swift in Sources */,
 				DDA9AC092D672CF100E6F1A9 /* AppVersionChecker.swift in Sources */,
@@ -6155,6 +6168,8 @@
 				DD32CFA22CC824E2003686D6 /* TrioRemoteControl+Helpers.swift in Sources */,
 				CE1856F52ADC4858007E39C7 /* AddCarbPresetIntent.swift in Sources */,
 				38569347270B5DFB0002C50D /* CGMType.swift in Sources */,
+				6B8993C91BED4001A5D8304A /* RemoteTreatmentGuard.swift in Sources */,
+				034BF913F9639417555E1B4A /* TrioRemoteControl+TreatmentGuard.swift in Sources */,
 				DD485F182E466F1800CE8CBF /* SecureMessenger.swift in Sources */,
 				3821ED4C25DD18BA00BC42AD /* Constants.swift in Sources */,
 				CE1F6DE92BAF37C90064EB8D /* TidepoolConfigView.swift in Sources */,
@@ -6786,6 +6801,7 @@
 				CE1F6DD92BADF4620064EB8D /* PluginManagerTests.swift in Sources */,
 				DC01A00E2E9F100000000005 /* DeviceCatalogTests.swift in Sources */,
 				10DAA318F47843A4B894173D /* ContainerResolutionTests.swift in Sources */,
+				CD5433515FD75D1421AFE509 /* RemoteTreatmentGuardTests.swift in Sources */,
 				940584C38CB62676214A2107 /* RemoteMealMutationPayloadTests.swift in Sources */,
 				3B1C5C432D68E269004E9273 /* Extensions.swift in Sources */,
 				3BC26E552D7418830066ACD6 /* IobSuspendTests.swift in Sources */,

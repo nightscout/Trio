@@ -35,8 +35,12 @@ final class BaseFetchTreatmentsManager: FetchTreatmentsManager, Injectable {
 
                         // Store carbs directly (no filtering, as it's done in fetchCarbs)
                         let fetchedCarbs = await carbs
-                        if fetchedCarbs.isNotEmpty {
-                            try await self.carbsStorage.storeCarbs(fetchedCarbs, areFetchedFromRemote: true)
+                        if fetchedCarbs.entries.isNotEmpty {
+                            try await self.carbsStorage.storeCarbs(
+                                fetchedCarbs.entries,
+                                areFetchedFromRemote: true,
+                                nightscoutSiteURL: fetchedCarbs.siteURL
+                            )
                         }
 
                         // Store temp targets directly (no filtering, as it's done in fetchTempTargets)

@@ -152,6 +152,47 @@ extension NightscoutAPI {
         return carbs
     }
 
+    /// Upper bound on treatments one `_id` lookup returns; covers a meal's whole series of carb equivalents.
+    static let objectIdLookupCount = 100
+
+    /// Query for the treatments uploaded with `id` == `localId` and created at or after `createdSince`.
+    static func objectIdLookupQueryItems(localId: String, createdSince: Date) -> [URLQueryItem] {
+        [
+            URLQueryItem(name: "find[id]", value: localId),
+            URLQueryItem(
+                name: "find[created_at][$gte]",
+                value: Formatter.iso8601withFractionalSeconds.string(from: createdSince)
+            ),
+            URLQueryItem(name: "count", value: String(objectIdLookupCount))
+        ]
+    }
+
+    /// The greatest `_id` among the treatments uploaded with `id` == `localId` and created at or after `createdSince`.
+    func fetchObjectId(forLocalId localId: String, createdSince: Date) async throws -> String? {
+        var components = URLComponents()
+        components.scheme = url.scheme
+        components.host = url.host
+        components.port = url.port
+        components.path = Config.treatmentsPath
+        components.queryItems = Self.objectIdLookupQueryItems(localId: localId, createdSince: createdSince)
+
+        var request = URLRequest(url: components.url!)
+        request.timeoutInterval = Config.timeout
+
+        if let secret = secret {
+            request.addValue(secret.sha1(), forHTTPHeaderField: "api-secret")
+        }
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, (200 ... 299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+        return NightscoutObjectIdCache.mappings(fromUploadResponse: data, localIds: [localId])
+            .compactMap { NightscoutObjectId($0.objectId) }
+            .max()?.value
+    }
+
     func deleteCarbs(withId id: String) async throws {
         var components = URLComponents()
         components.scheme = url.scheme
@@ -285,7 +326,8 @@ extension NightscoutAPI {
         return tempTargets
     }
 
-    func uploadTreatments(_ treatments: [NightscoutTreatment]) async throws {
+    /// - Returns: the response body, the stored treatments as Nightscout echoes them.
+    @discardableResult func uploadTreatments(_ treatments: [NightscoutTreatment]) async throws -> Data {
         var components = URLComponents()
         components.scheme = url.scheme
         components.host = url.host
@@ -315,7 +357,7 @@ extension NightscoutAPI {
         }
         request.httpMethod = "POST"
 
-        let (_, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
 
         // Check the response status code
         guard let httpResponse = response as? HTTPURLResponse, 200 ..< 300 ~= httpResponse.statusCode else {
@@ -323,6 +365,7 @@ extension NightscoutAPI {
         }
 
 //        debugPrint("Upload successful, response data: \(String(data: data, encoding: .utf8) ?? "No data")")
+        return data
     }
 
     func uploadGlucose(_ glucose: [BloodGlucose]) async throws {
