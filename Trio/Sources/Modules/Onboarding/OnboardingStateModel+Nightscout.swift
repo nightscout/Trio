@@ -35,6 +35,7 @@ extension Onboarding.StateModel {
             } receiveValue: {
                 self.keychain.setValue(self.nightscoutUrl, forKey: NightscoutConfig.Config.urlKey)
                 self.keychain.setValue(self.nightscoutSecret, forKey: NightscoutConfig.Config.secretKey)
+                NightscoutObjectIdStore.shared.snapshot()
                 self.isConnectedToNS = true
             }
             .store(in: &lifetime)

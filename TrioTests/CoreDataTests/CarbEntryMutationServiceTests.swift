@@ -230,7 +230,7 @@ private final class StubNightscoutManager: NightscoutManager {
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> { Just([]).eraseToAnyPublisher() }
     func sourceInfo() -> [String: Any]? { nil }
     func fetchGlucose(since _: Date) async -> [BloodGlucose] { [] }
-    func fetchCarbs() async -> [CarbsEntry] { [] }
+    func fetchCarbs() async -> (entries: [CarbsEntry], siteURL: String?) { ([], nil) }
     func fetchTempTargets() async -> [TempTarget] { [] }
     func deleteCarbs(withID id: String) async -> Bool {
         await onDeleteCarbs(id)

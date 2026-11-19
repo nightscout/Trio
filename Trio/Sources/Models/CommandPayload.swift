@@ -23,6 +23,8 @@ struct CommandPayload: Decodable, Sendable {
     var commandId: String?
     var mealId: String?
     var returnNotification: ReturnNotificationInfo?
+    /// Newest Nightscout `_id` among the treatments the sender had fetched when it sent the command.
+    var knownThroughId: String?
 
     /// Nightscout `id` of the meal root or of one of its carb equivalents.
     var mealHandle: UUID? {
@@ -62,6 +64,7 @@ struct CommandPayload: Decodable, Sendable {
         case commandId = "command_id"
         case mealId = "meal_id"
         case returnNotification = "return_notification"
+        case knownThroughId = "known_through_id"
     }
 
     func humanReadableDescription() -> String {
