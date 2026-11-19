@@ -1147,6 +1147,19 @@
 		CA0924000000000000000004 /* GRIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0924000000000000000003 /* GRIView.swift */; };
 		CA0924000000000000000006 /* GRICalculatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA0924000000000000000005 /* GRICalculatorTests.swift */; };
 		FF42480CF46A31D00C817D8C /* WatchLogEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D79872B74ADDBDD11682D0 /* WatchLogEntry.swift */; };
+		5A0A11000000000000000201 /* SettingsAnalysisModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000101 /* SettingsAnalysisModels.swift */; };
+		5A0A11000000000000000202 /* SettingsAnalysisEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000102 /* SettingsAnalysisEngine.swift */; };
+		5A0A11000000000000000203 /* SettingsAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000103 /* SettingsAnalysisView.swift */; };
+		5A0A11000000000000000204 /* SettingsAnalysisResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000104 /* SettingsAnalysisResultsView.swift */; };
+		5A0A11000000000000000205 /* SettingsAnalysisInfoViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000105 /* SettingsAnalysisInfoViews.swift */; };
+		5A0A11000000000000000206 /* SettingsAnalysisCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000106 /* SettingsAnalysisCatalog.swift */; };
+		5A0A11000000000000000207 /* SettingsAnalysisSettingsChecks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000107 /* SettingsAnalysisSettingsChecks.swift */; };
+		5A0A11000000000000000208 /* SettingsAnalysisSnapshotProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000108 /* SettingsAnalysisSnapshotProvider.swift */; };
+		5A0A11000000000000000209 /* SettingsAnalysisChecksViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000109 /* SettingsAnalysisChecksViews.swift */; };
+		5A0A11000000000000000211 /* SettingsAnalysisHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000111 /* SettingsAnalysisHistory.swift */; };
+		5A0A11000000000000000212 /* SettingsAnalysisDetectors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000112 /* SettingsAnalysisDetectors.swift */; };
+		5A0A11000000000000000213 /* SettingsAnalysisDetectorsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000113 /* SettingsAnalysisDetectorsTests.swift */; };
+		5A0A11000000000000000210 /* SettingsAnalysisChecksTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A11000000000000000110 /* SettingsAnalysisChecksTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2383,6 +2396,19 @@
 		CA0924000000000000000001 /* GRICalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRICalculator.swift; sourceTree = "<group>"; };
 		CA0924000000000000000003 /* GRIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRIView.swift; sourceTree = "<group>"; };
 		CA0924000000000000000005 /* GRICalculatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRICalculatorTests.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000101 /* SettingsAnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisModels.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000102 /* SettingsAnalysisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisEngine.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000103 /* SettingsAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisView.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000104 /* SettingsAnalysisResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisResultsView.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000105 /* SettingsAnalysisInfoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisInfoViews.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000106 /* SettingsAnalysisCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisCatalog.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000107 /* SettingsAnalysisSettingsChecks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisSettingsChecks.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000108 /* SettingsAnalysisSnapshotProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisSnapshotProvider.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000109 /* SettingsAnalysisChecksViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisChecksViews.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000111 /* SettingsAnalysisHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisHistory.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000112 /* SettingsAnalysisDetectors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisDetectors.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000113 /* SettingsAnalysisDetectorsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisDetectorsTests.swift; sourceTree = "<group>"; };
+		5A0A11000000000000000110 /* SettingsAnalysisChecksTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsAnalysisChecksTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -2696,6 +2722,7 @@
 				19F95FF429F10FCF00314DDC /* StatProvider.swift */,
 				19F95FF629F10FEE00314DDC /* StatStateModel.swift */,
 				19F95FF829F10FF600314DDC /* View */,
+				5A0A11000000000000000001 /* SettingsAnalysis */,
 			);
 			path = Stat;
 			sourceTree = "<group>";
@@ -3619,6 +3646,8 @@
 				B3919BBB515547118D684CB2 /* DosingModeMigrationTests.swift */,
 				BD8FC0532D66186000B95AED /* TestError.swift */,
 				C39FF1EC12CF4B1EBB13BE26 /* NightscoutUploadSerializerTests.swift */,
+				5A0A11000000000000000110 /* SettingsAnalysisChecksTests.swift */,
+				5A0A11000000000000000113 /* SettingsAnalysisDetectorsTests.swift */,
 				6EFF860E684B4C9488D438DD /* NightscoutImportRoundTripTests.swift */,
 				BD8FC0702D661B0000B95AED /* TidepoolTherapySettingsTests.swift */,
 				CA03000000000000000010C1 /* AlertCatalogRegistryOmniFaultTests.swift */,
@@ -3958,6 +3987,24 @@
 				510CCF29FD3216C5BBC49A15 /* View */,
 			);
 			path = PumpConfig;
+			sourceTree = "<group>";
+		};
+		5A0A11000000000000000001 /* SettingsAnalysis */ = {
+			isa = PBXGroup;
+			children = (
+				5A0A11000000000000000101 /* SettingsAnalysisModels.swift */,
+				5A0A11000000000000000102 /* SettingsAnalysisEngine.swift */,
+				5A0A11000000000000000103 /* SettingsAnalysisView.swift */,
+				5A0A11000000000000000104 /* SettingsAnalysisResultsView.swift */,
+				5A0A11000000000000000105 /* SettingsAnalysisInfoViews.swift */,
+				5A0A11000000000000000106 /* SettingsAnalysisCatalog.swift */,
+				5A0A11000000000000000107 /* SettingsAnalysisSettingsChecks.swift */,
+				5A0A11000000000000000108 /* SettingsAnalysisSnapshotProvider.swift */,
+				5A0A11000000000000000109 /* SettingsAnalysisChecksViews.swift */,
+				5A0A11000000000000000111 /* SettingsAnalysisHistory.swift */,
+				5A0A11000000000000000112 /* SettingsAnalysisDetectors.swift */,
+			);
+			path = SettingsAnalysis;
 			sourceTree = "<group>";
 		};
 		9C010A737CBFB0028E98B2E9 /* ReportProblem */ = {
@@ -6561,6 +6608,17 @@
 				F6854A961CB1CF1105757936 /* LogShareRow.swift in Sources */,
 				536B4DB89FCFE9188F4DFE5D /* SensitiveValues.swift in Sources */,
 				659C83549641F3FCC56F30AB /* ReportProblemView.swift in Sources */,
+				5A0A11000000000000000201 /* SettingsAnalysisModels.swift in Sources */,
+				5A0A11000000000000000202 /* SettingsAnalysisEngine.swift in Sources */,
+				5A0A11000000000000000203 /* SettingsAnalysisView.swift in Sources */,
+				5A0A11000000000000000204 /* SettingsAnalysisResultsView.swift in Sources */,
+				5A0A11000000000000000205 /* SettingsAnalysisInfoViews.swift in Sources */,
+				5A0A11000000000000000206 /* SettingsAnalysisCatalog.swift in Sources */,
+				5A0A11000000000000000207 /* SettingsAnalysisSettingsChecks.swift in Sources */,
+				5A0A11000000000000000208 /* SettingsAnalysisSnapshotProvider.swift in Sources */,
+				5A0A11000000000000000209 /* SettingsAnalysisChecksViews.swift in Sources */,
+				5A0A11000000000000000211 /* SettingsAnalysisHistory.swift in Sources */,
+				5A0A11000000000000000212 /* SettingsAnalysisDetectors.swift in Sources */,
 				E8C6B60FFBA9D89DE3BCCA99 /* WatchLogEntry.swift in Sources */,
 				92DE66B4776804F0DD8A2925 /* WatchLogRing.swift in Sources */,
 				6DB56C9F3F74834C536E9199 /* WatchLogIngest.swift in Sources */,
@@ -6608,6 +6666,8 @@
 				3BBC22632DF5B94100169236 /* AutosensTests.swift in Sources */,
 				BD8FC0542D66186000B95AED /* TestError.swift in Sources */,
 				FB9012AE66284A92A6531037 /* NightscoutUploadSerializerTests.swift in Sources */,
+				5A0A11000000000000000210 /* SettingsAnalysisChecksTests.swift in Sources */,
+				5A0A11000000000000000213 /* SettingsAnalysisDetectorsTests.swift in Sources */,
 				782BE9AEFDD94938A6F3EFE9 /* NightscoutImportRoundTripTests.swift in Sources */,
 				DDDD0FFB2F4E22C000F9C645 /* GlucoseSmoothingTests.swift in Sources */,
 				CA0924000000000000000006 /* GRICalculatorTests.swift in Sources */,
