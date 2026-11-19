@@ -921,7 +921,7 @@ extension Home {
             switch manager {
             case let g7 as G7CGMManager:
                 // Once a G7 enters grace period, `sensorExpiresAt` is in the past
-                // and would collapse the bobble countdown to "<1m" while the arc
+                // and would collapse the bobble countdown to "< 1 min" while the arc
                 // (driven by lifecycle.percentComplete against `sensorEndsAt`) is
                 // still mid-progress. Fall back to `sensorEndsAt` so bobble and
                 // arc agree, and the user sees grace-period time remaining.
