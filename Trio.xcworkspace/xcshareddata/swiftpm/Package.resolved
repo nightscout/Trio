@@ -1,5 +1,5 @@
 {
-  "originHash" : "29c2d0190b27ae86bc9534bbc8a3bba9693842515e38f5e89a3dbf80573f962f",
+  "originHash" : "bb8e2b9aa963df538568a259954eb7e0af5e4a69912c14144f270c3c90251d37",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -182,15 +182,6 @@
       }
     },
     {
-      "identity" : "mkringprogressview",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/maxkonovalov/MKRingProgressView.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "660888aab1d2ab0ed7eb9eb53caec12af4955fa7"
-      }
-    },
-    {
       "identity" : "nanopb",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/nanopb.git",
@@ -218,15 +209,6 @@
       }
     },
     {
-      "identity" : "swift-algorithms",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-algorithms",
-      "state" : {
-        "revision" : "2327673b0e9c7e90e6b1826376526ec3627210e4",
-        "version" : "0.2.1"
-      }
-    },
-    {
       "identity" : "swift-jwt",
       "kind" : "remoteSourceControl",
       "location" : "http://github.com/Kitura/Swift-JWT.git",
@@ -242,15 +224,6 @@
       "state" : {
         "revision" : "bbd81b6725ae874c69e9b8c8804d462356b55523",
         "version" : "1.10.1"
-      }
-    },
-    {
-      "identity" : "swift-numerics",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-numerics",
-      "state" : {
-        "revision" : "6583ac70c326c3ee080c1d42d9ca3361dca816cd",
-        "version" : "0.1.0"
       }
     },
     {
