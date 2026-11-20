@@ -213,7 +213,6 @@
 		E0F5C5534791F6BB9A237891 /* TrioLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69EF64E9534E4822199EA279 /* TrioLogger.swift */; };
 		E73259BE7A7D1AFB93D6B8DF /* CarbEntryMutationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2F107674CF1D9C0A2A9ACF /* CarbEntryMutationService.swift */; };
 		38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 38B17B6525DD90E0005CAE3D /* SwiftDate */; };
-		38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3AE25E2979F00E76A18 /* IndexedCollection.swift */; };
 		38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3C225E2A20B00E76A18 /* PumpSetupView.swift */; };
 		38B4F3C625E5017E00E76A18 /* NotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3C525E5017E00E76A18 /* NotificationCenter.swift */; };
 		38B4F3CA25E502E200E76A18 /* SwiftNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3C825E502E100E76A18 /* SwiftNotificationCenter.swift */; };
@@ -1486,7 +1485,6 @@
 		38AEE75625F0F18E0013F05B /* CarbsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsStorage.swift; sourceTree = "<group>"; };
 		39062D177D83C69CAFC9B2AC /* AppLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogStore.swift; sourceTree = "<group>"; };
 		3A2F107674CF1D9C0A2A9ACF /* CarbEntryMutationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbEntryMutationService.swift; sourceTree = "<group>"; };
-		38B4F3AE25E2979F00E76A18 /* IndexedCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexedCollection.swift; sourceTree = "<group>"; };
 		38B4F3C225E2A20B00E76A18 /* PumpSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpSetupView.swift; sourceTree = "<group>"; };
 		38B4F3C525E5017E00E76A18 /* NotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenter.swift; sourceTree = "<group>"; };
 		38B4F3C825E502E100E76A18 /* SwiftNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftNotificationCenter.swift; sourceTree = "<group>"; };
@@ -3515,7 +3513,6 @@
 				DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */,
 				3811DE5425C9D4D500A708ED /* Formatters.swift */,
 				38FEF412273B317A00574A46 /* HKUnit.swift */,
-				38B4F3AE25E2979F00E76A18 /* IndexedCollection.swift */,
 				389A571F26079BAA00BC102F /* Interpolation.swift */,
 				388E5A5B25B6F0770019842D /* JSON.swift */,
 				38A00B2225FC2B55006BC0B0 /* LRUCache.swift */,
@@ -6151,7 +6148,6 @@
 				3811DE5D25C9D4D500A708ED /* Publisher.swift in Sources */,
 				E00EEC0727368630002FF094 /* APSAssembly.swift in Sources */,
 				BD249D8A2D42FC1200412DEB /* GlucosePercentileChart.swift in Sources */,
-				38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */,
 				58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */,
 				BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */,
 				E592A3702CEEC01E009A472C /* ContactTrickEntry.swift in Sources */,
