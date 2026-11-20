@@ -46,6 +46,10 @@ extension Alert {
         // Service concepts. Surface through `TrioAlertManager` via
         // `TidepoolManager.issueAlert(_:)`.
         case tidepoolLoginRequired
+        // Trio-internal "Profiles" concepts. Emitted by `TherapyProfileManager`
+        // under the `trio.therapyProfiles` manager identifier.
+        case profileSwitched
+        case scheduledProfileSwitchNotDone
         /// Plugin-unique alarm that doesn't merge with anything else.
         case unspecified
 
@@ -84,6 +88,8 @@ extension Alert {
             case .algorithmError: return String(localized: "Algorithm Error")
             case .glucoseDataStale: return String(localized: "Glucose Data Stale")
             case .tidepoolLoginRequired: return String(localized: "Tidepool Login Required")
+            case .profileSwitched: return String(localized: "Profile Switched")
+            case .scheduledProfileSwitchNotDone: return String(localized: "Scheduled Switch Not Done")
             case .unspecified: return ""
             }
         }
