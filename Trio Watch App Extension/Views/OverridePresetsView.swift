@@ -3,7 +3,8 @@ import SwiftUI
 struct OverridePresetsView: View {
     let state: WatchState
     let overridePresets: [OverridePresetWatch]
-    var onPresetAction: () -> Void // Callback to handle selection of preset, or cancellation, and dismiss the sheet
+    var onPresetAction: () -> Void // Callback after a request is sent: dismisses the sheet and shows the acknowledgement screen
+    @Environment(\.dismiss) private var dismiss
 
     private let activePresetGradient = LinearGradient(
         colors: [
@@ -44,9 +45,13 @@ struct OverridePresetsView: View {
                 } else {
                     ForEach(sortedPresets, id: \.name) { preset in
                         Button(action: {
-                            if !preset.isEnabled {
-                                state.sendActivateOverrideRequest(presetName: preset.name)
+                            // The running preset is a status row: nothing is sent, so there is no answer to wait for
+                            // on the acknowledgement screen (it would never close). Just close the sheet.
+                            guard !preset.isEnabled else {
+                                dismiss()
+                                return
                             }
+                            state.sendActivateOverrideRequest(presetName: preset.name)
                             onPresetAction()
                         }) {
                             HStack {
