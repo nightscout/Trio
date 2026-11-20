@@ -147,7 +147,6 @@
 		3821ED4C25DD18BA00BC42AD /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3821ED4B25DD18BA00BC42AD /* Constants.swift */; };
 		382C133725F13A1E00715CE1 /* InsulinSensitivities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382C133625F13A1E00715CE1 /* InsulinSensitivities.swift */; };
 		382C134B25F14E3700715CE1 /* BGTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 382C134A25F14E3700715CE1 /* BGTargets.swift */; };
-		3833B46D26012030003021B3 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 3833B46C26012030003021B3 /* Algorithms */; };
 		383420D625FFE38C002D46C1 /* LoopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383420D525FFE38C002D46C1 /* LoopView.swift */; };
 		383420D925FFEB3F002D46C1 /* Popup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383420D825FFEB3F002D46C1 /* Popup.swift */; };
 		383948D625CD4D8900E91849 /* FileStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383948D525CD4D8900E91849 /* FileStorage.swift */; };
@@ -214,7 +213,6 @@
 		E0F5C5534791F6BB9A237891 /* TrioLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69EF64E9534E4822199EA279 /* TrioLogger.swift */; };
 		E73259BE7A7D1AFB93D6B8DF /* CarbEntryMutationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2F107674CF1D9C0A2A9ACF /* CarbEntryMutationService.swift */; };
 		38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 38B17B6525DD90E0005CAE3D /* SwiftDate */; };
-		38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3AE25E2979F00E76A18 /* IndexedCollection.swift */; };
 		38B4F3C325E2A20B00E76A18 /* PumpSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3C225E2A20B00E76A18 /* PumpSetupView.swift */; };
 		38B4F3C625E5017E00E76A18 /* NotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3C525E5017E00E76A18 /* NotificationCenter.swift */; };
 		38B4F3CA25E502E200E76A18 /* SwiftNotificationCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38B4F3C825E502E100E76A18 /* SwiftNotificationCenter.swift */; };
@@ -511,7 +509,6 @@
 		B6E925132EB3932A0076D719 /* OmnipodKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6E925122EB3932A0076D719 /* OmnipodKit.framework */; };
 		B6E925142EB3932A0076D719 /* OmnipodKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B6E925122EB3932A0076D719 /* OmnipodKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B7C465E9472624D8A2BE2A6A /* (null) in Sources */ = {isa = PBXBuildFile; };
-		B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */ = {isa = PBXBuildFile; productRef = B958F1B62BA0711600484851 /* MKRingProgressView */; };
 		BA00D96F7B2FF169A06FB530 /* CGMSettingsStateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C018D1680307A31C9ED7120 /* CGMSettingsStateModel.swift */; };
 		BB5227A51D9D4377A1A70BA6 /* TempTargetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B8F3B0E159844FD8746DFC0 /* TempTargetData.swift */; };
 		BD04ECCE2D29952A008C5FEB /* BolusProgressOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD04ECCD2D299522008C5FEB /* BolusProgressOverlay.swift */; };
@@ -1488,7 +1485,6 @@
 		38AEE75625F0F18E0013F05B /* CarbsStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbsStorage.swift; sourceTree = "<group>"; };
 		39062D177D83C69CAFC9B2AC /* AppLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogStore.swift; sourceTree = "<group>"; };
 		3A2F107674CF1D9C0A2A9ACF /* CarbEntryMutationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbEntryMutationService.swift; sourceTree = "<group>"; };
-		38B4F3AE25E2979F00E76A18 /* IndexedCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexedCollection.swift; sourceTree = "<group>"; };
 		38B4F3C225E2A20B00E76A18 /* PumpSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpSetupView.swift; sourceTree = "<group>"; };
 		38B4F3C525E5017E00E76A18 /* NotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationCenter.swift; sourceTree = "<group>"; };
 		38B4F3C825E502E100E76A18 /* SwiftNotificationCenter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftNotificationCenter.swift; sourceTree = "<group>"; };
@@ -2169,7 +2165,6 @@
 		CE95BF4A2BA5CED700DC3DE3 /* LoopKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE95BF562BA5F5FE00DC3DE3 /* PluginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginManager.swift; sourceTree = "<group>"; };
 		CE95BF592BA62E4A00DC3DE3 /* PluginSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PluginSource.swift; sourceTree = "<group>"; };
-		CEB434DB28B8F5B900B70274 /* MKRingProgressView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MKRingProgressView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEB434E228B8F9DB00B70274 /* BluetoothStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothStateManager.swift; sourceTree = "<group>"; };
 		CEB434E428B8FF5D00B70274 /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
 		CEB434E628B9053300B70274 /* LoopUIColorPalette+Default.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoopUIColorPalette+Default.swift"; sourceTree = "<group>"; };
@@ -2480,13 +2475,11 @@
 				3E5308A53002BC970075629E /* AccuChekKit.framework in Frameworks */,
 				3811DE1025C9D37700A708ED /* Swinject in Frameworks */,
 				3B4BA78E2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Frameworks */,
-				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
 				3B4BA7702D8DBD690069D5B8 /* G7SensorKit.framework in Frameworks */,
 				3B4BA76C2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Frameworks */,
 				3E84DA402F48D96000033608 /* EversenseKit.framework in Frameworks */,
 				CE95BF5B2BA770C300DC3DE3 /* LoopKit.framework in Frameworks */,
 				38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */,
-				3833B46D26012030003021B3 /* Algorithms in Frameworks */,
 				3B4BA7822D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Frameworks */,
 				3B4BA76E2D8DBD690069D5B8 /* DanaKit.framework in Frameworks */,
 				3B47C6102DA0A28F00B0E5EF /* FirebaseCrashlytics in Frameworks */,
@@ -3279,7 +3272,6 @@
 				CE398D17297C9EE800DF218F /* G7SensorKit.framework */,
 				CE398D012977349800DF218F /* CryptoKit.framework */,
 				CE6B025628F350FF000C5502 /* HealthKit.framework */,
-				CEB434DB28B8F5B900B70274 /* MKRingProgressView.framework */,
 				E0CC2C5B275B9DAE00A7BC71 /* HealthKit.framework */,
 				38E87402274F78C000975559 /* libswiftCoreNFC.tbd */,
 				38E873FD274F761800975559 /* CoreNFC.framework */,
@@ -3521,7 +3513,6 @@
 				DD940BAB2CA75889000830A5 /* DynamicGlucoseColor.swift */,
 				3811DE5425C9D4D500A708ED /* Formatters.swift */,
 				38FEF412273B317A00574A46 /* HKUnit.swift */,
-				38B4F3AE25E2979F00E76A18 /* IndexedCollection.swift */,
 				389A571F26079BAA00BC102F /* Interpolation.swift */,
 				388E5A5B25B6F0770019842D /* JSON.swift */,
 				38A00B2225FC2B55006BC0B0 /* LRUCache.swift */,
@@ -5479,9 +5470,7 @@
 			packageProductDependencies = (
 				3811DE0F25C9D37700A708ED /* Swinject */,
 				38B17B6525DD90E0005CAE3D /* SwiftDate */,
-				3833B46C26012030003021B3 /* Algorithms */,
 				CEB434FC28B90B7C00B70274 /* SwiftCharts */,
-				B958F1B62BA0711600484851 /* MKRingProgressView */,
 				3BD9687B2D8DDD4600899469 /* SlideButton */,
 				3BD9687E2D8DDD8800899469 /* CryptoSwift */,
 				3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */,
@@ -5657,9 +5646,7 @@
 			packageReferences = (
 				3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */,
 				38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */,
-				3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */,
-				B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */,
 				3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */,
 				3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
@@ -6161,7 +6148,6 @@
 				3811DE5D25C9D4D500A708ED /* Publisher.swift in Sources */,
 				E00EEC0727368630002FF094 /* APSAssembly.swift in Sources */,
 				BD249D8A2D42FC1200412DEB /* GlucosePercentileChart.swift in Sources */,
-				38B4F3AF25E2979F00E76A18 /* IndexedCollection.swift in Sources */,
 				58D08B222C8DAA8E00AA37D3 /* OverrideView.swift in Sources */,
 				BD0B2EF32C5998E600B3298F /* MealPresetView.swift in Sources */,
 				E592A3702CEEC01E009A472C /* ContactTrickEntry.swift in Sources */,
@@ -7566,14 +7552,6 @@
 				minimumVersion = 2.7.1;
 			};
 		};
-		3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-algorithms";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.3;
-			};
-		};
 		38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/malcommac/SwiftDate";
@@ -7614,14 +7592,6 @@
 				minimumVersion = 1.7.0;
 			};
 		};
-		B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/maxkonovalov/MKRingProgressView.git";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
 		CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/ivanschuetz/SwiftCharts.git";
@@ -7645,11 +7615,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */;
 			productName = Swinject;
-		};
-		3833B46C26012030003021B3 /* Algorithms */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
-			productName = Algorithms;
 		};
 		38B17B6525DD90E0005CAE3D /* SwiftDate */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -7680,11 +7645,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */;
 			productName = RoundWhiteDiscKit;
-		};
-		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */;
-			productName = MKRingProgressView;
 		};
 		CEB434FC28B90B7C00B70274 /* SwiftCharts */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -1,7 +1,6 @@
 import Foundation
 import LoopKit
 import RileyLinkBLEKit
-import RileyLinkKit
 
 extension UserDefaults {
     private enum Key: String {
