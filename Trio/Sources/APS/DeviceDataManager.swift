@@ -9,7 +9,6 @@ import MinimedKit
 import MockKit
 import MockKitUI
 import OmnipodKit
-import ShareClient
 import SwiftDate
 import Swinject
 import UserNotifications
