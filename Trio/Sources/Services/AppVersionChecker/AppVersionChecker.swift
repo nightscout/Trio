@@ -20,6 +20,8 @@ import UIKit
     @Persisted(key: "latestVersionChecked") private var latestVersionChecked: Date? = .distantPast
     // Boolean flag indicating whether the current version is blacklisted.
     @Persisted(key: "currentVersionBlackListed") private var currentVersionBlackListed: Bool = false
+    // Optional explanation from the matching blacklist entry, shown in the critical update alert.
+    @Persisted(key: "currentVersionBlacklistMessage") private var currentVersionBlacklistMessage: String? = nil
     // Commit SHA of the build for which data was last fetched (blacklist entries can target a commit).
     @Persisted(key: "cachedForCommitSHA") private var cachedForCommitSHA: String? = nil
     // Timestamp for the last time a blacklist notification was shown.
@@ -63,13 +65,14 @@ import UIKit
 
     // Model for decoding the blacklist JSON from GitHub.
     //
-    // BACKWARD COMPATIBILITY: builds released before `branch` / `sha` existed decode this same file with
+    // BACKWARD COMPATIBILITY: builds released before `branch` / `sha` / `message` existed decode
+    // this same file with
     //
     //     struct Blacklist: Decodable { let blacklistedVersions: [VersionEntry] }
     //     struct VersionEntry: Decodable { let version: String }
     //
     // and wrap the whole decode in `try?`. JSONDecoder ignores keys a model does not declare, so adding
-    // `branch` and `sha` to an entry is safe for those builds. But every entry MUST keep a string
+    // `branch`, `sha` and `message` to an entry is safe for those builds (they show only the standard text). But every entry MUST keep a string
     // `version`: a single entry without one makes the old decode throw, and the old builds then
     // treat the list as empty and stop warning about every blacklisted version.
     //
@@ -116,8 +119,11 @@ import UIKit
     //   abbreviated SHA (7+ characters), so either value may be a prefix of the other; at least
     //   7 characters must overlap, compared case-insensitively.
     //
+    // `message` (optional) is not used for matching. When present it is shown in the critical update
+    // alert, below the standard text, to explain the problem or what to do.
+    //
     // Example:
-    //     { "version": "0.6.0.12", "branch": "dev", "sha": "a1b2c3d" }
+    //     { "version": "0.6.0.12", "branch": "dev", "sha": "a1b2c3d", "message": "Fixes a bolus issue." }
     struct VersionEntry: Decodable, Equatable {
         // The version string that is blacklisted. Required so that older builds can still decode the list.
         let version: String
@@ -125,11 +131,19 @@ import UIKit
         let branch: String?
         // The commit SHA (full or abbreviated) of the blacklisted build, or `nil` to match any commit.
         let sha: String?
+        // Optional text shown in the critical update alert for builds this entry matches.
+        let message: String?
 
-        init(version: String, branch: String? = nil, sha: String? = nil) {
+        init(version: String, branch: String? = nil, sha: String? = nil, message: String? = nil) {
             self.version = version
             self.branch = branch
             self.sha = sha
+            self.message = message
+        }
+
+        // The message to show, or `nil` if the entry has none (empty or whitespace-only counts as none).
+        var displayMessage: String? {
+            Self.normalized(message)
         }
 
         // Shortest SHA prefix accepted as a match, the length `capture-build-details.sh` records.
@@ -168,6 +182,18 @@ import UIKit
         }
     }
 
+    // Returns whether any entry in the blacklist applies to the given build, and the message of the
+    // first matching entry that has one.
+    static func blacklistStatus(
+        entries: [VersionEntry],
+        version: String,
+        branch: String?,
+        sha: String?
+    ) -> (isBlacklisted: Bool, message: String?) {
+        let matching = entries.filter { $0.matches(version: version, branch: branch, sha: sha) }
+        return (!matching.isEmpty, matching.lazy.compactMap(\.displayMessage).first)
+    }
+
     // Returns `true` if any entry in the blacklist applies to the given build.
     static func isBlacklisted(
         entries: [VersionEntry],
@@ -175,7 +201,21 @@ import UIKit
         branch: String?,
         sha: String?
     ) -> Bool {
-        entries.contains { $0.matches(version: version, branch: branch, sha: sha) }
+        blacklistStatus(entries: entries, version: version, branch: branch, sha: sha).isBlacklisted
+    }
+
+    // Builds the body of the critical update alert, appending the blacklist entry's message if there is one.
+    static func blacklistAlertMessage(entryMessage: String?) -> String {
+        let standard = String(
+            localized: "The current version has a critical issue and should be updated as soon as possible.",
+            comment: "Message for critical update alert"
+        )
+        guard let entryMessage = entryMessage?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !entryMessage.isEmpty
+        else {
+            return standard
+        }
+        return standard + "\n\n" + entryMessage
     }
 
     // MARK: - Public Methods
@@ -189,7 +229,7 @@ import UIKit
     // - Parameter viewController: The UIViewController on which to present any alerts.
     func checkAndNotifyVersionStatus(in viewController: UIViewController) {
         Task {
-            let (latestVersion, isNewer, isBlacklisted) = await checkForNewVersion()
+            let (latestVersion, isNewer, isBlacklisted, blacklistMessage) = await checkForNewVersion()
             let now = Date()
 
             // If the current version is blacklisted, show a critical update alert if not shown in the last 24 hours.
@@ -199,10 +239,7 @@ import UIKit
                     let shown = self.showAlert(
                         on: viewController,
                         title: String(localized: "Update Required", comment: "Title for critical update alert"),
-                        message: String(
-                            localized: "The current version has a critical issue and should be updated as soon as possible.",
-                            comment: "Message for critical update alert"
-                        )
+                        message: Self.blacklistAlertMessage(entryMessage: blacklistMessage)
                     )
                     if shown {
                         self.lastBlacklistNotificationShown = now
@@ -267,7 +304,7 @@ import UIKit
     // - isBlacklisted: `true` if the current version is blacklisted.
     func refreshVersionInfo() async -> (currentVersion: String, latestVersion: String?, isNewer: Bool, isBlacklisted: Bool) {
         let currentVersion = version()
-        let (latestVersion, isNewer, isBlacklisted) = await checkForNewVersion()
+        let (latestVersion, isNewer, isBlacklisted, _) = await checkForNewVersion()
         return (currentVersion, latestVersion, isNewer, isBlacklisted)
     }
 
@@ -378,7 +415,8 @@ import UIKit
     // - latestVersion: The latest version string (if available).
     // - isNewer: `true` if the fetched version is newer than the current version.
     // - isBlacklisted: `true` if the current version is blacklisted.
-    private func checkForNewVersion() async -> (String?, Bool, Bool) {
+    // - blacklistMessage: The matching blacklist entry's message, if any.
+    private func checkForNewVersion() async -> (String?, Bool, Bool, String?) {
         let currentVersion = version()
         let now = Date()
 
@@ -387,6 +425,7 @@ import UIKit
         let cachedVersion = cachedForVersion
         let persistedLatest = persistedLatestVersion
         let isBlacklistedCached = currentVersionBlackListed
+        let blacklistMessageCached = currentVersionBlacklistMessage
 
         // If the current app version has changed, reset notification timestamps.
         if let cachedVersion = cachedVersion, cachedVersion != currentVersion {
@@ -404,7 +443,7 @@ import UIKit
            let persistedLatest = persistedLatest
         {
             let isNewer = isVersion(persistedLatest, newerThan: currentVersion)
-            return (persistedLatest, isNewer, isBlacklistedCached)
+            return (persistedLatest, isNewer, isBlacklistedCached, isBlacklistedCached ? blacklistMessageCached : nil)
         }
 
         // Otherwise, fetch fresh data from GitHub and update the cache.
@@ -423,7 +462,8 @@ import UIKit
     // - latestVersion: The latest version string from GitHub (if available).
     // - isNewer: `true` if the fetched version is newer than the current version.
     // - isBlacklisted: `true` if the current version is blacklisted.
-    private func fetchDataAndUpdateCache(currentVersion: String) async -> (String?, Bool, Bool) {
+    // - blacklistMessage: The matching blacklist entry's message, if any.
+    private func fetchDataAndUpdateCache(currentVersion: String) async -> (String?, Bool, Bool, String?) {
         // Fetch both data types in parallel
         async let versionData = fetchData(for: .versionConfig)
         async let blacklistData = fetchData(for: .blacklistedVersions)
@@ -445,7 +485,7 @@ import UIKit
         let entries = (try? blacklistDataResult.flatMap {
             try JSONDecoder().decode(Blacklist.self, from: $0)
         })?.blacklistedVersions ?? []
-        let isBlacklisted = Self.isBlacklisted(
+        let (isBlacklisted, blacklistMessage) = Self.blacklistStatus(
             entries: entries,
             version: currentVersion,
             branch: currentBranch(),
@@ -456,10 +496,11 @@ import UIKit
         persistedLatestVersion = fetchedVersion
         latestVersionChecked = Date()
         currentVersionBlackListed = isBlacklisted
+        currentVersionBlacklistMessage = blacklistMessage
         cachedForVersion = currentVersion
         cachedForCommitSHA = currentCommitSHA()
 
-        return (fetchedVersion, isNewer, isBlacklisted)
+        return (fetchedVersion, isNewer, isBlacklisted, blacklistMessage)
     }
 
     // MARK: - Data Fetching Helper
