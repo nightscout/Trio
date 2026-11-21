@@ -72,8 +72,8 @@ import UIKit
     //     struct VersionEntry: Decodable { let version: String }
     //
     // and wrap the whole decode in `try?`. JSONDecoder ignores keys a model does not declare, so adding
-    // `branch`, `sha` and `message` to an entry is safe for those builds (they show only the standard text). But every entry MUST keep a string
-    // `version`: a single entry without one makes the old decode throw, and the old builds then
+    // `branch`, `sha` and `message` to an entry is safe for those builds (they show only the standard
+    // text). But every entry MUST keep a string `version`: a single entry without one makes the old decode throw, and the old builds then
     // treat the list as empty and stop warning about every blacklisted version.
     //
     // Old builds match on `version` alone, so an entry that is narrowed by `branch` / `sha` still flags
