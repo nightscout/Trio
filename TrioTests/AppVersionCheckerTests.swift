@@ -280,3 +280,214 @@ import Testing
         #expect(AppVersionChecker.blacklistAlertMessage(entryMessage: "Update now.") == standard + "\n\nUpdate now.")
     }
 }
+
+// MARK: - Full fixture
+
+/// One blacklist file exercising every supported entry shape, checked against many fake builds.
+///
+/// Each entry's `message` starts with a unique label ("A", "B", ...) so a test can tell exactly
+/// which entries fired. Entries are listed in file order, which decides whose message is shown
+/// when several match.
+enum BlacklistFixture {
+    static let json = """
+    {
+        "schemaVersion": 2,
+        "notes": "Unknown top-level keys must be ignored by every build.",
+        "blacklistedVersions": [
+            { "version": "0.5.0", "message": "A: every 0.5.0 build" },
+            { "version": "", "sha": "a1b2c3d", "message": "B: commit a1b2c3d, any version" },
+            {
+                "version": "SKIP",
+                "sha": "0123456789abcdef0123456789abcdef01234567",
+                "message": "C: full-length sha, any version"
+            },
+            { "version": "0.6.0.12", "branch": "dev", "message": "D: 0.6.0.12 from dev" },
+            { "version": "", "branch": "feat/broken", "message": "E: every build from feat/broken" },
+            { "version": "SKIP", "branch": "feat/also-broken", "message": "F: every build from feat/also-broken" },
+            { "version": "0.7.0", "sha": "b2c3d4e", "message": "G: 0.7.0 at b2c3d4e", "reason": "extra key" },
+            { "version": "0.8.0", "branch": "dev", "sha": "c3d4e5f", "message": "H: 0.8.0 from dev at c3d4e5f" },
+            { "version": "0.9.0", "branch": "SKIP", "sha": "SKIP", "message": "I: every 0.9.0 build" },
+            { "version": "", "branch": "dev", "sha": "d4e5f6a", "message": "L: dev at d4e5f6a, any version" },
+            { "version": "0.5.0", "branch": "release/x", "message": "M: 0.5.0 from release/x" },
+            { "version": "", "branch": "", "sha": "", "message": "X: nothing specified, never fires" },
+            { "version": "SKIP", "branch": "SKIP", "sha": "SKIP", "message": "Y: all SKIP, never fires" },
+            { "version": "  ", "branch": " SKIP ", "message": "Z: whitespace and SKIP, never fires" }
+        ]
+    }
+    """
+
+    struct Scenario: Sendable, CustomTestStringConvertible {
+        let version: String
+        let branch: String?
+        let sha: String?
+        /// Labels of the entries that must fire, in file order. Empty means not blacklisted.
+        let fires: [String]
+        /// Whether a build released before branch/sha support (version-only matching) would fire.
+        let legacyFires: Bool
+        let note: String
+
+        var testDescription: String {
+            "\(note) [\(version) \(branch ?? "nil") \(sha ?? "nil")]"
+        }
+    }
+
+    static let scenarios: [Scenario] = [
+        // Case 1: version only
+        .init(version: "0.5.0", branch: "main", sha: "1111111", fires: ["A"], legacyFires: true, note: "version-only hit"),
+        .init(version: "0.5.0", branch: nil, sha: nil, fires: ["A"], legacyFires: true, note: "version-only, no build details"),
+        .init(version: "0.5.1", branch: "main", sha: "1111111", fires: [], legacyFires: false, note: "next patch version"),
+        .init(version: "0.5", branch: "main", sha: "1111111", fires: [], legacyFires: false, note: "version is a prefix"),
+        .init(version: "0.5.0.1", branch: "main", sha: "1111111", fires: [], legacyFires: false, note: "version extends entry"),
+        .init(version: "0.9.0", branch: "main", sha: "9999999", fires: ["I"], legacyFires: true, note: "branch and sha SKIP"),
+        .init(version: "0.9.0", branch: nil, sha: nil, fires: ["I"], legacyFires: true, note: "SKIP fields, no details"),
+
+        // Overlapping entries: both fire, the first one's message is shown
+        .init(version: "0.5.0", branch: "release/x", sha: "1111111", fires: ["A", "M"], legacyFires: true, note: "two entries"),
+
+        // Case 2: empty / SKIP version plus sha
+        .init(version: "1.0.0", branch: "main", sha: "a1b2c3d", fires: ["B"], legacyFires: false, note: "sha, any version"),
+        .init(version: "1.0.0", branch: "dev", sha: "A1B2C3D", fires: ["B"], legacyFires: false, note: "sha upper case"),
+        .init(version: "1.0.0", branch: "dev", sha: "a1b2c3d4e5", fires: ["B"], legacyFires: false, note: "longer build sha"),
+        .init(version: "1.0.0", branch: "dev", sha: "a1b2c3e", fires: [], legacyFires: false, note: "sha off by one"),
+        .init(version: "1.0.0", branch: "dev", sha: "a1b2c3", fires: [], legacyFires: false, note: "build sha too short"),
+        .init(version: "1.0.0", branch: "dev", sha: "0a1b2c3d", fires: [], legacyFires: false, note: "sha not a prefix"),
+        .init(version: "1.0.0", branch: "dev", sha: nil, fires: [], legacyFires: false, note: "build has no sha"),
+        .init(version: "2.0.0", branch: "main", sha: "0123456", fires: ["C"], legacyFires: false, note: "short sha vs full"),
+        .init(
+            version: "2.0.0", branch: "main", sha: "0123456789abcdef0123456789abcdef01234567",
+            fires: ["C"], legacyFires: false, note: "full sha vs full"
+        ),
+        .init(
+            version: "2.0.0", branch: "main", sha: "0123456789abcdef0123456789abcdef01234568",
+            fires: [], legacyFires: false, note: "full sha, last char differs"
+        ),
+
+        // Case 3: version plus branch
+        .init(version: "0.6.0.12", branch: "dev", sha: "1111111", fires: ["D"], legacyFires: true, note: "version+branch hit"),
+        .init(version: "0.6.0.12", branch: "main", sha: "1111111", fires: [], legacyFires: true, note: "other branch"),
+        .init(version: "0.6.0.12", branch: "Dev", sha: "1111111", fires: [], legacyFires: true, note: "branch case differs"),
+        .init(version: "0.6.0.12", branch: nil, sha: nil, fires: [], legacyFires: true, note: "build has no branch"),
+        .init(version: "0.6.0.13", branch: "dev", sha: "1111111", fires: [], legacyFires: false, note: "other version"),
+
+        // Case 4: empty / SKIP version plus branch
+        .init(version: "3.1.0", branch: "feat/broken", sha: "1111111", fires: ["E"], legacyFires: false, note: "branch hit"),
+        .init(version: "0.0.1", branch: "feat/broken", sha: nil, fires: ["E"], legacyFires: false, note: "branch, any version"),
+        .init(version: "3.1.0", branch: "feat/broken-fix", sha: "1111111", fires: [], legacyFires: false, note: "branch prefix"),
+        .init(version: "3.1.0", branch: "Feat/Broken", sha: "1111111", fires: [], legacyFires: false, note: "branch case"),
+        .init(version: "3.1.0", branch: "feat/also-broken", sha: nil, fires: ["F"], legacyFires: false, note: "SKIP version"),
+
+        // Case 5: version plus sha
+        .init(version: "0.7.0", branch: "main", sha: "b2c3d4e", fires: ["G"], legacyFires: true, note: "version+sha hit"),
+        .init(version: "0.7.0", branch: "main", sha: "1111111", fires: [], legacyFires: true, note: "other commit"),
+        .init(version: "0.7.1", branch: "main", sha: "b2c3d4e", fires: [], legacyFires: false, note: "other version"),
+
+        // Case 6: version plus branch and sha
+        .init(version: "0.8.0", branch: "dev", sha: "c3d4e5f", fires: ["H"], legacyFires: true, note: "all three hit"),
+        .init(version: "0.8.0", branch: "main", sha: "c3d4e5f", fires: [], legacyFires: true, note: "branch differs"),
+        .init(version: "0.8.0", branch: "dev", sha: "1111111", fires: [], legacyFires: true, note: "sha differs"),
+        .init(version: "0.8.1", branch: "dev", sha: "c3d4e5f", fires: [], legacyFires: false, note: "version differs"),
+
+        // Empty version plus branch and sha
+        .init(version: "4.0.0", branch: "dev", sha: "d4e5f6a", fires: ["L"], legacyFires: false, note: "branch+sha hit"),
+        .init(version: "0.8.0", branch: "dev", sha: "d4e5f6a", fires: ["L"], legacyFires: true, note: "L but not H"),
+        .init(version: "4.0.0", branch: "main", sha: "d4e5f6a", fires: [], legacyFires: false, note: "branch differs"),
+        .init(version: "4.0.0", branch: "dev", sha: "1111111", fires: [], legacyFires: false, note: "sha differs"),
+
+        // Several shapes at once
+        .init(
+            version: "0.6.0.12", branch: "dev", sha: "a1b2c3d",
+            fires: ["B", "D"], legacyFires: true, note: "sha and version+branch"
+        ),
+        .init(
+            version: "0.5.0", branch: "feat/broken", sha: "a1b2c3d",
+            fires: ["A", "B", "E"], legacyFires: true, note: "three shapes"
+        ),
+
+        // Clean builds
+        .init(version: "1.0.2", branch: "main", sha: "fedcba9", fires: [], legacyFires: false, note: "release build"),
+        .init(version: "1.1.0.3", branch: "dev", sha: "fedcba9", fires: [], legacyFires: false, note: "dev build"),
+        .init(version: "Unknown", branch: nil, sha: nil, fires: [], legacyFires: false, note: "no version information")
+    ]
+
+    static func label(_ entry: AppVersionChecker.VersionEntry) -> String {
+        String((entry.message ?? "?").prefix { $0 != ":" })
+    }
+}
+
+/// Runs every scenario in `BlacklistFixture` through the current matcher and the decoder
+/// shipped in earlier builds.
+@Suite("AppVersionChecker blacklist fixture") @MainActor struct AppVersionCheckerFixtureTests {
+    /// Same models as builds released before `branch` / `sha` / `message`. Do not change these.
+    private struct LegacyBlacklist: Decodable {
+        let blacklistedVersions: [LegacyVersionEntry]
+    }
+
+    private struct LegacyVersionEntry: Decodable {
+        let version: String
+    }
+
+    private static func entries() throws -> [AppVersionChecker.VersionEntry] {
+        try JSONDecoder().decode(AppVersionChecker.Blacklist.self, from: Data(BlacklistFixture.json.utf8))
+            .blacklistedVersions
+    }
+
+    private static func legacyVersions() throws -> [String] {
+        try JSONDecoder().decode(LegacyBlacklist.self, from: Data(BlacklistFixture.json.utf8))
+            .blacklistedVersions.map(\.version)
+    }
+
+    @Test("Both decoders read every fixture entry") func decodesEveryEntry() throws {
+        let current = try Self.entries()
+        let legacy = try Self.legacyVersions()
+        #expect(current.count == 14)
+        #expect(legacy.count == current.count)
+        #expect(current.map(\.version) == legacy)
+    }
+
+    @Test("Never-fire entries fire for no scenario") func neverFireEntries() throws {
+        let entries = try Self.entries()
+        let neverFire = entries.filter { ["X", "Y", "Z"].contains(BlacklistFixture.label($0)) }
+        #expect(neverFire.count == 3)
+        for scenario in BlacklistFixture.scenarios {
+            for entry in neverFire {
+                #expect(!entry.matches(version: scenario.version, branch: scenario.branch, sha: scenario.sha))
+            }
+        }
+    }
+
+    @Test("Every matching entry is reached by some scenario") func everyEntryIsExercised() throws {
+        let entries = try Self.entries()
+        let fired = Set(BlacklistFixture.scenarios.flatMap(\.fires))
+        let labels = Set(entries.map(BlacklistFixture.label)).subtracting(["X", "Y", "Z"])
+        #expect(labels == fired)
+    }
+
+    @Test("Exactly the expected entries fire", arguments: BlacklistFixture.scenarios)
+    func scenario(_ scenario: BlacklistFixture.Scenario) throws {
+        let entries = try Self.entries()
+
+        let fired = entries
+            .filter { $0.matches(version: scenario.version, branch: scenario.branch, sha: scenario.sha) }
+            .map(BlacklistFixture.label)
+        #expect(fired == scenario.fires)
+
+        let status = AppVersionChecker.blacklistStatus(
+            entries: entries,
+            version: scenario.version,
+            branch: scenario.branch,
+            sha: scenario.sha
+        )
+        #expect(status.isBlacklisted == !scenario.fires.isEmpty)
+        if let first = scenario.fires.first {
+            #expect(status.message?.hasPrefix(first + ":") == true)
+        } else {
+            #expect(status.message == nil)
+        }
+    }
+
+    @Test("Earlier builds fire only on the version string", arguments: BlacklistFixture.scenarios)
+    func legacyScenario(_ scenario: BlacklistFixture.Scenario) throws {
+        let legacyVersions = try Self.legacyVersions()
+        #expect(legacyVersions.contains(scenario.version) == scenario.legacyFires)
+    }
+}
