@@ -77,8 +77,11 @@ import UIKit
     // decode throw, and the old builds then treat the list as empty and stop warning about every
     // blacklisted version.
     //
-    // Old builds match on `version` alone, so an entry that is narrowed by `branch` / `sha` still flags
-    // every pre-existing build with that version. That errs on the side of warning too often.
+    // Old builds match on `version` alone:
+    // - An entry with a version plus `branch` / `sha` flags every old build with that version, which
+    //   errs on the side of warning too often.
+    // - An entry with an empty version (`"version": ""`) never equals a real version, so old builds
+    //   ignore it. Use this to target branches or commits without affecting builds that predate it.
     struct Blacklist: Decodable {
         // Array of blacklisted version entries.
         let blacklistedVersions: [VersionEntry]
@@ -113,12 +116,22 @@ import UIKit
 
     // Model representing a single entry in the blacklist.
     //
-    // An entry matches the running build when every field it specifies matches:
-    // - `version` (required) must equal the app's `CFBundleShortVersionString`.
+    // An entry matches the running build when every field it specifies matches. An empty (or
+    // whitespace-only) field is not specified and is skipped:
+    // - `version` (key required, value may be empty) must equal the app's `CFBundleShortVersionString`.
     // - `branch` (optional) must equal the branch recorded in BuildDetails.plist.
     // - `sha` (optional) must match the commit recorded in BuildDetails.plist. Builds record an
     //   abbreviated SHA (7+ characters), so either value may be a prefix of the other; at least
     //   7 characters must overlap, compared case-insensitively.
+    // An entry that specifies none of the three matches nothing.
+    //
+    // Supported combinations:
+    //     { "version": "0.5.0" }                                       every build of 0.5.0
+    //     { "version": "", "sha": "a1b2c3d" }                          that commit, any version
+    //     { "version": "0.6.0.12", "branch": "dev" }                   0.6.0.12 built from dev
+    //     { "version": "", "branch": "feat/x" }                        every build from that branch
+    //     { "version": "0.6.0.12", "sha": "a1b2c3d" }                  0.6.0.12 at that commit
+    //     { "version": "0.6.0.12", "branch": "dev", "sha": "a1b2c3d" } all three must match
     //
     // `message` (optional) is not used for matching. When present it is shown in the critical update
     // alert, below the standard text, to explain the problem or what to do.
@@ -126,7 +139,8 @@ import UIKit
     // Example:
     //     { "version": "0.6.0.12", "branch": "dev", "sha": "a1b2c3d", "message": "Fixes a bolus issue." }
     struct VersionEntry: Decodable, Equatable {
-        // The version string that is blacklisted. Required so that older builds can still decode the list.
+        // The version string that is blacklisted, or empty to match any version. The key is required (an
+        // empty string is fine) so that older builds can still decode the list.
         let version: String
         // The branch the blacklisted build was made from, or `nil` to match any branch.
         let branch: String?
@@ -152,17 +166,28 @@ import UIKit
 
         // Returns `true` if this entry applies to a build with the given version, branch and commit.
         func matches(version currentVersion: String, branch currentBranch: String?, sha currentSHA: String?) -> Bool {
-            guard version == currentVersion else {
+            let version = Self.normalized(version)
+            let branch = Self.normalized(branch)
+            let sha = Self.normalized(sha)
+
+            // An entry with nothing to match on must not blacklist every build.
+            guard version != nil || branch != nil || sha != nil else {
                 return false
             }
 
-            if let branch = Self.normalized(branch) {
+            if let version {
+                guard version == Self.normalized(currentVersion) else {
+                    return false
+                }
+            }
+
+            if let branch {
                 guard let currentBranch = Self.normalized(currentBranch), branch == currentBranch else {
                     return false
                 }
             }
 
-            if let sha = Self.normalized(sha)?.lowercased() {
+            if let sha = sha?.lowercased() {
                 guard let currentSHA = Self.normalized(currentSHA)?.lowercased(),
                       min(sha.count, currentSHA.count) >= Self.minimumSHAPrefixLength,
                       sha.hasPrefix(currentSHA) || currentSHA.hasPrefix(sha)

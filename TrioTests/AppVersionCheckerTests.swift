@@ -141,6 +141,86 @@ import Testing
         #expect(AppVersionChecker.isBlacklisted(entries: entries, version: "1.0", branch: "main", sha: "abcdef0"))
     }
 
+    // MARK: - Supported combinations
+
+    private typealias Entry = AppVersionChecker.VersionEntry
+
+    private static func matches(_ entry: Entry, _ version: String, _ branch: String?, _ sha: String?) -> Bool {
+        AppVersionChecker.isBlacklisted(entries: [entry], version: version, branch: branch, sha: sha)
+    }
+
+    @Test("1. Version only") func versionOnly() {
+        let entry = Entry(version: "1.0")
+        #expect(Self.matches(entry, "1.0", "main", "0123456"))
+        #expect(Self.matches(entry, "1.0", "dev", "fedcba9"))
+        #expect(!Self.matches(entry, "1.1", "main", "0123456"))
+    }
+
+    @Test("2. Empty version plus sha matches that commit at any version") func emptyVersionPlusSHA() {
+        let entry = Entry(version: "", sha: "0123456")
+        #expect(Self.matches(entry, "1.0", "main", "0123456"))
+        #expect(Self.matches(entry, "2.3.4", "dev", "0123456789abcdef"))
+        #expect(!Self.matches(entry, "1.0", "main", "fedcba9"))
+        #expect(!Self.matches(entry, "1.0", "main", nil))
+    }
+
+    @Test("3. Version plus branch") func versionPlusBranch() {
+        let entry = Entry(version: "1.0", branch: "dev")
+        #expect(Self.matches(entry, "1.0", "dev", "0123456"))
+        #expect(!Self.matches(entry, "1.0", "main", "0123456"))
+        #expect(!Self.matches(entry, "1.1", "dev", "0123456"))
+    }
+
+    @Test("4. Empty version plus branch matches that branch at any version") func emptyVersionPlusBranch() {
+        let entry = Entry(version: "", branch: "feat/x")
+        #expect(Self.matches(entry, "1.0", "feat/x", "0123456"))
+        #expect(Self.matches(entry, "9.9", "feat/x", nil))
+        #expect(!Self.matches(entry, "1.0", "dev", "0123456"))
+        #expect(!Self.matches(entry, "1.0", nil, "0123456"))
+    }
+
+    @Test("5. Version plus sha") func versionPlusSHA() {
+        let entry = Entry(version: "1.0", sha: "0123456")
+        #expect(Self.matches(entry, "1.0", "dev", "0123456"))
+        #expect(!Self.matches(entry, "1.1", "dev", "0123456"))
+        #expect(!Self.matches(entry, "1.0", "dev", "fedcba9"))
+    }
+
+    @Test("6. Version plus branch and sha") func versionPlusBranchAndSHA() {
+        let entry = Entry(version: "1.0", branch: "dev", sha: "0123456")
+        #expect(Self.matches(entry, "1.0", "dev", "0123456"))
+        #expect(!Self.matches(entry, "1.1", "dev", "0123456"))
+        #expect(!Self.matches(entry, "1.0", "main", "0123456"))
+        #expect(!Self.matches(entry, "1.0", "dev", "fedcba9"))
+    }
+
+    @Test("Empty version plus branch and sha requires both") func emptyVersionPlusBranchAndSHA() {
+        let entry = Entry(version: "", branch: "dev", sha: "0123456")
+        #expect(Self.matches(entry, "1.0", "dev", "0123456"))
+        #expect(!Self.matches(entry, "1.0", "main", "0123456"))
+        #expect(!Self.matches(entry, "1.0", "dev", "fedcba9"))
+    }
+
+    @Test("An entry with nothing to match on matches nothing") func emptyEntryMatchesNothing() {
+        #expect(!Self.matches(Entry(version: ""), "1.0", "main", "0123456"))
+        #expect(!Self.matches(Entry(version: " ", branch: "", sha: "  ", message: "x"), "1.0", "main", "0123456"))
+        #expect(!Self.matches(Entry(version: ""), "", nil, nil))
+    }
+
+    @Test("Earlier builds decode empty-version entries and never match them") func legacyIgnoresEmptyVersion() {
+        let json = """
+        {
+            "blacklistedVersions": [
+                { "version": "0.5.0" },
+                { "version": "", "sha": "0123456" },
+                { "version": "", "branch": "dev", "message": "x" }
+            ]
+        }
+        """
+        #expect(Self.legacyIsBlacklisted(json, version: "0.5.0"))
+        #expect(!Self.legacyIsBlacklisted(json, version: "1.0"))
+    }
+
     // MARK: - Message
 
     @Test("The first matching entry with a message supplies it") func messageFromMatchingEntry() {
