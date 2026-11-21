@@ -33,7 +33,7 @@ import Testing
     {
         "blacklistedVersions": [
             { "version": "0.5.0" },
-            { "version": "0.6.0.12", "branch": "dev", "sha": "a1b2c3d" },
+            { "version": "0.6.0.12", "branch": "dev", "sha": "a1b2c3d", "message": "Rebuild from dev." },
             { "version": "0.6.0.13", "sha": "0123456789abcdef0123456789abcdef01234567" }
         ]
     }
@@ -81,11 +81,11 @@ import Testing
 
     // MARK: - Decoding
 
-    @Test("Current builds decode branch and sha") func decodesBranchAndSHA() throws {
+    @Test("Current builds decode branch, sha and message") func decodesBranchSHAAndMessage() throws {
         let entries = try Self.decode(Self.mixedJSON)
         let expected: [AppVersionChecker.VersionEntry] = [
             .init(version: "0.5.0"),
-            .init(version: "0.6.0.12", branch: "dev", sha: "a1b2c3d"),
+            .init(version: "0.6.0.12", branch: "dev", sha: "a1b2c3d", message: "Rebuild from dev."),
             .init(version: "0.6.0.13", sha: "0123456789abcdef0123456789abcdef01234567")
         ]
         #expect(entries == expected)
@@ -139,5 +139,37 @@ import Testing
     @Test("Empty branch or sha in an entry is treated as absent") func emptyFieldsIgnored() {
         let entries = [AppVersionChecker.VersionEntry(version: "1.0", branch: "", sha: "  ")]
         #expect(AppVersionChecker.isBlacklisted(entries: entries, version: "1.0", branch: "main", sha: "abcdef0"))
+    }
+
+    // MARK: - Message
+
+    @Test("The first matching entry with a message supplies it") func messageFromMatchingEntry() {
+        let entries = [
+            AppVersionChecker.VersionEntry(version: "1.0", sha: "9999999", message: "Other commit."),
+            AppVersionChecker.VersionEntry(version: "1.0"),
+            AppVersionChecker.VersionEntry(version: "1.0", branch: "dev", message: "  Dev build issue.  "),
+            AppVersionChecker.VersionEntry(version: "1.0", message: "Later message.")
+        ]
+        let status = AppVersionChecker.blacklistStatus(entries: entries, version: "1.0", branch: "dev", sha: "0123456")
+        #expect(status.isBlacklisted)
+        #expect(status.message == "Dev build issue.")
+    }
+
+    @Test("No message when the matching entries have none") func noMessage() {
+        let entries = [
+            AppVersionChecker.VersionEntry(version: "1.0", message: " "),
+            AppVersionChecker.VersionEntry(version: "2.0", message: "Not this build.")
+        ]
+        let status = AppVersionChecker.blacklistStatus(entries: entries, version: "1.0", branch: "main", sha: "0123456")
+        #expect(status.isBlacklisted)
+        #expect(status.message == nil)
+        #expect(AppVersionChecker.blacklistStatus(entries: entries, version: "3.0", branch: "main", sha: nil).message == nil)
+    }
+
+    @Test("The alert keeps the standard text and appends the message") func alertText() {
+        let standard = AppVersionChecker.blacklistAlertMessage(entryMessage: nil)
+        #expect(!standard.isEmpty)
+        #expect(AppVersionChecker.blacklistAlertMessage(entryMessage: "  ") == standard)
+        #expect(AppVersionChecker.blacklistAlertMessage(entryMessage: "Update now.") == standard + "\n\nUpdate now.")
     }
 }
