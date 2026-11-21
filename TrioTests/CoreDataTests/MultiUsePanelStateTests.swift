@@ -13,6 +13,7 @@ import Testing
         pumpTimeMismatch: Bool = false,
         lastGlucoseDate: Date?,
         maxIOB: Decimal = 10,
+        pendingMealTimeReminder: PendingMealTimeReminder? = nil,
         tidepoolLoginRequired: Bool = false,
         hasUnacknowledgedReleaseNotes: Bool = false,
         dosingMode: DosingMode = .closed
@@ -22,6 +23,7 @@ import Testing
             pumpTimeMismatch: pumpTimeMismatch,
             lastGlucoseDate: lastGlucoseDate,
             maxIOB: maxIOB,
+            pendingMealTimeReminder: pendingMealTimeReminder,
             tidepoolLoginRequired: tidepoolLoginRequired,
             hasUnacknowledgedReleaseNotes: hasUnacknowledgedReleaseNotes,
             dosingMode: dosingMode,
@@ -104,6 +106,55 @@ import Testing
 
     @Test("Acknowledged release notes fall back to stats") func testAcknowledgedShowsStats() {
         #expect(resolve(lastGlucoseDate: fresh, hasUnacknowledgedReleaseNotes: false) == .stats)
+    }
+
+    private var mealTimeReminder: PendingMealTimeReminder {
+        PendingMealTimeReminder(fireDate: now.addingTimeInterval(10 * 60), carbs: 45, bolusAmount: 2.5)
+    }
+
+    @Test(
+        "A pending meal-time reminder displaces the persistent and informational states"
+    ) func testMealTimeReminderOverLowerPriority() {
+        #expect(
+            resolve(lastGlucoseDate: fresh, pendingMealTimeReminder: mealTimeReminder) ==
+                .mealTimeReminderCountdown(mealTimeReminder)
+        )
+        #expect(resolve(
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder,
+            hasUnacknowledgedReleaseNotes: true
+        ) == .mealTimeReminderCountdown(mealTimeReminder))
+        #expect(
+            resolve(lastGlucoseDate: fresh, maxIOB: 0, pendingMealTimeReminder: mealTimeReminder) ==
+                .mealTimeReminderCountdown(mealTimeReminder)
+        )
+        #expect(resolve(
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder,
+            dosingMode: .lowGlucoseSuspend
+        ) == .mealTimeReminderCountdown(mealTimeReminder))
+    }
+
+    @Test(
+        "A pending meal-time reminder outranks the time-change and stale-CGM warnings"
+    ) func testMealTimeReminderOverStandingWarnings() {
+        #expect(resolve(
+            pumpTimeMismatch: true,
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder
+        ) == .mealTimeReminderCountdown(mealTimeReminder))
+        #expect(
+            resolve(lastGlucoseDate: stale, pendingMealTimeReminder: mealTimeReminder) ==
+                .mealTimeReminderCountdown(mealTimeReminder)
+        )
+    }
+
+    @Test("Disabled notifications outrank a pending meal-time reminder") func testMealTimeReminderYieldsToNotificationsDisabled() {
+        #expect(resolve(
+            notificationsDisabled: true,
+            lastGlucoseDate: fresh,
+            pendingMealTimeReminder: mealTimeReminder
+        ) == .notificationsDisabled)
     }
 
     @Test("Tidepool login sits between dosing warnings and release notes") func testTidepoolLoginRequired() {

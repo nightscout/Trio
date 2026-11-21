@@ -59,8 +59,8 @@ enum AlertColdStartReplay {
             .flatMap { Alert.InterruptionLevel(storedValue: NSDecimalNumber(decimal: $0)) }
             ?? .timeSensitive
 
-        // Same gates as issueAlert: tier snooze for catalog-known device
-        // alerts, global mute for everything non-critical.
+        // Same gates as issueAlert: tier snooze for catalog-known device alerts, global mute for
+        // everything that doesn't pierce it.
         if let tier = DeviceAlertSeverity(level: level),
            catalogEntry != nil,
            tier != .critical,
@@ -68,7 +68,7 @@ enum AlertColdStartReplay {
         {
             return .skip
         }
-        if level != .critical, isMuted { return .skip }
+        if !Alert.piercesSnooze(level: level, identifier: identifier), isMuted { return .skip }
 
         // The banner drops alerts without foregroundContent, so mirror the
         // stored content into both slots. The ack label is required non-nil

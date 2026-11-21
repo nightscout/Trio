@@ -5,6 +5,18 @@ import Swinject
 import UIKit
 import UserNotifications
 
+extension LoopKit.Alert {
+    /// Critical alerts pierce the snooze/mute window, and so does the meal-time reminder: the
+    /// user armed it explicitly, so a snooze started before arming must not swallow it. Shared by
+    /// every snooze/mute gate (`issueAlert`, the modal scheduler's fire timer, the snooze-clear
+    /// paths, and cold-start replay) so they can't drift out of sync with each other.
+    static func piercesSnooze(level: InterruptionLevel, identifier: Identifier) -> Bool {
+        level == .critical || identifier == .mealTimeReminderEat
+    }
+
+    var piercesSnooze: Bool { Self.piercesSnooze(level: interruptionLevel, identifier: identifier) }
+}
+
 protocol TrioAlertManager: AnyObject {
     func issueAlert(_ alert: Alert)
     func retractAlert(identifier: Alert.Identifier)
@@ -254,10 +266,10 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             effective = alert
         }
 
-        // Critical alerts pierce the snooze/mute window. Everything else is
-        // suppressed entirely while muted (no modal, no UN sound, no critical
-        // audio fallback).
-        if effective.interruptionLevel != .critical, muter.shouldMute(at: fireDate) {
+        // Everything that doesn't pierce the snooze/mute window is suppressed entirely while
+        // muted (no modal, no UN sound, no critical audio fallback).
+        let piercesSnooze = effective.piercesSnooze
+        if !piercesSnooze, muter.shouldMute(at: fireDate) {
             debug(.alerts, "Alert \(effective.identifier.value) muted, snooze window active")
             return
         }
@@ -269,7 +281,8 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
             self.liveAlerts[effective.identifier] = effective
         }
         recordIssued(effective)
-        let muted = muter.shouldMute(at: now)
+        // Snooze-piercing alerts keep their sound while the window is active.
+        let muted = piercesSnooze ? false : muter.shouldMute(at: now)
         modalScheduler.schedule(effective)
         // AlarmKit sounds critical alerts itself; posting the notification with
         // a sound too would play the tone twice, at once.
@@ -436,17 +449,29 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         }
     }
 
+    /// Mirrors `Alert.piercesSnooze` for the raw `UserNotifications` requests this clears:
+    /// identifiers are compared against `Alert.Identifier.value`, the string a request is
+    /// actually scheduled under (see `TrioUserNotificationAlertScheduler.makeRequest`).
+    private func clearsOnSnooze(interruptionLevel: UNNotificationInterruptionLevel, identifier: String) -> Bool {
+        interruptionLevel != .critical && identifier != Alert.Identifier.mealTimeReminderEat.value
+    }
+
     private func clearPendingNonCriticalNotificationsAndWait() async {
         await withCheckedContinuation { continuation in
             let center = UNUserNotificationCenter.current()
             center.getPendingNotificationRequests { requests in
                 let ids = requests
-                    .filter { $0.content.interruptionLevel != .critical }
+                    .filter { self.clearsOnSnooze(interruptionLevel: $0.content.interruptionLevel, identifier: $0.identifier) }
                     .map(\.identifier)
                 if !ids.isEmpty { center.removePendingNotificationRequests(withIdentifiers: ids) }
                 center.getDeliveredNotifications { delivered in
                     let ids = delivered
-                        .filter { $0.request.content.interruptionLevel != .critical }
+                        .filter {
+                            self.clearsOnSnooze(
+                                interruptionLevel: $0.request.content.interruptionLevel,
+                                identifier: $0.request.identifier
+                            )
+                        }
                         .map(\.request.identifier)
                     if !ids.isEmpty { center.removeDeliveredNotifications(withIdentifiers: ids) }
                     continuation.resume()
@@ -459,14 +484,19 @@ final class BaseTrioAlertManager: TrioAlertManager, Injectable {
         let center = UNUserNotificationCenter.current()
         center.getPendingNotificationRequests { requests in
             let ids = requests
-                .filter { $0.content.interruptionLevel != .critical }
+                .filter { self.clearsOnSnooze(interruptionLevel: $0.content.interruptionLevel, identifier: $0.identifier) }
                 .map(\.identifier)
             guard !ids.isEmpty else { return }
             center.removePendingNotificationRequests(withIdentifiers: ids)
         }
         center.getDeliveredNotifications { delivered in
             let ids = delivered
-                .filter { $0.request.content.interruptionLevel != .critical }
+                .filter {
+                    self.clearsOnSnooze(
+                        interruptionLevel: $0.request.content.interruptionLevel,
+                        identifier: $0.request.identifier
+                    )
+                }
                 .map(\.request.identifier)
             guard !ids.isEmpty else { return }
             center.removeDeliveredNotifications(withIdentifiers: ids)
