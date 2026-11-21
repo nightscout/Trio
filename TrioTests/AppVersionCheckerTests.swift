@@ -201,19 +201,46 @@ import Testing
         #expect(!Self.matches(entry, "1.0", "dev", "fedcba9"))
     }
 
+    @Test("\"SKIP\" means the same as empty in any match field") func skipSentinel() {
+        let skipVersion = Entry(version: "SKIP", sha: "0123456")
+        #expect(Self.matches(skipVersion, "1.0", "main", "0123456"))
+        #expect(Self.matches(skipVersion, "2.0", "dev", "0123456"))
+        #expect(!Self.matches(skipVersion, "1.0", "main", "fedcba9"))
+
+        let skipVersionBranch = Entry(version: " SKIP ", branch: "feat/x")
+        #expect(Self.matches(skipVersionBranch, "1.0", "feat/x", nil))
+        #expect(!Self.matches(skipVersionBranch, "1.0", "dev", nil))
+
+        let skipBranchAndSHA = Entry(version: "1.0", branch: "SKIP", sha: "SKIP")
+        #expect(Self.matches(skipBranchAndSHA, "1.0", "main", "0123456"))
+        #expect(!Self.matches(skipBranchAndSHA, "1.1", "main", "0123456"))
+    }
+
+    @Test("Only the exact uppercase sentinel skips") func skipIsCaseSensitive() {
+        #expect(!Self.matches(Entry(version: "skip", branch: "dev"), "1.0", "dev", nil))
+        #expect(Self.matches(Entry(version: "1.0", branch: "Skip"), "1.0", "Skip", nil))
+        #expect(!Self.matches(Entry(version: "1.0", branch: "Skip"), "1.0", "dev", nil))
+    }
+
+    @Test("An entry made only of SKIP matches nothing") func allSkipMatchesNothing() {
+        #expect(!Self.matches(Entry(version: "SKIP", branch: "SKIP", sha: "SKIP"), "1.0", "main", "0123456"))
+        #expect(!Self.matches(Entry(version: "SKIP"), "SKIP", "SKIP", "SKIP"))
+    }
+
     @Test("An entry with nothing to match on matches nothing") func emptyEntryMatchesNothing() {
         #expect(!Self.matches(Entry(version: ""), "1.0", "main", "0123456"))
         #expect(!Self.matches(Entry(version: " ", branch: "", sha: "  ", message: "x"), "1.0", "main", "0123456"))
         #expect(!Self.matches(Entry(version: ""), "", nil, nil))
     }
 
-    @Test("Earlier builds decode empty-version entries and never match them") func legacyIgnoresEmptyVersion() {
+    @Test("Earlier builds decode empty and SKIP version entries and never match them") func legacyIgnoresEmptyVersion() {
         let json = """
         {
             "blacklistedVersions": [
                 { "version": "0.5.0" },
                 { "version": "", "sha": "0123456" },
-                { "version": "", "branch": "dev", "message": "x" }
+                { "version": "", "branch": "dev", "message": "x" },
+                { "version": "SKIP", "sha": "fedcba9" }
             ]
         }
         """
