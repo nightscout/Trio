@@ -20,6 +20,8 @@ import UIKit
     @Persisted(key: "latestVersionChecked") private var latestVersionChecked: Date? = .distantPast
     // Boolean flag indicating whether the current version is blacklisted.
     @Persisted(key: "currentVersionBlackListed") private var currentVersionBlackListed: Bool = false
+    // Commit SHA of the build for which data was last fetched (blacklist entries can target a commit).
+    @Persisted(key: "cachedForCommitSHA") private var cachedForCommitSHA: String? = nil
     // Timestamp for the last time a blacklist notification was shown.
     @Persisted(key: "lastBlacklistNotificationShown") private var lastBlacklistNotificationShown: Date? = .distantPast
     // Timestamp for the last time a version update notification was shown.
@@ -60,15 +62,120 @@ import UIKit
     }
 
     // Model for decoding the blacklist JSON from GitHub.
-    private struct Blacklist: Decodable {
+    //
+    // BACKWARD COMPATIBILITY: builds released before `branch` / `sha` existed decode this same file with
+    //
+    //     struct Blacklist: Decodable { let blacklistedVersions: [VersionEntry] }
+    //     struct VersionEntry: Decodable { let version: String }
+    //
+    // and wrap the whole decode in `try?`. JSONDecoder ignores keys a model does not declare, so adding
+    // `branch` and `sha` to an entry is safe for those builds. But every entry MUST keep a string
+    // `version`: a single entry without one makes the old decode throw, and the old builds then
+    // treat the list as empty and stop warning about every blacklisted version.
+    //
+    // Old builds match on `version` alone, so an entry that is narrowed by `branch` / `sha` still flags
+    // every pre-existing build with that version. That errs on the side of warning too often.
+    struct Blacklist: Decodable {
         // Array of blacklisted version entries.
         let blacklistedVersions: [VersionEntry]
+
+        private enum CodingKeys: String, CodingKey {
+            case blacklistedVersions
+        }
+
+        // Decodes entries one at a time so that a single malformed entry (for example one that a
+        // future format adds) is skipped instead of discarding the whole list.
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            var entries = try container.nestedUnkeyedContainer(forKey: .blacklistedVersions)
+            var decoded: [VersionEntry] = []
+            while !entries.isAtEnd {
+                if let entry = try? entries.decode(VersionEntry.self) {
+                    decoded.append(entry)
+                } else if (try? entries.decode(SkippedEntry.self)) == nil {
+                    // A failed decode does not advance the container, so step past the entry; if even
+                    // that fails, stop rather than loop forever.
+                    break
+                }
+            }
+            blacklistedVersions = decoded
+        }
+
+        // Accepts any JSON value without reading it, used only to advance past an entry that failed to decode.
+        private struct SkippedEntry: Decodable {
+            init(from _: Decoder) throws {}
+        }
     }
 
-    // Model representing a single version entry in the blacklist.
-    private struct VersionEntry: Decodable {
-        // The version string that is blacklisted.
+    // Model representing a single entry in the blacklist.
+    //
+    // An entry matches the running build when every field it specifies matches:
+    // - `version` (required) must equal the app's `CFBundleShortVersionString`.
+    // - `branch` (optional) must equal the branch recorded in BuildDetails.plist.
+    // - `sha` (optional) must match the commit recorded in BuildDetails.plist. Builds record an
+    //   abbreviated SHA (7+ characters), so either value may be a prefix of the other; at least
+    //   7 characters must overlap, compared case-insensitively.
+    //
+    // Example:
+    //     { "version": "0.6.0.12", "branch": "dev", "sha": "a1b2c3d" }
+    struct VersionEntry: Decodable, Equatable {
+        // The version string that is blacklisted. Required so that older builds can still decode the list.
         let version: String
+        // The branch the blacklisted build was made from, or `nil` to match any branch.
+        let branch: String?
+        // The commit SHA (full or abbreviated) of the blacklisted build, or `nil` to match any commit.
+        let sha: String?
+
+        init(version: String, branch: String? = nil, sha: String? = nil) {
+            self.version = version
+            self.branch = branch
+            self.sha = sha
+        }
+
+        // Shortest SHA prefix accepted as a match, the length `capture-build-details.sh` records.
+        static let minimumSHAPrefixLength = 7
+
+        // Returns `true` if this entry applies to a build with the given version, branch and commit.
+        func matches(version currentVersion: String, branch currentBranch: String?, sha currentSHA: String?) -> Bool {
+            guard version == currentVersion else {
+                return false
+            }
+
+            if let branch = Self.normalized(branch) {
+                guard let currentBranch = Self.normalized(currentBranch), branch == currentBranch else {
+                    return false
+                }
+            }
+
+            if let sha = Self.normalized(sha)?.lowercased() {
+                guard let currentSHA = Self.normalized(currentSHA)?.lowercased(),
+                      min(sha.count, currentSHA.count) >= Self.minimumSHAPrefixLength,
+                      sha.hasPrefix(currentSHA) || currentSHA.hasPrefix(sha)
+                else {
+                    return false
+                }
+            }
+
+            return true
+        }
+
+        // Treats empty or whitespace-only strings as absent.
+        private static func normalized(_ value: String?) -> String? {
+            guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+                return nil
+            }
+            return trimmed
+        }
+    }
+
+    // Returns `true` if any entry in the blacklist applies to the given build.
+    static func isBlacklisted(
+        entries: [VersionEntry],
+        version: String,
+        branch: String?,
+        sha: String?
+    ) -> Bool {
+        entries.contains { $0.matches(version: version, branch: branch, sha: sha) }
     }
 
     // MARK: - Public Methods
@@ -287,9 +394,12 @@ import UIKit
             lastVersionUpdateNotificationShown = .distantPast
         }
 
-        // Use cached data if it is valid (less than 24 hours old) and matches the current version.
+        // Use cached data if it is valid (less than 24 hours old) and matches the current version and
+        // commit. The commit is checked too because blacklist entries can target a single commit, and
+        // a rebuild from another commit keeps the same version string.
         if let cachedVersion = cachedVersion,
            cachedVersion == currentVersion,
+           cachedForCommitSHA == currentCommitSHA(),
            now.timeIntervalSince(lastChecked) < 24 * 3600,
            let persistedLatest = persistedLatest
         {
@@ -330,18 +440,24 @@ import UIKit
             self.isVersion($0, newerThan: currentVersion)
         } ?? false
 
-        // Determine if the current version is blacklisted.
-        let isBlacklisted = (try? blacklistDataResult.flatMap {
+        // Determine if the current build is blacklisted, by version and, where an entry specifies them,
+        // by branch and commit SHA.
+        let entries = (try? blacklistDataResult.flatMap {
             try JSONDecoder().decode(Blacklist.self, from: $0)
-        })?.blacklistedVersions
-            .map(\.version)
-            .contains(currentVersion) ?? false
+        })?.blacklistedVersions ?? []
+        let isBlacklisted = Self.isBlacklisted(
+            entries: entries,
+            version: currentVersion,
+            branch: currentBranch(),
+            sha: currentCommitSHA()
+        )
 
         // Update persisted cache.
         persistedLatestVersion = fetchedVersion
         latestVersionChecked = Date()
         currentVersionBlackListed = isBlacklisted
         cachedForVersion = currentVersion
+        cachedForCommitSHA = currentCommitSHA()
 
         return (fetchedVersion, isNewer, isBlacklisted)
     }
@@ -472,6 +588,20 @@ import UIKit
     // or `"Unknown"` if not available.
     private func version() -> String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+    }
+
+    // Retrieves the branch the app was built from, as recorded in BuildDetails.plist.
+    //
+    // - Returns: The branch (or tag) name, or `nil` if it was not recorded.
+    private func currentBranch() -> String? {
+        BuildDetails.shared.dict["com-trio-branch"] as? String
+    }
+
+    // Retrieves the commit SHA the app was built from, as recorded in BuildDetails.plist.
+    //
+    // - Returns: The abbreviated commit SHA, or `nil` if it was not recorded.
+    private func currentCommitSHA() -> String? {
+        BuildDetails.shared.dict["com-trio-commit-sha"] as? String
     }
 
     // Presents an alert on the specified view controller with a given title and message.
