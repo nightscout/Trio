@@ -22,7 +22,6 @@ protocol DeviceDataManager {
     var recommendsLoop: PassthroughSubject<Void, Never> { get }
     var bolusTrigger: CurrentValueSubject<BolusStatus, Never> { get }
     var manualTempBasal: PassthroughSubject<Bool, Never> { get }
-    var scheduledBasal: PassthroughSubject<Bool?, Never> { get }
     var suspended: PassthroughSubject<Bool, Never> { get }
     var errorSubject: PassthroughSubject<Error, Never> { get }
     var pumpName: CurrentValueSubject<String, Never> { get }
@@ -65,7 +64,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     let errorSubject = PassthroughSubject<Error, Never>()
     let pumpNewStatus = PassthroughSubject<Void, Never>()
     let manualTempBasal = PassthroughSubject<Bool, Never>()
-    let scheduledBasal = PassthroughSubject<Bool?, Never>()
     let suspended = PassthroughSubject<Bool, Never>()
 
     @SyncAccess private var pumpUpdateCancellable: AnyCancellable?
@@ -78,8 +76,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 trioAlertManager?.unregister(managerIdentifier: oldValue.pluginIdentifier)
             }
             if let pumpManager = pumpManager {
-                pumpManager.pumpManagerDelegate = self
+                // Queue before delegate, so no delegate call lands on the default main queue
                 pumpManager.delegateQueue = processQueue
+                pumpManager.pumpManagerDelegate = self
 
                 // Re-apply the latest CGM-aligned heartbeat request to a freshly set pump
                 if let heartbeatRequest = lastPumpHeartbeatRequest {
@@ -472,20 +471,15 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
 
         switch status.basalDeliveryState {
         case let .active(at):
-            if at == .distantPast {
-                scheduledBasal.send(nil) // pump is not currently available
-            } else {
+            if at != .distantPast {
                 suspended.send(false)
-                scheduledBasal.send(true)
             }
         case .suspended:
             suspended.send(true)
-            scheduledBasal.send(false)
         case .pumpInoperable:
-            scheduledBasal.send(nil) // pump is not currently available
+            break // pump is not currently available; leave `suspended` as is
         default:
             suspended.send(false)
-            scheduledBasal.send(false)
         }
 
         if status.insulinType != oldStatus.insulinType {
@@ -544,11 +538,15 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         }
     }
 
-    func pumpManagerWillDeactivate(_: PumpManager) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        pumpManager = nil
-        broadcaster.notify(PumpDeactivatedObserver.self, on: processQueue) {
-            $0.pumpDeactivatedDidChange()
+    func pumpManagerWantsDeletion(_: PumpManager) async {
+        await withCheckedContinuation { continuation in
+            processQueue.async {
+                self.pumpManager = nil
+                self.broadcaster.notify(PumpDeactivatedObserver.self, on: self.processQueue) {
+                    $0.pumpDeactivatedDidChange()
+                }
+                continuation.resume()
+            }
         }
     }
 

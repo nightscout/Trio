@@ -317,7 +317,7 @@ struct PickerSettingRow: View {
         case .glucose:
             return decimalValue.formatted(withUnits: units)
         case .factor:
-            return "\(decimalValue * 100) \(String(localized: "%", comment: "Percentage symbol"))"
+            return decimalValue.formatted(.wholePercent)
         case .insulinUnit:
             return "\(decimalValue) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
         case .insulinUnitPerHour:
@@ -337,7 +337,7 @@ struct PickerSettingRow: View {
         case .glucose:
             return decimalValue.formatted(for: units) + " " + units.spokenValue
         case .factor:
-            return "\(decimalValue * 100) \(UnitSpelling.spoken("%"))"
+            return decimalValue.formatted(.wholePercent)
         case .insulinUnit:
             return "\(decimalValue) \(UnitSpelling.spoken("U"))"
         case .insulinUnitPerHour:

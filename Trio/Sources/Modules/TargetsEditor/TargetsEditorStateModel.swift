@@ -2,9 +2,13 @@ import SwiftUI
 
 extension TargetsEditor {
     final class StateModel: BaseStateModel<Provider> {
-        @Injected() private var nightscout: NightscoutManager!
-        @Injected() private var tidepoolManager: TidepoolManager!
-        @Injected() private var broadcaster: Broadcaster!
+        @Injected() private var therapyProfileManager: TherapyProfileManager!
+        var profileName: String?
+        private var editedProfile: TrioTherapyProfile?
+        /// The active profile when the editor opened; a save of the live settings is refused once it changed.
+        private var liveBase: TrioTherapyProfile?
+        @Published var bannerInfo: TherapyProfileBannerInfo?
+        @Published var profileSaveError: String?
 
         @Published var items: [Item] = []
         @Published var initialItems: [Item] = []
@@ -52,7 +56,10 @@ extension TargetsEditor {
         override func subscribe() {
             units = settingsManager.settings.units
 
-            let profile = provider.profile
+            editedProfile = profileName.flatMap { therapyProfileManager.profile(named: $0) }
+            liveBase = profileName == nil ? therapyProfileManager.activeProfile() : nil
+            bannerInfo = TherapyProfileBannerInfo.make(manager: therapyProfileManager, profileName: profileName)
+            let profile = editedProfile?.bgTargets ?? provider.profile
 
             items = profile.targets.map { value in
                 let timeIndex = timeValues.firstIndex(of: Double(value.offset * 60)) ?? 0
@@ -94,26 +101,39 @@ extension TargetsEditor {
                 return BGTargetEntry(low: low, high: high, start: formatter.string(from: date), offset: minutes)
             }
             let profile = BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: targets)
-            provider.saveProfile(profile)
-            info(.settings, "Glucose target schedule saved with \(targets.count) entries")
-            initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
-
-            DispatchQueue.main.async {
-                self.broadcaster.notify(BGTargetsObserver.self, on: .main) {
-                    $0.bgTargetsDidChange(profile)
-                }
+            if let profileName, let editedProfile {
+                saveToProfile(profileName, base: editedProfile, updated: editedProfile.replacing(bgTargets: profile))
+                return
             }
-
-            Task.detached(priority: .low) {
+            guard let liveBase, let provider else { return }
+            Task { @MainActor in
                 do {
-                    try await self.nightscout.uploadProfiles()
+                    self.liveBase = try await therapyProfileManager.saveLiveSettings(
+                        expectedActiveName: liveBase.name,
+                        expectedFingerprint: liveBase.fingerprint(units: .mgdL)
+                    ) { provider.saveProfile(profile) }
                 } catch {
-                    warning(.nightscout, "Uploading profile after glucose target change failed", error: error)
+                    profileSaveError = error.localizedDescription
+                    return
                 }
+                info(.settings, "Glucose target schedule saved with \(targets.count) entries")
+                initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
             }
+        }
 
-            Task.detached(priority: .low) {
-                await self.tidepoolManager.uploadSettings()
+        private func saveToProfile(_ name: String, base: TrioTherapyProfile, updated: TrioTherapyProfile) {
+            Task { @MainActor in
+                do {
+                    editedProfile = try await therapyProfileManager.save(
+                        updated,
+                        originalName: name,
+                        baseFingerprint: base.fingerprint(units: .mgdL)
+                    )
+                    initialItems = items.map { Item(lowIndex: $0.lowIndex, highIndex: $0.highIndex, timeIndex: $0.timeIndex) }
+                    info(.settings, "Glucose target schedule of profile \(updated.fingerprint(units: .mgdL)) saved")
+                } catch {
+                    profileSaveError = error.localizedDescription
+                }
             }
         }
 

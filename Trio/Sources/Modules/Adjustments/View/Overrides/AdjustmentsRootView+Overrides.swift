@@ -155,13 +155,10 @@ extension Adjustments.RootView {
 
         let targetString = target.isEmpty ? "" : "\(target) \(state.units.rawValue)"
 
-        // Int(_: Decimal) traps on NaN/out-of-range values, so a corrupted preset would crash
-        // this screen on every open. Guard via Double instead.
-        let durationString: String = {
-            guard !indefinite else { return "" }
-            let durationMinutes = NSDecimalNumber(decimal: duration).doubleValue
-            guard durationMinutes.isFinite, durationMinutes.magnitude <= Double(Int.max) else { return "" }
-            return state.formatHoursAndMinutes(Int(durationMinutes))
+        let durationLabel: (text: String, spoken: String) = {
+            guard !indefinite else { return ("", "") }
+            let span = Duration(minutes: duration)
+            return (span.formattedTimeSpan(), span.formattedSpokenTimeSpan())
         }()
 
         let scheduledSMBString: String = {
@@ -171,19 +168,21 @@ extension Adjustments.RootView {
 
         let smbString: String = {
             guard preset.smbIsOff || preset.smbIsScheduledOff else { return "" }
-            return "SMBs Off\(scheduledSMBString)"
+            return String(localized: "SMBs Off\(scheduledSMBString)")
         }()
 
-        let maxSmbMinsString: String = {
+        let maxSmbMins: (text: String, spoken: String) = {
             guard smbMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
-                  smbMinutes != state.defaultSmbMinutes else { return "" }
-            return "\(smbMinutes.formatted()) min SMB"
+                  smbMinutes != state.defaultSmbMinutes else { return ("", "") }
+            let span = Duration(minutes: smbMinutes)
+            return ("SMB\u{00A0}" + span.formattedTimeSpan(.minutes), "SMB\u{00A0}" + span.formattedSpokenTimeSpan(.minutes))
         }()
 
-        let maxUamMinsString: String = {
+        let maxUamMins: (text: String, spoken: String) = {
             guard uamMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
-                  uamMinutes != state.defaultUamMinutes else { return "" }
-            return "\(uamMinutes.formatted()) min UAM"
+                  uamMinutes != state.defaultUamMinutes else { return ("", "") }
+            let span = Duration(minutes: uamMinutes)
+            return ("UAM\u{00A0}" + span.formattedTimeSpan(.minutes), "UAM\u{00A0}" + span.formattedSpokenTimeSpan(.minutes))
         }()
 
         let isfAndCrString: String = {
@@ -200,22 +199,13 @@ extension Adjustments.RootView {
             }
         }()
 
-        // Same trap risk as duration above.
-        let percentageString: String = {
-            guard percentage != 100 else { return "" }
-            guard percentage.isFinite, percentage.magnitude <= Double(Int.max) else { return "" }
-            return "\(Int(percentage))%\(isfAndCrString)"
-        }()
+        let percentageString = percentage == 100 ? "" : (percentage / 100).formatted(.wholePercent) + isfAndCrString
 
-        // Combine all labels into a single array, filtering out empty strings
-        let labels: [String] = [
-            durationString,
-            percentageString,
-            targetString,
-            smbString,
-            maxSmbMinsString,
-            maxUamMinsString
-        ].filter { !$0.isEmpty }
+        let otherLabels = [percentageString, targetString, smbString]
+        let labels = ([durationLabel.text] + otherLabels + [maxSmbMins.text, maxUamMins.text])
+            .filter { !$0.isEmpty }
+        let spokenLabels = ([durationLabel.spoken] + otherLabels + [maxSmbMins.spoken, maxUamMins.spoken])
+            .filter { !$0.isEmpty }
 
         if !name.isEmpty {
             ZStack(alignment: .trailing) {
@@ -257,7 +247,7 @@ extension Adjustments.RootView {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(name))
-            .accessibilityValue(Text(labels.joined(separator: ", ")))
+            .accessibilityValue(Text(spokenLabels.joined(separator: ", ")))
             .accessibilityHint(Text(String(localized: "Double tap to enable this override", comment: "Accessibility hint")))
             .accessibilityAddTraits(showOverrideCheckmark && isSelected ? [.isButton, .isSelected] : .isButton)
             .accessibilityAction { onTap?() }

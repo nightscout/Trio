@@ -100,6 +100,26 @@ extension Home {
                 chartInfoButton
                     .offset(x: 0, y: -18)
             }
+            .overlay(alignment: .topLeading) {
+                if let profileName = state.activeTherapyProfileName {
+                    HStack(spacing: 3) {
+                        Image(systemName: "person.crop.circle")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(profileName)
+                            .font(.system(size: 13, weight: .semibold))
+                            .fontDesign(.rounded)
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .glassMaterialFill(Capsule())
+                    .frame(height: chartHeight * 0.10)
+                    .padding(.leading, 16)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("Active profile \(profileName)"))
+                }
+            }
             .overlay(alignment: .topTrailing) {
                 // borderless capsule (not a control); centered in the basal
                 // pane band so it clears the y-axis labels on every device size
@@ -622,22 +642,6 @@ func is24HourFormat() -> Bool {
     let dateString = formatter.string(from: Date())
 
     return !dateString.contains("AM") && !dateString.contains("PM")
-}
-
-/// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
-func formatHrMin(_ durationInMinutes: Int) -> String {
-    let hours = durationInMinutes / 60
-    let minutes = durationInMinutes % 60
-
-    switch (hours, minutes) {
-    case let (0, m):
-        return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-    case let (h, 0):
-        return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
-    default:
-        return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
-            .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-    }
 }
 
 // Helper function to convert a start and end hour to either 24-hour or AM/PM format
