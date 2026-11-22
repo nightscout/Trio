@@ -223,6 +223,9 @@ final class BaseTDDStorage: TDDStorage, Injectable {
         var nextResume = resumeTimes.startIndex
 
         for suspend in suspendTimes {
+            if let lastEnd = spans.last?.end, suspend < lastEnd {
+                continue
+            }
             // spans never nest: skip resumes that belong to an earlier suspension
             while nextResume < resumeTimes.endIndex, resumeTimes[nextResume] <= suspend {
                 nextResume += 1

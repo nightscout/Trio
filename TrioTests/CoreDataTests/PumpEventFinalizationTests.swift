@@ -1,5 +1,6 @@
 import CoreData
 import Foundation
+import HealthKit
 import LoopKit
 import Swinject
 import Testing
@@ -966,5 +967,258 @@ import Testing
                 eventType: .tempBasal
             )))
         }
+    }
+
+    // MARK: - Accompanying suspend/resume doses & suspension reconciliation
+
+    @Test(
+        "Rewind and Prime carrying suspend/resume doses persist paired PumpSuspend and PumpResume rows"
+    ) func testRewindAndPrimeStoreAccompanyingSuspendAndResume() async throws {
+        let now = Date()
+        let rewindDate = now.addingTimeInterval(-30.minutes.timeInterval)
+        let primeDate = rewindDate.addingTimeInterval(15)
+
+        let events: [LoopKit.NewPumpEvent] = [
+            LoopKit.NewPumpEvent(
+                date: rewindDate,
+                dose: LoopKit.DoseEntry(suspendDate: rewindDate),
+                raw: Data("mdt-rewind-1".utf8),
+                title: "Rewind",
+                type: .rewind
+            ),
+            LoopKit.NewPumpEvent(
+                date: primeDate,
+                dose: LoopKit.DoseEntry(resumeDate: primeDate),
+                raw: Data("mdt-prime-1".utf8),
+                title: "Prime",
+                type: .prime
+            )
+        ]
+
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
+        // Re-importing the same history page must stay idempotent
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
+
+        let stored = try await fetchAllEvents()
+        #expect(stored.count == 4, "Rewind + Prime with suspend/resume doses should persist 4 distinct rows")
+        #expect(stored.contains { $0.type == PumpEvent.rewind.rawValue })
+        #expect(stored.contains { $0.type == PumpEvent.prime.rawValue })
+        #expect(stored.contains { $0.type == PumpEvent.pumpSuspend.rawValue && $0.timestamp == rewindDate })
+        #expect(stored.contains { $0.type == PumpEvent.pumpResume.rawValue && $0.timestamp == primeDate })
+    }
+
+    @Test(
+        "No-delivery alarm and alarmClear carrying suspend/resume doses persist paired suspension rows"
+    ) func testNoDeliveryAlarmAndClearAlarmStorePairedSuspendAndResume() async throws {
+        let now = Date()
+        let alarmDate = now.addingTimeInterval(-45.minutes.timeInterval)
+        let clearDate = alarmDate.addingTimeInterval(5.minutes.timeInterval)
+
+        let events: [LoopKit.NewPumpEvent] = [
+            LoopKit.NewPumpEvent(
+                date: alarmDate,
+                dose: LoopKit.DoseEntry(suspendDate: alarmDate),
+                raw: Data("mdt-alarm-1".utf8),
+                title: "No Delivery",
+                type: .alarm
+            ),
+            LoopKit.NewPumpEvent(
+                date: clearDate,
+                dose: LoopKit.DoseEntry(resumeDate: clearDate),
+                raw: Data("mdt-clear-1".utf8),
+                title: "Clear Alarm",
+                type: .alarmClear
+            )
+        ]
+
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
+        try await storage.storePumpEvents(events, replacePendingEvents: false)
+
+        let stored = try await fetchAllEvents()
+        #expect(stored.count == 3, "Alarm + PumpSuspend + PumpResume should be persisted once each")
+        #expect(stored.contains { $0.type == PumpEvent.pumpAlarm.rawValue && $0.timestamp == alarmDate })
+        #expect(stored.contains { $0.type == PumpEvent.pumpSuspend.rawValue && $0.timestamp == alarmDate })
+        #expect(stored.contains { $0.type == PumpEvent.pumpResume.rawValue && $0.timestamp == clearDate })
+    }
+
+    @Test(
+        "Consecutive suspends before a single resume collapse into one closed span"
+    ) func testNestedSuspensionsCollapseBeforeSingleResume() throws {
+        let now = Date()
+        let manualSuspend = now.addingTimeInterval(-2.hours.timeInterval)
+        let rewindSuspend = manualSuspend.addingTimeInterval(10.minutes.timeInterval)
+        let primeResume = rewindSuspend.addingTimeInterval(20)
+
+        let spans = BaseTDDStorage.suspensionSpans(
+            suspends: [suspendEvent(manualSuspend), suspendEvent(rewindSuspend)],
+            resumes: [resumeEvent(primeResume)],
+            now: now
+        )
+
+        #expect(spans.count == 1, "A second suspend while already suspended must not open an unresumed span to now")
+        #expect(spans.first?.start == manualSuspend && spans.first?.end == primeResume)
+    }
+
+    @Test(
+        "Reconciling an open suspension anchors to earliest non-external pump delivery and survives pending replacement"
+    )  func testReconcileOpenSuspensionClosesWithEarliestPumpDelivery() async throws {
+        let now = Date()
+        let suspendDate = now.addingTimeInterval(-2.hours.timeInterval)
+        let externalBolusDate = suspendDate.addingTimeInterval(5.minutes.timeInterval)
+        let tempBasalStart = suspendDate.addingTimeInterval(15.minutes.timeInterval)
+        let tempBasalEnd = tempBasalStart.addingTimeInterval(30.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: suspendDate,
+                    dose: LoopKit.DoseEntry(suspendDate: suspendDate),
+                    raw: Data("open-suspend-1".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                tempBasalEvent(
+                    start: tempBasalStart,
+                    end: tempBasalEnd,
+                    rate: 0.0,
+                    syncIdentifier: "tbr-after-suspend",
+                    isMutable: true
+                )
+            ],
+            replacePendingEvents: false
+        )
+        // External pen insulin does not prove the pump itself resumed
+        await storage.storeExternalInsulinEvent(amount: 1.0, timestamp: externalBolusDate)
+
+        let reconciled = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: suspendDate.addingTimeInterval(45.minutes.timeInterval),
+            now: now
+        )
+        #expect(reconciled == true)
+
+        // Repeat call must be a no-op
+        let repeated = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: suspendDate.addingTimeInterval(45.minutes.timeInterval),
+            now: now
+        )
+        #expect(repeated == false)
+
+        // Subsequent pending replacement batch must not purge the reconciled resume
+        try await storage.storePumpEvents(
+            [tempBasalEvent(
+                start: tempBasalStart,
+                end: tempBasalEnd,
+                rate: 0.0,
+                syncIdentifier: "tbr-after-suspend",
+                isMutable: true
+            )],
+            replacePendingEvents: true
+        )
+
+        let stored = try await fetchAllEvents()
+        let resumes = stored.filter { $0.type == PumpEvent.pumpResume.rawValue }
+        #expect(resumes.count == 1)
+        #expect(resumes.first?.timestamp == tempBasalStart, "Resume must anchor to earliest pump delivery, not external bolus")
+        #expect(resumes.first?.isMutable == false)
+    }
+
+    @Test(
+        "Confirmed active delivery status closes an unresumed suspension without misfiring on uncertain or sentinel states"
+    )  func testConfirmedActiveDeliveryStatusAndPodReplacementReconciliation() async throws {
+        let now = Date()
+        let oldPodSuspend = now.addingTimeInterval(-10.minutes.timeInterval)
+        let newPodActive = now.addingTimeInterval(-4.minutes.timeInterval)
+        let device = HKDevice(
+            name: "TestPump",
+            manufacturer: "Test",
+            model: "Test",
+            hardwareVersion: nil,
+            firmwareVersion: nil,
+            softwareVersion: nil,
+            localIdentifier: nil,
+            udiDeviceIdentifier: nil
+        )
+
+        func makeStatus(_ state: PumpManagerStatus.BasalDeliveryState?, uncertain: Bool = false) -> PumpManagerStatus {
+            PumpManagerStatus(
+                timeZone: .current,
+                device: device,
+                pumpBatteryChargeRemaining: 1.0,
+                basalDeliveryState: state,
+                bolusState: .noBolus,
+                insulinType: .lyumjev,
+                deliveryIsUncertain: uncertain
+            )
+        }
+
+        // Sentinel / transitional / suspended / uncertain states must never trigger reconciliation
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.active(.distantPast))) == nil)
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.suspended(oldPodSuspend))) == nil)
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.suspending)) == nil)
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.resuming)) == nil)
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.initiatingTempBasal)) == nil)
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.cancelingTempBasal)) == nil)
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.pumpInoperable)) == nil)
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.active(newPodActive), uncertain: true)) == nil)
+
+        // Confirmed active / tempBasal states return their start date
+        #expect(BaseDeviceDataManager.confirmedActiveDeliveryDate(for: makeStatus(.active(newPodActive))) == newPodActive)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: oldPodSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: oldPodSuspend),
+                raw: Data("pod-deactivate-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+
+        let reconciled = try await storage.reconcileOpenSuspension(activeDeliverySince: newPodActive, now: now)
+        #expect(reconciled == true)
+
+        let resumes = try await fetchAllEvents().filter { $0.type == PumpEvent.pumpResume.rawValue }
+        #expect(resumes.count == 1)
+        #expect(resumes.first?.timestamp == newPodActive)
+    }
+
+    @Test(
+        "Reconciliation skips balanced suspensions and sub-second windows"
+    )  func testReconcileOpenSuspensionSkipsBalancedAndSubSecondWindows() async throws {
+        let now = Date()
+        let suspendDate = now.addingTimeInterval(-5.minutes.timeInterval)
+        let resumeDate = suspendDate.addingTimeInterval(2.minutes.timeInterval)
+
+        // Sub-second window after an open suspend must wait so suspend/resume never share a timestamp
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: suspendDate,
+                dose: LoopKit.DoseEntry(suspendDate: suspendDate),
+                raw: Data("subsecond-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+        let tooSoon = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: suspendDate,
+            now: suspendDate.addingTimeInterval(0.5)
+        )
+        #expect(tooSoon == false)
+
+        // Once paired by a normal resume, reconciliation is a no-op
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: resumeDate,
+                dose: LoopKit.DoseEntry(resumeDate: resumeDate),
+                raw: Data("normal-resume".utf8),
+                title: "Resume",
+                type: .resume
+            )],
+            replacePendingEvents: false
+        )
+        let balanced = try await storage.reconcileOpenSuspension(activeDeliverySince: resumeDate, now: now)
+        #expect(balanced == false)
     }
 }

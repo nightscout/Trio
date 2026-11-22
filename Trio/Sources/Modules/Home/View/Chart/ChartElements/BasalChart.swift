@@ -128,6 +128,9 @@ extension MainChartCanvas {
             guard suspension.type == EventType.pumpSuspend.rawValue, let suspensionStart = suspension.timestamp else {
                 continue
             }
+            if let lastEnd = intervals.last?.end, suspensionStart < lastEnd {
+                continue
+            }
             let suspensionEnd = min(
                 suspensions.first(where: {
                     $0.timestamp ?? now > suspensionStart && $0.type == EventType.pumpResume.rawValue

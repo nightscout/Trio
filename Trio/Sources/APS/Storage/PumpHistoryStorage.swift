@@ -15,6 +15,10 @@ protocol PumpHistoryStorage {
     /// Returns the ids of purged events that were already uploaded to NS,
     /// so the caller can delete the now-withdrawn treatments remotely.
     @discardableResult func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws -> [String]
+    /// Closes a trailing `PumpSuspend` when the pump manager confirms live basal delivery,
+    /// covering pump-side resumes that write no history record (cancelled fixed prime on
+    /// Medtronic, clock reset across a battery change, or pod/patch replacement).
+    @discardableResult func reconcileOpenSuspension(activeDeliverySince: Date?, now: Date) async throws -> Bool
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent]
@@ -66,10 +70,11 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         // on constraint conflicts the persisted row wins: finalized rows never change
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         return try await context.perform {
+            let candidates = events.flatMap(Self.storedCandidates(for:))
             // upsert candidates: dose syncIdentifier, timestamp+type as fallback
             // LoopKit derives dose.syncIdentifier from raw; empty raw must not become a shared identity
-            let syncIdentifiers = events.compactMap(\.dose?.syncIdentifier).filter { !$0.isEmpty }
-            let timestamps = events.map(\.date)
+            let syncIdentifiers = candidates.compactMap(\.syncIdentifier)
+            let timestamps = candidates.map(\.date)
             let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
             request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
                 NSPredicate(format: "syncIdentifier IN %@", syncIdentifiers),
@@ -98,8 +103,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
             var assertedRows = Set<NSManagedObjectID>()
 
-            for event in events {
-                guard let storedType = event.type?.storedEventType else { continue }
+            for candidate in candidates {
+                let event = candidate.event
+                let storedType = candidate.storedType
 
                 // Type-aware key: same-timestamp bolus + TBR no longer shadow each other. Scheduled
                 // basal needs its own dimension on top, because it also stores as a TBR row and a
@@ -107,11 +113,11 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 // resumes the schedule the instant a temp ends. Without this a schedule report
                 // hijacks the still-mutable cancel row and inherits its non-scheduled identity.
                 let fallbackKey = TimestampAndType(
-                    timestamp: event.date,
+                    timestamp: candidate.date,
                     type: storedType.rawValue,
-                    isScheduledBasal: event.type == .basal
+                    isScheduledBasal: candidate.isScheduledBasal
                 )
-                let syncIdentifier = event.dose?.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
+                let syncIdentifier = candidate.syncIdentifier
                 let match = syncIdentifier.flatMap { bySyncIdentifier[$0] }
                     ?? byTimestampAndType[fallbackKey]
 
@@ -127,7 +133,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 let newPumpEvent = PumpEventStored(context: context)
                 newPumpEvent.id = UUID().uuidString
                 // restrict entry to now or past
-                newPumpEvent.timestamp = min(event.date, Date())
+                newPumpEvent.timestamp = min(candidate.date, Date())
                 newPumpEvent.type = storedType.rawValue
                 newPumpEvent.syncIdentifier = syncIdentifier
                 newPumpEvent.isMutable = event.dose?.isMutable ?? false
@@ -164,7 +170,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         continue
                     }
                     let newTempBasal = TempBasalStored(context: context)
-                    let isScheduledBasal = event.type == .basal
+                    let isScheduledBasal = candidate.isScheduledBasal
                     let span = Self.storedSpan(of: dose, isScheduledBasal: isScheduledBasal)
                     newTempBasal.pumpEvent = newPumpEvent
                     newTempBasal.duration = span.duration
@@ -219,6 +225,84 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 throw error
             }
             return purgedUploadedIds
+        }
+    }
+
+    @discardableResult func reconcileOpenSuspension(activeDeliverySince: Date?, now: Date = Date()) async throws -> Bool {
+        let context = makeContext()
+        context.name = "reconcileOpenSuspension"
+        context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+        return try await context.perform {
+            let lookbackStart = now.addingTimeInterval(-48.hours.timeInterval)
+            let suspendResumeRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+            suspendResumeRequest.predicate = NSPredicate(
+                format: "timestamp >= %@ AND timestamp <= %@ AND type IN %@",
+                lookbackStart as NSDate,
+                now as NSDate,
+                [PumpEvent.pumpSuspend.rawValue, PumpEvent.pumpResume.rawValue]
+            )
+            suspendResumeRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
+
+            let suspendResumeRows = try context.fetch(suspendResumeRequest)
+            guard let latest = suspendResumeRows.last,
+                  latest.type == PumpEvent.pumpSuspend.rawValue,
+                  let suspendDate = latest.timestamp,
+                  now.timeIntervalSince(suspendDate) >= 1,
+                  !suspendResumeRows.contains(where: {
+                      $0.type == PumpEvent.pumpResume.rawValue && ($0.timestamp ?? .distantPast) >= suspendDate
+                  })
+            else {
+                return false
+            }
+
+            let sourceKey = latest.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
+                ?? latest.id.flatMap { $0.isEmpty ? nil : $0 }
+                ?? String(format: "%.6f", suspendDate.timeIntervalSince1970)
+            let resumeSyncIdentifier = "reconciled-resume:\(sourceKey)"
+
+            let existingResumeRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+            existingResumeRequest.predicate = NSPredicate(format: "syncIdentifier == %@", resumeSyncIdentifier)
+            existingResumeRequest.fetchLimit = 1
+            if try !context.fetch(existingResumeRequest).isEmpty {
+                return false
+            }
+
+            // Any non-external pump bolus or non-scheduled temp basal after `suspendDate` proves
+            // the pump had already resumed by that delivery's start timestamp.
+            let deliveryRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+            deliveryRequest.predicate = NSPredicate(
+                format: "timestamp > %@ AND timestamp <= %@ AND ((type == %@ AND (bolus == nil OR bolus.isExternal == NO)) OR (type == %@ AND (tempBasal == nil OR tempBasal.isScheduledBasal == NO)))",
+                suspendDate as NSDate,
+                now as NSDate,
+                PumpEvent.bolus.rawValue,
+                PumpEvent.tempBasal.rawValue
+            )
+            deliveryRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
+            deliveryRequest.fetchLimit = 1
+            let earliestDeliveryDate = try context.fetch(deliveryRequest).first?.timestamp
+
+            let validActiveSince = activeDeliverySince.flatMap { $0 > suspendDate ? min($0, now) : nil }
+            let rawResumeDate = [earliestDeliveryDate, validActiveSince].compactMap { $0 }.min() ?? now
+            // Keep strictly after `suspendDate` so IobHistory never sees identical suspend/resume timestamps.
+            let resumeDate = min(max(rawResumeDate, suspendDate.addingTimeInterval(1)), now)
+            guard resumeDate > suspendDate else { return false }
+
+            let resumeEvent = PumpEventStored(context: context)
+            resumeEvent.id = UUID().uuidString
+            resumeEvent.timestamp = resumeDate
+            resumeEvent.type = PumpEvent.pumpResume.rawValue
+            resumeEvent.syncIdentifier = resumeSyncIdentifier
+            // Born final so `replacePendingEvents: true` batches from drivers that assert only
+            // their own pending doses do not purge the reconciled resume on the next poll.
+            resumeEvent.isMutable = false
+            resumeEvent.isUploadedToNS = false
+            resumeEvent.isUploadedToHealth = false
+            resumeEvent.isUploadedToTidepool = false
+
+            try context.save()
+            self.updateSubject.send(())
+            debug(.storage, "Reconciled open pump suspension from \(suspendDate) with resume at \(resumeDate)")
+            return true
         }
     }
 
@@ -684,6 +768,54 @@ extension BasePumpHistoryStorage {
         let timestamp: Date
         let type: String
         let isScheduledBasal: Bool
+    }
+
+    struct StoredCandidate {
+        let event: NewPumpEvent
+        let storedType: PumpEvent
+        let date: Date
+        let syncIdentifier: String?
+        let isScheduledBasal: Bool
+    }
+
+    /// Expands a `NewPumpEvent` into its stored row(s).
+    ///
+    /// LoopKit keeps `NewPumpEvent.type` and `NewPumpEvent.dose` orthogonal: drivers such as
+    /// MinimedKit attach `DoseEntry(suspendDate:)` or `DoseEntry(resumeDate:)` to `.rewind`,
+    /// `.prime`, `.alarm` and `.alarmClear` events because Medtronic pumps exit suspend upon
+    /// priming or clearing a no-delivery alarm without logging a separate `Resume` opcode.
+    static func storedCandidates(for event: NewPumpEvent) -> [StoredCandidate] {
+        let baseSyncIdentifier = event.dose?.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
+        let primaryType = event.type?.storedEventType
+        var candidates: [StoredCandidate] = []
+
+        if let primaryType {
+            candidates.append(StoredCandidate(
+                event: event,
+                storedType: primaryType,
+                date: event.date,
+                syncIdentifier: baseSyncIdentifier,
+                isScheduledBasal: event.type == .basal
+            ))
+        }
+
+        if let dose = event.dose,
+           dose.type == .suspend || dose.type == .resume,
+           primaryType != .pumpSuspend,
+           primaryType != .pumpResume
+        {
+            let deliveryType: PumpEvent = dose.type == .suspend ? .pumpSuspend : .pumpResume
+            let derivedSyncIdentifier = baseSyncIdentifier.map { "\($0):\(deliveryType.rawValue)" }
+            candidates.append(StoredCandidate(
+                event: event,
+                storedType: deliveryType,
+                date: dose.startDate,
+                syncIdentifier: derivedSyncIdentifier,
+                isScheduledBasal: false
+            ))
+        }
+
+        return candidates
     }
 }
 

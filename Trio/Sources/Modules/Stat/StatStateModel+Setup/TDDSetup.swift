@@ -322,6 +322,9 @@ extension Stat.StateModel {
         // Iterate through suspend events and find matching resume events
         for suspendEvent in sortedSuspendEvents {
             guard let suspendTime = suspendEvent.timestamp else { continue }
+            if let lastEnd = pairs.last?.resume.timestamp, suspendTime < lastEnd {
+                continue
+            }
 
             // Find the first resume event that occurs after this suspend event
             if let resumeEvent = sortedResumeEvents.first(where: {
