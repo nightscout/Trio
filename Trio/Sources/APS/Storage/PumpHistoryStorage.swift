@@ -22,10 +22,8 @@ protocol PumpHistoryStorage {
     /// Returns the ids of purged events that were already uploaded to NS,
     /// so the caller can delete the now-withdrawn treatments remotely.
     @discardableResult func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws -> [String]
-    /// Closes or re-anchors a trailing `PumpSuspend` when post-suspend pump delivery or a fresh
-    /// pump sync confirms basal delivery is active, covering pump-side resumes that write no
-    /// history record (cancelled fixed prime on Medtronic, clock reset across a battery change,
-    /// or pod/patch replacement).
+    /// Closes or re-anchors an open `PumpSuspend` when post-suspend pump delivery or a fresh
+    /// pump sync confirms basal delivery is active.
     @discardableResult func reconcileOpenSuspension(
         activeDeliverySince: Date?,
         lastVerifiedSyncDate: Date?,
@@ -60,8 +58,6 @@ extension PumpHistoryStorage {
 
 final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     private let processQueue = DispatchQueue(label: "BasePumpHistoryStorage.processQueue")
-    private let bufferedConfirmationsLock = NSLock()
-    private var bufferedStatusDates: [Date] = []
     @Injected() var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settings: SettingsManager!
@@ -159,21 +155,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                 if let match = match {
                     if Self.isReconciledResume(match), storedType == .pumpResume {
-                        // Harvest and retain recorded live-status confirmations (and any pending
-                        // Nightscout re-upload marker) when promoting the row to hardware provenance.
-                        let preservedDates = Self.statusConfirmedDates(of: match)
-                        let keepNightscoutReupload = Self.needsNightscoutReupload(match)
-                        let keepReplacedIds = Self.replacedDerivedIds(of: match)
-                        harvestedStatusDates.append(contentsOf: preservedDates)
+                        harvestedStatusDates.append(contentsOf: Self.statusConfirmedDates(of: match))
                         if let previousSyncId = match.syncIdentifier {
                             bySyncIdentifier.removeValue(forKey: previousSyncId)
                         }
                         match.syncIdentifier = syncIdentifier
-                        match.note = Self.encodeReconciledNote(
-                            statusDates: preservedDates,
-                            needsNightscoutReupload: keepNightscoutReupload,
-                            replacedIds: keepReplacedIds
-                        )
+                        match.note = nil
                         if let syncIdentifier {
                             bySyncIdentifier[syncIdentifier] = match
                         }
@@ -280,33 +267,23 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 storeNow.addingTimeInterval(-48.hours.timeInterval),
                 earliestTouchedDate.addingTimeInterval(-1.hours.timeInterval)
             )
-            let priorBufferedDates = self.bufferedConfirmationsLock.withLock { self.bufferedStatusDates }
-            var remainingUnpersistedDates = priorBufferedDates
             _ = try Self.reconcileSuspensions(
                 in: context,
                 lookbackStart: lookbackStart,
                 activeDeliverySince: nil,
                 lastVerifiedSyncDate: nil,
-                extraStatusDates: harvestedStatusDates + priorBufferedDates,
+                extraStatusDates: harvestedStatusDates,
                 allowNewTrailingResume: false,
                 now: storeNow,
-                purgedUploadedIds: &purgedUploadedIds,
-                unpersistedStatusDates: &remainingUnpersistedDates
+                purgedUploadedIds: &purgedUploadedIds
             )
 
             do {
-                if context.hasChanges {
-                    try context.save()
-                    self.bufferedConfirmationsLock.withLock {
-                        self.bufferedStatusDates = remainingUnpersistedDates
-                    }
-                    self.updateSubject.send(())
-                    debug(.storage, "Stored pump events")
-                } else {
-                    self.bufferedConfirmationsLock.withLock {
-                        self.bufferedStatusDates = remainingUnpersistedDates
-                    }
-                }
+                guard context.hasChanges else { return purgedUploadedIds }
+                try context.save()
+
+                self.updateSubject.send(())
+                debug(.storage, "Stored pump events")
             } catch let error as NSError {
                 warning(.storage, "Storing pump events failed", error: error)
                 throw error
@@ -325,24 +302,18 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         return try await context.perform {
             var purgedUploadedIds: [String] = []
-            let priorBufferedDates = self.bufferedConfirmationsLock.withLock { self.bufferedStatusDates }
-            var remainingUnpersistedDates = priorBufferedDates
             let didMutateTimeline = try Self.reconcileSuspensions(
                 in: context,
                 lookbackStart: now.addingTimeInterval(-48.hours.timeInterval),
                 activeDeliverySince: activeDeliverySince,
                 lastVerifiedSyncDate: lastVerifiedSyncDate,
-                extraStatusDates: priorBufferedDates,
+                extraStatusDates: [],
                 allowNewTrailingResume: true,
                 now: now,
-                purgedUploadedIds: &purgedUploadedIds,
-                unpersistedStatusDates: &remainingUnpersistedDates
+                purgedUploadedIds: &purgedUploadedIds
             )
             if context.hasChanges {
                 try context.save()
-            }
-            self.bufferedConfirmationsLock.withLock {
-                self.bufferedStatusDates = remainingUnpersistedDates
             }
             guard didMutateTimeline else { return .unchanged }
             self.updateSubject.send(())
@@ -634,8 +605,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         fat: nil,
                         protein: nil,
                         targetTop: nil,
-                        targetBottom: nil,
-                        id: event.id
+                        targetBottom: nil
                     )
                 case PumpEvent.rewind.rawValue:
                     return NightscoutTreatment(
@@ -809,585 +779,11 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 }
 
 extension BasePumpHistoryStorage {
-    static let reconciledResumePrefix = "reconciled-resume:"
-
-    static func isReconciledResume(_ row: PumpEventStored) -> Bool {
-        row.type == PumpEvent.pumpResume.rawValue
-            && (row.syncIdentifier?.hasPrefix(reconciledResumePrefix) == true)
-    }
-
-    static func reconciledResumeSyncIdentifier(for suspendRow: PumpEventStored, suspendDate: Date) -> String {
-        let sourceKey = suspendRow.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
-            ?? suspendRow.id.flatMap { $0.isEmpty ? nil : $0 }
-            ?? "\(suspendDate.timeIntervalSinceReferenceDate)"
-        return "\(reconciledResumePrefix)\(sourceKey)"
-    }
-
-    private static func latestAuthoritativeTransition(
-        in context: NSManagedObjectContext,
-        atOrBefore cutoff: Date
-    ) throws -> PumpEventStored? {
-        let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-        request.predicate = NSPredicate(
-            format: "timestamp <= %@ AND type IN %@ AND (syncIdentifier == nil OR NOT (syncIdentifier BEGINSWITH %@))",
-            cutoff as NSDate,
-            [PumpEvent.pumpSuspend.rawValue, PumpEvent.pumpResume.rawValue],
-            reconciledResumePrefix
-        )
-        request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
-        return try context.fetch(request).first { !$0.isDeleted && !isReconciledResume($0) }
-    }
-
-    private static func fetchDerivedResumes(
-        in context: NSManagedObjectContext,
-        since startDate: Date
-    ) throws -> [PumpEventStored] {
-        let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-        request.predicate = NSPredicate(
-            format: "timestamp >= %@ AND type == %@ AND syncIdentifier BEGINSWITH %@",
-            startDate as NSDate,
-            PumpEvent.pumpResume.rawValue,
-            reconciledResumePrefix
-        )
-        return try context.fetch(request).filter { !$0.isDeleted }
-    }
-
-    private static func owningSuspendTimestamps(
-        for derivedResumes: [PumpEventStored],
-        in context: NSManagedObjectContext
-    ) throws -> [Date] {
-        let sourceKeys = Array(Set(derivedResumes.compactMap { row -> String? in
-            guard let syncId = row.syncIdentifier,
-                  syncId.hasPrefix(reconciledResumePrefix)
-            else { return nil }
-            let key = String(syncId.dropFirst(reconciledResumePrefix.count))
-            return key.isEmpty ? nil : key
-        }))
-        guard !sourceKeys.isEmpty else { return [] }
-
-        let fallbackDates = sourceKeys
-            .compactMap(Double.init)
-            .filter(\.isFinite)
-            .map(Date.init(timeIntervalSinceReferenceDate:))
-
-        var matchPredicates: [NSPredicate] = [
-            NSPredicate(format: "syncIdentifier IN %@", sourceKeys),
-            NSPredicate(format: "id IN %@", sourceKeys)
-        ]
-        if !fallbackDates.isEmpty {
-            matchPredicates.append(NSPredicate(format: "timestamp IN %@", fallbackDates))
-        }
-
-        let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            NSPredicate(
-                format: "type == %@ AND (syncIdentifier == nil OR NOT (syncIdentifier BEGINSWITH %@))",
-                PumpEvent.pumpSuspend.rawValue,
-                reconciledResumePrefix
-            ),
-            NSCompoundPredicate(orPredicateWithSubpredicates: matchPredicates)
-        ])
-        return try context.fetch(request)
-            .filter { !$0.isDeleted }
-            .compactMap(\.timestamp)
-    }
-
-    static func earliestPumpDeliveryDate(
-        in context: NSManagedObjectContext,
-        after suspendDate: Date,
-        upTo upperBound: Date,
-        inclusiveEnd: Bool
-    ) throws -> Date? {
-        guard upperBound > suspendDate else { return nil }
-        let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-        let upperComparison = inclusiveEnd
-            ? NSPredicate(format: "timestamp <= %@", upperBound as NSDate)
-            : NSPredicate(format: "timestamp < %@", upperBound as NSDate)
-        let afterPredicate = NSPredicate(format: "timestamp > %@", suspendDate as NSDate)
-        let deliveryTypePredicate = NSPredicate(
-            format: "(type == %@ AND bolus != nil AND bolus.isExternal == NO AND bolus.amount > 0) OR (type == %@ AND tempBasal != nil AND tempBasal.isScheduledBasal == NO AND (isMutable == YES OR tempBasal.duration > 0 OR tempBasal.deliveredUnits > 0))",
-            PumpEvent.bolus.rawValue,
-            PumpEvent.tempBasal.rawValue
-        )
-        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-            afterPredicate,
-            upperComparison,
-            deliveryTypePredicate
-        ])
-        request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
-        return try context.fetch(request).first(where: { !$0.isDeleted })?.timestamp
-    }
-
-    static let nightscoutReuploadMarker = "reconciled-ns-reupload"
-    static let replacedDerivedIdsPrefix = "reconciled-replaces:"
-    private static let statusConfirmedNotePrefix = "reconciled-status-at:"
-
-    private static func needsNightscoutReupload(_ row: PumpEventStored) -> Bool {
-        !row.isUploadedToNS && (row.note?.contains(nightscoutReuploadMarker) == true)
-    }
-
-    static func replacedDerivedIds(of row: PumpEventStored) -> [String] {
-        guard !row.isUploadedToNS, let note = row.note else { return [] }
-        for segment in note.split(separator: ";") where segment.hasPrefix(replacedDerivedIdsPrefix) {
-            return segment
-                .dropFirst(replacedDerivedIdsPrefix.count)
-                .split(separator: ",")
-                .map(String.init)
-                .filter { !$0.isEmpty }
-        }
-        return []
-    }
-
-    private static func statusConfirmedDates(of row: PumpEventStored) -> [Date] {
-        guard let note = row.note else { return [] }
-        for segment in note.split(separator: ";") where segment.hasPrefix(statusConfirmedNotePrefix) {
-            return segment
-                .dropFirst(statusConfirmedNotePrefix.count)
-                .split(separator: ",")
-                .compactMap { Double($0) }
-                .filter(\.isFinite)
-                .map { Date(timeIntervalSinceReferenceDate: $0) }
-                .sorted()
-        }
-        return []
-    }
-
-    private static func deduplicatedDates(_ dates: [Date]) -> [Date] {
-        var result: [Date] = []
-        for date in dates.sorted() {
-            if let last = result.last, abs(date.timeIntervalSince(last)) < 0.000001 {
-                continue
-            }
-            result.append(date)
-        }
-        return result
-    }
-
-    /// Linear-time set difference on already-sorted date arrays (`lhs \ rhs` within 1 µs tolerance).
-    private static func subtractSortedDates(_ lhs: [Date], removing rhs: [Date]) -> [Date] {
-        guard !lhs.isEmpty, !rhs.isEmpty else { return lhs }
-        var result: [Date] = []
-        var rhsIndex = 0
-        for candidate in lhs {
-            while rhsIndex < rhs.count, rhs[rhsIndex].timeIntervalSince(candidate) <= -0.000001 {
-                rhsIndex += 1
-            }
-            if rhsIndex < rhs.count, abs(rhs[rhsIndex].timeIntervalSince(candidate)) < 0.000001 {
-                continue
-            }
-            result.append(candidate)
-        }
-        return result
-    }
-
-    private static func encodeReconciledNote(
-        statusDates: [Date],
-        needsNightscoutReupload: Bool,
-        replacedIds: [String] = []
-    ) -> String? {
-        var segments: [String] = []
-        if needsNightscoutReupload {
-            segments.append(nightscoutReuploadMarker)
-        } else if !replacedIds.isEmpty {
-            let uniqueIds = Array(Set(replacedIds)).sorted()
-            segments.append(replacedDerivedIdsPrefix + uniqueIds.joined(separator: ","))
-        }
-        let unique = deduplicatedDates(statusDates)
-        if !unique.isEmpty {
-            segments.append(
-                statusConfirmedNotePrefix + unique.map { "\($0.timeIntervalSinceReferenceDate)" }.joined(separator: ",")
-            )
-        }
-        return segments.isEmpty ? nil : segments.joined(separator: ";")
-    }
-
-    static func markNightscoutReupload(on row: PumpEventStored) {
-        let encoded = encodeReconciledNote(
-            statusDates: statusConfirmedDates(of: row),
-            needsNightscoutReupload: true
-        )
-        if row.note != encoded {
-            row.note = encoded
-        }
-    }
-
-    private static func recordReplacedDerivedIds(_ derivedIds: [String], on row: PumpEventStored) {
-        let nonEmpty = derivedIds.filter { !$0.isEmpty }
-        guard !nonEmpty.isEmpty, !row.isUploadedToNS else { return }
-        let encoded = encodeReconciledNote(
-            statusDates: statusConfirmedDates(of: row),
-            needsNightscoutReupload: needsNightscoutReupload(row),
-            replacedIds: replacedDerivedIds(of: row) + nonEmpty
-        )
-        if row.note != encoded {
-            row.note = encoded
-        }
-    }
-
-    private static func deleteDerivedResume(
-        _ derived: PumpEventStored,
-        in context: NSManagedObjectContext,
-        purgedUploadedIds: inout [String]
-    ) {
-        if derived.isUploadedToNS, let id = derived.id {
-            purgedUploadedIds.append(id)
-        }
-        context.delete(derived)
-    }
-
-    @discardableResult
-    private static func reanchorDerivedResume(
-        _ derived: PumpEventStored,
-        to newTimestamp: Date,
-        purgedUploadedIds: inout [String]
-    ) -> Bool {
-        guard derived.timestamp != newTimestamp else { return false }
-        derived.timestamp = newTimestamp
-        guard derived.isUploadedToNS else { return false }
-        if let oldId = derived.id {
-            purgedUploadedIds.append(oldId)
-        }
-        // Rotate the treatment id so the detached DELETE for the old timestamp cannot
-        // race against and delete the re-uploaded note at the corrected timestamp.
-        derived.id = UUID().uuidString
-        derived.isUploadedToNS = false
-        return true
-    }
-
-    private static func upsertDerivedResume(
-        existing: PumpEventStored?,
-        syncIdentifier: String,
-        at resumeDate: Date,
-        statusConfirmedDates confirmedDates: [Date],
-        in context: NSManagedObjectContext,
-        purgedUploadedIds: inout [String]
-    ) -> (row: PumpEventStored, mutatedTimeline: Bool) {
-        let uniqueDates = deduplicatedDates(confirmedDates)
-        if let existing {
-            let hadPendingReupload = needsNightscoutReupload(existing)
-            let timestampChanged = existing.timestamp != resumeDate
-            var didPurgeUploaded = false
-            if timestampChanged {
-                didPurgeUploaded = reanchorDerivedResume(existing, to: resumeDate, purgedUploadedIds: &purgedUploadedIds)
-            }
-            let encodedNote = encodeReconciledNote(
-                statusDates: uniqueDates,
-                needsNightscoutReupload: hadPendingReupload || didPurgeUploaded,
-                replacedIds: didPurgeUploaded ? [] : replacedDerivedIds(of: existing)
-            )
-            if existing.note != encodedNote {
-                existing.note = encodedNote
-            }
-            return (existing, timestampChanged)
-        }
-
-        let encodedNote = encodeReconciledNote(
-            statusDates: uniqueDates,
-            needsNightscoutReupload: false
-        )
-        let resumeEvent = PumpEventStored(context: context)
-        resumeEvent.id = UUID().uuidString
-        resumeEvent.timestamp = resumeDate
-        resumeEvent.type = PumpEvent.pumpResume.rawValue
-        resumeEvent.syncIdentifier = syncIdentifier
-        resumeEvent.note = encodedNote
-        // Born final so `replacePendingEvents: true` batches from drivers that assert only
-        // their own pending doses do not purge the reconciled resume on the next poll.
-        resumeEvent.isMutable = false
-        resumeEvent.isUploadedToNS = false
-        resumeEvent.isUploadedToHealth = false
-        resumeEvent.isUploadedToTidepool = false
-        return (resumeEvent, true)
-    }
-
-    /// Reconciles authoritative `PumpSuspend` spans within `[lookbackStart, now]`, returning
-    /// `true` when any derived `PumpResume` row was inserted, deleted, or had its timestamp changed.
-    @discardableResult
-    static func reconcileSuspensions(
-        in context: NSManagedObjectContext,
-        lookbackStart: Date,
-        activeDeliverySince: Date?,
-        lastVerifiedSyncDate: Date?,
-        extraStatusDates: [Date],
-        allowNewTrailingResume: Bool,
-        now: Date,
-        purgedUploadedIds: inout [String],
-        unpersistedStatusDates: inout [Date]
-    ) throws -> Bool {
-        var effectiveLookbackStart = lookbackStart
-        if let priorTransition = try latestAuthoritativeTransition(in: context, atOrBefore: effectiveLookbackStart),
-           priorTransition.type == PumpEvent.pumpSuspend.rawValue,
-           let priorSuspendDate = priorTransition.timestamp,
-           priorSuspendDate < effectiveLookbackStart
-        {
-            effectiveLookbackStart = priorSuspendDate
-        }
-
-        var scopedDerivedResumes: [PumpEventStored] = []
-        while true {
-            scopedDerivedResumes = try fetchDerivedResumes(in: context, since: effectiveLookbackStart)
-            let owningDates = try owningSuspendTimestamps(for: scopedDerivedResumes, in: context)
-            if let earliestOwning = owningDates.min(), earliestOwning < effectiveLookbackStart {
-                effectiveLookbackStart = earliestOwning
-                if let priorTransition = try latestAuthoritativeTransition(in: context, atOrBefore: effectiveLookbackStart),
-                   priorTransition.type == PumpEvent.pumpSuspend.rawValue,
-                   let priorSuspendDate = priorTransition.timestamp,
-                   priorSuspendDate < effectiveLookbackStart
-                {
-                    effectiveLookbackStart = priorSuspendDate
-                }
-            } else {
-                break
-            }
-        }
-
-        let derivedBySyncId = Dictionary(
-            scopedDerivedResumes.compactMap { row in row.syncIdentifier.map { ($0, row) } },
-            uniquingKeysWith: { first, _ in first }
-        )
-
-        let transitionRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-        transitionRequest.predicate = NSPredicate(
-            format: "timestamp >= %@ AND timestamp <= %@ AND type IN %@",
-            effectiveLookbackStart as NSDate,
-            now as NSDate,
-            [PumpEvent.pumpSuspend.rawValue, PumpEvent.pumpResume.rawValue]
-        )
-        transitionRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: true)]
-        let authoritativeRows = try context.fetch(transitionRequest).filter {
-            !$0.isDeleted && !isReconciledResume($0)
-        }
-
-        let carrierRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-        carrierRequest.predicate = NSPredicate(
-            format: "note CONTAINS %@ AND (syncIdentifier == nil OR NOT (syncIdentifier BEGINSWITH %@))",
-            statusConfirmedNotePrefix,
-            reconciledResumePrefix
-        )
-        let confirmationCarriers = try context.fetch(carrierRequest).filter { !$0.isDeleted }
-        let latestOverallTransition = try authoritativeRows.last
-            ?? latestAuthoritativeTransition(in: context, atOrBefore: now)
-
-        let freshTrailingDates: [Date] = allowNewTrailingResume
-            ? [
-                activeDeliverySince.map { min($0, now) },
-                lastVerifiedSyncDate.map { min($0, now) }
-            ].compactMap { $0 }
-            : []
-
-        let statusRetentionCutoff = min(
-            effectiveLookbackStart,
-            now.addingTimeInterval(-48.hours.timeInterval)
-        )
-        // Collect all previously recorded live-status confirmations within the retention horizon
-        // (independent of carrier timestamp or whether a later hardware resume has already arrived).
-        let recordedStatusDates = deduplicatedDates(
-            (
-                (scopedDerivedResumes + confirmationCarriers).flatMap(statusConfirmedDates(of:))
-                    + extraStatusDates
-                    + freshTrailingDates
-            ).filter { $0 >= statusRetentionCutoff && $0 <= now }
-        )
-
-        var retainedDerivedRows: [PumpEventStored] = []
-        var retainedDerivedIDs = Set<NSManagedObjectID>()
-        var didMutateTimeline = false
-
-        for index in authoritativeRows.indices {
-            let row = authoritativeRows[index]
-            guard row.type == PumpEvent.pumpSuspend.rawValue,
-                  let suspendDate = row.timestamp
-            else { continue }
-
-            let resumeSyncId = reconciledResumeSyncIdentifier(for: row, suspendDate: suspendDate)
-            let existingDerived = derivedBySyncId[resumeSyncId]
-            let nextAuthoritative = (index + 1 < authoritativeRows.count) ? authoritativeRows[index + 1] : nil
-
-            if let nextAuthoritative {
-                guard let nextDate = nextAuthoritative.timestamp else { continue }
-                if nextDate > suspendDate {
-                    let earliestDelivery = try earliestPumpDeliveryDate(
-                        in: context,
-                        after: suspendDate,
-                        upTo: nextDate,
-                        inclusiveEnd: false
-                    )
-                    let matchingStatusDates = recordedStatusDates.filter {
-                        $0 > suspendDate && $0 < nextDate
-                    }
-                    if let candidate = ([earliestDelivery] + matchingStatusDates.map { Optional($0) }).compactMap({ $0 }).min() {
-                        let targetDate = max(candidate, suspendDate.addingTimeInterval(1))
-                        if targetDate > suspendDate, targetDate < nextDate {
-                            let upserted = upsertDerivedResume(
-                                existing: existingDerived,
-                                syncIdentifier: resumeSyncId,
-                                at: targetDate,
-                                statusConfirmedDates: matchingStatusDates,
-                                in: context,
-                                purgedUploadedIds: &purgedUploadedIds
-                            )
-                            retainedDerivedRows.append(upserted.row)
-                            retainedDerivedIDs.insert(upserted.row.objectID)
-                            didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
-                        }
-                    }
-                }
-                continue
-            }
-
-            // Trailing open `PumpSuspend` (`nextAuthoritative == nil`):
-            guard (existingDerived != nil || allowNewTrailingResume),
-                  now.timeIntervalSince(suspendDate) >= 1
-            else { continue }
-
-            let effectiveStatusDates = deduplicatedDates(
-                recordedStatusDates.filter { $0 > suspendDate && $0 <= now }
-            )
-
-            let earliestDeliveryDate = try earliestPumpDeliveryDate(
-                in: context,
-                after: suspendDate,
-                upTo: now,
-                inclusiveEnd: true
-            )
-            // Require non-withdrawn post-suspend evidence; if supporting pending delivery was
-            // purged or finalized to 0 U and no live status confirmation exists, retract.
-            guard let rawResumeDate = ([earliestDeliveryDate] + effectiveStatusDates.map { Optional($0) }).compactMap({ $0 }).min() else {
-                continue
-            }
-            let resumeDate = min(max(rawResumeDate, suspendDate.addingTimeInterval(1)), now)
-            guard resumeDate > suspendDate else { continue }
-
-            let upserted = upsertDerivedResume(
-                existing: existingDerived,
-                syncIdentifier: resumeSyncId,
-                at: resumeDate,
-                statusConfirmedDates: effectiveStatusDates,
-                in: context,
-                purgedUploadedIds: &purgedUploadedIds
-            )
-            retainedDerivedRows.append(upserted.row)
-            retainedDerivedIDs.insert(upserted.row.objectID)
-            didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
-        }
-
-        // Prune expired confirmation timestamps from authoritative carriers so `confirmationCarriers`
-        // stays bounded to recent rows instead of accumulating 90 days of 5-minute sync dates.
-        for carrier in confirmationCarriers where !carrier.isDeleted {
-            let kept = statusConfirmedDates(of: carrier).filter { $0 >= statusRetentionCutoff && $0 <= now }
-            let pruned = encodeReconciledNote(
-                statusDates: kept,
-                needsNightscoutReupload: needsNightscoutReupload(carrier),
-                replacedIds: replacedDerivedIds(of: carrier)
-            )
-            if carrier.note != pruned {
-                carrier.note = pruned
-            }
-        }
-
-        // Preserve any confirmation timestamps not already carried by a retained derived row or
-        // existing carrier row so subsequent history batches can still reconcile delayed gaps.
-        let survivingCarriers = confirmationCarriers.filter { !$0.isDeleted }
-        let persistedDates = deduplicatedDates(
-            (retainedDerivedRows + survivingCarriers).flatMap(statusConfirmedDates(of:))
-        )
-        let missingDates = subtractSortedDates(recordedStatusDates, removing: persistedDates)
-        if !missingDates.isEmpty {
-            if let carrier = authoritativeRows.last ?? latestOverallTransition {
-                let merged = deduplicatedDates(statusConfirmedDates(of: carrier) + missingDates)
-                let encoded = encodeReconciledNote(
-                    statusDates: merged,
-                    needsNightscoutReupload: needsNightscoutReupload(carrier),
-                    replacedIds: replacedDerivedIds(of: carrier)
-                )
-                if carrier.note != encoded {
-                    carrier.note = encoded
-                }
-                unpersistedStatusDates = []
-            } else {
-                unpersistedStatusDates = missingDates
-            }
-        } else {
-            unpersistedStatusDates = []
-        }
-
-        let survivingResumes = (authoritativeRows + retainedDerivedRows)
-            .filter { !$0.isDeleted && $0.type == PumpEvent.pumpResume.rawValue }
-            .sorted { ($0.timestamp ?? .distantPast) < ($1.timestamp ?? .distantPast) }
-
-        for derived in scopedDerivedResumes where !derived.isDeleted && !retainedDerivedIDs.contains(derived.objectID) {
-            let owningDate = try owningSuspendTimestamps(for: [derived], in: context).min() ?? .distantPast
-            if let replacement = survivingResumes.first(where: { ($0.timestamp ?? .distantPast) > owningDate }),
-               !replacement.isUploadedToNS
-            {
-                if derived.isUploadedToNS || needsNightscoutReupload(derived) {
-                    markNightscoutReupload(on: replacement)
-                } else {
-                    recordReplacedDerivedIds(
-                        (derived.id.map { [$0] } ?? []) + replacedDerivedIds(of: derived),
-                        on: replacement
-                    )
-                }
-            }
-            deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)
-            didMutateTimeline = true
-        }
-        return didMutateTimeline
-    }
-
     /// Fallback upsert key for events without a dose identifier.
     struct TimestampAndType: Hashable {
         let timestamp: Date
         let type: String
         let isScheduledBasal: Bool
-    }
-
-    struct StoredCandidate {
-        let event: NewPumpEvent
-        let storedType: PumpEvent
-        let date: Date
-        let syncIdentifier: String?
-        let isScheduledBasal: Bool
-    }
-
-    /// Expands a `NewPumpEvent` into its stored row(s).
-    ///
-    /// LoopKit keeps `NewPumpEvent.type` and `NewPumpEvent.dose` orthogonal: drivers such as
-    /// MinimedKit attach `DoseEntry(suspendDate:)` or `DoseEntry(resumeDate:)` to `.rewind`,
-    /// `.prime`, `.alarm` and `.alarmClear` events because Medtronic pumps exit suspend upon
-    /// priming or clearing a no-delivery alarm without logging a separate `Resume` opcode.
-    static func storedCandidates(for event: NewPumpEvent) -> [StoredCandidate] {
-        let baseSyncIdentifier = event.dose?.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
-        let primaryType = event.type?.storedEventType
-        var candidates: [StoredCandidate] = []
-
-        if let primaryType {
-            candidates.append(StoredCandidate(
-                event: event,
-                storedType: primaryType,
-                date: event.date,
-                syncIdentifier: baseSyncIdentifier,
-                isScheduledBasal: event.type == .basal
-            ))
-        }
-
-        if let dose = event.dose,
-           dose.type == .suspend || dose.type == .resume,
-           primaryType != .pumpSuspend,
-           primaryType != .pumpResume
-        {
-            let deliveryType: PumpEvent = dose.type == .suspend ? .pumpSuspend : .pumpResume
-            let derivedSyncIdentifier = baseSyncIdentifier.map { "\($0):\(deliveryType.rawValue)" }
-            candidates.append(StoredCandidate(
-                event: event,
-                storedType: deliveryType,
-                date: dose.startDate,
-                syncIdentifier: derivedSyncIdentifier,
-                isScheduledBasal: false
-            ))
-        }
-
-        return candidates
     }
 }
 

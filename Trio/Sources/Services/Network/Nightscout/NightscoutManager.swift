@@ -1026,95 +1026,34 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updatePumpEventStoredsAsUploaded(_ treatments: [NightscoutTreatment]) async {
         let context = CoreDataStack.shared.newTaskContext()
         context.name = "updatePumpEventStoredsAsUploaded"
-        let withdrawnInFlightIds: [String] = await context.perform {
-            let sentIds = treatments.compactMap(\.id)
-            guard !sentIds.isEmpty else { return [] }
+        await context.perform {
+            let ids = treatments.map(\.id) as NSArray
+            let treatmentsById = Dictionary(
+                treatments.compactMap { treatment in treatment.id.map { ($0, treatment) } },
+                uniquingKeysWith: { first, _ in first }
+            )
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "id IN %@", sentIds as NSArray)
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
 
             do {
-                let results = try context.fetch(fetchRequest).filter { !$0.isDeleted }
-                let staleIds = try Self.reconcileCompletedPumpUpload(
-                    results: results,
-                    treatments: treatments,
-                    in: context
-                )
-                if context.hasChanges {
-                    try context.save()
+                let results = try context.fetch(fetchRequest)
+                for result in results {
+                    // stamp only if the row still holds what was sent; a mid-flight
+                    // finalization keeps the flag false and the next pass re-uploads
+                    guard let treatment = result.id.flatMap({ treatmentsById[$0] }),
+                          Self.uploadStillCurrent(result, treatment)
+                    else {
+                        debug(.nightscout, "Pump event \(result.id ?? "-") changed during upload, keeping it queued")
+                        continue
+                    }
+                    result.isUploadedToNS = true
                 }
-                return staleIds
+
+                guard context.hasChanges else { return }
+                try context.save()
             } catch let error as NSError {
                 warning(.storage, "Failed to mark pump events as uploaded to Nightscout", error: error)
-                return []
             }
-        }
-
-        for id in withdrawnInFlightIds {
-            await deleteInsulin(withID: id)
-        }
-    }
-
-    /// Stamps unchanged rows as uploaded and returns remote treatment IDs that were deleted or
-    /// re-anchored while the Nightscout POST was in flight.
-    static func reconcileCompletedPumpUpload(
-        results: [PumpEventStored],
-        treatments: [NightscoutTreatment],
-        in context: NSManagedObjectContext? = nil
-    ) throws -> [String] {
-        let sentIds = treatments.compactMap(\.id)
-        let treatmentsById = Dictionary(
-            treatments.compactMap { treatment in treatment.id.map { ($0, treatment) } },
-            uniquingKeysWith: { first, _ in first }
-        )
-        let survivingIds = Set(results.compactMap(\.id))
-        var staleRemoteIds: [String] = []
-
-        for result in results {
-            guard let oldId = result.id,
-                  let treatment = treatmentsById[oldId]
-            else { continue }
-            guard Self.uploadStillCurrent(result, treatment) else {
-                debug(.nightscout, "Pump event \(oldId) changed during upload, keeping it queued")
-                if result.type == PumpEventStored.EventType.pumpResume.rawValue {
-                    // Nightscout does not upsert Note timestamps in place: delete the stale remote
-                    // note, rotate the local ID, and retain >24h re-upload eligibility.
-                    staleRemoteIds.append(oldId)
-                    result.id = UUID().uuidString
-                    BasePumpHistoryStorage.markNightscoutReupload(on: result)
-                }
-                continue
-            }
-            result.isUploadedToNS = true
-        }
-
-        let deletedIds = withdrawnUploadedIds(sentIds: sentIds, survivingIds: survivingIds)
-        if let context, !deletedIds.isEmpty {
-            let deletedSet = Set(deletedIds)
-            let replacementRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-            replacementRequest.predicate = NSPredicate(
-                format: "type == %@ AND isUploadedToNS == NO AND note CONTAINS %@",
-                PumpEventStored.EventType.pumpResume.rawValue,
-                BasePumpHistoryStorage.replacedDerivedIdsPrefix
-            )
-            for candidate in try context.fetch(replacementRequest) where !candidate.isDeleted {
-                if !deletedSet.isDisjoint(with: BasePumpHistoryStorage.replacedDerivedIds(of: candidate)) {
-                    BasePumpHistoryStorage.markNightscoutReupload(on: candidate)
-                }
-            }
-        }
-
-        return withdrawnUploadedIds(
-            sentIds: staleRemoteIds + sentIds,
-            survivingIds: survivingIds.subtracting(staleRemoteIds)
-        )
-    }
-
-    /// Uploaded treatment IDs whose local Core Data row was deleted or had its ID rotated while the POST was in flight.
-    static func withdrawnUploadedIds(sentIds: [String], survivingIds: Set<String>) -> [String] {
-        var seen = Set<String>()
-        return sentIds.filter { id in
-            guard !survivingIds.contains(id) else { return false }
-            return seen.insert(id).inserted
         }
     }
 

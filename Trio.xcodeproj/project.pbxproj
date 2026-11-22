@@ -477,6 +477,8 @@
 		7A11AC0DE000000000000060 /* WallClockParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000160 /* WallClockParityTests.swift */; };
 		7A11AC0DE000000000000106 /* HomeRootView+Refresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000006 /* HomeRootView+Refresh.swift */; };
 		7A11AC0DE000000000000109 /* PumpEventFinalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000009 /* PumpEventFinalizationTests.swift */; };
+		7A11AC0DE000000000000181 /* PumpHistoryStorage+SuspensionReconciliation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000081 /* PumpHistoryStorage+SuspensionReconciliation.swift */; };
+		7A11AC0DE000000000000182 /* PumpSuspensionReconciliationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE000000000000082 /* PumpSuspensionReconciliationTests.swift */; };
 		7A11AC0DE00000000000010B /* ScheduledBasalInference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE00000000000000B /* ScheduledBasalInference.swift */; };
 		7A11AC0DE00000000000010C /* ScheduledBasalInferenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE00000000000000C /* ScheduledBasalInferenceTests.swift */; };
 		7A11AC0DE00000000000010D /* HomeRootView+Header.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A11AC0DE00000000000000D /* HomeRootView+Header.swift */; };
@@ -1740,6 +1742,8 @@
 		79BDA519C9B890FD9A5DFCF3 /* ISFEditorDataFlow.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ISFEditorDataFlow.swift; sourceTree = "<group>"; };
 		7A11AC0DE000000000000006 /* HomeRootView+Refresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeRootView+Refresh.swift"; sourceTree = "<group>"; };
 		7A11AC0DE000000000000009 /* PumpEventFinalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpEventFinalizationTests.swift; sourceTree = "<group>"; };
+		7A11AC0DE000000000000081 /* PumpHistoryStorage+SuspensionReconciliation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PumpHistoryStorage+SuspensionReconciliation.swift"; sourceTree = "<group>"; };
+		7A11AC0DE000000000000082 /* PumpSuspensionReconciliationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PumpSuspensionReconciliationTests.swift; sourceTree = "<group>"; };
 		7A11AC0DE00000000000000B /* ScheduledBasalInference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledBasalInference.swift; sourceTree = "<group>"; };
 		7A11AC0DE00000000000000C /* ScheduledBasalInferenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduledBasalInferenceTests.swift; sourceTree = "<group>"; };
 		7A11AC0DE00000000000000D /* HomeRootView+Header.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeRootView+Header.swift"; sourceTree = "<group>"; };
@@ -3553,6 +3557,7 @@
 				DDB37CC42D05048F00D99BF4 /* ContactImageStorage.swift */,
 				38A0363A25ECF07E00FCBB52 /* GlucoseStorage.swift */,
 				38FCF3FC25E997A80078B0D1 /* PumpHistoryStorage.swift */,
+				7A11AC0DE000000000000081 /* PumpHistoryStorage+SuspensionReconciliation.swift */,
 				38F3B2EE25ED8E2A005C48AA /* TempTargetsStorage.swift */,
 				CE82E02428E867BA00473A9C /* AlertStorage.swift */,
 				BDC2EA442C3043B000E5BBD0 /* OverrideStorage.swift */,
@@ -4484,6 +4489,7 @@
 				BD8FC0562D66188700B95AED /* PumpHistoryStorageTests.swift */,
 				7A11AC0DE00000000000000C /* ScheduledBasalInferenceTests.swift */,
 				7A11AC0DE000000000000009 /* PumpEventFinalizationTests.swift */,
+				7A11AC0DE000000000000082 /* PumpSuspensionReconciliationTests.swift */,
 				7A11AC0DE00000000000001D /* PumpEventPredicateTests.swift */,
 				7A11AC0DE000000000000015 /* MultiUsePanelStateTests.swift */,
 				BD8FC0582D66189700B95AED /* TestAssembly.swift */,
@@ -5961,6 +5967,7 @@
 				3811DEB225C9D88300A708ED /* KeychainItemAccessibility.swift in Sources */,
 				38AEE73D25F0200C0013F05B /* TrioSettings.swift in Sources */,
 				38FCF3FD25E997A80078B0D1 /* PumpHistoryStorage.swift in Sources */,
+				7A11AC0DE000000000000181 /* PumpHistoryStorage+SuspensionReconciliation.swift in Sources */,
 				58645BA72CA2D390008AFCE7 /* ChartAxisSetup.swift in Sources */,
 				38D0B3B625EBE24900CB6E88 /* Battery.swift in Sources */,
 				38C4D33725E9A1A300D30B77 /* DispatchQueue+Extensions.swift in Sources */,
@@ -6756,6 +6763,7 @@
 				BD8FC0572D66188700B95AED /* PumpHistoryStorageTests.swift in Sources */,
 				7A11AC0DE00000000000010C /* ScheduledBasalInferenceTests.swift in Sources */,
 				7A11AC0DE000000000000109 /* PumpEventFinalizationTests.swift in Sources */,
+				7A11AC0DE000000000000182 /* PumpSuspensionReconciliationTests.swift in Sources */,
 				7A11AC0DE00000000000011D /* PumpEventPredicateTests.swift in Sources */,
 				7A11AC0DE000000000000115 /* MultiUsePanelStateTests.swift in Sources */,
 				BD8FC0642D6619EF00B95AED /* TempTargetStorageTests.swift in Sources */,
