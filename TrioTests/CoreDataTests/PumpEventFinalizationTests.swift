@@ -2173,4 +2173,172 @@ import Testing
             .compactMap(\.createdAt)
         #expect(pending == [hwPrimeResume])
     }
+
+    @Test(
+        "Confirmations preceding a companion resume anchor the closed gap, in-flight replacements target only their owning gap, and expired carrier dates prune"
+    ) func testPrecedingConfirmationAnchorsClosedGapAndInFlightReplacementTargetsOwningGap() async throws {
+        let now = Date()
+
+        // 1. 10:00 suspend + 10:45 companion Prime resume already stored; live .active(10:15) must anchor 10:15
+        let suspend1000 = now.addingTimeInterval(-60.minutes.timeInterval)
+        let active1015 = suspend1000.addingTimeInterval(15.minutes.timeInterval)
+        let prime1045 = suspend1000.addingTimeInterval(45.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: suspend1000,
+                    dose: LoopKit.DoseEntry(suspendDate: suspend1000),
+                    raw: Data("closed-gap-s1000".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                LoopKit.NewPumpEvent(
+                    date: prime1045,
+                    dose: LoopKit.DoseEntry(resumeDate: prime1045),
+                    raw: Data("closed-gap-p1045".utf8),
+                    title: "Prime",
+                    type: .prime
+                )
+            ],
+            replacePendingEvents: false
+        )
+        let closedReconcile = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: active1015,
+            now: now
+        )
+        #expect(closedReconcile.didReconcile == true)
+
+        let closedGapResumes = try await fetchAllEvents()
+            .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.timestamp)
+            .sorted()
+        #expect(closedGapResumes == [active1015, prime1045])
+
+        // 2. Two >24h gaps: (-26h -> -23h in-flight) and unrelated (-24.75h -> -24.5h hardware resume),
+        // plus a >50h carrier date that must be pruned on reconciliation.
+        try await testContext.perform {
+            for row in try testContext.fetch(PumpEventStored.fetchRequest()) {
+                testContext.delete(row)
+            }
+            try testContext.save()
+        }
+
+        let veryOldSuspend = now.addingTimeInterval(-52.hours.timeInterval)
+        let veryOldConfirm = now.addingTimeInterval(-51.hours.timeInterval)
+        let veryOldResume = now.addingTimeInterval(-50.hours.timeInterval)
+        let gap1Suspend = now.addingTimeInterval(-26.hours.timeInterval)
+        let gap1ReplacementResume = now.addingTimeInterval(-25.hours.timeInterval)
+        let gap2Suspend = now.addingTimeInterval(-24.hours.timeInterval - 45.minutes.timeInterval)
+        let gap2UnrelatedResume = now.addingTimeInterval(-24.hours.timeInterval - 30.minutes.timeInterval)
+        let gap1InFlightDerived = now.addingTimeInterval(-23.hours.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: veryOldSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: veryOldSuspend),
+                raw: Data("prune-52h-s".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+        _ = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: veryOldConfirm,
+            now: now.addingTimeInterval(-50.hours.timeInterval)
+        )
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: veryOldResume,
+                    dose: LoopKit.DoseEntry(resumeDate: veryOldResume),
+                    raw: Data("prune-50h-r".utf8),
+                    title: "Resume",
+                    type: .resume
+                ),
+                LoopKit.NewPumpEvent(
+                    date: gap1Suspend,
+                    dose: LoopKit.DoseEntry(suspendDate: gap1Suspend),
+                    raw: Data("gap1-s".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        _ = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: veryOldResume,
+            lastVerifiedSyncDate: now.addingTimeInterval(-49.hours.timeInterval - 30.minutes.timeInterval),
+            now: now.addingTimeInterval(-49.hours.timeInterval - 30.minutes.timeInterval)
+        )
+        let seededCarrierNote: String? = try await testContext.perform {
+            try testContext.fetch(PumpEventStored.fetchRequest())
+                .first { $0.syncIdentifier == self.storedIdentifier("prune-50h-r") }?
+                .note
+        }
+        #expect(seededCarrierNote != nil)
+
+        _ = try await storage.reconcileOpenSuspension(activeDeliverySince: gap1InFlightDerived, now: now)
+        let inFlightTreatment = try #require(
+            try await storage.getPumpHistoryNotYetUploadedToNightscout()
+                .first { $0.notes == PumpEvent.pumpResume.rawValue }
+        )
+
+        // Delayed history brings gap 1's -25h hardware resume plus unrelated gap 2 (-24.75h -> -24.5h)
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: gap1ReplacementResume,
+                    dose: LoopKit.DoseEntry(resumeDate: gap1ReplacementResume),
+                    raw: Data("gap1-r-25h".utf8),
+                    title: "Prime",
+                    type: .prime
+                ),
+                LoopKit.NewPumpEvent(
+                    date: gap2Suspend,
+                    dose: LoopKit.DoseEntry(suspendDate: gap2Suspend),
+                    raw: Data("gap2-s".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                LoopKit.NewPumpEvent(
+                    date: gap2UnrelatedResume,
+                    dose: LoopKit.DoseEntry(resumeDate: gap2UnrelatedResume),
+                    raw: Data("gap2-r".utf8),
+                    title: "Resume",
+                    type: .resume
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let staleIds: [String] = try await testContext.perform {
+            let matching = try testContext.fetch(PumpEventStored.fetchRequest())
+                .filter { $0.id == inFlightTreatment.id }
+            let stale = try BaseNightscoutManager.reconcileCompletedPumpUpload(
+                results: matching,
+                treatments: [inFlightTreatment],
+                in: testContext
+            )
+            try testContext.save()
+            return stale
+        }
+        #expect(staleIds == [inFlightTreatment.id ?? ""])
+
+        let pendingResumes = try await storage.getPumpHistoryNotYetUploadedToNightscout()
+            .filter { $0.notes == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.createdAt)
+        #expect(
+            pendingResumes == [gap1ReplacementResume],
+            "Only gap 1's -25h replacement resume should queue for Nightscout, never gap 2's unrelated -24.5h resume"
+        )
+
+        let prunedCarrierNote: String? = try await testContext.perform {
+            try testContext.fetch(PumpEventStored.fetchRequest())
+                .first { $0.syncIdentifier == self.storedIdentifier("prune-50h-r") }?
+                .note
+        }
+        #expect(prunedCarrierNote == nil, "Expired >48h confirmation dates on authoritative carriers must be pruned")
+    }
 }

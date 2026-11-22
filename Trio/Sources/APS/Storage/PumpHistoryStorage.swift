@@ -163,6 +163,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         // Nightscout re-upload marker) when promoting the row to hardware provenance.
                         let preservedDates = Self.statusConfirmedDates(of: match)
                         let keepNightscoutReupload = Self.needsNightscoutReupload(match)
+                        let keepReplacedIds = Self.replacedDerivedIds(of: match)
                         harvestedStatusDates.append(contentsOf: preservedDates)
                         if let previousSyncId = match.syncIdentifier {
                             bySyncIdentifier.removeValue(forKey: previousSyncId)
@@ -170,7 +171,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         match.syncIdentifier = syncIdentifier
                         match.note = Self.encodeReconciledNote(
                             statusDates: preservedDates,
-                            needsNightscoutReupload: keepNightscoutReupload
+                            needsNightscoutReupload: keepNightscoutReupload,
+                            replacedIds: keepReplacedIds
                         )
                         if let syncIdentifier {
                             bySyncIdentifier[syncIdentifier] = match
@@ -917,10 +919,23 @@ extension BasePumpHistoryStorage {
     }
 
     static let nightscoutReuploadMarker = "reconciled-ns-reupload"
+    static let replacedDerivedIdsPrefix = "reconciled-replaces:"
     private static let statusConfirmedNotePrefix = "reconciled-status-at:"
 
     private static func needsNightscoutReupload(_ row: PumpEventStored) -> Bool {
         !row.isUploadedToNS && (row.note?.contains(nightscoutReuploadMarker) == true)
+    }
+
+    static func replacedDerivedIds(of row: PumpEventStored) -> [String] {
+        guard !row.isUploadedToNS, let note = row.note else { return [] }
+        for segment in note.split(separator: ";") where segment.hasPrefix(replacedDerivedIdsPrefix) {
+            return segment
+                .dropFirst(replacedDerivedIdsPrefix.count)
+                .split(separator: ",")
+                .map(String.init)
+                .filter { !$0.isEmpty }
+        }
+        return []
     }
 
     private static func statusConfirmedDates(of row: PumpEventStored) -> [Date] {
@@ -948,13 +963,34 @@ extension BasePumpHistoryStorage {
         return result
     }
 
+    /// Linear-time set difference on already-sorted date arrays (`lhs \ rhs` within 1 µs tolerance).
+    private static func subtractSortedDates(_ lhs: [Date], removing rhs: [Date]) -> [Date] {
+        guard !lhs.isEmpty, !rhs.isEmpty else { return lhs }
+        var result: [Date] = []
+        var rhsIndex = 0
+        for candidate in lhs {
+            while rhsIndex < rhs.count, rhs[rhsIndex].timeIntervalSince(candidate) <= -0.000001 {
+                rhsIndex += 1
+            }
+            if rhsIndex < rhs.count, abs(rhs[rhsIndex].timeIntervalSince(candidate)) < 0.000001 {
+                continue
+            }
+            result.append(candidate)
+        }
+        return result
+    }
+
     private static func encodeReconciledNote(
         statusDates: [Date],
-        needsNightscoutReupload: Bool
+        needsNightscoutReupload: Bool,
+        replacedIds: [String] = []
     ) -> String? {
         var segments: [String] = []
         if needsNightscoutReupload {
             segments.append(nightscoutReuploadMarker)
+        } else if !replacedIds.isEmpty {
+            let uniqueIds = Array(Set(replacedIds)).sorted()
+            segments.append(replacedDerivedIdsPrefix + uniqueIds.joined(separator: ","))
         }
         let unique = deduplicatedDates(statusDates)
         if !unique.isEmpty {
@@ -969,6 +1005,19 @@ extension BasePumpHistoryStorage {
         let encoded = encodeReconciledNote(
             statusDates: statusConfirmedDates(of: row),
             needsNightscoutReupload: true
+        )
+        if row.note != encoded {
+            row.note = encoded
+        }
+    }
+
+    private static func recordReplacedDerivedIds(_ derivedIds: [String], on row: PumpEventStored) {
+        let nonEmpty = derivedIds.filter { !$0.isEmpty }
+        guard !nonEmpty.isEmpty, !row.isUploadedToNS else { return }
+        let encoded = encodeReconciledNote(
+            statusDates: statusConfirmedDates(of: row),
+            needsNightscoutReupload: needsNightscoutReupload(row),
+            replacedIds: replacedDerivedIds(of: row) + nonEmpty
         )
         if row.note != encoded {
             row.note = encoded
@@ -1023,7 +1072,8 @@ extension BasePumpHistoryStorage {
             }
             let encodedNote = encodeReconciledNote(
                 statusDates: uniqueDates,
-                needsNightscoutReupload: hadPendingReupload || didPurgeUploaded
+                needsNightscoutReupload: hadPendingReupload || didPurgeUploaded,
+                replacedIds: didPurgeUploaded ? [] : replacedDerivedIds(of: existing)
             )
             if existing.note != encodedNote {
                 existing.note = encodedNote
@@ -1110,28 +1160,33 @@ extension BasePumpHistoryStorage {
 
         let carrierRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
         carrierRequest.predicate = NSPredicate(
-            format: "note CONTAINS %@",
-            statusConfirmedNotePrefix
+            format: "note CONTAINS %@ AND (syncIdentifier == nil OR NOT (syncIdentifier BEGINSWITH %@))",
+            statusConfirmedNotePrefix,
+            reconciledResumePrefix
         )
         let confirmationCarriers = try context.fetch(carrierRequest).filter { !$0.isDeleted }
         let latestOverallTransition = try authoritativeRows.last
             ?? latestAuthoritativeTransition(in: context, atOrBefore: now)
-        let minConfirmationDate = latestOverallTransition?.timestamp ?? .distantPast
 
         let freshTrailingDates: [Date] = allowNewTrailingResume
             ? [
-                activeDeliverySince.flatMap { $0 > minConfirmationDate ? min($0, now) : nil },
-                lastVerifiedSyncDate.flatMap { $0 > minConfirmationDate ? min($0, now) : nil }
+                activeDeliverySince.map { min($0, now) },
+                lastVerifiedSyncDate.map { min($0, now) }
             ].compactMap { $0 }
             : []
 
-        // Collect all previously recorded live-status confirmations across all carrier rows
-        // (independent of carrier timestamp) plus any harvested during in-place promotion so
-        // confirmations on >48h-old promoted resumes still close recent delayed gaps.
+        let statusRetentionCutoff = min(
+            effectiveLookbackStart,
+            now.addingTimeInterval(-48.hours.timeInterval)
+        )
+        // Collect all previously recorded live-status confirmations within the retention horizon
+        // (independent of carrier timestamp or whether a later hardware resume has already arrived).
         let recordedStatusDates = deduplicatedDates(
-            (scopedDerivedResumes + confirmationCarriers).flatMap(statusConfirmedDates(of:))
-                + extraStatusDates
-                + freshTrailingDates
+            (
+                (scopedDerivedResumes + confirmationCarriers).flatMap(statusConfirmedDates(of:))
+                    + extraStatusDates
+                    + freshTrailingDates
+            ).filter { $0 >= statusRetentionCutoff && $0 <= now }
         )
 
         var retainedDerivedRows: [PumpEventStored] = []
@@ -1216,23 +1271,34 @@ extension BasePumpHistoryStorage {
             didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
         }
 
+        // Prune expired confirmation timestamps from authoritative carriers so `confirmationCarriers`
+        // stays bounded to recent rows instead of accumulating 90 days of 5-minute sync dates.
+        for carrier in confirmationCarriers where !carrier.isDeleted {
+            let kept = statusConfirmedDates(of: carrier).filter { $0 >= statusRetentionCutoff && $0 <= now }
+            let pruned = encodeReconciledNote(
+                statusDates: kept,
+                needsNightscoutReupload: needsNightscoutReupload(carrier),
+                replacedIds: replacedDerivedIds(of: carrier)
+            )
+            if carrier.note != pruned {
+                carrier.note = pruned
+            }
+        }
+
         // Preserve any confirmation timestamps not already carried by a retained derived row or
         // existing carrier row so subsequent history batches can still reconcile delayed gaps.
-        let survivingCarriers = confirmationCarriers.filter { carrier in
-            !carrier.isDeleted && (!isReconciledResume(carrier) || retainedDerivedIDs.contains(carrier.objectID))
-        }
+        let survivingCarriers = confirmationCarriers.filter { !$0.isDeleted }
         let persistedDates = deduplicatedDates(
             (retainedDerivedRows + survivingCarriers).flatMap(statusConfirmedDates(of:))
         )
-        let missingDates = recordedStatusDates.filter { candidate in
-            !persistedDates.contains { abs($0.timeIntervalSince(candidate)) < 0.000001 }
-        }
+        let missingDates = subtractSortedDates(recordedStatusDates, removing: persistedDates)
         if !missingDates.isEmpty {
             if let carrier = authoritativeRows.last ?? latestOverallTransition {
                 let merged = deduplicatedDates(statusConfirmedDates(of: carrier) + missingDates)
                 let encoded = encodeReconciledNote(
                     statusDates: merged,
-                    needsNightscoutReupload: needsNightscoutReupload(carrier)
+                    needsNightscoutReupload: needsNightscoutReupload(carrier),
+                    replacedIds: replacedDerivedIds(of: carrier)
                 )
                 if carrier.note != encoded {
                     carrier.note = encoded
@@ -1250,12 +1316,17 @@ extension BasePumpHistoryStorage {
             .sorted { ($0.timestamp ?? .distantPast) < ($1.timestamp ?? .distantPast) }
 
         for derived in scopedDerivedResumes where !derived.isDeleted && !retainedDerivedIDs.contains(derived.objectID) {
-            if derived.isUploadedToNS || needsNightscoutReupload(derived) {
-                let owningDate = try owningSuspendTimestamps(for: [derived], in: context).min() ?? .distantPast
-                if let replacement = survivingResumes.first(where: { ($0.timestamp ?? .distantPast) > owningDate }),
-                   !replacement.isUploadedToNS
-                {
+            let owningDate = try owningSuspendTimestamps(for: [derived], in: context).min() ?? .distantPast
+            if let replacement = survivingResumes.first(where: { ($0.timestamp ?? .distantPast) > owningDate }),
+               !replacement.isUploadedToNS
+            {
+                if derived.isUploadedToNS || needsNightscoutReupload(derived) {
                     markNightscoutReupload(on: replacement)
+                } else {
+                    recordReplacedDerivedIds(
+                        (derived.id.map { [$0] } ?? []) + replacedDerivedIds(of: derived),
+                        on: replacement
+                    )
                 }
             }
             deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)

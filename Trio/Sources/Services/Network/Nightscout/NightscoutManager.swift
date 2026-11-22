@@ -1088,21 +1088,17 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         }
 
         let deletedIds = withdrawnUploadedIds(sentIds: sentIds, survivingIds: survivingIds)
-        if let context {
-            for deletedId in deletedIds {
-                guard let treatment = treatmentsById[deletedId],
-                      treatment.notes == PumpEventStored.EventType.pumpResume.rawValue,
-                      let sentDate = treatment.createdAt
-                else { continue }
-                let replacementRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-                replacementRequest.predicate = NSPredicate(
-                    format: "type == %@ AND isUploadedToNS == NO AND timestamp <= %@",
-                    PumpEventStored.EventType.pumpResume.rawValue,
-                    sentDate as NSDate
-                )
-                replacementRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
-                if let replacement = try context.fetch(replacementRequest).first(where: { !$0.isDeleted }) {
-                    BasePumpHistoryStorage.markNightscoutReupload(on: replacement)
+        if let context, !deletedIds.isEmpty {
+            let deletedSet = Set(deletedIds)
+            let replacementRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+            replacementRequest.predicate = NSPredicate(
+                format: "type == %@ AND isUploadedToNS == NO AND note CONTAINS %@",
+                PumpEventStored.EventType.pumpResume.rawValue,
+                BasePumpHistoryStorage.replacedDerivedIdsPrefix
+            )
+            for candidate in try context.fetch(replacementRequest) where !candidate.isDeleted {
+                if !deletedSet.isDisjoint(with: BasePumpHistoryStorage.replacedDerivedIds(of: candidate)) {
+                    BasePumpHistoryStorage.markNightscoutReupload(on: candidate)
                 }
             }
         }
