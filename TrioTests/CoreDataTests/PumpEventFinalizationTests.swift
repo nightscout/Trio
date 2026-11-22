@@ -2010,4 +2010,72 @@ import Testing
             ) == ["inflight-deleted"]
         )
     }
+
+    @Test(
+        "Earlier proven delivery survives a later companion resume and in-flight >24h resume re-anchors stay uploadable"
+    ) func testEarlierDeliverySurvivesLaterResumeAndInFlightReanchorStaysUploadable() async throws {
+        let now = Date()
+        let suspendDate = now.addingTimeInterval(-26.hours.timeInterval)
+        let tbrStart = now.addingTimeInterval(-25.hours.timeInterval)
+        let tbrEnd = tbrStart.addingTimeInterval(15.minutes.timeInterval)
+        let initialInferredAt = now.addingTimeInterval(-23.hours.timeInterval)
+        let laterPrimeDate = tbrStart.addingTimeInterval(30.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: suspendDate,
+                dose: LoopKit.DoseEntry(suspendDate: suspendDate),
+                raw: Data("later-prime-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+        _ = try await storage.reconcileOpenSuspension(activeDeliverySince: initialInferredAt, now: now)
+
+        // Simulate a first Nightscout POST already in flight for `initialInferredAt` (`isUploadedToNS == false`)
+        let inFlightTreatment = try #require(
+            try await storage.getPumpHistoryNotYetUploadedToNightscout()
+                .first { $0.notes == PumpEvent.pumpResume.rawValue }
+        )
+
+        // Delayed history brings both earlier 25h delivery AND a later 24.5h companion Prime resume
+        try await storage.storePumpEvents(
+            [
+                tempBasalEvent(
+                    start: tbrStart,
+                    end: tbrEnd,
+                    rate: 1.0,
+                    syncIdentifier: "earlier-25h-tbr",
+                    isMutable: false
+                ),
+                LoopKit.NewPumpEvent(
+                    date: laterPrimeDate,
+                    dose: LoopKit.DoseEntry(resumeDate: laterPrimeDate),
+                    raw: Data("later-prime-resume".utf8),
+                    title: "Prime",
+                    type: .prime
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        // When the in-flight POST finishes, the stale 23h remote ID is queued for deletion and 25h stays eligible
+        let staleIds: [String] = try await testContext.perform {
+            let matching = try testContext.fetch(PumpEventStored.fetchRequest())
+                .filter { $0.id == inFlightTreatment.id }
+            let stale = BaseNightscoutManager.reconcileCompletedPumpUpload(
+                results: matching,
+                treatments: [inFlightTreatment]
+            )
+            try testContext.save()
+            return stale
+        }
+        #expect(staleIds == [inFlightTreatment.id ?? ""])
+
+        let pending = try await storage.getPumpHistoryNotYetUploadedToNightscout()
+            .filter { $0.notes == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.createdAt)
+        #expect(pending == [tbrStart])
+    }
 }

@@ -946,6 +946,16 @@ extension BasePumpHistoryStorage {
         return segments.isEmpty ? nil : segments.joined(separator: ";")
     }
 
+    static func markNightscoutReupload(on row: PumpEventStored) {
+        let encoded = encodeReconciledNote(
+            statusDates: statusConfirmedDates(of: row),
+            needsNightscoutReupload: true
+        )
+        if row.note != encoded {
+            row.note = encoded
+        }
+    }
+
     private static func deleteDerivedResume(
         _ derived: PumpEventStored,
         in context: NSManagedObjectContext,
@@ -964,17 +974,14 @@ extension BasePumpHistoryStorage {
         purgedUploadedIds: inout [String]
     ) -> Bool {
         guard derived.timestamp != newTimestamp else { return false }
-        let oldId = derived.id
-        let wasUploaded = derived.isUploadedToNS
         derived.timestamp = newTimestamp
-        // Always rotate `id` on timestamp change: if `wasUploaded` is true we delete `oldId`
-        // below, and if a first Nightscout POST for `oldId` was still in flight (`wasUploaded == false`),
-        // `updatePumpEventStoredsAsUploaded` sees `oldId` missing and deletes the stale remote note.
-        derived.id = UUID().uuidString
-        guard wasUploaded else { return false }
-        if let oldId {
+        guard derived.isUploadedToNS else { return false }
+        if let oldId = derived.id {
             purgedUploadedIds.append(oldId)
         }
+        // Rotate the treatment id so the detached DELETE for the old timestamp cannot
+        // race against and delete the re-uploaded note at the corrected timestamp.
+        derived.id = UUID().uuidString
         derived.isUploadedToNS = false
         return true
     }
@@ -1126,10 +1133,6 @@ extension BasePumpHistoryStorage {
 
             if let nextAuthoritative {
                 guard let nextDate = nextAuthoritative.timestamp else { continue }
-                if nextAuthoritative.type == PumpEvent.pumpResume.rawValue {
-                    // Hardware resume already closes this suspend; any derived row is purged below.
-                    continue
-                }
                 if nextDate > suspendDate {
                     let earliestDelivery = try earliestPumpDeliveryDate(
                         in: context,
