@@ -1521,4 +1521,127 @@ import Testing
         #expect(spans.first?.start == firstRewind && spans.first?.end == tempBasalStart)
         #expect(spans.last?.start == secondRewind && spans.last?.end == liveActiveSince)
     }
+
+    @Test(
+        "Hardware resume matching an inferred timestamp promotes provenance so nested suspends do not delete it"
+    ) func testHardwareResumeAtInferredTimestampPromotesProvenance() async throws {
+        let now = Date()
+        let firstSuspend = now.addingTimeInterval(-2.hours.timeInterval)
+        let nestedRewind = firstSuspend.addingTimeInterval(10.minutes.timeInterval)
+        let exactResumeDate = firstSuspend.addingTimeInterval(15.minutes.timeInterval)
+        let laterSuspend = firstSuspend.addingTimeInterval(60.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: firstSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: firstSuspend),
+                raw: Data("promo-suspend-1".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+
+        let reconciled = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: exactResumeDate,
+            now: now
+        )
+        #expect(reconciled.didReconcile == true)
+
+        // Delayed history supplies a 10:10 nested rewind, the real 10:15 hardware resume, and an 11:00 suspend
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: nestedRewind,
+                    dose: LoopKit.DoseEntry(suspendDate: nestedRewind),
+                    raw: Data("promo-rewind".utf8),
+                    title: "Rewind",
+                    type: .rewind
+                ),
+                LoopKit.NewPumpEvent(
+                    date: exactResumeDate,
+                    dose: LoopKit.DoseEntry(resumeDate: exactResumeDate),
+                    raw: Data("promo-hw-resume".utf8),
+                    title: "Resume",
+                    type: .resume
+                ),
+                LoopKit.NewPumpEvent(
+                    date: laterSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: laterSuspend),
+                    raw: Data("promo-suspend-2".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let stored = try await fetchAllEvents()
+        let resumes = stored.filter { $0.type == PumpEvent.pumpResume.rawValue }
+        #expect(resumes.count == 1)
+        #expect(resumes.first?.timestamp == exactResumeDate)
+        #expect(resumes.first?.syncIdentifier == storedIdentifier("promo-hw-resume"))
+
+        let suspends = stored.filter { $0.type == PumpEvent.pumpSuspend.rawValue }.compactMap(\.timestamp)
+        let spans = BaseTDDStorage.suspensionSpans(
+            suspends: suspends.map { PumpHistoryEvent(id: UUID().uuidString, type: .pumpSuspend, timestamp: $0) },
+            resumes: resumes.compactMap { $0.timestamp.map { PumpHistoryEvent(id: UUID().uuidString, type: .pumpResume, timestamp: $0) } },
+            now: now
+        )
+        #expect(spans.count == 2)
+        #expect(spans.first?.start == firstSuspend && spans.first?.end == exactResumeDate)
+        #expect(spans.last?.start == laterSuspend && spans.last?.end == now)
+    }
+
+    @Test(
+        "Withdrawing pending delivery retracts an inferred resume that has no independent status confirmation"
+    ) func testWithdrawnPendingDeliveryRetractsUnsupportedDerivedResume() async throws {
+        let now = Date()
+        let firstSuspend = now.addingTimeInterval(-2.hours.timeInterval)
+        let pendingTbrStart = firstSuspend.addingTimeInterval(15.minutes.timeInterval)
+        let pendingTbrEnd = firstSuspend.addingTimeInterval(45.minutes.timeInterval)
+        let secondSuspend = firstSuspend.addingTimeInterval(60.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: firstSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: firstSuspend),
+                    raw: Data("withdrawn-s1".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                tempBasalEvent(
+                    start: pendingTbrStart,
+                    end: pendingTbrEnd,
+                    rate: 1.0,
+                    syncIdentifier: "withdrawn-pending-tbr",
+                    isMutable: true
+                ),
+                LoopKit.NewPumpEvent(
+                    date: secondSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: secondSuspend),
+                    raw: Data("withdrawn-s2".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let derivedId: String = try await testContext.perform {
+            let resumes = try testContext.fetch(PumpEventStored.fetchRequest())
+                .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            #expect(resumes.count == 1)
+            resumes.first?.isUploadedToNS = true
+            try testContext.save()
+            return resumes.first?.id ?? ""
+        }
+        #expect(!derivedId.isEmpty)
+
+        // Next complete pending report withdraws the mutable temp basal; the unsupported derived resume must retract too
+        let purgedIds = try await storage.storePumpEvents([], replacePendingEvents: true)
+        #expect(purgedIds.contains(derivedId))
+        #expect(try await fetchAllEvents().filter { $0.type == PumpEvent.pumpResume.rawValue }.isEmpty)
+    }
 }
