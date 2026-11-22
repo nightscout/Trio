@@ -801,7 +801,7 @@ extension BasePumpHistoryStorage {
             : NSPredicate(format: "timestamp < %@", upperBound as NSDate)
         let afterPredicate = NSPredicate(format: "timestamp > %@", suspendDate as NSDate)
         let deliveryTypePredicate = NSPredicate(
-            format: "(type == %@ AND (bolus == nil OR bolus.isExternal == NO)) OR (type == %@ AND (tempBasal == nil OR tempBasal.isScheduledBasal == NO))",
+            format: "(type == %@ AND bolus != nil AND bolus.isExternal == NO AND bolus.amount > 0) OR (type == %@ AND tempBasal != nil AND tempBasal.isScheduledBasal == NO AND (isMutable == YES OR tempBasal.duration > 0 OR tempBasal.deliveredUnits > 0))",
             PumpEvent.bolus.rawValue,
             PumpEvent.tempBasal.rawValue
         )
@@ -816,17 +816,34 @@ extension BasePumpHistoryStorage {
 
     private static let statusConfirmedNotePrefix = "reconciled-status-at:"
 
-    private static func statusConfirmedDate(of derived: PumpEventStored) -> Date? {
+    private static func statusConfirmedDates(of derived: PumpEventStored) -> [Date] {
         guard let note = derived.note,
-              note.hasPrefix(statusConfirmedNotePrefix),
-              let refSeconds = Double(note.dropFirst(statusConfirmedNotePrefix.count)),
-              refSeconds.isFinite
-        else { return nil }
-        return Date(timeIntervalSinceReferenceDate: refSeconds)
+              note.hasPrefix(statusConfirmedNotePrefix)
+        else { return [] }
+        return note
+            .dropFirst(statusConfirmedNotePrefix.count)
+            .split(separator: ",")
+            .compactMap { Double($0) }
+            .filter(\.isFinite)
+            .map { Date(timeIntervalSinceReferenceDate: $0) }
+            .sorted()
     }
 
-    private static func encodeStatusConfirmedNote(_ date: Date?) -> String? {
-        date.map { "\(statusConfirmedNotePrefix)\($0.timeIntervalSinceReferenceDate)" }
+    private static func deduplicatedDates(_ dates: [Date]) -> [Date] {
+        var result: [Date] = []
+        for date in dates.sorted() {
+            if let last = result.last, abs(date.timeIntervalSince(last)) < 0.000001 {
+                continue
+            }
+            result.append(date)
+        }
+        return result
+    }
+
+    private static func encodeStatusConfirmedNote(_ dates: [Date]) -> String? {
+        let unique = deduplicatedDates(dates)
+        guard !unique.isEmpty else { return nil }
+        return statusConfirmedNotePrefix + unique.map { "\($0.timeIntervalSinceReferenceDate)" }.joined(separator: ",")
     }
 
     private static func deleteDerivedResume(
@@ -862,16 +879,19 @@ extension BasePumpHistoryStorage {
         existing: PumpEventStored?,
         syncIdentifier: String,
         at resumeDate: Date,
-        statusConfirmedAt: Date?,
+        statusConfirmedDates confirmedDates: [Date],
         in context: NSManagedObjectContext,
         purgedUploadedIds: inout [String]
     ) -> PumpEventStored {
-        let encodedNote = encodeStatusConfirmedNote(statusConfirmedAt)
+        let uniqueDates = deduplicatedDates(confirmedDates)
+        let encodedNote = encodeStatusConfirmedNote(uniqueDates)
         if let existing {
-            if existing.timestamp != resumeDate {
+            let timestampChanged = existing.timestamp != resumeDate
+            if timestampChanged {
                 reanchorDerivedResume(existing, to: resumeDate, purgedUploadedIds: &purgedUploadedIds)
             }
-            if existing.note != encodedNote {
+            let existingDates = statusConfirmedDates(of: existing)
+            if timestampChanged || existingDates.first != uniqueDates.first {
                 existing.note = encodedNote
             }
             return existing
@@ -893,10 +913,10 @@ extension BasePumpHistoryStorage {
     }
 
     /// Reconciles authoritative `PumpSuspend` spans within `[lookbackStart, now]`:
-    /// - Intermediate `[suspend, nextSuspend)` gaps containing non-external pump delivery (or
-    ///   an explicit live-status confirmation recorded prior to `nextSuspend`) receive or retain
-    ///   a derived `PumpResume`, while retracting any derived resume whose supporting pending
-    ///   delivery was withdrawn.
+    /// - Intermediate `[suspend, nextSuspend)` gaps containing non-external positive pump delivery
+    ///   (or an explicit live-status confirmation falling inside the gap) receive or retain a
+    ///   derived `PumpResume`, while retracting any derived resume whose supporting dose was
+    ///   withdrawn or finalized to zero delivery.
     /// - Trailing open suspensions close when `allowNewTrailingResume` is true and post-suspend
     ///   pump delivery, `activeDeliverySince`, or a fresh verified pump sync confirms delivery.
     /// - Derived resumes superseded by authoritative hardware `PumpResume` rows or unsupported
@@ -921,6 +941,9 @@ extension BasePumpHistoryStorage {
             allDerivedResumes.compactMap { row in row.syncIdentifier.map { ($0, row) } },
             uniquingKeysWith: { first, _ in first }
         )
+        // Collect all previously recorded live-status confirmations across derived rows so
+        // delayed nested suspends transfer confirmation to the chronologically owning gap.
+        let recordedStatusDates = deduplicatedDates(allDerivedResumes.flatMap(statusConfirmedDates(of:)))
 
         let earliestDerivedDate = allDerivedResumes.compactMap(\.timestamp).min()
         let effectiveLookbackStart = min(
@@ -950,7 +973,6 @@ extension BasePumpHistoryStorage {
 
             let resumeSyncId = reconciledResumeSyncIdentifier(for: row, suspendDate: suspendDate)
             let existingDerived = derivedBySyncId[resumeSyncId]
-            let recordedStatusDate = existingDerived.flatMap(statusConfirmedDate(of:))
             let nextAuthoritative = (index + 1 < authoritativeRows.count) ? authoritativeRows[index + 1] : nil
 
             if let nextAuthoritative {
@@ -966,17 +988,17 @@ extension BasePumpHistoryStorage {
                         upTo: nextDate,
                         inclusiveEnd: false
                     )
-                    let validRecordedStatus = recordedStatusDate.flatMap {
-                        ($0 > suspendDate && $0 < nextDate) ? $0 : nil
+                    let matchingStatusDates = recordedStatusDates.filter {
+                        $0 > suspendDate && $0 < nextDate
                     }
-                    if let candidate = [earliestDelivery, validRecordedStatus].compactMap({ $0 }).min() {
+                    if let candidate = ([earliestDelivery] + matchingStatusDates.map { Optional($0) }).compactMap({ $0 }).min() {
                         let targetDate = max(candidate, suspendDate.addingTimeInterval(1))
                         if targetDate > suspendDate, targetDate < nextDate {
                             let kept = upsertDerivedResume(
                                 existing: existingDerived,
                                 syncIdentifier: resumeSyncId,
                                 at: targetDate,
-                                statusConfirmedAt: validRecordedStatus,
+                                statusConfirmedDates: matchingStatusDates,
                                 in: context,
                                 purgedUploadedIds: &purgedUploadedIds
                             )
@@ -992,16 +1014,15 @@ extension BasePumpHistoryStorage {
                   now.timeIntervalSince(suspendDate) >= 1
             else { continue }
 
-            let freshStatus: Date? = allowNewTrailingResume
+            let freshStatusDates: [Date] = allowNewTrailingResume
                 ? [
                     activeDeliverySince.flatMap { $0 > suspendDate ? min($0, now) : nil },
                     lastVerifiedSyncDate.flatMap { $0 > suspendDate ? min($0, now) : nil }
-                ].compactMap({ $0 }).min()
-                : nil
-            let effectiveStatusConfirmedAt = [
-                recordedStatusDate.flatMap { $0 > suspendDate ? min($0, now) : nil },
-                freshStatus
-            ].compactMap({ $0 }).min()
+                ].compactMap { $0 }
+                : []
+            let effectiveStatusDates = deduplicatedDates(
+                recordedStatusDates.filter { $0 > suspendDate && $0 <= now } + freshStatusDates
+            )
 
             let earliestDeliveryDate = try earliestPumpDeliveryDate(
                 in: context,
@@ -1010,8 +1031,8 @@ extension BasePumpHistoryStorage {
                 inclusiveEnd: true
             )
             // Require non-withdrawn post-suspend evidence; if supporting pending delivery was
-            // purged and no live status confirmation exists, omit from `retainedDerivedIDs` to retract.
-            guard let rawResumeDate = [earliestDeliveryDate, effectiveStatusConfirmedAt].compactMap({ $0 }).min() else {
+            // purged or finalized to 0 U and no live status confirmation exists, retract.
+            guard let rawResumeDate = ([earliestDeliveryDate] + effectiveStatusDates.map { Optional($0) }).compactMap({ $0 }).min() else {
                 continue
             }
             let resumeDate = min(max(rawResumeDate, suspendDate.addingTimeInterval(1)), now)
@@ -1021,7 +1042,7 @@ extension BasePumpHistoryStorage {
                 existing: existingDerived,
                 syncIdentifier: resumeSyncId,
                 at: resumeDate,
-                statusConfirmedAt: effectiveStatusConfirmedAt,
+                statusConfirmedDates: effectiveStatusDates,
                 in: context,
                 purgedUploadedIds: &purgedUploadedIds
             )

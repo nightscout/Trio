@@ -1644,4 +1644,88 @@ import Testing
         #expect(purgedIds.contains(derivedId))
         #expect(try await fetchAllEvents().filter { $0.type == PumpEvent.pumpResume.rawValue }.isEmpty)
     }
+
+    @Test(
+        "Delayed nested suspend transfers recorded status confirmation to the owning gap and zero-delivered boluses retract"
+    ) func testDelayedNestedSuspendTransfersStatusAndZeroBolusRetracts() async throws {
+        let now = Date()
+        let firstSuspend = now.addingTimeInterval(-2.hours.timeInterval)
+        let delayedRewind = firstSuspend.addingTimeInterval(10.minutes.timeInterval)
+        let statusConfirmedAt = firstSuspend.addingTimeInterval(15.minutes.timeInterval)
+        let secondSuspend = firstSuspend.addingTimeInterval(60.minutes.timeInterval)
+        let failedBolusDate = secondSuspend.addingTimeInterval(15.minutes.timeInterval)
+        let thirdSuspend = secondSuspend.addingTimeInterval(30.minutes.timeInterval)
+
+        // 1. Infer a status-confirmed 10:15 resume on the 10:00 suspend
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: firstSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: firstSuspend),
+                raw: Data("transfer-s1".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+        let initial = try await storage.reconcileOpenSuspension(activeDeliverySince: statusConfirmedAt, now: now)
+        #expect(initial.didReconcile == true)
+
+        // 2. Import delayed 10:10 nested rewind + 11:00 suspend + pending 11:15 bolus + 11:30 suspend
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: delayedRewind,
+                    dose: LoopKit.DoseEntry(suspendDate: delayedRewind),
+                    raw: Data("transfer-rewind".utf8),
+                    title: "Rewind",
+                    type: .rewind
+                ),
+                LoopKit.NewPumpEvent(
+                    date: secondSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: secondSuspend),
+                    raw: Data("transfer-s2".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                bolusEvent(
+                    date: failedBolusDate,
+                    units: 1.0,
+                    syncIdentifier: "failed-zero-bolus",
+                    isMutable: true
+                ),
+                LoopKit.NewPumpEvent(
+                    date: thirdSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: thirdSuspend),
+                    raw: Data("transfer-s3".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        var resumes = try await fetchAllEvents()
+            .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.timestamp)
+            .sorted()
+        #expect(resumes == [statusConfirmedAt, failedBolusDate])
+
+        // 3. Finalize the 11:15 bolus with 0.0 U delivered: its derived resume must retract while 10:15 stays intact
+        try await storage.storePumpEvents(
+            [bolusEvent(
+                date: failedBolusDate,
+                units: 1.0,
+                deliveredUnits: 0.0,
+                syncIdentifier: "failed-zero-bolus",
+                isMutable: false
+            )],
+            replacePendingEvents: false
+        )
+
+        resumes = try await fetchAllEvents()
+            .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.timestamp)
+            .sorted()
+        #expect(resumes == [statusConfirmedAt], "10:15 status confirmation transfers to 10:10 rewind while 0 U bolus retracts")
+    }
 }
