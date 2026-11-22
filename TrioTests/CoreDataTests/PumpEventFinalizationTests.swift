@@ -1457,4 +1457,68 @@ import Testing
             "Inferred resume must already be persisted before recommendsLoop triggers determineBasal"
         )
     }
+
+    @Test(
+        "Single history batch with multiple suspends reconciles intermediate delivery gaps before later suspends"
+    ) func testBatchWithMultipleSuspendsReconcilesIntermediateDeliveryGap() async throws {
+        let now = Date()
+        let firstRewind = now.addingTimeInterval(-2.hours.timeInterval)
+        let tempBasalStart = firstRewind.addingTimeInterval(15.minutes.timeInterval)
+        let tempBasalEnd = firstRewind.addingTimeInterval(45.minutes.timeInterval)
+        let secondRewind = firstRewind.addingTimeInterval(60.minutes.timeInterval)
+        let liveActiveSince = firstRewind.addingTimeInterval(75.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: firstRewind,
+                    dose: LoopKit.DoseEntry(suspendDate: firstRewind),
+                    raw: Data("batch-rewind-1".utf8),
+                    title: "Rewind",
+                    type: .rewind
+                ),
+                tempBasalEvent(
+                    start: tempBasalStart,
+                    end: tempBasalEnd,
+                    rate: 1.5,
+                    syncIdentifier: "batch-gap-tbr",
+                    isMutable: false
+                ),
+                LoopKit.NewPumpEvent(
+                    date: secondRewind,
+                    dose: LoopKit.DoseEntry(suspendDate: secondRewind),
+                    raw: Data("batch-rewind-2".utf8),
+                    title: "Rewind",
+                    type: .rewind
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let reconciled = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: liveActiveSince,
+            now: now
+        )
+        #expect(reconciled.didReconcile == true)
+
+        let stored = try await fetchAllEvents()
+        let resumes = stored
+            .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.timestamp)
+            .sorted()
+        #expect(resumes == [tempBasalStart, liveActiveSince])
+
+        let suspends = stored
+            .filter { $0.type == PumpEvent.pumpSuspend.rawValue }
+            .compactMap(\.timestamp)
+            .sorted()
+        let spans = BaseTDDStorage.suspensionSpans(
+            suspends: suspends.map { PumpHistoryEvent(id: UUID().uuidString, type: .pumpSuspend, timestamp: $0) },
+            resumes: resumes.map { PumpHistoryEvent(id: UUID().uuidString, type: .pumpResume, timestamp: $0) },
+            now: now
+        )
+        #expect(spans.count == 2, "Intermediate temp basal delivery must split the two suspends instead of collapsing them")
+        #expect(spans.first?.start == firstRewind && spans.first?.end == tempBasalStart)
+        #expect(spans.last?.start == secondRewind && spans.last?.end == liveActiveSince)
+    }
 }
