@@ -2064,9 +2064,10 @@ import Testing
         let staleIds: [String] = try await testContext.perform {
             let matching = try testContext.fetch(PumpEventStored.fetchRequest())
                 .filter { $0.id == inFlightTreatment.id }
-            let stale = BaseNightscoutManager.reconcileCompletedPumpUpload(
+            let stale = try BaseNightscoutManager.reconcileCompletedPumpUpload(
                 results: matching,
-                treatments: [inFlightTreatment]
+                treatments: [inFlightTreatment],
+                in: testContext
             )
             try testContext.save()
             return stale
@@ -2077,5 +2078,99 @@ import Testing
             .filter { $0.notes == PumpEvent.pumpResume.rawValue }
             .compactMap(\.createdAt)
         #expect(pending == [tbrStart])
+    }
+
+    @Test(
+        "Pre-transition live confirmations reconcile delayed gaps and >24h hardware replacements stay Nightscout-uploadable"
+    ) func testPreTransitionConfirmationsAndHistoricalHardwareReplacementUploadEligibility() async throws {
+        let now = Date()
+        let firstGapStart = now.addingTimeInterval(-3.hours.timeInterval)
+        let preImportConfirm = now.addingTimeInterval(-2.hours.timeInterval)
+        let firstGapEnd = now.addingTimeInterval(-1.hours.timeInterval)
+
+        // 1. Record a live confirmation BEFORE any suspend/resume rows exist in Core Data
+        let preCheck = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: preImportConfirm,
+            now: now
+        )
+        #expect(preCheck == .unchanged)
+
+        // Delayed history later adds 3h and 1h suspends while the pump is now suspended
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: firstGapStart,
+                    dose: LoopKit.DoseEntry(suspendDate: firstGapStart),
+                    raw: Data("pre-gap-s1".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                LoopKit.NewPumpEvent(
+                    date: firstGapEnd,
+                    dose: LoopKit.DoseEntry(suspendDate: firstGapEnd),
+                    raw: Data("pre-gap-s2".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let gapResumes = try await fetchAllEvents()
+            .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.timestamp)
+        #expect(gapResumes == [preImportConfirm])
+
+        // 2. Replace an uploaded 23h-old inferred resume with a 25h-old hardware Prime resume
+        let oldSuspend = now.addingTimeInterval(-26.hours.timeInterval)
+        let hwPrimeResume = now.addingTimeInterval(-25.hours.timeInterval)
+        let initialDerived = now.addingTimeInterval(-23.hours.timeInterval)
+
+        // Clear and test historical hardware replacement
+        try await testContext.perform {
+            for row in try testContext.fetch(PumpEventStored.fetchRequest()) {
+                testContext.delete(row)
+            }
+            try testContext.save()
+        }
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: oldSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: oldSuspend),
+                raw: Data("hw-repl-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+        _ = try await storage.reconcileOpenSuspension(activeDeliverySince: initialDerived, now: now)
+
+        let oldUploadedId: String = try await testContext.perform {
+            let resume = try #require(
+                try testContext.fetch(PumpEventStored.fetchRequest())
+                    .first { $0.type == PumpEvent.pumpResume.rawValue }
+            )
+            resume.isUploadedToNS = true
+            try testContext.save()
+            return resume.id ?? ""
+        }
+
+        let purged = try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: hwPrimeResume,
+                dose: LoopKit.DoseEntry(resumeDate: hwPrimeResume),
+                raw: Data("hw-repl-prime-25h".utf8),
+                title: "Prime",
+                type: .prime
+            )],
+            replacePendingEvents: false
+        )
+        #expect(purged == [oldUploadedId])
+
+        let pending = try await storage.getPumpHistoryNotYetUploadedToNightscout()
+            .filter { $0.notes == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.createdAt)
+        #expect(pending == [hwPrimeResume])
     }
 }

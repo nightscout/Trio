@@ -1034,7 +1034,11 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
 
             do {
                 let results = try context.fetch(fetchRequest).filter { !$0.isDeleted }
-                let staleIds = Self.reconcileCompletedPumpUpload(results: results, treatments: treatments)
+                let staleIds = try Self.reconcileCompletedPumpUpload(
+                    results: results,
+                    treatments: treatments,
+                    in: context
+                )
                 if context.hasChanges {
                     try context.save()
                 }
@@ -1054,8 +1058,9 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     /// re-anchored while the Nightscout POST was in flight.
     static func reconcileCompletedPumpUpload(
         results: [PumpEventStored],
-        treatments: [NightscoutTreatment]
-    ) -> [String] {
+        treatments: [NightscoutTreatment],
+        in context: NSManagedObjectContext? = nil
+    ) throws -> [String] {
         let sentIds = treatments.compactMap(\.id)
         let treatmentsById = Dictionary(
             treatments.compactMap { treatment in treatment.id.map { ($0, treatment) } },
@@ -1080,6 +1085,26 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                 continue
             }
             result.isUploadedToNS = true
+        }
+
+        let deletedIds = withdrawnUploadedIds(sentIds: sentIds, survivingIds: survivingIds)
+        if let context {
+            for deletedId in deletedIds {
+                guard let treatment = treatmentsById[deletedId],
+                      treatment.notes == PumpEventStored.EventType.pumpResume.rawValue,
+                      let sentDate = treatment.createdAt
+                else { continue }
+                let replacementRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+                replacementRequest.predicate = NSPredicate(
+                    format: "type == %@ AND isUploadedToNS == NO AND timestamp <= %@",
+                    PumpEventStored.EventType.pumpResume.rawValue,
+                    sentDate as NSDate
+                )
+                replacementRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+                if let replacement = try context.fetch(replacementRequest).first(where: { !$0.isDeleted }) {
+                    BasePumpHistoryStorage.markNightscoutReupload(on: replacement)
+                }
+            }
         }
 
         return withdrawnUploadedIds(

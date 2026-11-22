@@ -60,6 +60,8 @@ extension PumpHistoryStorage {
 
 final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
     private let processQueue = DispatchQueue(label: "BasePumpHistoryStorage.processQueue")
+    private let bufferedConfirmationsLock = NSLock()
+    private var bufferedStatusDates: [Date] = []
     @Injected() var storage: FileStorage!
     @Injected() private var broadcaster: Broadcaster!
     @Injected() private var settings: SettingsManager!
@@ -276,23 +278,33 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 storeNow.addingTimeInterval(-48.hours.timeInterval),
                 earliestTouchedDate.addingTimeInterval(-1.hours.timeInterval)
             )
+            let priorBufferedDates = self.bufferedConfirmationsLock.withLock { self.bufferedStatusDates }
+            var remainingUnpersistedDates = priorBufferedDates
             _ = try Self.reconcileSuspensions(
                 in: context,
                 lookbackStart: lookbackStart,
                 activeDeliverySince: nil,
                 lastVerifiedSyncDate: nil,
-                extraStatusDates: harvestedStatusDates,
+                extraStatusDates: harvestedStatusDates + priorBufferedDates,
                 allowNewTrailingResume: false,
                 now: storeNow,
-                purgedUploadedIds: &purgedUploadedIds
+                purgedUploadedIds: &purgedUploadedIds,
+                unpersistedStatusDates: &remainingUnpersistedDates
             )
 
             do {
-                guard context.hasChanges else { return purgedUploadedIds }
-                try context.save()
-
-                self.updateSubject.send(())
-                debug(.storage, "Stored pump events")
+                if context.hasChanges {
+                    try context.save()
+                    self.bufferedConfirmationsLock.withLock {
+                        self.bufferedStatusDates = remainingUnpersistedDates
+                    }
+                    self.updateSubject.send(())
+                    debug(.storage, "Stored pump events")
+                } else {
+                    self.bufferedConfirmationsLock.withLock {
+                        self.bufferedStatusDates = remainingUnpersistedDates
+                    }
+                }
             } catch let error as NSError {
                 warning(.storage, "Storing pump events failed", error: error)
                 throw error
@@ -311,18 +323,25 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         return try await context.perform {
             var purgedUploadedIds: [String] = []
+            let priorBufferedDates = self.bufferedConfirmationsLock.withLock { self.bufferedStatusDates }
+            var remainingUnpersistedDates = priorBufferedDates
             let didMutateTimeline = try Self.reconcileSuspensions(
                 in: context,
                 lookbackStart: now.addingTimeInterval(-48.hours.timeInterval),
                 activeDeliverySince: activeDeliverySince,
                 lastVerifiedSyncDate: lastVerifiedSyncDate,
-                extraStatusDates: [],
+                extraStatusDates: priorBufferedDates,
                 allowNewTrailingResume: true,
                 now: now,
-                purgedUploadedIds: &purgedUploadedIds
+                purgedUploadedIds: &purgedUploadedIds,
+                unpersistedStatusDates: &remainingUnpersistedDates
             )
-            guard context.hasChanges else { return .unchanged }
-            try context.save()
+            if context.hasChanges {
+                try context.save()
+            }
+            self.bufferedConfirmationsLock.withLock {
+                self.bufferedStatusDates = remainingUnpersistedDates
+            }
             guard didMutateTimeline else { return .unchanged }
             self.updateSubject.send(())
             debug(.storage, "Reconciled pump suspensions up to \(now)")
@@ -1042,7 +1061,8 @@ extension BasePumpHistoryStorage {
         extraStatusDates: [Date],
         allowNewTrailingResume: Bool,
         now: Date,
-        purgedUploadedIds: inout [String]
+        purgedUploadedIds: inout [String],
+        unpersistedStatusDates: inout [Date]
     ) throws -> Bool {
         var effectiveLookbackStart = lookbackStart
         if let priorTransition = try latestAuthoritativeTransition(in: context, atOrBefore: effectiveLookbackStart),
@@ -1096,17 +1116,14 @@ extension BasePumpHistoryStorage {
         let confirmationCarriers = try context.fetch(carrierRequest).filter { !$0.isDeleted }
         let latestOverallTransition = try authoritativeRows.last
             ?? latestAuthoritativeTransition(in: context, atOrBefore: now)
+        let minConfirmationDate = latestOverallTransition?.timestamp ?? .distantPast
 
-        let freshTrailingDates: [Date] = if allowNewTrailingResume,
-                                            let latestDate = latestOverallTransition?.timestamp
-        {
-            [
-                activeDeliverySince.flatMap { $0 > latestDate ? min($0, now) : nil },
-                lastVerifiedSyncDate.flatMap { $0 > latestDate ? min($0, now) : nil }
+        let freshTrailingDates: [Date] = allowNewTrailingResume
+            ? [
+                activeDeliverySince.flatMap { $0 > minConfirmationDate ? min($0, now) : nil },
+                lastVerifiedSyncDate.flatMap { $0 > minConfirmationDate ? min($0, now) : nil }
             ].compactMap { $0 }
-        } else {
-            []
-        }
+            : []
 
         // Collect all previously recorded live-status confirmations across all carrier rows
         // (independent of carrier timestamp) plus any harvested during in-place promotion so
@@ -1210,18 +1227,37 @@ extension BasePumpHistoryStorage {
         let missingDates = recordedStatusDates.filter { candidate in
             !persistedDates.contains { abs($0.timeIntervalSince(candidate)) < 0.000001 }
         }
-        if !missingDates.isEmpty, let carrier = authoritativeRows.last ?? latestOverallTransition {
-            let merged = deduplicatedDates(statusConfirmedDates(of: carrier) + missingDates)
-            let encoded = encodeReconciledNote(
-                statusDates: merged,
-                needsNightscoutReupload: needsNightscoutReupload(carrier)
-            )
-            if carrier.note != encoded {
-                carrier.note = encoded
+        if !missingDates.isEmpty {
+            if let carrier = authoritativeRows.last ?? latestOverallTransition {
+                let merged = deduplicatedDates(statusConfirmedDates(of: carrier) + missingDates)
+                let encoded = encodeReconciledNote(
+                    statusDates: merged,
+                    needsNightscoutReupload: needsNightscoutReupload(carrier)
+                )
+                if carrier.note != encoded {
+                    carrier.note = encoded
+                }
+                unpersistedStatusDates = []
+            } else {
+                unpersistedStatusDates = missingDates
             }
+        } else {
+            unpersistedStatusDates = []
         }
 
+        let survivingResumes = (authoritativeRows + retainedDerivedRows)
+            .filter { !$0.isDeleted && $0.type == PumpEvent.pumpResume.rawValue }
+            .sorted { ($0.timestamp ?? .distantPast) < ($1.timestamp ?? .distantPast) }
+
         for derived in scopedDerivedResumes where !derived.isDeleted && !retainedDerivedIDs.contains(derived.objectID) {
+            if derived.isUploadedToNS || needsNightscoutReupload(derived) {
+                let owningDate = try owningSuspendTimestamps(for: [derived], in: context).min() ?? .distantPast
+                if let replacement = survivingResumes.first(where: { ($0.timestamp ?? .distantPast) > owningDate }),
+                   !replacement.isUploadedToNS
+                {
+                    markNightscoutReupload(on: replacement)
+                }
+            }
             deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)
             didMutateTimeline = true
         }
