@@ -26,11 +26,18 @@ extension TherapyProfiles {
                 Section(header: Text("Profiles")) {
                     ForEach(state.profiles) { profile in
                         NavigationLink(value: Screen.therapyProfileDetail(profile.name)) {
-                            HStack {
-                                Text(profile.name)
-                                Spacer()
-                                if state.isActive(profile) {
-                                    Text("Active").foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack {
+                                    Text(profile.name)
+                                    Spacer()
+                                    if state.isActive(profile) {
+                                        Text("Active").foregroundStyle(.secondary)
+                                    }
+                                }
+                                if let problem = state.activationProblemText(profile) {
+                                    Label(problem, systemImage: "exclamationmark.triangle.fill")
+                                        .font(.footnote)
+                                        .foregroundStyle(Color.orange)
                                 }
                             }
                         }
@@ -135,6 +142,16 @@ extension TherapyProfiles {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("\(TherapyProfiles.StateModel.shortStartText(entry)) · \(entry.profileName) starts")
                                 .foregroundStyle(entry.paused ? Color.secondary : Color.primary)
+                            if !entry.paused, entry.profileName != state.activeProfileName,
+                               state.activationProblems[entry.profileName] != nil
+                            {
+                                Label(
+                                    "\(entry.profileName) cannot be activated. This start will not switch until it is edited.",
+                                    systemImage: "exclamationmark.triangle.fill"
+                                )
+                                .font(.footnote)
+                                .foregroundStyle(Color.orange)
+                            }
                             if entry.paused {
                                 Text("Paused").font(.footnote).foregroundStyle(.secondary)
                             } else if let next = state.nextStart(after: entry) {

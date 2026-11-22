@@ -1125,6 +1125,7 @@ extension Home.StateModel: PumpManagerOnboardingDelegate {
         if let insulinType = pumpManager.status.insulinType {
             settingsManager.updateInsulinCurve(insulinType)
         }
+        therapyProfileManager.alertProfilesNotActivatableWithPump()
     }
 
     func pumpManagerOnboarding(didOnboardPumpManager _: PumpManagerUI) {

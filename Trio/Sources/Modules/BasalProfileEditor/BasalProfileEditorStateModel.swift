@@ -23,7 +23,7 @@ extension BasalProfileEditor {
         @ObservationIgnored private var liveBase: TrioTherapyProfile?
         var bannerInfo: TherapyProfileBannerInfo?
         var profileSaveError: String?
-        /// A rate of the schedule is not one the pump supports; its row shows the nearest supported rate.
+        /// A rate of the schedule is above max basal or not one the pump supports; its row shows the nearest offered rate.
         var hasUnsupportedRates = false
 
         var syncInProgress: Bool = false
@@ -68,8 +68,10 @@ extension BasalProfileEditor {
         }
 
         override func subscribe() {
-            rateValues = provider.supportedBasalRates ?? stride(from: 5.0, to: 1001.0, by: 5.0)
-                .map { ($0.decimal ?? .zero) / 100 }
+            rateValues = Self.rateValues(
+                supportedRates: provider.supportedBasalRates,
+                maxBasal: settingsManager.pumpSettings.maxBasal
+            )
             editedProfile = profileName.flatMap { therapyProfileManager.profile(named: $0) }
             liveBase = profileName == nil ? therapyProfileManager.activeProfile() : nil
             bannerInfo = TherapyProfileBannerInfo.make(manager: therapyProfileManager, profileName: profileName)
@@ -82,6 +84,17 @@ extension BasalProfileEditor {
             initialItems = items.map { Item(rateIndex: $0.rateIndex, timeIndex: $0.timeIndex) }
 
             calcTotal()
+        }
+
+        /// The rates a therapy profile accepts: the pump's rates, or the editor's without a pump, up to max basal. All of them
+        /// when max basal is below the lowest.
+        static func rateValues(supportedRates: [Decimal]?, maxBasal: Decimal) -> [Decimal] {
+            let limits = TherapyBasalLimits(
+                supportedRates: supportedRates ?? TherapyBasalLimits.fallbackRates,
+                maxBasal: maxBasal
+            )
+            let allowed = limits.allowedRates
+            return allowed.isEmpty ? limits.supportedRates.sorted() : allowed
         }
 
         /// The picker rows of a schedule. A rate the pump does not support takes the nearest supported rate, and

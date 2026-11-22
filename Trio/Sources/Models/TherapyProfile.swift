@@ -176,7 +176,8 @@ extension TrioTherapyProfile {
         return String(digest.map { String(format: "%02x", $0) }.joined().prefix(16))
     }
 
-    /// The first 16 hex characters of the SHA-256 of the canonical string, as Loop and LoopFollow compute it.
+    /// The first 16 hex characters of the SHA-256 of the canonical string, as Loop and LoopFollow compute it. It detects
+    /// that a remote command was made from an outdated copy of the profile; the encryption with the shared secret authorizes it.
     func fingerprint(units: GlucoseUnits) -> String {
         Self.fingerprint(of: fingerprintCanonicalString(units: units))
     }

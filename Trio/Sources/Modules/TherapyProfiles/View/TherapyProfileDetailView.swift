@@ -45,6 +45,11 @@ struct TherapyProfileDetailView: View {
                         Label("Not active", systemImage: "circle")
                             .foregroundStyle(.secondary)
                     }
+                    if let problem = state.activationProblemText(profile) {
+                        Label(problem, systemImage: "exclamationmark.triangle.fill")
+                            .font(.footnote)
+                            .foregroundStyle(Color.orange)
+                    }
                 }
                 .listRowBackground(Color.chart)
 
@@ -95,7 +100,13 @@ struct TherapyProfileDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            if let next = state.nextStart() {
+            if let problem = state.activeProfileProblem {
+                Text(
+                    "\(state.activeProfileName) cannot be activated again until it is edited: \(problem)"
+                ) + Text(verbatim: " ") + Text(
+                    "Trio sends this profile's basal rates to the pump and starts using its carb ratios, insulin sensitivities and glucose targets right away."
+                )
+            } else if let next = state.nextStart() {
                 Text(
                     "Trio sends this profile's basal rates to the pump and starts using its carb ratios, insulin sensitivities and glucose targets right away."
                 ) + Text(verbatim: " ") +
@@ -181,7 +192,7 @@ struct TherapyProfileDetailView: View {
                 Button("Activate Profile") {
                     isConfirmingActivation = true
                 }
-                .disabled(state.isBusy)
+                .disabled(state.isBusy || state.activationProblems[profile.name] != nil)
             }
             if !profile.isDefault {
                 Button("Rename Profile") {

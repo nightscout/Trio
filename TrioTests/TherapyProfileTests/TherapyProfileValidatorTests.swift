@@ -61,6 +61,87 @@ import Testing
         #expect(TherapyProfileValidator.validate(edges, basalLimits: limits) == nil)
     }
 
+    @Test("A change is checked in the changed schedules only") func validateChanges() {
+        let stored = TherapyProfileFixtures.profile("Stored", basal: [(0, 3.5)])
+        #expect(TherapyProfileValidator.validate(stored, basalLimits: limits) != nil)
+        let newRatio = TherapyProfileFixtures.profile("Stored", basal: [(0, 3.5)], carbratio: [(0, 12)])
+        #expect(TherapyProfileValidator.validateChanges(newRatio, from: stored, basalLimits: limits) == nil)
+        let badRatio = TherapyProfileFixtures.profile("Stored", basal: [(0, 3.5)], carbratio: [(0, 0.5)])
+        #expect(TherapyProfileValidator.validateChanges(badRatio, from: stored, basalLimits: limits) != nil)
+        let fixedBasal = TherapyProfileFixtures.profile("Stored", basal: [(0, 2)])
+        #expect(TherapyProfileValidator.validateChanges(fixedBasal, from: stored, basalLimits: limits) == nil)
+    }
+
+    @Test("Every value the carb ratio, ISF and target editors offer passes, and one step outside fails", arguments: [
+        GlucoseUnits.mgdL,
+        .mmolL
+    ]) func editorValues(units: GlucoseUnits) {
+        let pickers = PickerSettingsProvider.shared
+        let ratios = CarbRatioEditor.StateModel().rateValues
+        let sensitivities = pickers.generatePickerValues(
+            from: TherapyProfileLimits.sensitivity.glucosePickerSetting(value: 100),
+            units: units
+        )
+        let targets = pickers.generatePickerValues(
+            from: TherapyProfileLimits.target.glucosePickerSetting(value: 110),
+            units: units
+        )
+        for ratio in ratios {
+            #expect(TherapyProfileValidator.validateCarbRatios(Self.profile(carbRatio: ratio)) == nil, "\(ratio)")
+        }
+        for sensitivity in sensitivities {
+            #expect(
+                TherapyProfileValidator.validateSensitivities(Self.profile(sensitivity: sensitivity)) == nil,
+                "\(sensitivity)"
+            )
+        }
+        for target in targets {
+            #expect(TherapyProfileValidator.validateTargets(Self.profile(target: target)) == nil, "\(target)")
+        }
+        let ratio = TherapyProfileLimits.carbRatio
+        #expect(ratios.first == ratio.min && ratios.last == ratio.max)
+        #expect(TherapyProfileValidator.validateCarbRatios(Self.profile(carbRatio: ratio.min - ratio.step)) != nil)
+        #expect(TherapyProfileValidator.validateCarbRatios(Self.profile(carbRatio: ratio.max + ratio.step)) != nil)
+        let sensitivity = TherapyProfileLimits.sensitivity
+        #expect(
+            TherapyProfileValidator
+                .validateSensitivities(Self.profile(sensitivity: sensitivity.min - sensitivity.step)) != nil
+        )
+        #expect(
+            TherapyProfileValidator
+                .validateSensitivities(Self.profile(sensitivity: sensitivity.max + sensitivity.step)) != nil
+        )
+        let target = TherapyProfileLimits.target
+        #expect(TherapyProfileValidator.validateTargets(Self.profile(target: target.min - target.step)) != nil)
+        #expect(TherapyProfileValidator.validateTargets(Self.profile(target: target.max + target.step)) != nil)
+    }
+
+    @Test("The basal editor offers the rates the validator accepts") func basalEditorRates() {
+        let omnipod = BasalProfileEditor.Provider.editorRates((0 ... 600).map { Double($0) / 20 })
+        let rates = BasalProfileEditor.StateModel.rateValues(supportedRates: omnipod, maxBasal: 3)
+        let limits = TherapyBasalLimits(supportedRates: omnipod, maxBasal: 3)
+        #expect(rates.first == TherapyProfileFixtures.decimal(0.05))
+        #expect(rates.last == 3)
+        for rate in rates {
+            let profile = TherapyProfileFixtures.profile("Rate", basal: [(0, Double(truncating: rate as NSNumber))])
+            #expect(TherapyProfileValidator.validateBasal(profile, basalLimits: limits) == nil, "\(rate)")
+        }
+        let noPump = BasalProfileEditor.StateModel.rateValues(supportedRates: nil, maxBasal: 2)
+        #expect(noPump.first == TherapyProfileFixtures.decimal(0.05))
+        #expect(noPump.last == 2)
+        #expect(BasalProfileEditor.StateModel.rateValues(supportedRates: omnipod, maxBasal: 0.01) == omnipod)
+    }
+
+    private static func profile(carbRatio: Decimal = 10, sensitivity: Decimal = 50, target: Decimal = 100) -> TrioTherapyProfile {
+        TrioTherapyProfile(
+            name: "Picker",
+            basal: [TherapyScheduleEntry(seconds: 0, value: 1)],
+            carbRatio: [TherapyScheduleEntry(seconds: 0, value: carbRatio)],
+            sensitivity: [TherapyScheduleEntry(seconds: 0, value: sensitivity)],
+            target: [TherapyTargetEntry(seconds: 0, low: target, high: target)]
+        )
+    }
+
     @Test("Name rules") func names() {
         #expect(TherapyProfileValidator.validateName("Sport", existingNames: ["Default"]) == nil)
         #expect(TherapyProfileValidator.validateName(String(repeating: "x", count: 32), existingNames: []) == nil)

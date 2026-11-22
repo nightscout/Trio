@@ -132,6 +132,15 @@ extension UnitsLimitsSettings {
                     }
                 )
 
+                if let warning = state.maxBasalProfileWarning {
+                    Section {
+                        Label(warning, systemImage: "exclamationmark.triangle.fill")
+                            .font(.footnote)
+                            .foregroundStyle(Color.orange)
+                    }
+                    .listRowBackground(Color.chart)
+                }
+
                 SettingInputSection(
                     decimalValue: $state.maxCOB,
                     booleanValue: $booleanPlaceholder,

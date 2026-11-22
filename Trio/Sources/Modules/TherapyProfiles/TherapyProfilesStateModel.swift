@@ -9,6 +9,8 @@ extension TherapyProfiles {
         var profiles: [TrioTherapyProfile] = []
         var activeProfileName = TrioTherapyProfile.defaultName
         var scheduledSwitches: [ScheduledProfileSwitch] = []
+        /// Why a profile cannot be activated, by name.
+        var activationProblems: [String: String] = [:]
         var units: GlucoseUnits = .mgdL
         var isBusy = false
         var errorMessage: String?
@@ -23,6 +25,7 @@ extension TherapyProfiles {
             profiles = therapyProfileManager.profiles()
             activeProfileName = therapyProfileManager.activeProfileName
             scheduledSwitches = therapyProfileManager.scheduledSwitches()
+            activationProblems = therapyProfileManager.activationProblems()
         }
 
         func profile(named name: String) -> TrioTherapyProfile? {
@@ -31,6 +34,19 @@ extension TherapyProfiles {
 
         func isActive(_ profile: TrioTherapyProfile) -> Bool {
             profile.name == activeProfileName
+        }
+
+        /// Why `profile` cannot be activated, or, for the active profile, switched back to once another one is active.
+        func activationProblemText(_ profile: TrioTherapyProfile) -> String? {
+            guard let reason = activationProblems[profile.name] else { return nil }
+            return isActive(profile) ?
+                String(localized: "Cannot be switched back to after another profile is activated: \(reason)") :
+                String(localized: "Cannot be activated: \(reason)")
+        }
+
+        /// Set when the active profile cannot be activated again once another one is.
+        var activeProfileProblem: String? {
+            activationProblems[activeProfileName]
         }
 
         /// The reason `name` cannot be used, or nil. `renaming` is the name of the profile being renamed.

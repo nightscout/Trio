@@ -1,12 +1,28 @@
 import Foundation
 import LoopKit
 
-/// The therapy editors' value ranges, glucose in mg/dL.
+/// The therapy editors' value ranges, glucose in mg/dL. The editors take their values from these.
 enum TherapyProfileLimits {
     struct Range {
         let min: Decimal
         let max: Decimal
         let step: Decimal
+
+        /// Every value from `min` to `max` in steps of `step`.
+        var values: [Decimal] {
+            var values: [Decimal] = []
+            var value = min
+            while value <= max {
+                values.append(value)
+                value += step
+            }
+            return values
+        }
+
+        /// The editor picker for a glucose range.
+        func glucosePickerSetting(value: Decimal) -> PickerSetting {
+            PickerSetting(value: value, step: step, min: min, max: max, type: .glucose)
+        }
     }
 
     static let carbRatio = Range(min: 1, max: 50, step: 0.1)
@@ -75,18 +91,29 @@ enum TherapyProfileValidator {
 
     /// The reason the profile is not acceptable, or nil.
     static func validate(_ profile: TrioTherapyProfile, basalLimits: TherapyBasalLimits) -> String? {
-        let schedules = [
-            (profile.basal.map(\.seconds), String(localized: "Basal Rates")),
-            (profile.carbRatio.map(\.seconds), String(localized: "Carb Ratios")),
-            (profile.sensitivity.map(\.seconds), String(localized: "Insulin Sensitivities")),
-            (profile.target.map(\.seconds), String(localized: "Glucose Targets"))
-        ]
-        for (starts, label) in schedules {
-            if let reason = validateSchedule(starts, label: label) {
-                return reason
-            }
-        }
+        validateBasal(profile, basalLimits: basalLimits)
+            ?? validateCarbRatios(profile)
+            ?? validateSensitivities(profile)
+            ?? validateTargets(profile)
+    }
 
+    /// The reason the schedules of `profile` that differ from `original` are not acceptable, or nil. An unchanged schedule
+    /// is not checked, so a stored profile can be corrected one schedule at a time; activating it checks every schedule.
+    static func validateChanges(
+        _ profile: TrioTherapyProfile,
+        from original: TrioTherapyProfile,
+        basalLimits: TherapyBasalLimits
+    ) -> String? {
+        (profile.basal != original.basal ? validateBasal(profile, basalLimits: basalLimits) : nil)
+            ?? (profile.carbRatio != original.carbRatio ? validateCarbRatios(profile) : nil)
+            ?? (profile.sensitivity != original.sensitivity ? validateSensitivities(profile) : nil)
+            ?? (profile.target != original.target ? validateTargets(profile) : nil)
+    }
+
+    static func validateBasal(_ profile: TrioTherapyProfile, basalLimits: TherapyBasalLimits) -> String? {
+        if let reason = validateSchedule(profile.basal.map(\.seconds), label: String(localized: "Basal Rates")) {
+            return reason
+        }
         let allowedRates = basalLimits.allowedRates
         for entry in profile.basal {
             let time = timeString(entry.seconds)
@@ -103,21 +130,26 @@ enum TherapyProfileValidator {
                 return String(localized: "Basal rate \(rate) U/hr at \(time) is not supported by the pump.")
             }
         }
+        return nil
+    }
 
-        if let reason = validateValues(
-            profile.carbRatio,
-            range: TherapyProfileLimits.carbRatio,
-            label: String(localized: "Carb Ratio")
-        )
+    static func validateCarbRatios(_ profile: TrioTherapyProfile) -> String? {
+        validateSchedule(profile.carbRatio.map(\.seconds), label: String(localized: "Carb Ratios"))
+            ?? validateValues(profile.carbRatio, range: TherapyProfileLimits.carbRatio, label: String(localized: "Carb Ratio"))
+    }
+
+    static func validateSensitivities(_ profile: TrioTherapyProfile) -> String? {
+        validateSchedule(profile.sensitivity.map(\.seconds), label: String(localized: "Insulin Sensitivities"))
             ?? validateValues(profile.sensitivity, range: TherapyProfileLimits.sensitivity, label: String(localized: "ISF"))
-        {
-            return reason
-        }
-        return validateValues(
-            profile.target.map { TherapyScheduleEntry(seconds: $0.seconds, value: $0.low) },
-            range: TherapyProfileLimits.target,
-            label: String(localized: "Target")
-        )
+    }
+
+    static func validateTargets(_ profile: TrioTherapyProfile) -> String? {
+        validateSchedule(profile.target.map(\.seconds), label: String(localized: "Glucose Targets"))
+            ?? validateValues(
+                profile.target.map { TherapyScheduleEntry(seconds: $0.seconds, value: $0.low) },
+                range: TherapyProfileLimits.target,
+                label: String(localized: "Target")
+            )
     }
 
     static func validateSchedule(_ starts: [Int], label: String) -> String? {

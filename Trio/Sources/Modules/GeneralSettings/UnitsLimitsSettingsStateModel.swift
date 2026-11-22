@@ -6,6 +6,7 @@ extension UnitsLimitsSettings {
         @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
         @Injected() private var tidepoolManager: TidepoolManager!
+        @Injected() private var therapyProfileManager: TherapyProfileManager!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var unitsIndex = 0 // index 0 is mg/dl
@@ -37,6 +38,19 @@ extension UnitsLimitsSettings {
 
             maxBasal = pumpSettings.maxBasal
             maxBolus = pumpSettings.maxBolus
+        }
+
+        /// Names the profiles that the edited max basal rate keeps from being activated, when the stored one does not.
+        var maxBasalProfileWarning: String? {
+            guard maxBasal != pumpSettings.maxBasal else { return nil }
+            let current = therapyProfileManager.activationProblems()
+            let names = therapyProfileManager.activationProblems(maxBasal: maxBasal).keys
+                .filter { current[$0] == nil }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            guard !names.isEmpty else { return nil }
+            return String(
+                localized: "These profiles have basal rates above \(maxBasal.formatted()) U/hr and cannot be activated until they are edited: \(names.joined(separator: ", "))."
+            )
         }
 
         var isPumpSettingUnchanged: Bool {

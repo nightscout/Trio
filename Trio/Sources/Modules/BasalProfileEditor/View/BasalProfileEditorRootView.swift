@@ -91,7 +91,7 @@ extension BasalProfileEditor {
 
         var unsupportedRatesWarning: some View {
             Text(
-                "Some basal rates of this schedule are not rates your pump supports. Each is shown as the nearest supported rate. Check them before you save."
+                "Some basal rates of this schedule are above the max basal rate or are not rates your pump supports. Each is shown as the nearest rate that can be saved. Check them before you save."
             )
             .bold()
             .frame(maxWidth: .infinity, alignment: .leading)

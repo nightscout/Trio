@@ -19,7 +19,7 @@ extension TargetsEditor {
 
         var rateValues: [Decimal] {
             let settingsProvider = PickerSettingsProvider.shared
-            let glucoseSetting = PickerSetting(value: 110, step: 1, min: 72, max: 180, type: .glucose)
+            let glucoseSetting = TherapyProfileLimits.target.glucosePickerSetting(value: 110)
             return settingsProvider.generatePickerValues(from: glucoseSetting, units: units)
         }
 

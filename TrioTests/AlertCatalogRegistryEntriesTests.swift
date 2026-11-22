@@ -256,11 +256,12 @@ import Testing
     // MARK: - K: Trio-internal Profiles entries
 
     @Test(
-        "Scheduled profile switch entries map to Profiles concepts",
+        "Profile alert entries map to Profiles concepts",
         arguments: [
             ("scheduledSwitch.pending", Alert.CatalogConcept.scheduledProfileSwitchNotDone),
             ("scheduledSwitch.failed", Alert.CatalogConcept.scheduledProfileSwitchNotDone),
-            ("scheduledSwitch.done", Alert.CatalogConcept.profileSwitched)
+            ("scheduledSwitch.done", Alert.CatalogConcept.profileSwitched),
+            ("profilesNotActivatable", Alert.CatalogConcept.profilesNotActivatable)
         ]
     ) func trioProfileConcepts(alertID: String, expected: Alert.CatalogConcept) {
         #expect(AlertCatalogRegistry.lookup(id("trio.therapyProfiles", alertID))?.concept == expected)
