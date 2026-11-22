@@ -157,14 +157,19 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                 if let match = match {
                     if Self.isReconciledResume(match), storedType == .pumpResume {
-                        // Harvest any recorded live-status confirmations before promoting the row
-                        // to hardware provenance so later gaps in the same batch still see them.
-                        harvestedStatusDates.append(contentsOf: Self.statusConfirmedDates(of: match))
+                        // Harvest and retain recorded live-status confirmations (and any pending
+                        // Nightscout re-upload marker) when promoting the row to hardware provenance.
+                        let preservedDates = Self.statusConfirmedDates(of: match)
+                        let keepNightscoutReupload = Self.needsNightscoutReupload(match)
+                        harvestedStatusDates.append(contentsOf: preservedDates)
                         if let previousSyncId = match.syncIdentifier {
                             bySyncIdentifier.removeValue(forKey: previousSyncId)
                         }
                         match.syncIdentifier = syncIdentifier
-                        match.note = nil
+                        match.note = Self.encodeReconciledNote(
+                            statusDates: preservedDates,
+                            needsNightscoutReupload: keepNightscoutReupload
+                        )
                         if let syncIdentifier {
                             bySyncIdentifier[syncIdentifier] = match
                         }
@@ -819,19 +824,25 @@ extension BasePumpHistoryStorage {
         return try context.fetch(request).first(where: { !$0.isDeleted })?.timestamp
     }
 
+    static let nightscoutReuploadMarker = "reconciled-ns-reupload"
     private static let statusConfirmedNotePrefix = "reconciled-status-at:"
 
-    private static func statusConfirmedDates(of derived: PumpEventStored) -> [Date] {
-        guard let note = derived.note,
-              note.hasPrefix(statusConfirmedNotePrefix)
-        else { return [] }
-        return note
-            .dropFirst(statusConfirmedNotePrefix.count)
-            .split(separator: ",")
-            .compactMap { Double($0) }
-            .filter(\.isFinite)
-            .map { Date(timeIntervalSinceReferenceDate: $0) }
-            .sorted()
+    private static func needsNightscoutReupload(_ row: PumpEventStored) -> Bool {
+        !row.isUploadedToNS && (row.note?.contains(nightscoutReuploadMarker) == true)
+    }
+
+    private static func statusConfirmedDates(of row: PumpEventStored) -> [Date] {
+        guard let note = row.note else { return [] }
+        for segment in note.split(separator: ";") where segment.hasPrefix(statusConfirmedNotePrefix) {
+            return segment
+                .dropFirst(statusConfirmedNotePrefix.count)
+                .split(separator: ",")
+                .compactMap { Double($0) }
+                .filter(\.isFinite)
+                .map { Date(timeIntervalSinceReferenceDate: $0) }
+                .sorted()
+        }
+        return []
     }
 
     private static func deduplicatedDates(_ dates: [Date]) -> [Date] {
@@ -845,10 +856,21 @@ extension BasePumpHistoryStorage {
         return result
     }
 
-    private static func encodeStatusConfirmedNote(_ dates: [Date]) -> String? {
-        let unique = deduplicatedDates(dates)
-        guard !unique.isEmpty else { return nil }
-        return statusConfirmedNotePrefix + unique.map { "\($0.timeIntervalSinceReferenceDate)" }.joined(separator: ",")
+    private static func encodeReconciledNote(
+        statusDates: [Date],
+        needsNightscoutReupload: Bool
+    ) -> String? {
+        var segments: [String] = []
+        if needsNightscoutReupload {
+            segments.append(nightscoutReuploadMarker)
+        }
+        let unique = deduplicatedDates(statusDates)
+        if !unique.isEmpty {
+            segments.append(
+                statusConfirmedNotePrefix + unique.map { "\($0.timeIntervalSinceReferenceDate)" }.joined(separator: ",")
+            )
+        }
+        return segments.isEmpty ? nil : segments.joined(separator: ";")
     }
 
     private static func deleteDerivedResume(
@@ -862,22 +884,23 @@ extension BasePumpHistoryStorage {
         context.delete(derived)
     }
 
+    @discardableResult
     private static func reanchorDerivedResume(
         _ derived: PumpEventStored,
         to newTimestamp: Date,
         purgedUploadedIds: inout [String]
-    ) {
-        guard derived.timestamp != newTimestamp else { return }
+    ) -> Bool {
+        guard derived.timestamp != newTimestamp else { return false }
         derived.timestamp = newTimestamp
-        if derived.isUploadedToNS {
-            if let oldId = derived.id {
-                purgedUploadedIds.append(oldId)
-            }
-            // Rotate the treatment id so the detached DELETE for the old timestamp cannot
-            // race against and delete the re-uploaded note at the corrected timestamp.
-            derived.id = UUID().uuidString
-            derived.isUploadedToNS = false
+        guard derived.isUploadedToNS else { return false }
+        if let oldId = derived.id {
+            purgedUploadedIds.append(oldId)
         }
+        // Rotate the treatment id so the detached DELETE for the old timestamp cannot
+        // race against and delete the re-uploaded note at the corrected timestamp.
+        derived.id = UUID().uuidString
+        derived.isUploadedToNS = false
+        return true
     }
 
     private static func upsertDerivedResume(
@@ -889,18 +912,27 @@ extension BasePumpHistoryStorage {
         purgedUploadedIds: inout [String]
     ) -> (row: PumpEventStored, mutatedTimeline: Bool) {
         let uniqueDates = deduplicatedDates(confirmedDates)
-        let encodedNote = encodeStatusConfirmedNote(uniqueDates)
         if let existing {
+            let hadPendingReupload = needsNightscoutReupload(existing)
             let timestampChanged = existing.timestamp != resumeDate
+            var didPurgeUploaded = false
             if timestampChanged {
-                reanchorDerivedResume(existing, to: resumeDate, purgedUploadedIds: &purgedUploadedIds)
+                didPurgeUploaded = reanchorDerivedResume(existing, to: resumeDate, purgedUploadedIds: &purgedUploadedIds)
             }
+            let encodedNote = encodeReconciledNote(
+                statusDates: uniqueDates,
+                needsNightscoutReupload: hadPendingReupload || didPurgeUploaded
+            )
             if existing.note != encodedNote {
                 existing.note = encodedNote
             }
             return (existing, timestampChanged)
         }
 
+        let encodedNote = encodeReconciledNote(
+            statusDates: uniqueDates,
+            needsNightscoutReupload: false
+        )
         let resumeEvent = PumpEventStored(context: context)
         resumeEvent.id = UUID().uuidString
         resumeEvent.timestamp = resumeDate
@@ -940,12 +972,6 @@ extension BasePumpHistoryStorage {
             allDerivedResumes.compactMap { row in row.syncIdentifier.map { ($0, row) } },
             uniquingKeysWith: { first, _ in first }
         )
-        // Collect all previously recorded live-status confirmations (including any harvested from
-        // rows promoted to hardware provenance in the current batch) so delayed suspends transfer
-        // confirmation to the chronologically owning gap.
-        let recordedStatusDates = deduplicatedDates(
-            allDerivedResumes.flatMap(statusConfirmedDates(of:)) + extraStatusDates
-        )
 
         let earliestDerivedDate = allDerivedResumes.compactMap(\.timestamp).min()
         let effectiveLookbackStart = min(
@@ -965,6 +991,27 @@ extension BasePumpHistoryStorage {
             !$0.isDeleted && !isReconciledResume($0)
         }
 
+        let freshTrailingDates: [Date] = if allowNewTrailingResume,
+                                            let latestDate = authoritativeRows.last?.timestamp
+        {
+            [
+                activeDeliverySince.flatMap { $0 > latestDate ? min($0, now) : nil },
+                lastVerifiedSyncDate.flatMap { $0 > latestDate ? min($0, now) : nil }
+            ].compactMap { $0 }
+        } else {
+            []
+        }
+
+        // Collect all previously recorded live-status confirmations across both derived and
+        // authoritative transition rows (plus any harvested during in-place promotion) so
+        // confirmations survive across separate history batches even when no derived row remains.
+        let recordedStatusDates = deduplicatedDates(
+            (allDerivedResumes + authoritativeRows).flatMap(statusConfirmedDates(of:))
+                + extraStatusDates
+                + freshTrailingDates
+        )
+
+        var retainedDerivedRows: [PumpEventStored] = []
         var retainedDerivedIDs = Set<NSManagedObjectID>()
         var didMutateTimeline = false
 
@@ -1005,6 +1052,7 @@ extension BasePumpHistoryStorage {
                                 in: context,
                                 purgedUploadedIds: &purgedUploadedIds
                             )
+                            retainedDerivedRows.append(upserted.row)
                             retainedDerivedIDs.insert(upserted.row.objectID)
                             didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
                         }
@@ -1018,14 +1066,8 @@ extension BasePumpHistoryStorage {
                   now.timeIntervalSince(suspendDate) >= 1
             else { continue }
 
-            let freshStatusDates: [Date] = allowNewTrailingResume
-                ? [
-                    activeDeliverySince.flatMap { $0 > suspendDate ? min($0, now) : nil },
-                    lastVerifiedSyncDate.flatMap { $0 > suspendDate ? min($0, now) : nil }
-                ].compactMap { $0 }
-                : []
             let effectiveStatusDates = deduplicatedDates(
-                recordedStatusDates.filter { $0 > suspendDate && $0 <= now } + freshStatusDates
+                recordedStatusDates.filter { $0 > suspendDate && $0 <= now }
             )
 
             let earliestDeliveryDate = try earliestPumpDeliveryDate(
@@ -1050,8 +1092,28 @@ extension BasePumpHistoryStorage {
                 in: context,
                 purgedUploadedIds: &purgedUploadedIds
             )
+            retainedDerivedRows.append(upserted.row)
             retainedDerivedIDs.insert(upserted.row.objectID)
             didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
+        }
+
+        // Preserve any confirmation timestamps not already carried by a retained derived row or
+        // authoritative transition row so subsequent history batches can still reconcile delayed gaps.
+        let persistedDates = deduplicatedDates(
+            (retainedDerivedRows + authoritativeRows).flatMap(statusConfirmedDates(of:))
+        )
+        let missingDates = recordedStatusDates.filter { candidate in
+            !persistedDates.contains { abs($0.timeIntervalSince(candidate)) < 0.000001 }
+        }
+        if !missingDates.isEmpty, let carrier = authoritativeRows.last {
+            let merged = deduplicatedDates(statusConfirmedDates(of: carrier) + missingDates)
+            let encoded = encodeReconciledNote(
+                statusDates: merged,
+                needsNightscoutReupload: needsNightscoutReupload(carrier)
+            )
+            if carrier.note != encoded {
+                carrier.note = encoded
+            }
         }
 
         for derived in allDerivedResumes where !derived.isDeleted && !retainedDerivedIDs.contains(derived.objectID) {

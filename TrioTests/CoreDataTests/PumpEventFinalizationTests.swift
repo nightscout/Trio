@@ -1761,7 +1761,7 @@ import Testing
         )
         #expect(second == .unchanged)
 
-        // Delayed batch brings hardware Resume at 10:15 (promoting the derived row!) plus 10:30 and 11:00 suspends
+        // Delayed batch 1 brings ONLY the matching hardware Resume at 10:15 (promoting the derived row!)
         try await storage.storePumpEvents(
             [
                 LoopKit.NewPumpEvent(
@@ -1770,7 +1770,14 @@ import Testing
                     raw: Data("persist-hw-resume-1015".utf8),
                     title: "Resume",
                     type: .resume
-                ),
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        // Separate delayed batch 2 later adds 10:30 and 11:00 suspends while the pump is now suspended
+        try await storage.storePumpEvents(
+            [
                 LoopKit.NewPumpEvent(
                     date: middleSuspend,
                     dose: LoopKit.DoseEntry(suspendDate: middleSuspend),
@@ -1793,6 +1800,78 @@ import Testing
             .filter { $0.type == PumpEvent.pumpResume.rawValue }
             .compactMap(\.timestamp)
             .sorted()
-        #expect(resumes == [firstConfirm, laterConfirm], "10:45 confirmation must survive 10:15 promotion to close the 10:30-11:00 gap")
+        #expect(resumes == [firstConfirm, laterConfirm], "10:45 confirmation must survive separate batches after 10:15 promotion")
+    }
+
+    @Test(
+        "Re-anchoring an uploaded inferred resume past 24h keeps it eligible for Nightscout re-upload"
+    ) func testReanchoredResumePast24HoursRemainsUploadableToNightscout() async throws {
+        let now = Date()
+        let olderSuspend = now.addingTimeInterval(-32.hours.timeInterval)
+        let olderTbrStart = now.addingTimeInterval(-31.hours.timeInterval)
+        let olderTbrEnd = olderTbrStart.addingTimeInterval(30.minutes.timeInterval)
+        let suspendDate = now.addingTimeInterval(-26.hours.timeInterval)
+        let earlierTbrStart = now.addingTimeInterval(-25.hours.timeInterval)
+        let earlierTbrEnd = earlierTbrStart.addingTimeInterval(30.minutes.timeInterval)
+        let initialInferredAt = now.addingTimeInterval(-23.hours.timeInterval)
+
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: olderSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: olderSuspend),
+                    raw: Data("ns-32h-suspend".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                tempBasalEvent(
+                    start: olderTbrStart,
+                    end: olderTbrEnd,
+                    rate: 1.0,
+                    syncIdentifier: "ns-31h-tbr",
+                    isMutable: false
+                ),
+                LoopKit.NewPumpEvent(
+                    date: suspendDate,
+                    dose: LoopKit.DoseEntry(suspendDate: suspendDate),
+                    raw: Data("ns-25h-suspend".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let initial = try await storage.reconcileOpenSuspension(activeDeliverySince: initialInferredAt, now: now)
+        #expect(initial.didReconcile == true)
+
+        let oldId: String = try await testContext.perform {
+            let resumes = try testContext.fetch(PumpEventStored.fetchRequest())
+                .filter { $0.type == PumpEvent.pumpResume.rawValue && $0.timestamp == initialInferredAt }
+            resumes.first?.isUploadedToNS = true
+            try testContext.save()
+            return resumes.first?.id ?? ""
+        }
+
+        let purgedIds = try await storage.storePumpEvents(
+            [tempBasalEvent(
+                start: earlierTbrStart,
+                end: earlierTbrEnd,
+                rate: 1.0,
+                syncIdentifier: "ns-25h-tbr",
+                isMutable: false
+            )],
+            replacePendingEvents: false
+        )
+        #expect(purgedIds == [oldId])
+
+        let pendingTreatments = try await storage.getPumpHistoryNotYetUploadedToNightscout()
+        let resumeDates = pendingTreatments
+            .filter { $0.notes == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.createdAt)
+        #expect(
+            resumeDates == [earlierTbrStart],
+            "Relocated 25h-old uploaded resume queues for Nightscout replacement while never-uploaded >24h resumes stay excluded"
+        )
     }
 }

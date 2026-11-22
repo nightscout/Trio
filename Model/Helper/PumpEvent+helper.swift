@@ -130,11 +130,15 @@ extension NSPredicate {
 
     // Mutable rows upload immediately; value changes reset isUploadedToNS and
     // the re-POST replaces the NS document (upsert on created_at + eventType).
+    // Re-anchored resumes whose prior upload was purged carry `nightscoutReuploadMarker`
+    // so they still re-upload when relocated past the 24h cutoff.
     static var pumpEventsNotYetUploadedToNightscout: NSPredicate {
         let date = Date.oneDayAgo
         return NSPredicate(
-            format: "timestamp >= %@ AND isUploadedToNS == %@ AND \(notScheduledBasal)",
+            format: "(timestamp >= %@ OR (type == %@ AND note CONTAINS %@)) AND isUploadedToNS == %@ AND \(notScheduledBasal)",
             date as NSDate,
+            PumpEventStored.EventType.pumpResume.rawValue,
+            BasePumpHistoryStorage.nightscoutReuploadMarker,
             false as NSNumber
         )
     }
