@@ -1939,4 +1939,75 @@ import Testing
             .sorted()
         #expect(resumes == [confirmedAt, laterResume])
     }
+
+    @Test(
+        "Confirmations carried by a >48h promoted resume remain visible and mid-flight withdrawn Nightscout IDs are detected"
+    ) func testOldPromotedCarrierRetainsRecentConfirmationsAndWithdrawnInFlightIdsAreDetected() async throws {
+        let now = Date()
+        let oldSuspend = now.addingTimeInterval(-50.hours.timeInterval)
+        let oldResume = now.addingTimeInterval(-49.hours.timeInterval)
+        let recentGapStart = now.addingTimeInterval(-3.hours.timeInterval)
+        let recentConfirm = now.addingTimeInterval(-2.hours.timeInterval)
+        let recentGapEnd = now.addingTimeInterval(-1.hours.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: oldSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: oldSuspend),
+                raw: Data("50h-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+        _ = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: oldResume,
+            lastVerifiedSyncDate: recentConfirm,
+            now: now
+        )
+
+        // Promote the 49h-old resume in Batch 1, then import 3h and 1h suspends in Batch 2
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: oldResume,
+                dose: LoopKit.DoseEntry(resumeDate: oldResume),
+                raw: Data("49h-hw-resume".utf8),
+                title: "Resume",
+                type: .resume
+            )],
+            replacePendingEvents: false
+        )
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: recentGapStart,
+                    dose: LoopKit.DoseEntry(suspendDate: recentGapStart),
+                    raw: Data("3h-suspend".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                LoopKit.NewPumpEvent(
+                    date: recentGapEnd,
+                    dose: LoopKit.DoseEntry(suspendDate: recentGapEnd),
+                    raw: Data("1h-suspend".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let resumes = try await fetchAllEvents()
+            .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.timestamp)
+            .sorted()
+        #expect(resumes == [oldResume, recentConfirm])
+
+        #expect(
+            BaseNightscoutManager.withdrawnUploadedIds(
+                sentIds: ["inflight-deleted", "still-present", "inflight-deleted"],
+                survivingIds: ["still-present"]
+            ) == ["inflight-deleted"]
+        )
+    }
 }

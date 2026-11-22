@@ -964,14 +964,17 @@ extension BasePumpHistoryStorage {
         purgedUploadedIds: inout [String]
     ) -> Bool {
         guard derived.timestamp != newTimestamp else { return false }
+        let oldId = derived.id
+        let wasUploaded = derived.isUploadedToNS
         derived.timestamp = newTimestamp
-        guard derived.isUploadedToNS else { return false }
-        if let oldId = derived.id {
+        // Always rotate `id` on timestamp change: if `wasUploaded` is true we delete `oldId`
+        // below, and if a first Nightscout POST for `oldId` was still in flight (`wasUploaded == false`),
+        // `updatePumpEventStoredsAsUploaded` sees `oldId` missing and deletes the stale remote note.
+        derived.id = UUID().uuidString
+        guard wasUploaded else { return false }
+        if let oldId {
             purgedUploadedIds.append(oldId)
         }
-        // Rotate the treatment id so the detached DELETE for the old timestamp cannot
-        // race against and delete the re-uploaded note at the corrected timestamp.
-        derived.id = UUID().uuidString
         derived.isUploadedToNS = false
         return true
     }
@@ -1078,8 +1081,17 @@ extension BasePumpHistoryStorage {
             !$0.isDeleted && !isReconciledResume($0)
         }
 
+        let carrierRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+        carrierRequest.predicate = NSPredicate(
+            format: "note CONTAINS %@",
+            statusConfirmedNotePrefix
+        )
+        let confirmationCarriers = try context.fetch(carrierRequest).filter { !$0.isDeleted }
+        let latestOverallTransition = try authoritativeRows.last
+            ?? latestAuthoritativeTransition(in: context, atOrBefore: now)
+
         let freshTrailingDates: [Date] = if allowNewTrailingResume,
-                                            let latestDate = authoritativeRows.last?.timestamp
+                                            let latestDate = latestOverallTransition?.timestamp
         {
             [
                 activeDeliverySince.flatMap { $0 > latestDate ? min($0, now) : nil },
@@ -1089,11 +1101,11 @@ extension BasePumpHistoryStorage {
             []
         }
 
-        // Collect all previously recorded live-status confirmations across both derived and
-        // authoritative transition rows (plus any harvested during in-place promotion) so
-        // confirmations survive across separate history batches even when no derived row remains.
+        // Collect all previously recorded live-status confirmations across all carrier rows
+        // (independent of carrier timestamp) plus any harvested during in-place promotion so
+        // confirmations on >48h-old promoted resumes still close recent delayed gaps.
         let recordedStatusDates = deduplicatedDates(
-            (scopedDerivedResumes + authoritativeRows).flatMap(statusConfirmedDates(of:))
+            (scopedDerivedResumes + confirmationCarriers).flatMap(statusConfirmedDates(of:))
                 + extraStatusDates
                 + freshTrailingDates
         )
@@ -1185,14 +1197,17 @@ extension BasePumpHistoryStorage {
         }
 
         // Preserve any confirmation timestamps not already carried by a retained derived row or
-        // authoritative transition row so subsequent history batches can still reconcile delayed gaps.
+        // existing carrier row so subsequent history batches can still reconcile delayed gaps.
+        let survivingCarriers = confirmationCarriers.filter { carrier in
+            !carrier.isDeleted && (!isReconciledResume(carrier) || retainedDerivedIDs.contains(carrier.objectID))
+        }
         let persistedDates = deduplicatedDates(
-            (retainedDerivedRows + authoritativeRows).flatMap(statusConfirmedDates(of:))
+            (retainedDerivedRows + survivingCarriers).flatMap(statusConfirmedDates(of:))
         )
         let missingDates = recordedStatusDates.filter { candidate in
             !persistedDates.contains { abs($0.timeIntervalSince(candidate)) < 0.000001 }
         }
-        if !missingDates.isEmpty, let carrier = authoritativeRows.last {
+        if !missingDates.isEmpty, let carrier = authoritativeRows.last ?? latestOverallTransition {
             let merged = deduplicatedDates(statusConfirmedDates(of: carrier) + missingDates)
             let encoded = encodeReconciledNote(
                 statusDates: merged,

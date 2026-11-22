@@ -1026,17 +1026,19 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
     private func updatePumpEventStoredsAsUploaded(_ treatments: [NightscoutTreatment]) async {
         let context = CoreDataStack.shared.newTaskContext()
         context.name = "updatePumpEventStoredsAsUploaded"
-        await context.perform {
-            let ids = treatments.map(\.id) as NSArray
+        let withdrawnInFlightIds: [String] = await context.perform {
+            let sentIds = treatments.compactMap(\.id)
+            guard !sentIds.isEmpty else { return [] }
             let treatmentsById = Dictionary(
                 treatments.compactMap { treatment in treatment.id.map { ($0, treatment) } },
                 uniquingKeysWith: { first, _ in first }
             )
             let fetchRequest: NSFetchRequest<PumpEventStored> = PumpEventStored.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+            fetchRequest.predicate = NSPredicate(format: "id IN %@", sentIds as NSArray)
 
             do {
-                let results = try context.fetch(fetchRequest)
+                let results = try context.fetch(fetchRequest).filter { !$0.isDeleted }
+                let survivingIds = Set(results.compactMap(\.id))
                 for result in results {
                     // stamp only if the row still holds what was sent; a mid-flight
                     // finalization keeps the flag false and the next pass re-uploads
@@ -1049,11 +1051,27 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
                     result.isUploadedToNS = true
                 }
 
-                guard context.hasChanges else { return }
-                try context.save()
+                if context.hasChanges {
+                    try context.save()
+                }
+                return Self.withdrawnUploadedIds(sentIds: sentIds, survivingIds: survivingIds)
             } catch let error as NSError {
                 warning(.storage, "Failed to mark pump events as uploaded to Nightscout", error: error)
+                return []
             }
+        }
+
+        for id in withdrawnInFlightIds {
+            await deleteInsulin(withID: id)
+        }
+    }
+
+    /// Uploaded treatment IDs whose local Core Data row was deleted or had its ID rotated while the POST was in flight.
+    static func withdrawnUploadedIds(sentIds: [String], survivingIds: Set<String>) -> [String] {
+        var seen = Set<String>()
+        return sentIds.filter { id in
+            guard !survivingIds.contains(id) else { return false }
+            return seen.insert(id).inserted
         }
     }
 
