@@ -1728,4 +1728,71 @@ import Testing
             .sorted()
         #expect(resumes == [statusConfirmedAt], "10:15 status confirmation transfers to 10:10 rewind while 0 U bolus retracts")
     }
+
+    @Test(
+        "Subsequent live confirmations persist without moving the anchor and survive hardware resume promotion"
+    ) func testLaterStatusConfirmationsPersistAndTransferAcrossPromotion() async throws {
+        let now = Date()
+        let firstSuspend = now.addingTimeInterval(-2.hours.timeInterval)
+        let firstConfirm = firstSuspend.addingTimeInterval(15.minutes.timeInterval)
+        let middleSuspend = firstSuspend.addingTimeInterval(30.minutes.timeInterval)
+        let laterConfirm = firstSuspend.addingTimeInterval(45.minutes.timeInterval)
+        let finalSuspend = firstSuspend.addingTimeInterval(60.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: firstSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: firstSuspend),
+                raw: Data("persist-later-s1".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+
+        // First confirmation at 10:15 creates the resume; later confirmation at 10:45 keeps 10:15 anchor
+        // while persisting 10:45 into the confirmation set.
+        let first = try await storage.reconcileOpenSuspension(activeDeliverySince: firstConfirm, now: now)
+        #expect(first.didReconcile == true)
+        let second = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: firstConfirm,
+            lastVerifiedSyncDate: laterConfirm,
+            now: now
+        )
+        #expect(second == .unchanged)
+
+        // Delayed batch brings hardware Resume at 10:15 (promoting the derived row!) plus 10:30 and 11:00 suspends
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: firstConfirm,
+                    dose: LoopKit.DoseEntry(resumeDate: firstConfirm),
+                    raw: Data("persist-hw-resume-1015".utf8),
+                    title: "Resume",
+                    type: .resume
+                ),
+                LoopKit.NewPumpEvent(
+                    date: middleSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: middleSuspend),
+                    raw: Data("persist-middle-s2".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                LoopKit.NewPumpEvent(
+                    date: finalSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: finalSuspend),
+                    raw: Data("persist-final-s3".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let resumes = try await fetchAllEvents()
+            .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.timestamp)
+            .sorted()
+        #expect(resumes == [firstConfirm, laterConfirm], "10:45 confirmation must survive 10:15 promotion to close the 10:30-11:00 gap")
+    }
 }

@@ -135,6 +135,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             )
 
             var assertedRows = Set<NSManagedObjectID>()
+            var harvestedStatusDates: [Date] = []
 
             for candidate in candidates {
                 let event = candidate.event
@@ -156,8 +157,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                 if let match = match {
                     if Self.isReconciledResume(match), storedType == .pumpResume {
-                        // Promote an inferred resume in place when hardware history later supplies
-                        // an authoritative resume at the exact same timestamp.
+                        // Harvest any recorded live-status confirmations before promoting the row
+                        // to hardware provenance so later gaps in the same batch still see them.
+                        harvestedStatusDates.append(contentsOf: Self.statusConfirmedDates(of: match))
                         if let previousSyncId = match.syncIdentifier {
                             bySyncIdentifier.removeValue(forKey: previousSyncId)
                         }
@@ -265,11 +267,12 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 storeNow.addingTimeInterval(-48.hours.timeInterval),
                 earliestCandidateDate.addingTimeInterval(-1.hours.timeInterval)
             )
-            try Self.reconcileSuspensions(
+            _ = try Self.reconcileSuspensions(
                 in: context,
                 lookbackStart: lookbackStart,
                 activeDeliverySince: nil,
                 lastVerifiedSyncDate: nil,
+                extraStatusDates: harvestedStatusDates,
                 allowNewTrailingResume: false,
                 now: storeNow,
                 purgedUploadedIds: &purgedUploadedIds
@@ -299,17 +302,19 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         return try await context.perform {
             var purgedUploadedIds: [String] = []
-            try Self.reconcileSuspensions(
+            let didMutateTimeline = try Self.reconcileSuspensions(
                 in: context,
                 lookbackStart: now.addingTimeInterval(-48.hours.timeInterval),
                 activeDeliverySince: activeDeliverySince,
                 lastVerifiedSyncDate: lastVerifiedSyncDate,
+                extraStatusDates: [],
                 allowNewTrailingResume: true,
                 now: now,
                 purgedUploadedIds: &purgedUploadedIds
             )
             guard context.hasChanges else { return .unchanged }
             try context.save()
+            guard didMutateTimeline else { return .unchanged }
             self.updateSubject.send(())
             debug(.storage, "Reconciled pump suspensions up to \(now)")
             return PumpSuspensionReconciliation(didReconcile: true, purgedUploadedIds: purgedUploadedIds)
@@ -882,7 +887,7 @@ extension BasePumpHistoryStorage {
         statusConfirmedDates confirmedDates: [Date],
         in context: NSManagedObjectContext,
         purgedUploadedIds: inout [String]
-    ) -> PumpEventStored {
+    ) -> (row: PumpEventStored, mutatedTimeline: Bool) {
         let uniqueDates = deduplicatedDates(confirmedDates)
         let encodedNote = encodeStatusConfirmedNote(uniqueDates)
         if let existing {
@@ -890,11 +895,10 @@ extension BasePumpHistoryStorage {
             if timestampChanged {
                 reanchorDerivedResume(existing, to: resumeDate, purgedUploadedIds: &purgedUploadedIds)
             }
-            let existingDates = statusConfirmedDates(of: existing)
-            if timestampChanged || existingDates.first != uniqueDates.first {
+            if existing.note != encodedNote {
                 existing.note = encodedNote
             }
-            return existing
+            return (existing, timestampChanged)
         }
 
         let resumeEvent = PumpEventStored(context: context)
@@ -909,27 +913,22 @@ extension BasePumpHistoryStorage {
         resumeEvent.isUploadedToNS = false
         resumeEvent.isUploadedToHealth = false
         resumeEvent.isUploadedToTidepool = false
-        return resumeEvent
+        return (resumeEvent, true)
     }
 
-    /// Reconciles authoritative `PumpSuspend` spans within `[lookbackStart, now]`:
-    /// - Intermediate `[suspend, nextSuspend)` gaps containing non-external positive pump delivery
-    ///   (or an explicit live-status confirmation falling inside the gap) receive or retain a
-    ///   derived `PumpResume`, while retracting any derived resume whose supporting dose was
-    ///   withdrawn or finalized to zero delivery.
-    /// - Trailing open suspensions close when `allowNewTrailingResume` is true and post-suspend
-    ///   pump delivery, `activeDeliverySince`, or a fresh verified pump sync confirms delivery.
-    /// - Derived resumes superseded by authoritative hardware `PumpResume` rows or unsupported
-    ///   nested suspends are deleted (returning uploaded Nightscout IDs for remote purge).
+    /// Reconciles authoritative `PumpSuspend` spans within `[lookbackStart, now]`, returning
+    /// `true` when any derived `PumpResume` row was inserted, deleted, or had its timestamp changed.
+    @discardableResult
     static func reconcileSuspensions(
         in context: NSManagedObjectContext,
         lookbackStart: Date,
         activeDeliverySince: Date?,
         lastVerifiedSyncDate: Date?,
+        extraStatusDates: [Date],
         allowNewTrailingResume: Bool,
         now: Date,
         purgedUploadedIds: inout [String]
-    ) throws {
+    ) throws -> Bool {
         let derivedRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
         derivedRequest.predicate = NSPredicate(
             format: "type == %@ AND syncIdentifier BEGINSWITH %@",
@@ -941,9 +940,12 @@ extension BasePumpHistoryStorage {
             allDerivedResumes.compactMap { row in row.syncIdentifier.map { ($0, row) } },
             uniquingKeysWith: { first, _ in first }
         )
-        // Collect all previously recorded live-status confirmations across derived rows so
-        // delayed nested suspends transfer confirmation to the chronologically owning gap.
-        let recordedStatusDates = deduplicatedDates(allDerivedResumes.flatMap(statusConfirmedDates(of:)))
+        // Collect all previously recorded live-status confirmations (including any harvested from
+        // rows promoted to hardware provenance in the current batch) so delayed suspends transfer
+        // confirmation to the chronologically owning gap.
+        let recordedStatusDates = deduplicatedDates(
+            allDerivedResumes.flatMap(statusConfirmedDates(of:)) + extraStatusDates
+        )
 
         let earliestDerivedDate = allDerivedResumes.compactMap(\.timestamp).min()
         let effectiveLookbackStart = min(
@@ -964,6 +966,7 @@ extension BasePumpHistoryStorage {
         }
 
         var retainedDerivedIDs = Set<NSManagedObjectID>()
+        var didMutateTimeline = false
 
         for index in authoritativeRows.indices {
             let row = authoritativeRows[index]
@@ -994,7 +997,7 @@ extension BasePumpHistoryStorage {
                     if let candidate = ([earliestDelivery] + matchingStatusDates.map { Optional($0) }).compactMap({ $0 }).min() {
                         let targetDate = max(candidate, suspendDate.addingTimeInterval(1))
                         if targetDate > suspendDate, targetDate < nextDate {
-                            let kept = upsertDerivedResume(
+                            let upserted = upsertDerivedResume(
                                 existing: existingDerived,
                                 syncIdentifier: resumeSyncId,
                                 at: targetDate,
@@ -1002,7 +1005,8 @@ extension BasePumpHistoryStorage {
                                 in: context,
                                 purgedUploadedIds: &purgedUploadedIds
                             )
-                            retainedDerivedIDs.insert(kept.objectID)
+                            retainedDerivedIDs.insert(upserted.row.objectID)
+                            didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
                         }
                     }
                 }
@@ -1038,7 +1042,7 @@ extension BasePumpHistoryStorage {
             let resumeDate = min(max(rawResumeDate, suspendDate.addingTimeInterval(1)), now)
             guard resumeDate > suspendDate else { continue }
 
-            let kept = upsertDerivedResume(
+            let upserted = upsertDerivedResume(
                 existing: existingDerived,
                 syncIdentifier: resumeSyncId,
                 at: resumeDate,
@@ -1046,12 +1050,15 @@ extension BasePumpHistoryStorage {
                 in: context,
                 purgedUploadedIds: &purgedUploadedIds
             )
-            retainedDerivedIDs.insert(kept.objectID)
+            retainedDerivedIDs.insert(upserted.row.objectID)
+            didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
         }
 
         for derived in allDerivedResumes where !derived.isDeleted && !retainedDerivedIDs.contains(derived.objectID) {
             deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)
+            didMutateTimeline = true
         }
+        return didMutateTimeline
     }
 
     /// Fallback upsert key for events without a dose identifier.
