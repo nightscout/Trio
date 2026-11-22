@@ -68,6 +68,13 @@ import Testing
         #expect(TherapyProfileValidator.validateChanges(newRatio, from: stored, basalLimits: limits) == nil)
         let badRatio = TherapyProfileFixtures.profile("Stored", basal: [(0, 3.5)], carbratio: [(0, 0.5)])
         #expect(TherapyProfileValidator.validateChanges(badRatio, from: stored, basalLimits: limits) != nil)
+        let goodRatioBadSensitivity = TherapyProfileFixtures.profile(
+            "Stored",
+            basal: [(0, 3.5)],
+            carbratio: [(0, 12)],
+            sens: [(0, 600)]
+        )
+        #expect(TherapyProfileValidator.validateChanges(goodRatioBadSensitivity, from: stored, basalLimits: limits) != nil)
         let fixedBasal = TherapyProfileFixtures.profile("Stored", basal: [(0, 2)])
         #expect(TherapyProfileValidator.validateChanges(fixedBasal, from: stored, basalLimits: limits) == nil)
     }
@@ -86,6 +93,10 @@ import Testing
             from: TherapyProfileLimits.target.glucosePickerSetting(value: 110),
             units: units
         )
+        if units == .mgdL {
+            #expect(ISFEditor.StateModel().rateValues == sensitivities)
+            #expect(TargetsEditor.StateModel().rateValues == targets)
+        }
         for ratio in ratios {
             #expect(TherapyProfileValidator.validateCarbRatios(Self.profile(carbRatio: ratio)) == nil, "\(ratio)")
         }

@@ -232,6 +232,29 @@ private final class ProfileTestAssembly: Assembly {
         #expect(manager.profile(named: "High") == nil)
     }
 
+    @Test("A remote save to a profile whose basal fails is checked in the changed schedules") func remoteSaveFailingProfile() async throws {
+        try await manager.save(sport, originalName: nil, baseFingerprint: nil)
+        recorder.basalLimits = TherapyBasalLimits(supportedRates: recorder.basalLimits.supportedRates, maxBasal: 0.4)
+
+        var values = sportCompact
+        values["basal"] = [[0, 0.45]]
+        values["sens"] = [[0, 80]]
+        let rejected = try await send(command("save_profile", [
+            "profile_name": "Sport", "original_profile_name": "Sport",
+            "base_fingerprint": sport.fingerprint(units: .mgdL), "profile": values
+        ]))
+        #expect(rejected["command_status"] as? String == "failed")
+        #expect(manager.profile(named: "Sport")?.hasSameValues(as: sport) == true)
+
+        values["basal"] = [[0, 0.5]]
+        let accepted = try await send(command("save_profile", [
+            "profile_name": "Sport", "original_profile_name": "Sport",
+            "base_fingerprint": sport.fingerprint(units: .mgdL), "profile": values
+        ]))
+        #expect(accepted["command_status"] as? String == "success")
+        #expect(manager.profile(named: "Sport")?.sensitivity.map(\.value) == [80])
+    }
+
     @Test("Remote rename and update need a matching fingerprint") func remoteRenameAndConflict() async throws {
         try await manager.save(sport, originalName: nil, baseFingerprint: nil)
         let conflict = try await send(command("save_profile", [

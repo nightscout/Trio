@@ -143,7 +143,7 @@ protocol TherapyProfileManager: AnyObject {
     /// The reason each profile that cannot be activated fails validation, by profile name, the active one included. Uses
     /// `maxBasal` in place of the stored max basal rate when given.
     func activationProblems(maxBasal: Decimal?) -> [String: String]
-    /// Tells the user which profiles cannot be activated with the connected pump's basal rates.
+    /// Tells the user which profiles cannot be activated, for any reason, with the connected pump.
     func alertProfilesNotActivatableWithPump()
 }
 

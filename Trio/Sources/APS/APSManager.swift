@@ -151,9 +151,15 @@ final class BaseAPSManager: APSManager, Injectable {
     /// `processQueue`) all serialize through one queue
     private var bolusReporter: DoseProgressReporter?
 
+    /// Set when the user adds a pump; the app's launch sets the pump on the device data manager.
     var pumpManager: PumpManagerUI? {
         get { deviceDataManager.pumpManager }
-        set { deviceDataManager.pumpManager = newValue }
+        set {
+            deviceDataManager.pumpManager = newValue
+            if newValue != nil {
+                therapyProfileManager?.alertProfilesNotActivatableWithPump()
+            }
+        }
     }
 
     var bluetoothManager: BluetoothStateManager? { deviceDataManager.bluetoothManager }
