@@ -55,6 +55,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     // serializes event batches: a PM may report again before the prior store finished
     private var pumpEventsTask: Task<Void, Never>?
     private var openSuspensionReconciliationWorkItem: DispatchWorkItem?
+    private var latestFreshPumpSyncDate: Date?
 
     @Persisted(key: "BaseDeviceDataManager.lastEventDate") var lastEventDate: Date? = nil
     @SyncAccess(lock: accessLock) @Persisted(key: "BaseDeviceDataManager.lastHeartBeatTime") var lastHeartBeatTime: Date =
@@ -124,7 +125,8 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 )
 
                 processQueue.async {
-                    self.scheduleOpenSuspensionReconciliation(for: pumpManager)
+                    self.latestFreshPumpSyncDate = nil
+                    self.cancelOpenSuspensionReconciliation()
                     pumpManager.syncDeliveryLimits(limits: deliveryLimits) { result in
                         if case let .failure(error) = result {
                             warning(.pump, "Syncing delivery limits to the pump failed", error: error)
@@ -170,6 +172,7 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 }
             } else {
                 processQueue.async {
+                    self.latestFreshPumpSyncDate = nil
                     self.cancelOpenSuspensionReconciliation()
                 }
                 info(.pump, oldValue == nil ? "No pump configured" : "Pump removed")
@@ -315,9 +318,20 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
         debug(.pump, "Updating pump data")
         processQueue.safeSync {
-            pumpManager.ensureCurrentPumpData { _ in
+            let syncStartedAt = Date()
+            pumpManager.ensureCurrentPumpData { [weak self, weak pumpManager] lastSync in
                 debug(.pump, "Pump data updated")
-                self.updateUpdateFinished(true)
+                if let self, let pumpManager {
+                    self.processQueue.async {
+                        guard let currentPump = self.pumpManager, currentPump === pumpManager else { return }
+                        // Unreachable managers return their cached pre-poll `lastSync`; only record
+                        // timestamps produced during this poll as fresh confirmation.
+                        if let lastSync, lastSync >= syncStartedAt.addingTimeInterval(-1) {
+                            self.recordFreshPumpConfirmation(at: min(lastSync, Date()), for: pumpManager)
+                        }
+                    }
+                }
+                self?.updateUpdateFinished(true)
             }
         }
     }
@@ -490,6 +504,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         if Self.confirmedActiveDeliveryDate(for: status) != nil {
             scheduleOpenSuspensionReconciliation(for: pumpManager)
         } else {
+            latestFreshPumpSyncDate = nil
             cancelOpenSuspensionReconciliation()
         }
 
@@ -552,6 +567,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     func pumpManagerWantsDeletion(_: PumpManager) async {
         await withCheckedContinuation { continuation in
             processQueue.async {
+                self.latestFreshPumpSyncDate = nil
                 self.cancelOpenSuspensionReconciliation()
                 self.pumpManager = nil
                 self.broadcaster.notify(PumpDeactivatedObserver.self, on: self.processQueue) {
@@ -635,6 +651,21 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         }
     }
 
+    private func recordFreshPumpConfirmation(at syncDate: Date, for pumpManager: PumpManager) {
+        dispatchPrecondition(condition: .onQueue(processQueue))
+        guard Self.confirmedActiveDeliveryDate(for: pumpManager.status) != nil else {
+            latestFreshPumpSyncDate = nil
+            cancelOpenSuspensionReconciliation()
+            return
+        }
+        if let existing = latestFreshPumpSyncDate {
+            latestFreshPumpSyncDate = max(existing, syncDate)
+        } else {
+            latestFreshPumpSyncDate = syncDate
+        }
+        scheduleOpenSuspensionReconciliation(for: pumpManager)
+    }
+
     private func cancelOpenSuspensionReconciliation() {
         dispatchPrecondition(condition: .onQueue(processQueue))
         openSuspensionReconciliationWorkItem?.cancel()
@@ -658,18 +689,25 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             self.pumpEventsTask = Task { [weak self, weak pumpManager, previousBatch = self.pumpEventsTask] in
                 await previousBatch?.value
                 guard let self, let pumpManager else { return }
-                let confirmedActiveSince: Date? = await withCheckedContinuation { continuation in
+                let confirmation: (activeSince: Date, freshSyncDate: Date?)? = await withCheckedContinuation { continuation in
                     self.processQueue.async {
-                        guard let currentPump = self.pumpManager, currentPump === pumpManager else {
+                        guard let currentPump = self.pumpManager,
+                              currentPump === pumpManager,
+                              let activeSince = Self.confirmedActiveDeliveryDate(for: currentPump.status)
+                        else {
                             continuation.resume(returning: nil)
                             return
                         }
-                        continuation.resume(returning: Self.confirmedActiveDeliveryDate(for: currentPump.status))
+                        continuation.resume(returning: (activeSince, self.latestFreshPumpSyncDate))
                     }
                 }
-                guard let activeSince = confirmedActiveSince else { return }
+                guard let confirmation else { return }
                 do {
-                    try await self.pumpHistoryStorage.reconcileOpenSuspension(activeDeliverySince: activeSince, now: Date())
+                    try await self.pumpHistoryStorage.reconcileOpenSuspension(
+                        activeDeliverySince: confirmation.activeSince,
+                        lastVerifiedSyncDate: confirmation.freshSyncDate,
+                        now: Date()
+                    )
                 } catch {
                     warning(.storage, "Reconciling open pump suspension failed", error: error)
                 }
@@ -680,9 +718,9 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     }
 
     func pumpManager(
-        _: PumpManager,
+        _ pumpManager: PumpManager,
         didReadReservoirValue units: Double,
-        at _: Date,
+        at date: Date,
         completion: @escaping (Result<
             (newValue: ReservoirValue, lastValue: ReservoirValue?, areStoredValuesContinuous: Bool),
             Error
@@ -692,6 +730,9 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         debug(.pump, "Reservoir \(units) U")
         broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
             $0.pumpReservoirDidChange(Decimal(units))
+        }
+        if let currentPump = self.pumpManager, currentPump === pumpManager {
+            recordFreshPumpConfirmation(at: min(date, Date()), for: pumpManager)
         }
 
         completion(.success((

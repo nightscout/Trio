@@ -1221,4 +1221,168 @@ import Testing
         let balanced = try await storage.reconcileOpenSuspension(activeDeliverySince: resumeDate, now: now)
         #expect(balanced == false)
     }
+
+    @Test(
+        "Cached pre-suspend active status does not close an open suspension until fresh post-suspend confirmation arrives"
+    ) func testReconcileRequiresPostSuspendEvidence() async throws {
+        let now = Date()
+        let preSuspendActive = now.addingTimeInterval(-3.hours.timeInterval)
+        let suspendDate = now.addingTimeInterval(-1.hours.timeInterval)
+        let freshSyncDate = suspendDate.addingTimeInterval(12.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: suspendDate,
+                dose: LoopKit.DoseEntry(suspendDate: suspendDate),
+                raw: Data("cached-active-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+
+        // Restored/cached `.active` older than `suspendDate` with no fresh sync must preserve open suspension
+        let withoutFreshSync = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: preSuspendActive,
+            lastVerifiedSyncDate: nil,
+            now: now
+        )
+        #expect(withoutFreshSync == false)
+
+        let staleSync = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: preSuspendActive,
+            lastVerifiedSyncDate: suspendDate,
+            now: now
+        )
+        #expect(staleSync == false)
+        #expect(try await fetchAllEvents().filter { $0.type == PumpEvent.pumpResume.rawValue }.isEmpty)
+
+        // Once a fresh post-suspend pump sync confirms active delivery, close at that sync timestamp
+        let withFreshSync = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: preSuspendActive,
+            lastVerifiedSyncDate: freshSyncDate,
+            now: now
+        )
+        #expect(withFreshSync == true)
+
+        let resumes = try await fetchAllEvents().filter { $0.type == PumpEvent.pumpResume.rawValue }
+        #expect(resumes.count == 1)
+        #expect(resumes.first?.timestamp == freshSyncDate)
+    }
+
+    @Test(
+        "Later history importing earlier pump delivery re-anchors an inferred resume backward and resets NS upload flag"
+    ) func testLaterHistoryReanchorsInferredResumeEarlier() async throws {
+        let now = Date()
+        let suspendDate = now.addingTimeInterval(-2.hours.timeInterval)
+        let tempBasalStart = suspendDate.addingTimeInterval(15.minutes.timeInterval)
+        let tempBasalEnd = suspendDate.addingTimeInterval(45.minutes.timeInterval)
+        let initialActiveSince = suspendDate.addingTimeInterval(60.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: suspendDate,
+                dose: LoopKit.DoseEntry(suspendDate: suspendDate),
+                raw: Data("reanchor-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+
+        let initialReconciled = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: initialActiveSince,
+            now: now
+        )
+        #expect(initialReconciled == true)
+
+        try await testContext.perform {
+            let resumes = try testContext.fetch(PumpEventStored.fetchRequest())
+                .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            #expect(resumes.count == 1)
+            #expect(resumes.first?.timestamp == initialActiveSince)
+            resumes.first?.isUploadedToNS = true
+            try testContext.save()
+        }
+
+        // Importing an earlier 10:15-10:45 temp basal must move the derived resume back from +60m to +15m
+        try await storage.storePumpEvents(
+            [tempBasalEvent(
+                start: tempBasalStart,
+                end: tempBasalEnd,
+                rate: 1.2,
+                syncIdentifier: "delayed-tbr",
+                isMutable: false
+            )],
+            replacePendingEvents: false
+        )
+
+        let resumes = try await fetchAllEvents().filter { $0.type == PumpEvent.pumpResume.rawValue }
+        #expect(resumes.count == 1)
+        #expect(resumes.first?.timestamp == tempBasalStart)
+        #expect(resumes.first?.isUploadedToNS == false, "Re-anchored resume must re-upload with corrected timestamp")
+    }
+
+    @Test(
+        "Delayed hardware resume supersedes an inferred resume without masking a subsequent suspension"
+    ) func testAuthoritativeResumeSupersedesInferredResume() async throws {
+        let now = Date()
+        let firstSuspend = now.addingTimeInterval(-2.hours.timeInterval)
+        let hardwarePrimeResume = firstSuspend.addingTimeInterval(12.minutes.timeInterval)
+        let secondSuspend = firstSuspend.addingTimeInterval(50.minutes.timeInterval)
+        let initialInferredAt = firstSuspend.addingTimeInterval(60.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: firstSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: firstSuspend),
+                raw: Data("first-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+
+        let reconciled = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: initialInferredAt,
+            now: now
+        )
+        #expect(reconciled == true)
+
+        // Later history brings both the real +12m Prime resume and a new +50m Suspend
+        try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: hardwarePrimeResume,
+                    dose: LoopKit.DoseEntry(resumeDate: hardwarePrimeResume),
+                    raw: Data("delayed-prime-resume".utf8),
+                    title: "Prime",
+                    type: .prime
+                ),
+                LoopKit.NewPumpEvent(
+                    date: secondSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: secondSuspend),
+                    raw: Data("second-suspend".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                )
+            ],
+            replacePendingEvents: false
+        )
+
+        let stored = try await fetchAllEvents()
+        let resumes = stored.filter { $0.type == PumpEvent.pumpResume.rawValue }
+        #expect(resumes.count == 1, "Superseded inferred resume must be removed once hardware resume arrives")
+        #expect(resumes.first?.timestamp == hardwarePrimeResume)
+
+        let suspends = stored.filter { $0.type == PumpEvent.pumpSuspend.rawValue }.compactMap(\.timestamp)
+        let spans = BaseTDDStorage.suspensionSpans(
+            suspends: suspends.map { PumpHistoryEvent(id: UUID().uuidString, type: .pumpSuspend, timestamp: $0) },
+            resumes: resumes.compactMap { $0.timestamp.map { PumpHistoryEvent(id: UUID().uuidString, type: .pumpResume, timestamp: $0) } },
+            now: now
+        )
+        #expect(spans.count == 2)
+        #expect(spans.first?.start == firstSuspend && spans.first?.end == hardwarePrimeResume)
+        #expect(spans.last?.start == secondSuspend && spans.last?.end == now)
+    }
 }
