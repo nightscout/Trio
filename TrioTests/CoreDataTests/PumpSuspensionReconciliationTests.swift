@@ -160,13 +160,18 @@ import Testing
         let repeated = try await storage.reconcileOpenSuspension(activeDeliverySince: statusAt, now: now.addingTimeInterval(60))
         #expect(repeated == .unchanged)
 
-        let uploadedId: String = try await testContext.perform {
+        let resumeTreatment = try #require(
+            try await storage.getPumpHistoryNotYetUploadedToNightscout()
+                .first { $0.notes == PumpEvent.pumpResume.rawValue }
+        )
+        let uploadedId = try #require(resumeTreatment.id)
+        try await testContext.perform {
             let row = try #require(try testContext.fetch(PumpEventStored.fetchRequest()).first {
-                $0.type == PumpEvent.pumpResume.rawValue
+                $0.id == uploadedId
             })
+            #expect(BaseNightscoutManager.uploadStillCurrent(row, resumeTreatment))
             row.isUploadedToNS = true
             try testContext.save()
-            return row.id ?? ""
         }
 
         // Earlier delivery + later companion Prime resume: keeps both earlier delivery anchor and Prime resume, purging stale NS ID

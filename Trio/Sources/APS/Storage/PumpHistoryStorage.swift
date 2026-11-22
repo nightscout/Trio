@@ -586,7 +586,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         fat: nil,
                         protein: nil,
                         targetTop: nil,
-                        targetBottom: nil
+                        targetBottom: nil,
+                        id: event.id
                     )
                 case PumpEvent.pumpResume.rawValue:
                     return NightscoutTreatment(
@@ -605,7 +606,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         fat: nil,
                         protein: nil,
                         targetTop: nil,
-                        targetBottom: nil
+                        targetBottom: nil,
+                        id: event.id
                     )
                 case PumpEvent.rewind.rawValue:
                     return NightscoutTreatment(
@@ -624,7 +626,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         fat: nil,
                         protein: nil,
                         targetTop: nil,
-                        targetBottom: nil
+                        targetBottom: nil,
+                        id: event.id
                     )
                 case PumpEvent.siteChange.rawValue:
                     return NightscoutTreatment(
@@ -643,7 +646,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         fat: nil,
                         protein: nil,
                         targetTop: nil,
-                        targetBottom: nil
+                        targetBottom: nil,
+                        id: event.id
                     )
                 case PumpEvent.pumpAlarm.rawValue:
                     return NightscoutTreatment(
@@ -662,7 +666,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         fat: nil,
                         protein: nil,
                         targetTop: nil,
-                        targetBottom: nil
+                        targetBottom: nil,
+                        id: event.id
                     )
 
                 default:
