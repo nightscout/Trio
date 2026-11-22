@@ -125,6 +125,18 @@ jobs:
       - name: List available simulators
         run: xcrun simctl list devices available
 
+      # The first boot of the simulator on a fresh runner takes several
+      # minutes, so it boots here and finishes while the app builds.
+      - name: Boot simulator
+        run: |
+          UDID=$(xcrun simctl list -j devices available | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]["com.apple.CoreSimulator.SimRuntime.iOS-27-0"]
+          print(next(d["udid"] for d in devices if d["name"] == "iPhone 17"))
+          ')
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+
       # Explicit resolve so the build can run with automatic resolution off.
       # No-op when DerivedData restored warm; pinned versions only, no network
       # churn. Checkouts land in the default location inside DerivedData
@@ -230,6 +242,12 @@ jobs:
         with:
           path: ~/Library/Developer/Xcode/DerivedData
           key: ${{ runner.os }}-xcode27.0-dd-${{ hashFiles('**/Package.resolved', '.submodule-status') }}-${{ github.sha }}
+
+      - name: Wait for simulator boot
+        run: |
+          _start=$(date +%s)
+          xcrun simctl bootstatus "$SIM_UDID" -b
+          echo "Wait for simulator|$(( $(date +%s) - _start ))" >> "$GITHUB_WORKSPACE/.timings"
 
       - name: Run tests
         id: run_tests
