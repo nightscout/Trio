@@ -9,6 +9,13 @@ protocol PumpHistoryObserver {
     func pumpHistoryDidUpdate(_ events: [PumpHistoryEvent])
 }
 
+struct PumpSuspensionReconciliation: Equatable {
+    let didReconcile: Bool
+    let purgedUploadedIds: [String]
+
+    static let unchanged = PumpSuspensionReconciliation(didReconcile: false, purgedUploadedIds: [])
+}
+
 protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func getPumpHistory() async throws -> [PumpHistoryEvent]
@@ -23,7 +30,7 @@ protocol PumpHistoryStorage {
         activeDeliverySince: Date?,
         lastVerifiedSyncDate: Date?,
         now: Date
-    ) async throws -> Bool
+    ) async throws -> PumpSuspensionReconciliation
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent]
@@ -35,14 +42,14 @@ extension PumpHistoryStorage {
         activeDeliverySince: Date?,
         lastVerifiedSyncDate: Date?,
         now: Date
-    ) async throws -> Bool {
-        false
+    ) async throws -> PumpSuspensionReconciliation {
+        .unchanged
     }
 
     @discardableResult func reconcileOpenSuspension(
         activeDeliverySince: Date?,
         now: Date = Date()
-    ) async throws -> Bool {
+    ) async throws -> PumpSuspensionReconciliation {
         try await reconcileOpenSuspension(
             activeDeliverySince: activeDeliverySince,
             lastVerifiedSyncDate: nil,
@@ -240,7 +247,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 }
             }
 
-            try Self.reconcileExistingDerivedResumes(in: context)
+            try Self.reconcileExistingDerivedResumes(in: context, purgedUploadedIds: &purgedUploadedIds)
 
             do {
                 guard context.hasChanges else { return purgedUploadedIds }
@@ -260,12 +267,13 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
         activeDeliverySince: Date?,
         lastVerifiedSyncDate: Date? = nil,
         now: Date = Date()
-    ) async throws -> Bool {
+    ) async throws -> PumpSuspensionReconciliation {
         let context = makeContext()
         context.name = "reconcileOpenSuspension"
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         return try await context.perform {
-            try Self.reconcileExistingDerivedResumes(in: context)
+            var purgedUploadedIds: [String] = []
+            try Self.reconcileExistingDerivedResumes(in: context, purgedUploadedIds: &purgedUploadedIds)
 
             let lookbackStart = now.addingTimeInterval(-48.hours.timeInterval)
             let suspendResumeRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
@@ -289,9 +297,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 if context.hasChanges {
                     try context.save()
                     self.updateSubject.send(())
-                    return true
+                    return PumpSuspensionReconciliation(didReconcile: true, purgedUploadedIds: purgedUploadedIds)
                 }
-                return false
+                return .unchanged
             }
 
             let resumeSyncIdentifier = Self.reconciledResumeSyncIdentifier(for: latest, suspendDate: suspendDate)
@@ -313,37 +321,41 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 if context.hasChanges {
                     try context.save()
                     self.updateSubject.send(())
-                    return true
+                    return PumpSuspensionReconciliation(didReconcile: true, purgedUploadedIds: purgedUploadedIds)
                 }
-                return false
+                return .unchanged
             }
             // Keep strictly after `suspendDate` so IobHistory never sees identical suspend/resume timestamps.
             let resumeDate = min(max(rawResumeDate, suspendDate.addingTimeInterval(1)), now)
-            guard resumeDate > suspendDate else { return false }
+            guard resumeDate > suspendDate else {
+                if context.hasChanges {
+                    try context.save()
+                    self.updateSubject.send(())
+                    return PumpSuspensionReconciliation(didReconcile: true, purgedUploadedIds: purgedUploadedIds)
+                }
+                return .unchanged
+            }
 
             let existingResumeRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
             existingResumeRequest.predicate = NSPredicate(format: "syncIdentifier == %@", resumeSyncIdentifier)
             existingResumeRequest.fetchLimit = 1
             if let existingResume = try context.fetch(existingResumeRequest).first {
                 if let existingTimestamp = existingResume.timestamp, resumeDate < existingTimestamp {
-                    existingResume.timestamp = resumeDate
-                    if existingResume.isUploadedToNS {
-                        existingResume.isUploadedToNS = false
-                    }
+                    Self.reanchorDerivedResume(existingResume, to: resumeDate, purgedUploadedIds: &purgedUploadedIds)
                     try context.save()
                     self.updateSubject.send(())
                     debug(
                         .storage,
                         "Re-anchored reconciled pump resume for \(suspendDate) from \(existingTimestamp) to \(resumeDate)"
                     )
-                    return true
+                    return PumpSuspensionReconciliation(didReconcile: true, purgedUploadedIds: purgedUploadedIds)
                 }
                 if context.hasChanges {
                     try context.save()
                     self.updateSubject.send(())
-                    return true
+                    return PumpSuspensionReconciliation(didReconcile: true, purgedUploadedIds: purgedUploadedIds)
                 }
-                return false
+                return .unchanged
             }
 
             let resumeEvent = PumpEventStored(context: context)
@@ -361,7 +373,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             try context.save()
             self.updateSubject.send(())
             debug(.storage, "Reconciled open pump suspension from \(suspendDate) with resume at \(resumeDate)")
-            return true
+            return PumpSuspensionReconciliation(didReconcile: true, purgedUploadedIds: purgedUploadedIds)
         }
     }
 
@@ -648,7 +660,8 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         fat: nil,
                         protein: nil,
                         targetTop: nil,
-                        targetBottom: nil
+                        targetBottom: nil,
+                        id: event.id
                     )
                 case PumpEvent.rewind.rawValue:
                     return NightscoutTreatment(
@@ -863,9 +876,40 @@ extension BasePumpHistoryStorage {
         return try context.fetch(request).first?.timestamp
     }
 
+    private static func deleteDerivedResume(
+        _ derived: PumpEventStored,
+        in context: NSManagedObjectContext,
+        purgedUploadedIds: inout [String]
+    ) {
+        if derived.isUploadedToNS, let id = derived.id {
+            purgedUploadedIds.append(id)
+        }
+        context.delete(derived)
+    }
+
+    private static func reanchorDerivedResume(
+        _ derived: PumpEventStored,
+        to newTimestamp: Date,
+        purgedUploadedIds: inout [String]
+    ) {
+        derived.timestamp = newTimestamp
+        if derived.isUploadedToNS {
+            if let oldId = derived.id {
+                purgedUploadedIds.append(oldId)
+            }
+            // Rotate the treatment id so the detached DELETE for the old timestamp cannot
+            // race against and delete the re-uploaded note at the corrected timestamp.
+            derived.id = UUID().uuidString
+            derived.isUploadedToNS = false
+        }
+    }
+
     /// Re-evaluates previously inferred `reconciled-resume:*` rows when newly imported pump history
     /// supplies an authoritative `PumpResume`, an intervening `PumpSuspend`, or earlier pump delivery.
-    static func reconcileExistingDerivedResumes(in context: NSManagedObjectContext) throws {
+    static func reconcileExistingDerivedResumes(
+        in context: NSManagedObjectContext,
+        purgedUploadedIds: inout [String]
+    ) throws {
         let derivedRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
         derivedRequest.predicate = NSPredicate(
             format: "type == %@ AND syncIdentifier BEGINSWITH %@",
@@ -878,7 +922,7 @@ extension BasePumpHistoryStorage {
         for derived in derivedResumes where !derived.isDeleted {
             let sourceKey = String((derived.syncIdentifier ?? "").dropFirst(reconciledResumePrefix.count))
             guard !sourceKey.isEmpty, let derivedDate = derived.timestamp else {
-                context.delete(derived)
+                deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)
                 continue
             }
 
@@ -893,7 +937,7 @@ extension BasePumpHistoryStorage {
             guard let suspendRow = try context.fetch(suspendRequest).first,
                   let suspendDate = suspendRow.timestamp
             else {
-                context.delete(derived)
+                deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)
                 continue
             }
 
@@ -917,7 +961,7 @@ extension BasePumpHistoryStorage {
                     && ($0.timestamp ?? .distantFuture) <= (nextSuspendDate ?? .distantFuture)
             }
             if hasAuthoritativeResume {
-                context.delete(derived)
+                deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)
                 continue
             }
 
@@ -930,14 +974,11 @@ extension BasePumpHistoryStorage {
                 ) {
                     let reanchored = max(earliestDelivery, suspendDate.addingTimeInterval(1))
                     if reanchored < interveningSuspendDate {
-                        derived.timestamp = reanchored
-                        if derived.isUploadedToNS {
-                            derived.isUploadedToNS = false
-                        }
+                        reanchorDerivedResume(derived, to: reanchored, purgedUploadedIds: &purgedUploadedIds)
                         continue
                     }
                 }
-                context.delete(derived)
+                deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)
             } else if let earliestDelivery = try earliestPumpDeliveryDate(
                 in: context,
                 after: suspendDate,
@@ -946,10 +987,7 @@ extension BasePumpHistoryStorage {
             ) {
                 let reanchored = max(earliestDelivery, suspendDate.addingTimeInterval(1))
                 if reanchored < derivedDate {
-                    derived.timestamp = reanchored
-                    if derived.isUploadedToNS {
-                        derived.isUploadedToNS = false
-                    }
+                    reanchorDerivedResume(derived, to: reanchored, purgedUploadedIds: &purgedUploadedIds)
                 }
             }
         }

@@ -1066,6 +1066,8 @@ final class BaseNightscoutManager: NightscoutManager, Injectable {
         case PumpEventStored.EventType.tempBasal.rawValue:
             return treatment.rate == event.tempBasal?.rate as Decimal?
                 && treatment.duration == Int(event.tempBasal?.duration ?? 0)
+        case PumpEventStored.EventType.pumpResume.rawValue:
+            return treatment.createdAt == event.timestamp
         default:
             return true
         }
