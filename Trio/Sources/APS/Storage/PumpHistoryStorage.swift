@@ -251,6 +251,7 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             // Mutable rows are the pump's assertions (LoopKit contract): a
             // complete pending report supersedes any it no longer contains.
             var purgedUploadedIds: [String] = []
+            var purgedOrphanDates: [Date] = []
             if replacePendingEvents {
                 let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
                 request.predicate = NSPredicate(format: "isMutable == YES")
@@ -259,6 +260,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                         .storage,
                         "Purging stale pending pump event \(orphan.syncIdentifier ?? orphan.id ?? "-") (\(orphan.type ?? "?")), uploaded to Nightscout: \(orphan.isUploadedToNS)"
                     )
+                    if let timestamp = orphan.timestamp {
+                        purgedOrphanDates.append(timestamp)
+                    }
                     if orphan.isUploadedToNS, let id = orphan.id {
                         purgedUploadedIds.append(id)
                     }
@@ -267,10 +271,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             }
 
             let storeNow = Date()
-            let earliestCandidateDate = candidates.map(\.date).min() ?? storeNow
+            let earliestTouchedDate = (candidates.map(\.date) + purgedOrphanDates).min() ?? storeNow
             let lookbackStart = min(
                 storeNow.addingTimeInterval(-48.hours.timeInterval),
-                earliestCandidateDate.addingTimeInterval(-1.hours.timeInterval)
+                earliestTouchedDate.addingTimeInterval(-1.hours.timeInterval)
             )
             _ = try Self.reconcileSuspensions(
                 in: context,
@@ -794,8 +798,77 @@ extension BasePumpHistoryStorage {
     static func reconciledResumeSyncIdentifier(for suspendRow: PumpEventStored, suspendDate: Date) -> String {
         let sourceKey = suspendRow.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
             ?? suspendRow.id.flatMap { $0.isEmpty ? nil : $0 }
-            ?? String(format: "%.6f", suspendDate.timeIntervalSince1970)
+            ?? "\(suspendDate.timeIntervalSinceReferenceDate)"
         return "\(reconciledResumePrefix)\(sourceKey)"
+    }
+
+    private static func latestAuthoritativeTransition(
+        in context: NSManagedObjectContext,
+        atOrBefore cutoff: Date
+    ) throws -> PumpEventStored? {
+        let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+        request.predicate = NSPredicate(
+            format: "timestamp <= %@ AND type IN %@ AND (syncIdentifier == nil OR NOT (syncIdentifier BEGINSWITH %@))",
+            cutoff as NSDate,
+            [PumpEvent.pumpSuspend.rawValue, PumpEvent.pumpResume.rawValue],
+            reconciledResumePrefix
+        )
+        request.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+        return try context.fetch(request).first { !$0.isDeleted && !isReconciledResume($0) }
+    }
+
+    private static func fetchDerivedResumes(
+        in context: NSManagedObjectContext,
+        since startDate: Date
+    ) throws -> [PumpEventStored] {
+        let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+        request.predicate = NSPredicate(
+            format: "timestamp >= %@ AND type == %@ AND syncIdentifier BEGINSWITH %@",
+            startDate as NSDate,
+            PumpEvent.pumpResume.rawValue,
+            reconciledResumePrefix
+        )
+        return try context.fetch(request).filter { !$0.isDeleted }
+    }
+
+    private static func owningSuspendTimestamps(
+        for derivedResumes: [PumpEventStored],
+        in context: NSManagedObjectContext
+    ) throws -> [Date] {
+        let sourceKeys = Array(Set(derivedResumes.compactMap { row -> String? in
+            guard let syncId = row.syncIdentifier,
+                  syncId.hasPrefix(reconciledResumePrefix)
+            else { return nil }
+            let key = String(syncId.dropFirst(reconciledResumePrefix.count))
+            return key.isEmpty ? nil : key
+        }))
+        guard !sourceKeys.isEmpty else { return [] }
+
+        let fallbackDates = sourceKeys
+            .compactMap(Double.init)
+            .filter(\.isFinite)
+            .map(Date.init(timeIntervalSinceReferenceDate:))
+
+        var matchPredicates: [NSPredicate] = [
+            NSPredicate(format: "syncIdentifier IN %@", sourceKeys),
+            NSPredicate(format: "id IN %@", sourceKeys)
+        ]
+        if !fallbackDates.isEmpty {
+            matchPredicates.append(NSPredicate(format: "timestamp IN %@", fallbackDates))
+        }
+
+        let request = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(
+                format: "type == %@ AND (syncIdentifier == nil OR NOT (syncIdentifier BEGINSWITH %@))",
+                PumpEvent.pumpSuspend.rawValue,
+                reconciledResumePrefix
+            ),
+            NSCompoundPredicate(orPredicateWithSubpredicates: matchPredicates)
+        ])
+        return try context.fetch(request)
+            .filter { !$0.isDeleted }
+            .compactMap(\.timestamp)
     }
 
     static func earliestPumpDeliveryDate(
@@ -961,22 +1034,36 @@ extension BasePumpHistoryStorage {
         now: Date,
         purgedUploadedIds: inout [String]
     ) throws -> Bool {
-        let derivedRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
-        derivedRequest.predicate = NSPredicate(
-            format: "type == %@ AND syncIdentifier BEGINSWITH %@",
-            PumpEvent.pumpResume.rawValue,
-            reconciledResumePrefix
-        )
-        let allDerivedResumes = try context.fetch(derivedRequest).filter { !$0.isDeleted }
-        let derivedBySyncId = Dictionary(
-            allDerivedResumes.compactMap { row in row.syncIdentifier.map { ($0, row) } },
-            uniquingKeysWith: { first, _ in first }
-        )
+        var effectiveLookbackStart = lookbackStart
+        if let priorTransition = try latestAuthoritativeTransition(in: context, atOrBefore: effectiveLookbackStart),
+           priorTransition.type == PumpEvent.pumpSuspend.rawValue,
+           let priorSuspendDate = priorTransition.timestamp,
+           priorSuspendDate < effectiveLookbackStart
+        {
+            effectiveLookbackStart = priorSuspendDate
+        }
 
-        let earliestDerivedDate = allDerivedResumes.compactMap(\.timestamp).min()
-        let effectiveLookbackStart = min(
-            lookbackStart,
-            (earliestDerivedDate ?? lookbackStart).addingTimeInterval(-48.hours.timeInterval)
+        var scopedDerivedResumes: [PumpEventStored] = []
+        while true {
+            scopedDerivedResumes = try fetchDerivedResumes(in: context, since: effectiveLookbackStart)
+            let owningDates = try owningSuspendTimestamps(for: scopedDerivedResumes, in: context)
+            if let earliestOwning = owningDates.min(), earliestOwning < effectiveLookbackStart {
+                effectiveLookbackStart = earliestOwning
+                if let priorTransition = try latestAuthoritativeTransition(in: context, atOrBefore: effectiveLookbackStart),
+                   priorTransition.type == PumpEvent.pumpSuspend.rawValue,
+                   let priorSuspendDate = priorTransition.timestamp,
+                   priorSuspendDate < effectiveLookbackStart
+                {
+                    effectiveLookbackStart = priorSuspendDate
+                }
+            } else {
+                break
+            }
+        }
+
+        let derivedBySyncId = Dictionary(
+            scopedDerivedResumes.compactMap { row in row.syncIdentifier.map { ($0, row) } },
+            uniquingKeysWith: { first, _ in first }
         )
 
         let transitionRequest = PumpEventStored.fetchRequest() as NSFetchRequest<PumpEventStored>
@@ -1006,7 +1093,7 @@ extension BasePumpHistoryStorage {
         // authoritative transition rows (plus any harvested during in-place promotion) so
         // confirmations survive across separate history batches even when no derived row remains.
         let recordedStatusDates = deduplicatedDates(
-            (allDerivedResumes + authoritativeRows).flatMap(statusConfirmedDates(of:))
+            (scopedDerivedResumes + authoritativeRows).flatMap(statusConfirmedDates(of:))
                 + extraStatusDates
                 + freshTrailingDates
         )
@@ -1116,7 +1203,7 @@ extension BasePumpHistoryStorage {
             }
         }
 
-        for derived in allDerivedResumes where !derived.isDeleted && !retainedDerivedIDs.contains(derived.objectID) {
+        for derived in scopedDerivedResumes where !derived.isDeleted && !retainedDerivedIDs.contains(derived.objectID) {
             deleteDerivedResume(derived, in: context, purgedUploadedIds: &purgedUploadedIds)
             didMutateTimeline = true
         }

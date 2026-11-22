@@ -1874,4 +1874,69 @@ import Testing
             "Relocated 25h-old uploaded resume queues for Nightscout replacement while never-uploaded >24h resumes stay excluded"
         )
     }
+
+    @Test(
+        "Multi-day >48h suspension stays closed across repeated reconciliations and subsequent cycles without oscillating"
+    ) func testMultiDaySuspensionDoesNotOscillateAcrossRepeatedReconciliations() async throws {
+        let now = Date()
+        let longSuspend = now.addingTimeInterval(-72.hours.timeInterval)
+        let confirmedAt = now.addingTimeInterval(-1.hours.timeInterval)
+        let laterSuspend = now.addingTimeInterval(-20.minutes.timeInterval)
+        let laterResume = now.addingTimeInterval(-10.minutes.timeInterval)
+
+        try await storage.storePumpEvents(
+            [LoopKit.NewPumpEvent(
+                date: longSuspend,
+                dose: LoopKit.DoseEntry(suspendDate: longSuspend),
+                raw: Data("72h-suspend".utf8),
+                title: "Suspend",
+                type: .suspend
+            )],
+            replacePendingEvents: false
+        )
+
+        let first = try await storage.reconcileOpenSuspension(activeDeliverySince: confirmedAt, now: now)
+        #expect(first.didReconcile == true)
+
+        try await testContext.perform {
+            let resumes = try testContext.fetch(PumpEventStored.fetchRequest())
+                .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            #expect(resumes.count == 1)
+            resumes.first?.isUploadedToNS = true
+            try testContext.save()
+        }
+
+        let second = try await storage.reconcileOpenSuspension(
+            activeDeliverySince: confirmedAt,
+            now: now.addingTimeInterval(5.minutes.timeInterval)
+        )
+        #expect(second == .unchanged)
+
+        let purgedIds = try await storage.storePumpEvents(
+            [
+                LoopKit.NewPumpEvent(
+                    date: laterSuspend,
+                    dose: LoopKit.DoseEntry(suspendDate: laterSuspend),
+                    raw: Data("20m-suspend".utf8),
+                    title: "Suspend",
+                    type: .suspend
+                ),
+                LoopKit.NewPumpEvent(
+                    date: laterResume,
+                    dose: LoopKit.DoseEntry(resumeDate: laterResume),
+                    raw: Data("10m-resume".utf8),
+                    title: "Resume",
+                    type: .resume
+                )
+            ],
+            replacePendingEvents: false
+        )
+        #expect(purgedIds.isEmpty)
+
+        let resumes = try await fetchAllEvents()
+            .filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap(\.timestamp)
+            .sorted()
+        #expect(resumes == [confirmedAt, laterResume])
+    }
 }
