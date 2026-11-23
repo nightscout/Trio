@@ -400,7 +400,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		3E1D5D7530B38477009336E6 /* TrioTests */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E0630B38478009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TrioTests; sourceTree = "<group>"; };
+		3E1D5D7530B38477009336E6 /* TrioTests */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E0630B38478009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (OpenAPSSwiftTests/Parity/goldens, ); path = TrioTests; sourceTree = "<group>"; };
 		3E1D5E0A30B3847B009336E6 /* Trio Watch Complication */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E0E30B3847C009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch Complication"; sourceTree = "<group>"; };
 		3E1D5E1030B3847E009336E6 /* Trio Watch App Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App Tests"; sourceTree = "<group>"; };
 		3E1D5E2C30B38482009336E6 /* Trio Watch App Extension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E2D30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D5E2E30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D5E2F30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App Extension"; sourceTree = "<group>"; };
