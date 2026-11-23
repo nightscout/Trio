@@ -313,7 +313,7 @@ extension SettingsExport {
                 let activeProfileName = therapyProfileManager.activeProfileName
 
                 func time(_ seconds: Int) -> String {
-                    TrioTherapyProfile.startString(seconds: seconds).formattedHourMinuteFromTimeString()
+                    Date(minuteOfDay: seconds / 60).formatted(.timeOfDay)
                 }
 
                 for profile in therapyProfileManager.profiles() {
