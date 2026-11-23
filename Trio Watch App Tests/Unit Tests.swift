@@ -1,8 +1,8 @@
 import SwiftUI
 import Testing
+@testable import Trio_Watch_App
 import UIKit
 import WatchKit
-@testable import Trio_Watch_App
 
 @Suite("Watch App Tests", .serialized) @MainActor final class TrioWatchAppTests {
     var watchState = WatchState()
@@ -211,8 +211,7 @@ import WatchKit
         #expect(watchState.isEntryFresh(at: entryStart.addingTimeInterval(200)))
     }
 
-    @Test("Confirming an entry older than 2 minutes sends nothing and clears it")
-    func testExpiredEntryNotSent() throws {
+    @Test("Confirming an entry older than 2 minutes sends nothing and clears it") func testExpiredEntryNotSent() throws {
         enterMealBolus()
 
         watchState.sendConfirmedEntry(bolusAmount: 3.0, at: entryStart.addingTimeInterval(121))
