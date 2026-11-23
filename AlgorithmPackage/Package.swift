@@ -63,7 +63,10 @@ let package = Package(
             path: "Sources",
             sources: [
                 "APS/OpenAPSSwift",
-                "APS/Extensions/DecimalExtensions.swift"
+                "APS/Extensions/DecimalExtensions.swift",
+                // The algorithm files use the app's `debug`/`warning` helpers, which the
+                // package gets from this shim instead of the (AppKit-dependent) Logger target
+                "APS/OpenAPSSwift/AlgorithmLoggingShim.swift"
             ] + algorithmModels + algorithmHelpers,
             swiftSettings: [.define("TRIO_ALGORITHM_PACKAGE")]
         ),
