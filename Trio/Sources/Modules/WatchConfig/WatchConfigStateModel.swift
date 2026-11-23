@@ -1,15 +1,22 @@
 import Combine
 import ConnectIQ
+import LoopKit
 import SwiftUI
 
 extension WatchConfig {
     final class StateModel: BaseStateModel<Provider> {
         @Injected() private var garmin: GarminManager!
+        @Injected() private var fetchGlucoseManager: FetchGlucoseManager!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var devices: [IQDevice] = []
         @Published var confirmBolusFaster = false
         @Published var showForecastWatch = false
+        @Published var useCriticalAlertsWatch = false
+        /// The CGM can pass its configuration to the watch, which then reads it itself.
+        @Published var cgmSharesWithWatch = false
+        @Published var cgmName = ""
+        @Published var watchReadsSensor = false
 
         /// Garmin watch settings containing all watch-related configuration
         @Published var garminSettings = GarminWatchSettings()
@@ -24,8 +31,18 @@ extension WatchConfig {
             subscribeSetting(\.garminSettings, on: $garminSettings) { garminSettings = $0 }
             subscribeSetting(\.confirmBolusFaster, on: $confirmBolusFaster) { confirmBolusFaster = $0 }
             subscribeSetting(\.showForecastWatch, on: $showForecastWatch) { showForecastWatch = $0 }
+            subscribeSetting(\.useCriticalAlertsWatch, on: $useCriticalAlertsWatch) { useCriticalAlertsWatch = $0 }
 
             devices = garmin.devices
+            refreshWatchSensor()
+        }
+
+        /// The CGM manager's own Read on Apple Watch is the source; this only shows it.
+        func refreshWatchSensor() {
+            let cgm = fetchGlucoseManager.cgmManager
+            cgmSharesWithWatch = cgm is DeviceConfigurationSharing
+            cgmName = cgm?.localizedTitle ?? ""
+            watchReadsSensor = (cgm as? DeviceConfigurationSharing)?.isConfigurationSharingEnabled ?? false
         }
 
         /// Prompts the user to select Garmin devices and updates the device list

@@ -93,6 +93,10 @@
 		CEB434FE28B90B8C00B70274 /* SwiftCharts in Embed Frameworks */ = {isa = PBXBuildFile; productRef = CEB434FC28B90B7C00B70274 /* SwiftCharts */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		DD17A0292E3FE0BD008E1BF0 /* SwiftJWT in Frameworks */ = {isa = PBXBuildFile; productRef = DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */; };
 		E0CC2C5C275B9F0F00A7BC71 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E0CC2C5B275B9DAE00A7BC71 /* HealthKit.framework */; };
+		6D8C9F25D38C472594698C88 /* G7SensorKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; };
+		4B2E5E56B4A54D5EA8608486 /* LoopKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; };
+		A4CEF7BBB9594AD1A935A000 /* LoopKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1EB5165261AB48C3AB179F12 /* G7SensorKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -207,6 +211,18 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6CC9AF72ADDE4EF5AD9FE6CE /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A4CEF7BBB9594AD1A935A000 /* LoopKit.framework in Embed Frameworks */,
+				1EB5165261AB48C3AB179F12 /* G7SensorKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -311,9 +327,22 @@
 		3E1D6D4630B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Sources/APS/Extensions/DecimalExtensions.swift,
+				"Sources/APS/OpenAPSSwift/Extensions/Decimal+rounding.swift",
+				Sources/APS/OpenAPSSwift/Extensions/TimeExtensions.swift,
+				Sources/Helpers/ConvenienceExtensions.swift,
+				"Sources/Helpers/Decimal+Extensions.swift",
+				Sources/Helpers/DynamicGlucoseColor.swift,
+				Sources/Helpers/Formatters.swift,
+				Sources/Helpers/JSON.swift,
+				Sources/Helpers/Rounding.swift,
+				"Sources/Helpers/String+Extensions.swift",
+				"Sources/Helpers/TimeInterval+Convenience.swift",
 				Sources/Localizations/Main/Localizable.xcstrings,
 				Sources/Logger/Watch/WatchLogEntry.swift,
 				Sources/Logger/Watch/WatchLogRing.swift,
+				Sources/Models/BloodGlucose.swift,
+				Sources/Models/GlucoseColorScheme.swift,
 				Sources/Models/NotificationIdentifiers.swift,
 				Sources/Models/OverridePresetWatch.swift,
 				Sources/Models/TempTargetPresetWatch.swift,
@@ -343,13 +372,20 @@
 			);
 			target = 6B1A8D162B14D91500E76752 /* LiveActivityExtension */;
 		};
+		3E1D5E2D30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BDFF797B2D25AA870016C40C /* Trio Watch App */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3E1D5D7530B38477009336E6 /* TrioTests */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E0630B38478009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TrioTests; sourceTree = "<group>"; };
 		3E1D5E0A30B3847B009336E6 /* Trio Watch Complication */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E0E30B3847C009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch Complication"; sourceTree = "<group>"; };
 		3E1D5E1030B3847E009336E6 /* Trio Watch App Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App Tests"; sourceTree = "<group>"; };
-		3E1D5E2C30B38482009336E6 /* Trio Watch App Extension */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App Extension"; sourceTree = "<group>"; };
+		3E1D5E2C30B38482009336E6 /* Trio Watch App Extension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E2D30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App Extension"; sourceTree = "<group>"; };
 		3E1D5E4830B38484009336E6 /* Trio Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App"; sourceTree = "<group>"; };
 		3E1D6A0A30B38579009336E6 /* Trio */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D6D4430B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D6D4530B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D6D4630B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D6D4730B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (Resources/json, ); path = Trio; sourceTree = "<group>"; };
 		3E1D6D9530B385F1009336E6 /* Model */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D6DDE30B385F2009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Model; sourceTree = "<group>"; };
@@ -436,6 +472,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D8C9F25D38C472594698C88 /* G7SensorKit.framework in Frameworks */,
+				4B2E5E56B4A54D5EA8608486 /* LoopKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -676,6 +714,7 @@
 				BDFF79792D25AA870016C40C /* Frameworks */,
 				BDFF797A2D25AA870016C40C /* Resources */,
 				BD8207CF2D2B42E80023339D /* Embed Foundation Extensions */,
+				6CC9AF72ADDE4EF5AD9FE6CE /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -1373,7 +1412,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Debug;
 		};
@@ -1409,13 +1448,15 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Release;
 		};
 		BDFF79A12D25AA890016C40C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				INFOPLIST_FILE = "Trio Watch App Extension/Info.plist";
+				PRODUCT_MODULE_NAME = Trio;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1446,13 +1487,15 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Debug;
 		};
 		BDFF79A22D25AA890016C40C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				INFOPLIST_FILE = "Trio Watch App Extension/Info.plist";
+				PRODUCT_MODULE_NAME = Trio;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1482,7 +1525,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Release;
 		};
@@ -1508,7 +1551,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Trio Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Trio Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Debug;
 		};
@@ -1533,7 +1576,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Trio Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Trio Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Release;
 		};
