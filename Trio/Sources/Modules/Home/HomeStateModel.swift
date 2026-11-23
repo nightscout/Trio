@@ -492,6 +492,9 @@ extension Home {
                 await self.setupPumpSettings()
                 await self.setupCGMSettings()
                 self.registerObservers()
+                // This task runs off the main actor; the view reads the name while rendering. Set after registering,
+                // so a change between registration and this read still arrives through `therapyProfilesDidChange`.
+                await MainActor.run { self.updateActiveTherapyProfileName() }
 
                 // Set up the NSFetchedResultsControllers. These are bound to the viewContext,
                 // so `performFetch` and the initial population must run on the main actor.
@@ -554,7 +557,6 @@ extension Home {
         }
 
         private func registerObservers() {
-            updateActiveTherapyProfileName()
             broadcaster.register(TherapyProfilesObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
