@@ -54,8 +54,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
     private var resolver: Resolver?
     // serializes event batches: a PM may report again before the prior store finished
     private var pumpEventsTask: Task<Void, Never>?
-    private var openSuspensionReconciliationWorkItem: DispatchWorkItem?
-    private var latestFreshPumpSyncDate: Date?
 
     @Persisted(key: "BaseDeviceDataManager.lastEventDate") var lastEventDate: Date? = nil
     @SyncAccess(lock: accessLock) @Persisted(key: "BaseDeviceDataManager.lastHeartBeatTime") var lastHeartBeatTime: Date =
@@ -125,8 +123,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                 )
 
                 processQueue.async {
-                    self.latestFreshPumpSyncDate = nil
-                    self.cancelOpenSuspensionReconciliation()
                     pumpManager.syncDeliveryLimits(limits: deliveryLimits) { result in
                         if case let .failure(error) = result {
                             warning(.pump, "Syncing delivery limits to the pump failed", error: error)
@@ -171,10 +167,6 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
                     storeBatteryStatus(simulatorPump.status)
                 }
             } else {
-                processQueue.async {
-                    self.latestFreshPumpSyncDate = nil
-                    self.cancelOpenSuspensionReconciliation()
-                }
                 info(.pump, oldValue == nil ? "No pump configured" : "Pump removed")
                 // A stored pump manager that fails to decode at launch counts as removed.
                 if oldValue != nil || rawPumpManager != nil {
@@ -318,32 +310,9 @@ final class BaseDeviceDataManager: DeviceDataManager, Injectable {
 
         debug(.pump, "Updating pump data")
         processQueue.safeSync {
-            let syncStartedAt = Date()
-            pumpManager.ensureCurrentPumpData { [weak self, weak pumpManager] lastSync in
+            pumpManager.ensureCurrentPumpData { _ in
                 debug(.pump, "Pump data updated")
-                guard let self else { return }
-                self.processQueue.async {
-                    // Unreachable managers return their cached pre-poll `lastSync`; only record
-                    // timestamps produced during this poll as fresh confirmation.
-                    if let pumpManager,
-                       let currentPump = self.pumpManager,
-                       currentPump === pumpManager,
-                       let lastSync,
-                       lastSync >= syncStartedAt.addingTimeInterval(-1)
-                    {
-                        self.updateFreshPumpSyncDate(min(lastSync, Date()), for: pumpManager)
-                    }
-                    // Finish serialized event storage + open-suspension reconciliation before
-                    // signaling `recommendsLoop`, so `determineBasal` never reads an unresumed
-                    // companion suspend before its inferred resume is persisted.
-                    let barrierTask = pumpManager.flatMap {
-                        self.enqueueOpenSuspensionReconciliation(for: $0)
-                    } ?? self.pumpEventsTask
-                    Task { [weak self] in
-                        await barrierTask?.value
-                        self?.updateUpdateFinished(true)
-                    }
-                }
+                self.updateUpdateFinished(true)
             }
         }
     }
@@ -513,13 +482,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
             suspended.send(false)
         }
 
-        if Self.confirmedActiveDeliveryDate(for: status) != nil {
-            scheduleOpenSuspensionReconciliation(for: pumpManager)
-        } else {
-            latestFreshPumpSyncDate = nil
-            cancelOpenSuspensionReconciliation()
-        }
-
         if status.insulinType != oldStatus.insulinType {
             settingsManager.updateInsulinCurve(status.insulinType)
         }
@@ -579,8 +541,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     func pumpManagerWantsDeletion(_: PumpManager) async {
         await withCheckedContinuation { continuation in
             processQueue.async {
-                self.latestFreshPumpSyncDate = nil
-                self.cancelOpenSuspensionReconciliation()
                 self.pumpManager = nil
                 self.broadcaster.notify(PumpDeactivatedObserver.self, on: self.processQueue) {
                     $0.pumpDeactivatedDidChange()
@@ -599,7 +559,7 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
     }
 
     func pumpManager(
-        _ pumpManager: PumpManager,
+        _: PumpManager,
         hasNewPumpEvents events: [NewPumpEvent],
         lastReconciliation _: Date?,
         replacePendingEvents: Bool,
@@ -617,16 +577,21 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
                     return $0.dose?.unitsPerHour ?? 0 <= Double(settingsManager.pumpSettings.maxBasal)
                 }
                 debug(.pump, "Storing \(events.count) new pump events")
-                var purgedUploadedIds = try await pumpHistoryStorage.storePumpEvents(
+                let purgedUploadedIds = try await pumpHistoryStorage.storePumpEvents(
                     events,
                     replacePendingEvents: replacePendingEvents
                 )
                 lastEventDate = events.last?.date
-                if let reconciledPurgedIds = await reconcileOpenSuspensionIfConfirmed(for: pumpManager) {
-                    purgedUploadedIds.append(contentsOf: reconciledPurgedIds)
-                }
                 completion(nil)
-                deleteWithdrawnNightscoutTreatments(purgedUploadedIds)
+                // the pump withdrew these events; remove their NS treatments
+                if !purgedUploadedIds.isEmpty, let nightscoutManager = resolver?.resolve(NightscoutManager.self) {
+                    // detached: remote cleanup must not delay the next event batch
+                    Task {
+                        for id in purgedUploadedIds {
+                            await nightscoutManager.deleteInsulin(withID: id)
+                        }
+                    }
+                }
             } catch {
                 warning(.storage, "Storing pump events failed", error: error)
                 completion(error)
@@ -634,125 +599,10 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         }
     }
 
-    /// Returns the start date of confirmed basal delivery when `status` unambiguously
-    /// asserts that the pump is delivering (not suspended, not transitioning, not uncertain,
-    /// and not in the `.active(.distantPast)` "no active pod" sentinel state).
-    static func confirmedActiveDeliveryDate(for status: PumpManagerStatus) -> Date? {
-        guard !status.deliveryIsUncertain else { return nil }
-        switch status.basalDeliveryState {
-        case let .active(at) where at != .distantPast:
-            return at
-        case let .tempBasal(dose):
-            return dose.startDate
-        default:
-            return nil
-        }
-    }
-
-    private func deleteWithdrawnNightscoutTreatments(_ ids: [String]) {
-        guard !ids.isEmpty, let nightscoutManager = resolver?.resolve(NightscoutManager.self) else { return }
-        // detached: remote cleanup must not delay the next event batch or loop cycle
-        Task {
-            for id in ids {
-                await nightscoutManager.deleteInsulin(withID: id)
-            }
-        }
-    }
-
-    private func updateFreshPumpSyncDate(_ syncDate: Date, for pumpManager: PumpManager) -> Bool {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        guard Self.confirmedActiveDeliveryDate(for: pumpManager.status) != nil else {
-            latestFreshPumpSyncDate = nil
-            cancelOpenSuspensionReconciliation()
-            return false
-        }
-        if let existing = latestFreshPumpSyncDate {
-            latestFreshPumpSyncDate = max(existing, syncDate)
-        } else {
-            latestFreshPumpSyncDate = syncDate
-        }
-        return true
-    }
-
-    private func recordFreshPumpConfirmation(at syncDate: Date, for pumpManager: PumpManager) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        guard updateFreshPumpSyncDate(syncDate, for: pumpManager) else { return }
-        scheduleOpenSuspensionReconciliation(for: pumpManager)
-    }
-
-    private func cancelOpenSuspensionReconciliation() {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        openSuspensionReconciliationWorkItem?.cancel()
-        openSuspensionReconciliationWorkItem = nil
-    }
-
-    private func reconcileOpenSuspensionIfConfirmed(for pumpManager: PumpManager) async -> [String]? {
-        let confirmation: (activeSince: Date, freshSyncDate: Date?)? = await withCheckedContinuation { continuation in
-            self.processQueue.async {
-                guard let currentPump = self.pumpManager,
-                      currentPump === pumpManager,
-                      let activeSince = Self.confirmedActiveDeliveryDate(for: currentPump.status)
-                else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-                self.cancelOpenSuspensionReconciliation()
-                continuation.resume(returning: (activeSince, self.latestFreshPumpSyncDate))
-            }
-        }
-        guard let confirmation else { return nil }
-        do {
-            let result = try await self.pumpHistoryStorage.reconcileOpenSuspension(
-                activeDeliverySince: confirmation.activeSince,
-                lastVerifiedSyncDate: confirmation.freshSyncDate,
-                now: Date()
-            )
-            return result.purgedUploadedIds
-        } catch {
-            warning(.storage, "Reconciling open pump suspension failed", error: error)
-            return nil
-        }
-    }
-
-    @discardableResult
-    private func enqueueOpenSuspensionReconciliation(for pumpManager: PumpManager) -> Task<Void, Never>? {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        cancelOpenSuspensionReconciliation()
-        guard let currentPump = self.pumpManager,
-              currentPump === pumpManager,
-              Self.confirmedActiveDeliveryDate(for: currentPump.status) != nil
-        else { return pumpEventsTask }
-
-        let task = Task { [weak self, weak pumpManager, previousBatch = self.pumpEventsTask] in
-            await previousBatch?.value
-            guard let self, let pumpManager else { return }
-            if let purgedIds = await self.reconcileOpenSuspensionIfConfirmed(for: pumpManager) {
-                self.deleteWithdrawnNightscoutTreatments(purgedIds)
-            }
-        }
-        pumpEventsTask = task
-        return task
-    }
-
-    private func scheduleOpenSuspensionReconciliation(for pumpManager: PumpManager, delay: TimeInterval = 0.2) {
-        dispatchPrecondition(condition: .onQueue(processQueue))
-        cancelOpenSuspensionReconciliation()
-        guard Self.confirmedActiveDeliveryDate(for: pumpManager.status) != nil else { return }
-
-        let workItem = DispatchWorkItem { [weak self, weak pumpManager] in
-            guard let self else { return }
-            self.openSuspensionReconciliationWorkItem = nil
-            guard let pumpManager else { return }
-            self.enqueueOpenSuspensionReconciliation(for: pumpManager)
-        }
-        openSuspensionReconciliationWorkItem = workItem
-        processQueue.asyncAfter(deadline: .now() + delay, execute: workItem)
-    }
-
     func pumpManager(
-        _ pumpManager: PumpManager,
+        _: PumpManager,
         didReadReservoirValue units: Double,
-        at date: Date,
+        at _: Date,
         completion: @escaping (Result<
             (newValue: ReservoirValue, lastValue: ReservoirValue?, areStoredValuesContinuous: Bool),
             Error
@@ -762,9 +612,6 @@ extension BaseDeviceDataManager: PumpManagerDelegate {
         debug(.pump, "Reservoir \(units) U")
         broadcaster.notify(PumpReservoirObserver.self, on: processQueue) {
             $0.pumpReservoirDidChange(Decimal(units))
-        }
-        if let currentPump = self.pumpManager, currentPump === pumpManager {
-            recordFreshPumpConfirmation(at: min(date, Date()), for: pumpManager)
         }
 
         completion(.success((

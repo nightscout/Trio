@@ -1,4 +1,3 @@
-import Combine
 import CoreData
 import Foundation
 import LoopKit
@@ -6,7 +5,6 @@ import Swinject
 import Testing
 
 @testable import LoopKit
-@testable import MockKit
 @testable import Trio
 
 @Suite("Pump Suspension Reconciliation Tests", .serialized) struct PumpSuspensionReconciliationTests: Injectable {
@@ -120,116 +118,102 @@ import Testing
             .sorted()
     }
 
-    @Test("Accompanying suspend and resume doses on rewind/prime persist alongside primary events")
-    func testAccompanyingSuspendAndResumeDosesPersist() async throws {
+    @Test("Accompanying suspend/resume doses on rewind, prime, alarm, and alarmClear persist and collapse nested suspends")
+    func testAccompanyingDosesAndNestedSuspendCollapse() async throws {
         let now = Date()
+        let manualSuspend = now.addingTimeInterval(-50 * 60)
         let rewindAt = now.addingTimeInterval(-40 * 60)
         let primeAt = now.addingTimeInterval(-35 * 60)
+        let alarmAt = now.addingTimeInterval(-20 * 60)
+        let clearAt = now.addingTimeInterval(-15 * 60)
 
         try await storage.storePumpEvents(
-            [suspendEvent(rewindAt, raw: "mm-rewind", type: .rewind), resumeEvent(primeAt, raw: "mm-prime", type: .prime)],
+            [
+                suspendEvent(manualSuspend, raw: "mm-manual-suspend"),
+                suspendEvent(rewindAt, raw: "mm-rewind", type: .rewind),
+                resumeEvent(primeAt, raw: "mm-prime", type: .prime),
+                suspendEvent(alarmAt, raw: "mm-no-delivery", type: .alarm),
+                resumeEvent(clearAt, raw: "mm-clear-alarm", type: .alarmClear)
+            ],
             replacePendingEvents: false
         )
 
-        let types = try await fetchAllEvents().compactMap(\.type)
+        let stored = try await fetchAllEvents()
+        let types = stored.compactMap(\.type)
         #expect(types.contains(PumpEvent.rewind.rawValue))
-        #expect(types.contains(PumpEvent.pumpSuspend.rawValue))
         #expect(types.contains(PumpEvent.prime.rawValue))
-        #expect(types.contains(PumpEvent.pumpResume.rawValue))
+        #expect(types.contains(PumpEvent.pumpAlarm.rawValue))
+
+        let suspends = stored.filter { $0.type == PumpEvent.pumpSuspend.rawValue }
+            .compactMap { $0.timestamp.map { PumpHistoryEvent(id: UUID().uuidString, type: .pumpSuspend, timestamp: $0) } }
+        let resumes = stored.filter { $0.type == PumpEvent.pumpResume.rawValue }
+            .compactMap { $0.timestamp.map { PumpHistoryEvent(id: UUID().uuidString, type: .pumpResume, timestamp: $0) } }
+        #expect(resumes.map(\.timestamp) == [primeAt, clearAt])
+
+        let spans = BaseTDDStorage.suspensionSpans(suspends: suspends, resumes: resumes, now: now)
+        #expect(spans.count == 2)
+        #expect(spans.first?.start == manualSuspend && spans.first?.end == primeAt)
+        #expect(spans.last?.start == alarmAt && spans.last?.end == clearAt)
     }
 
-    @Test("Open suspension reconciles from fresh live status or earlier delivery and re-anchors uploaded resumes")
-    func testOpenSuspensionReconcilesReanchorsAndPurgesSupersededUpload() async throws {
+    @Test("Post-suspend delivery closes missing resumes, re-anchors on earlier delivery, and promotes matching hardware resumes")
+    func testMissingResumeClosedByDeliveryReanchorsAndPromotes() async throws {
         let now = Date()
-        let suspendAt = now.addingTimeInterval(-60 * 60)
-        let earlierTbrAt = suspendAt.addingTimeInterval(10 * 60)
-        let statusAt = suspendAt.addingTimeInterval(25 * 60)
-        let laterPrimeAt = suspendAt.addingTimeInterval(40 * 60)
+        let s1 = now.addingTimeInterval(-90 * 60)
+        let earlierTbrAt = s1.addingTimeInterval(10 * 60)
+        let initialTbrAt = s1.addingTimeInterval(25 * 60)
+        let s2 = s1.addingTimeInterval(50 * 60)
+        let bolusAt = s1.addingTimeInterval(60 * 60)
 
-        try await storage.storePumpEvents([suspendEvent(suspendAt, raw: "open-s1")], replacePendingEvents: false)
-
-        // Stale pre-suspend confirmation cannot close a newer suspend without a fresh post-suspend sync
-        let stale = try await storage.reconcileOpenSuspension(activeDeliverySince: suspendAt.addingTimeInterval(-5 * 60), now: now)
-        #expect(stale == .unchanged)
-
-        let first = try await storage.reconcileOpenSuspension(activeDeliverySince: statusAt, now: now)
-        #expect(first.didReconcile == true)
-        #expect(try await resumeTimestamps() == [statusAt])
-
-        // Repeated poll with same confirmation is idempotent
-        let repeated = try await storage.reconcileOpenSuspension(activeDeliverySince: statusAt, now: now.addingTimeInterval(60))
-        #expect(repeated == .unchanged)
+        try await storage.storePumpEvents(
+            [
+                suspendEvent(s1, raw: "gap-s1"),
+                tempBasalEvent(start: initialTbrAt, end: initialTbrAt.addingTimeInterval(15 * 60), raw: "initial-tbr"),
+                suspendEvent(s2, raw: "gap-s2"),
+                bolusEvent(bolusAt, units: 0.5, raw: "post-s2-bolus")
+            ],
+            replacePendingEvents: false
+        )
+        #expect(try await resumeTimestamps() == [initialTbrAt, bolusAt])
 
         let resumeTreatment = try #require(
             try await storage.getPumpHistoryNotYetUploadedToNightscout()
-                .first { $0.notes == PumpEvent.pumpResume.rawValue }
+                .first { $0.notes == PumpEvent.pumpResume.rawValue && $0.createdAt == initialTbrAt }
         )
         let uploadedId = try #require(resumeTreatment.id)
         try await testContext.perform {
-            let row = try #require(try testContext.fetch(PumpEventStored.fetchRequest()).first {
-                $0.id == uploadedId
-            })
+            let row = try #require(try testContext.fetch(PumpEventStored.fetchRequest()).first { $0.id == uploadedId })
             #expect(BaseNightscoutManager.uploadStillCurrent(row, resumeTreatment))
             row.isUploadedToNS = true
             try testContext.save()
         }
 
-        // Earlier delivery + later companion Prime resume: keeps both earlier delivery anchor and Prime resume, purging stale NS ID
+        // Delayed earlier delivery re-anchors s1's resume and returns the superseded Nightscout ID
         let purged = try await storage.storePumpEvents(
-            [
-                tempBasalEvent(start: earlierTbrAt, end: earlierTbrAt.addingTimeInterval(15 * 60), raw: "earlier-tbr"),
-                resumeEvent(laterPrimeAt, raw: "later-prime", type: .prime)
-            ],
+            [tempBasalEvent(start: earlierTbrAt, end: earlierTbrAt.addingTimeInterval(10 * 60), raw: "earlier-tbr")],
             replacePendingEvents: false
         )
         #expect(purged == [uploadedId])
-        #expect(try await resumeTimestamps() == [earlierTbrAt, laterPrimeAt])
+        #expect(try await resumeTimestamps() == [earlierTbrAt, bolusAt])
+
+        // Hardware resume arriving at the exact derived timestamp promotes provenance cleanly
+        try await storage.storePumpEvents([resumeEvent(earlierTbrAt, raw: "hw-exact-resume")], replacePendingEvents: false)
+        let promoted = try await fetchAllEvents().first { $0.timestamp == earlierTbrAt && $0.type == PumpEvent.pumpResume.rawValue }
+        #expect(promoted?.syncIdentifier == storedIdentifier("hw-exact-resume"))
     }
 
-    @Test("Multi-suspend batches split intermediate gaps, promote matching hardware resumes, and transfer status across nested rewind")
-    func testMultiSuspendGapsPromotionAndNestedRewindTransfer() async throws {
-        let now = Date()
-        let firstSuspend = now.addingTimeInterval(-120 * 60)
-        let nestedRewind = firstSuspend.addingTimeInterval(10 * 60)
-        let statusAt = firstSuspend.addingTimeInterval(15 * 60)
-        let secondSuspend = firstSuspend.addingTimeInterval(45 * 60)
-        let midTbrStart = firstSuspend.addingTimeInterval(60 * 60)
-        let thirdSuspend = firstSuspend.addingTimeInterval(90 * 60)
-
-        try await storage.storePumpEvents([suspendEvent(firstSuspend, raw: "s1")], replacePendingEvents: false)
-        _ = try await storage.reconcileOpenSuspension(activeDeliverySince: statusAt, now: now)
-
-        // Nested rewind at +10m transfers +15m status confirmation; intermediate TBR splits [secondSuspend, thirdSuspend]
-        try await storage.storePumpEvents(
-            [
-                suspendEvent(nestedRewind, raw: "nested-rw", type: .rewind),
-                suspendEvent(secondSuspend, raw: "s2"),
-                tempBasalEvent(start: midTbrStart, end: midTbrStart.addingTimeInterval(15 * 60), raw: "mid-tbr"),
-                suspendEvent(thirdSuspend, raw: "s3")
-            ],
-            replacePendingEvents: false
-        )
-        #expect(try await resumeTimestamps() == [statusAt, midTbrStart])
-
-        // Hardware resume arriving at exact statusAt promotes provenance cleanly
-        try await storage.storePumpEvents([resumeEvent(statusAt, raw: "hw-r-exact")], replacePendingEvents: false)
-        let promoted = try await fetchAllEvents().first { $0.timestamp == statusAt && $0.type == PumpEvent.pumpResume.rawValue }
-        #expect(promoted?.syncIdentifier == storedIdentifier("hw-r-exact"))
-        #expect(promoted?.note == nil)
-    }
-
-    @Test("Withdrawn pending delivery or zero-delivered bolus retracts unconfirmed derived resumes")
+    @Test("Withdrawn pending delivery or zero-delivered bolus retracts derived resumes")
     func testWithdrawnOrZeroDeliveredDosesRetractDerivedResume() async throws {
         let now = Date()
-        let s1 = now.addingTimeInterval(-90 * 60)
-        let pendingTbrAt = s1.addingTimeInterval(15 * 60)
-        let s2 = s1.addingTimeInterval(45 * 60)
+        let s1 = now.addingTimeInterval(-60 * 60)
+        let pendingTbrAt = s1.addingTimeInterval(10 * 60)
+        let s2 = s1.addingTimeInterval(30 * 60)
         let failedBolusAt = s2.addingTimeInterval(10 * 60)
 
         try await storage.storePumpEvents(
             [
                 suspendEvent(s1, raw: "retract-s1"),
-                tempBasalEvent(start: pendingTbrAt, end: pendingTbrAt.addingTimeInterval(20 * 60), raw: "pending-tbr", isMutable: true),
+                tempBasalEvent(start: pendingTbrAt, end: pendingTbrAt.addingTimeInterval(15 * 60), raw: "pending-tbr", isMutable: true),
                 suspendEvent(s2, raw: "retract-s2"),
                 bolusEvent(failedBolusAt, units: 1.0, raw: "zero-bolus", isMutable: true)
             ],
@@ -237,32 +221,10 @@ import Testing
         )
         #expect(try await resumeTimestamps() == [pendingTbrAt, failedBolusAt])
 
-        // Complete pending report withdraws pending-tbr and finalizes zero-bolus to 0 U
         try await storage.storePumpEvents(
             [bolusEvent(failedBolusAt, units: 1.0, deliveredUnits: 0.0, raw: "zero-bolus", isMutable: false)],
             replacePendingEvents: true
         )
         #expect(try await resumeTimestamps().isEmpty)
-    }
-
-    @Test("DeviceDataManager heartbeat reconciles open suspension before emitting recommendsLoop")
-    func testHeartbeatReconcilesBeforeRecommendingLoop() async throws {
-        var deviceDataManager = resolver.resolve(DeviceDataManager.self)!
-        let mockPump = MockPumpManager()
-        defer { deviceDataManager.pumpManager = nil }
-
-        let rewindDate = Date().addingTimeInterval(-10 * 60)
-        mockPump.state.additionalPumpEvents = [suspendEvent(rewindDate, raw: "hb-rewind", type: .rewind)]
-        deviceDataManager.pumpManager = mockPump
-
-        var cancellable: AnyCancellable?
-        await withCheckedContinuation { continuation in
-            cancellable = deviceDataManager.recommendsLoop.first().sink { continuation.resume() }
-            deviceDataManager.heartbeat(date: Date())
-        }
-        _ = cancellable
-
-        let resumes = try await resumeTimestamps()
-        #expect(resumes.contains { $0 > rewindDate })
     }
 }

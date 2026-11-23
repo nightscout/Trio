@@ -9,51 +9,16 @@ protocol PumpHistoryObserver {
     func pumpHistoryDidUpdate(_ events: [PumpHistoryEvent])
 }
 
-struct PumpSuspensionReconciliation: Equatable {
-    let didReconcile: Bool
-    let purgedUploadedIds: [String]
-
-    static let unchanged = PumpSuspensionReconciliation(didReconcile: false, purgedUploadedIds: [])
-}
-
 protocol PumpHistoryStorage {
     var updatePublisher: AnyPublisher<Void, Never> { get }
     func getPumpHistory() async throws -> [PumpHistoryEvent]
     /// Returns the ids of purged events that were already uploaded to NS,
     /// so the caller can delete the now-withdrawn treatments remotely.
     @discardableResult func storePumpEvents(_ events: [NewPumpEvent], replacePendingEvents: Bool) async throws -> [String]
-    /// Closes or re-anchors an open `PumpSuspend` when post-suspend pump delivery or a fresh
-    /// pump sync confirms basal delivery is active.
-    @discardableResult func reconcileOpenSuspension(
-        activeDeliverySince: Date?,
-        lastVerifiedSyncDate: Date?,
-        now: Date
-    ) async throws -> PumpSuspensionReconciliation
     func storeExternalInsulinEvent(amount: Decimal, timestamp: Date) async
     func getPumpHistoryNotYetUploadedToNightscout() async throws -> [NightscoutTreatment]
     func getPumpHistoryNotYetUploadedToHealth() async throws -> [PumpHistoryEvent]
     func getPumpHistoryNotYetUploadedToTidepool() async throws -> [PumpHistoryEvent]
-}
-
-extension PumpHistoryStorage {
-    @discardableResult func reconcileOpenSuspension(
-        activeDeliverySince: Date?,
-        lastVerifiedSyncDate: Date?,
-        now: Date
-    ) async throws -> PumpSuspensionReconciliation {
-        .unchanged
-    }
-
-    @discardableResult func reconcileOpenSuspension(
-        activeDeliverySince: Date?,
-        now: Date = Date()
-    ) async throws -> PumpSuspensionReconciliation {
-        try await reconcileOpenSuspension(
-            activeDeliverySince: activeDeliverySince,
-            lastVerifiedSyncDate: nil,
-            now: now
-        )
-    }
 }
 
 final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
@@ -133,7 +98,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
             )
 
             var assertedRows = Set<NSManagedObjectID>()
-            var harvestedStatusDates: [Date] = []
 
             for candidate in candidates {
                 let event = candidate.event
@@ -155,12 +119,10 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
 
                 if let match = match {
                     if Self.isReconciledResume(match), storedType == .pumpResume {
-                        harvestedStatusDates.append(contentsOf: Self.statusConfirmedDates(of: match))
                         if let previousSyncId = match.syncIdentifier {
                             bySyncIdentifier.removeValue(forKey: previousSyncId)
                         }
                         match.syncIdentifier = syncIdentifier
-                        match.note = nil
                         if let syncIdentifier {
                             bySyncIdentifier[syncIdentifier] = match
                         }
@@ -267,13 +229,9 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 storeNow.addingTimeInterval(-48.hours.timeInterval),
                 earliestTouchedDate.addingTimeInterval(-1.hours.timeInterval)
             )
-            _ = try Self.reconcileSuspensions(
+            try Self.reconcileSuspensions(
                 in: context,
                 lookbackStart: lookbackStart,
-                activeDeliverySince: nil,
-                lastVerifiedSyncDate: nil,
-                extraStatusDates: harvestedStatusDates,
-                allowNewTrailingResume: false,
                 now: storeNow,
                 purgedUploadedIds: &purgedUploadedIds
             )
@@ -289,36 +247,6 @@ final class BasePumpHistoryStorage: PumpHistoryStorage, Injectable {
                 throw error
             }
             return purgedUploadedIds
-        }
-    }
-
-    @discardableResult func reconcileOpenSuspension(
-        activeDeliverySince: Date?,
-        lastVerifiedSyncDate: Date? = nil,
-        now: Date = Date()
-    ) async throws -> PumpSuspensionReconciliation {
-        let context = makeContext()
-        context.name = "reconcileOpenSuspension"
-        context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
-        return try await context.perform {
-            var purgedUploadedIds: [String] = []
-            let didMutateTimeline = try Self.reconcileSuspensions(
-                in: context,
-                lookbackStart: now.addingTimeInterval(-48.hours.timeInterval),
-                activeDeliverySince: activeDeliverySince,
-                lastVerifiedSyncDate: lastVerifiedSyncDate,
-                extraStatusDates: [],
-                allowNewTrailingResume: true,
-                now: now,
-                purgedUploadedIds: &purgedUploadedIds
-            )
-            if context.hasChanges {
-                try context.save()
-            }
-            guard didMutateTimeline else { return .unchanged }
-            self.updateSubject.send(())
-            debug(.storage, "Reconciled pump suspensions up to \(now)")
-            return PumpSuspensionReconciliation(didReconcile: true, purgedUploadedIds: purgedUploadedIds)
         }
     }
 

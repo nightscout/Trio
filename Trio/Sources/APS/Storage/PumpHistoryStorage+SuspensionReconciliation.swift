@@ -5,7 +5,6 @@ import SwiftDate
 
 extension BasePumpHistoryStorage {
     static let reconciledResumePrefix = "derived_resume_"
-    private static let statusConfirmedNotePrefix = "reconciled-status-at:"
 
     struct StoredCandidate {
         let event: NewPumpEvent
@@ -15,12 +14,12 @@ extension BasePumpHistoryStorage {
         let isScheduledBasal: Bool
     }
 
-    /// Expands a `NewPumpEvent` into its stored row(s).
-    ///
-    /// LoopKit keeps `NewPumpEvent.type` and `NewPumpEvent.dose` orthogonal: drivers such as
-    /// MinimedKit attach `DoseEntry(suspendDate:)` or `DoseEntry(resumeDate:)` to `.rewind`,
-    /// `.prime`, `.alarm` and `.alarmClear` events because Medtronic pumps exit suspend upon
-    /// priming or clearing a no-delivery alarm without logging a separate `Resume` opcode.
+    /// Expands a `NewPumpEvent` into its stored row(s), matching LoopKit `DoseStore.addPumpEvents`
+    /// (`LoopKit/InsulinKit/DoseStore.swift:680`), where `event.dose` is persisted orthogonally to
+    /// `event.type`. Drivers such as `MinimedKit` (`MinimedKit/PumpManager/DoseStore.swift:110-140`)
+    /// attach `DoseEntry(suspendDate:)` or `DoseEntry(resumeDate:)` to `.rewind`, `.prime`, `.alarm`
+    /// and `.alarmClear` events because Medtronic pumps exit suspend upon priming or clearing a
+    /// no-delivery alarm without logging a separate `Resume` opcode.
     static func storedCandidates(for event: NewPumpEvent) -> [StoredCandidate] {
         let baseSyncIdentifier = event.dose?.syncIdentifier.flatMap { $0.isEmpty ? nil : $0 }
         let primaryType = event.type?.storedEventType
@@ -60,37 +59,9 @@ extension BasePumpHistoryStorage {
             && (row.syncIdentifier?.hasPrefix(reconciledResumePrefix) == true)
     }
 
-    static func reconciledResumeSyncIdentifier(for suspendRow: PumpEventStored, suspendDate: Date) -> String {
+    private static func reconciledResumeSyncIdentifier(for suspendRow: PumpEventStored, suspendDate: Date) -> String {
         let sourceKey = suspendRow.syncIdentifier ?? suspendRow.id ?? "\(suspendDate.timeIntervalSinceReferenceDate)"
         return "\(reconciledResumePrefix)\(sourceKey)"
-    }
-
-    static func statusConfirmedDates(of row: PumpEventStored) -> [Date] {
-        guard let note = row.note, note.hasPrefix(statusConfirmedNotePrefix) else { return [] }
-        return note
-            .dropFirst(statusConfirmedNotePrefix.count)
-            .split(separator: ",")
-            .compactMap { Double($0) }
-            .filter(\.isFinite)
-            .map(Date.init(timeIntervalSinceReferenceDate:))
-            .sorted()
-    }
-
-    private static func deduplicatedDates(_ dates: [Date]) -> [Date] {
-        var result: [Date] = []
-        for date in dates.sorted() {
-            if let last = result.last, abs(date.timeIntervalSince(last)) < 0.000001 {
-                continue
-            }
-            result.append(date)
-        }
-        return result
-    }
-
-    private static func encodeStatusNote(_ dates: [Date]) -> String? {
-        let unique = deduplicatedDates(dates)
-        guard !unique.isEmpty else { return nil }
-        return statusConfirmedNotePrefix + unique.map { "\($0.timeIntervalSinceReferenceDate)" }.joined(separator: ",")
     }
 
     private static func latestAuthoritativeTransition(
@@ -162,7 +133,7 @@ extension BasePumpHistoryStorage {
             .compactMap(\.timestamp)
     }
 
-    static func earliestPumpDeliveryDate(
+    private static func earliestPumpDeliveryDate(
         in context: NSManagedObjectContext,
         after suspendDate: Date,
         upTo upperBound: Date,
@@ -192,14 +163,11 @@ extension BasePumpHistoryStorage {
         existing: PumpEventStored?,
         syncIdentifier: String,
         at resumeDate: Date,
-        statusConfirmedDates confirmedDates: [Date],
         in context: NSManagedObjectContext,
         purgedUploadedIds: inout [String]
-    ) -> (row: PumpEventStored, mutatedTimeline: Bool) {
-        let encodedNote = encodeStatusNote(confirmedDates)
+    ) -> PumpEventStored {
         if let existing {
-            let timestampChanged = existing.timestamp != resumeDate
-            if timestampChanged {
+            if existing.timestamp != resumeDate {
                 existing.timestamp = resumeDate
                 if existing.isUploadedToNS {
                     if let oldId = existing.id {
@@ -209,10 +177,7 @@ extension BasePumpHistoryStorage {
                     existing.isUploadedToNS = false
                 }
             }
-            if existing.note != encodedNote {
-                existing.note = encodedNote
-            }
-            return (existing, timestampChanged)
+            return existing
         }
 
         let resumeEvent = PumpEventStored(context: context)
@@ -220,27 +185,24 @@ extension BasePumpHistoryStorage {
         resumeEvent.timestamp = resumeDate
         resumeEvent.type = PumpEvent.pumpResume.rawValue
         resumeEvent.syncIdentifier = syncIdentifier
-        resumeEvent.note = encodedNote
         resumeEvent.isMutable = false
         resumeEvent.isUploadedToNS = false
         resumeEvent.isUploadedToHealth = false
         resumeEvent.isUploadedToTidepool = false
-        return (resumeEvent, true)
+        return resumeEvent
     }
 
-    /// Reconciles authoritative `PumpSuspend` spans within `[lookbackStart, now]`, returning
-    /// `true` when any derived `PumpResume` row was inserted, deleted, or had its timestamp changed.
-    @discardableResult
+    /// Ports LoopKit's missing-resume reconciliation (`LoopKit/InsulinKit/InsulinMath.swift:208-214`:
+    /// *"Handle missing resume. Basal following suspend, with no resume"*) to Trio's `PumpEventStored`
+    /// timeline: when pump delivery (`tempBasal` or non-external `bolus > 0`) occurs after an unclosed
+    /// `PumpSuspend` (e.g. cancelled fixed prime on Medtronic), closes the suspension at the earliest
+    /// post-suspend delivery timestamp and retracts if provisional delivery is later withdrawn or `0 U`.
     static func reconcileSuspensions(
         in context: NSManagedObjectContext,
         lookbackStart: Date,
-        activeDeliverySince: Date?,
-        lastVerifiedSyncDate: Date?,
-        extraStatusDates: [Date],
-        allowNewTrailingResume: Bool,
         now: Date,
         purgedUploadedIds: inout [String]
-    ) throws -> Bool {
+    ) throws {
         var effectiveLookbackStart = lookbackStart
         if let priorTransition = try latestAuthoritativeTransition(in: context, atOrBefore: effectiveLookbackStart),
            priorTransition.type == PumpEvent.pumpSuspend.rawValue,
@@ -285,21 +247,7 @@ extension BasePumpHistoryStorage {
             !$0.isDeleted && !isReconciledResume($0)
         }
 
-        let freshTrailingDates: [Date] = allowNewTrailingResume
-            ? [
-                activeDeliverySince.map { min($0, now) },
-                lastVerifiedSyncDate.map { min($0, now) }
-            ].compactMap { $0 }
-            : []
-
-        let recordedStatusDates = deduplicatedDates(
-            scopedDerivedResumes.flatMap(statusConfirmedDates(of:))
-                + extraStatusDates
-                + freshTrailingDates
-        )
-
         var retainedDerivedIDs = Set<NSManagedObjectID>()
-        var didMutateTimeline = false
 
         for index in authoritativeRows.indices {
             let row = authoritativeRows[index]
@@ -312,57 +260,45 @@ extension BasePumpHistoryStorage {
             let nextAuthoritative = (index + 1 < authoritativeRows.count) ? authoritativeRows[index + 1] : nil
 
             if let nextAuthoritative {
-                guard let nextDate = nextAuthoritative.timestamp, nextDate > suspendDate else { continue }
-                let earliestDelivery = try earliestPumpDeliveryDate(
+                guard let nextDate = nextAuthoritative.timestamp, nextDate > suspendDate,
+                      let deliveryDate = try earliestPumpDeliveryDate(
+                          in: context,
+                          after: suspendDate,
+                          upTo: nextDate,
+                          inclusiveEnd: false
+                      )
+                else { continue }
+                let targetDate = max(deliveryDate, suspendDate.addingTimeInterval(1))
+                guard targetDate < nextDate else { continue }
+                let upserted = upsertDerivedResume(
+                    existing: existingDerived,
+                    syncIdentifier: resumeSyncId,
+                    at: targetDate,
                     in: context,
-                    after: suspendDate,
-                    upTo: nextDate,
-                    inclusiveEnd: false
+                    purgedUploadedIds: &purgedUploadedIds
                 )
-                let matchingStatusDates = recordedStatusDates.filter { $0 > suspendDate && $0 < nextDate }
-                if let candidate = ([earliestDelivery] + matchingStatusDates.map(Optional.init)).compactMap({ $0 }).min() {
-                    let targetDate = max(candidate, suspendDate.addingTimeInterval(1))
-                    if targetDate > suspendDate, targetDate < nextDate {
-                        let upserted = upsertDerivedResume(
-                            existing: existingDerived,
-                            syncIdentifier: resumeSyncId,
-                            at: targetDate,
-                            statusConfirmedDates: matchingStatusDates,
-                            in: context,
-                            purgedUploadedIds: &purgedUploadedIds
-                        )
-                        retainedDerivedIDs.insert(upserted.row.objectID)
-                        didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
-                    }
-                }
+                retainedDerivedIDs.insert(upserted.objectID)
                 continue
             }
 
-            guard now.timeIntervalSince(suspendDate) >= 1 else { continue }
-
-            let effectiveStatusDates = recordedStatusDates.filter { $0 > suspendDate && $0 <= now }
-            let earliestDeliveryDate = try earliestPumpDeliveryDate(
-                in: context,
-                after: suspendDate,
-                upTo: now,
-                inclusiveEnd: true
-            )
-            guard let rawResumeDate = ([earliestDeliveryDate] + effectiveStatusDates.map(Optional.init)).compactMap({ $0 }).min() else {
-                continue
-            }
-            let resumeDate = min(max(rawResumeDate, suspendDate.addingTimeInterval(1)), now)
+            guard now.timeIntervalSince(suspendDate) >= 1,
+                  let deliveryDate = try earliestPumpDeliveryDate(
+                      in: context,
+                      after: suspendDate,
+                      upTo: now,
+                      inclusiveEnd: true
+                  )
+            else { continue }
+            let resumeDate = min(max(deliveryDate, suspendDate.addingTimeInterval(1)), now)
             guard resumeDate > suspendDate else { continue }
-
             let upserted = upsertDerivedResume(
                 existing: existingDerived,
                 syncIdentifier: resumeSyncId,
                 at: resumeDate,
-                statusConfirmedDates: effectiveStatusDates,
                 in: context,
                 purgedUploadedIds: &purgedUploadedIds
             )
-            retainedDerivedIDs.insert(upserted.row.objectID)
-            didMutateTimeline = didMutateTimeline || upserted.mutatedTimeline
+            retainedDerivedIDs.insert(upserted.objectID)
         }
 
         for derived in scopedDerivedResumes where !derived.isDeleted && !retainedDerivedIDs.contains(derived.objectID) {
@@ -370,8 +306,6 @@ extension BasePumpHistoryStorage {
                 purgedUploadedIds.append(id)
             }
             context.delete(derived)
-            didMutateTimeline = true
         }
-        return didMutateTimeline
     }
 }
