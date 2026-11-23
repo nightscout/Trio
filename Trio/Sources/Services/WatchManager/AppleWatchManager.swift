@@ -385,6 +385,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
                 watchState.complicationCornerValue = self.settingsManager.settings.watchComplicationCornerValue
                 watchState.complicationSecondaryValue = self.settingsManager.settings.watchComplicationSecondaryValue
                 watchState.complicationStaleMinutes = self.settingsManager.settings.watchComplicationStaleMinutes
+                watchState.complicationColorMode = self.settingsManager.settings.watchComplicationColorMode
 
                 watchState.useCriticalAlertsWatch = self.settingsManager.settings.useCriticalAlertsWatch
                 watchState.showForecast = self.settingsManager.settings.showForecastWatch
@@ -597,6 +598,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.complicationCornerValue: state.complicationCornerValue.rawValue,
             WatchMessageKeys.complicationSecondaryValue: state.complicationSecondaryValue.rawValue,
             WatchMessageKeys.complicationStaleMinutes: state.complicationStaleMinutes,
+            WatchMessageKeys.complicationColorMode: state.complicationColorMode.rawValue,
             WatchMessageKeys.complicationRingStops: state.complicationRingStops.map(\.payload),
             WatchMessageKeys.units: state.units.rawValue,
             WatchMessageKeys.showForecastWatch: state.showForecast,

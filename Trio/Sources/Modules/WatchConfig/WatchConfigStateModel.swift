@@ -20,6 +20,7 @@ extension WatchConfig {
         @Published var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
         @Published var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
         @Published var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+        @Published var complicationColorMode: WatchComplicationColorMode = WatchComplicationDefaults.colorMode
         @Published var complicationRingStops: [ComplicationRingStop] = []
 
         /// Garmin watch settings containing all watch-related configuration
@@ -41,6 +42,7 @@ extension WatchConfig {
                 complicationSecondaryValue = $0
             }
             subscribeSetting(\.watchComplicationStaleMinutes, on: $complicationStaleMinutes) { complicationStaleMinutes = $0 }
+            subscribeSetting(\.watchComplicationColorMode, on: $complicationColorMode) { complicationColorMode = $0 }
             complicationRingStops = Self.previewRingStops(for: settingsManager.settings)
 
             devices = garmin.devices

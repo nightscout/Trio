@@ -59,6 +59,7 @@ enum WatchMessageKeys {
     static let complicationCornerValue = "complicationCornerValue"
     static let complicationSecondaryValue = "complicationSecondaryValue"
     static let complicationStaleMinutes = "complicationStaleMinutes"
+    static let complicationColorMode = "complicationColorMode"
     static let complicationRingStops = "complicationRingStops"
 
     // Notification Actions

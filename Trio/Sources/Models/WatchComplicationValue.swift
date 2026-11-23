@@ -21,8 +21,23 @@ enum WatchComplicationValue: String, CaseIterable, Identifiable, Codable, Hashab
     }
 }
 
+enum WatchComplicationColorMode: String, CaseIterable, Identifiable, Codable, Hashable {
+    case color
+    case monochrome
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .color: return String(localized: "Color", comment: "")
+        case .monochrome: return String(localized: "Monochrome", comment: "")
+        }
+    }
+}
+
 enum WatchComplicationDefaults {
     static let cornerValue: WatchComplicationValue = .iob
+    static let colorMode: WatchComplicationColorMode = .color
     static let secondaryValue: WatchComplicationValue = .delta
     static let staleMinutes = 15
     static let staleMinutesRange = 10 ... 30

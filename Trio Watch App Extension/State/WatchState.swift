@@ -65,6 +65,7 @@ import WidgetKit
     var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
     var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
     var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+    var complicationColorMode: WatchComplicationColorMode = WatchComplicationDefaults.colorMode
     var complicationRingStops: [ComplicationRingStop] = []
     var glucoseUnits: String = ComplicationState.defaultUnits
     var lowGlucoseLimit: Double?
@@ -805,6 +806,10 @@ import WidgetKit
             complicationStaleMinutes = WatchComplicationDefaults.clampedStaleMinutes(minutes)
         }
 
+        if let raw = message[WatchMessageKeys.complicationColorMode] as? String {
+            complicationColorMode = WatchComplicationColorMode(rawValue: raw) ?? WatchComplicationDefaults.colorMode
+        }
+
         if let units = message[WatchMessageKeys.units] as? String {
             glucoseUnits = units
         }
@@ -1062,6 +1067,7 @@ extension WatchState {
             cornerValue: complicationCornerValue,
             secondaryValue: complicationSecondaryValue,
             staleMinutes: complicationStaleMinutes,
+            colorMode: complicationColorMode,
             units: glucoseUnits,
             glucoseValue: glucoseValue,
             history: complicationHistory(until: readingDate),

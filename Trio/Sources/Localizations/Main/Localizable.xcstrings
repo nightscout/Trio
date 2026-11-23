@@ -1089,6 +1089,9 @@
         }
       }
     },
+    "Color shows the glucose and trend arrow in the colors the phone uses for them. Monochrome shows them in white, which is easier to read in the dark. The gauge ring and the chart line keep their colors either way." : {
+
+    },
     "Complication Previews" : {
 
     },
@@ -1096,6 +1099,9 @@
 
     },
     "Curved text on Trio Glucose corner slots." : {
+
+    },
+    "Glucose text in color or in white." : {
 
     },
     "Insulin on board first, with COB and glucose alongside. Fixed layout; only Mark Stale After applies." : {

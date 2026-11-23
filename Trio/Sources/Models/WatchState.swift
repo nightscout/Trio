@@ -34,6 +34,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
     var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
     var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+    var complicationColorMode: WatchComplicationColorMode = WatchComplicationDefaults.colorMode
     var complicationRingStops: [ComplicationRingStop] = []
 
     // Forecast options
@@ -93,6 +94,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.complicationCornerValue == rhs.complicationCornerValue &&
             lhs.complicationSecondaryValue == rhs.complicationSecondaryValue &&
             lhs.complicationStaleMinutes == rhs.complicationStaleMinutes &&
+            lhs.complicationColorMode == rhs.complicationColorMode &&
             lhs.complicationRingStops == rhs.complicationRingStops &&
             lhs.showForecast == rhs.showForecast &&
             lhs.isForecastCone == rhs.isForecastCone &&
@@ -133,6 +135,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(complicationCornerValue)
         hasher.combine(complicationSecondaryValue)
         hasher.combine(complicationStaleMinutes)
+        hasher.combine(complicationColorMode)
         hasher.combine(complicationRingStops)
         hasher.combine(showForecast)
         hasher.combine(isForecastCone)

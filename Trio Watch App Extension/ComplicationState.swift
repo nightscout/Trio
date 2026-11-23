@@ -16,6 +16,7 @@ struct ComplicationSlotSettings {
     var cornerValue = WatchComplicationDefaults.cornerValue
     var secondaryValue = WatchComplicationDefaults.secondaryValue
     var staleMinutes = WatchComplicationDefaults.staleMinutes
+    var colorMode = WatchComplicationDefaults.colorMode
 }
 
 struct ComplicationState: Codable, Equatable {
@@ -31,6 +32,7 @@ struct ComplicationState: Codable, Equatable {
     var cornerValue: WatchComplicationValue
     var secondaryValue: WatchComplicationValue
     var staleMinutes: Int
+    var colorMode: WatchComplicationColorMode?
 
     var units: String
     var glucoseValue: Double?
@@ -90,6 +92,7 @@ struct ComplicationState: Codable, Equatable {
             cornerValue: settings.cornerValue,
             secondaryValue: settings.secondaryValue,
             staleMinutes: settings.staleMinutes,
+            colorMode: settings.colorMode,
             units: units,
             glucoseValue: history.last?.glucose,
             history: history,
@@ -120,6 +123,8 @@ struct ComplicationState: Codable, Equatable {
     var isMmol: Bool { Self.isMmol(units) }
 
     var staleAfter: TimeInterval { TimeInterval(staleMinutes) * 60 }
+
+    var isMonochrome: Bool { colorMode == .monochrome }
 
     var gaugeRange: ClosedRange<Double> {
         isMmol ? WatchComplicationDefaults.gaugeRangeMmol : WatchComplicationDefaults.gaugeRangeMgdl

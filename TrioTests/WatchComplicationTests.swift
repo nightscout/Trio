@@ -23,17 +23,19 @@ import WatchConnectivity
         #expect(settings.watchComplicationCornerValue == WatchComplicationDefaults.cornerValue)
         #expect(settings.watchComplicationSecondaryValue == WatchComplicationDefaults.secondaryValue)
         #expect(settings.watchComplicationStaleMinutes == WatchComplicationDefaults.staleMinutes)
+        #expect(settings.watchComplicationColorMode == .color)
     }
 
     @Test("Stored complication settings decode") func settingsDecode() throws {
         let json = #"""
         {"watchComplicationCornerValue": "cob", "watchComplicationSecondaryValue": "loopAge",
-         "watchComplicationStaleMinutes": 30}
+         "watchComplicationStaleMinutes": 30, "watchComplicationColorMode": "monochrome"}
         """#
         let settings = try decodeSettings(json)
         #expect(settings.watchComplicationCornerValue == .cob)
         #expect(settings.watchComplicationSecondaryValue == .loopAge)
         #expect(settings.watchComplicationStaleMinutes == 30)
+        #expect(settings.watchComplicationColorMode == .monochrome)
     }
 
     @Test("Out-of-range stale minutes are clamped on decode") func staleMinutesClamped() throws {
@@ -121,11 +123,41 @@ import WatchConnectivity
         let state = ComplicationState.sample(units: "mg/dL", settings: settings, date: now)
         let fresh = makeModel(.glucose, state, at: now.addingTimeInterval(7 * 60))
         #expect(fresh.valueColor == .primary)
-        #expect(fresh.dimColor == .secondary)
+        #expect(fresh.dimColor == ComplicationModel.dimText)
         let stale = makeModel(.glucose, state, at: now.addingTimeInterval(11 * 60))
-        #expect(stale.glucoseColor == .gray)
-        #expect(stale.valueColor == .gray)
-        #expect(stale.dimColor == .gray)
+        #expect(stale.glucoseColor == ComplicationModel.staleText)
+        #expect(stale.valueColor == ComplicationModel.staleText)
+        #expect(stale.dimColor == ComplicationModel.staleText)
+    }
+
+    @Test("Monochrome keeps the glucose text white and the ring and chart coloured") func monochromeText() {
+        let stops = [
+            ComplicationRingStop(location: 0, colorHex: "#E65C5C"),
+            ComplicationRingStop(location: 1, colorHex: "#5CE65C")
+        ]
+        var state = ComplicationState.sample(units: "mg/dL", ringStops: stops, date: now)
+        state.glucoseColorHex = "#E65C5C"
+        let colored = makeModel(.gauge, state, at: now)
+        #expect(colored.glucoseTextColor == state.glucoseColor)
+        state.colorMode = .monochrome
+        let monochrome = makeModel(.gauge, state, at: now)
+        #expect(monochrome.glucoseTextColor == .primary)
+        #expect(monochrome.glucoseColor == state.glucoseColor)
+        #expect(monochrome.gaugeGradient == colored.gaugeGradient)
+    }
+
+    @Test("Snapshots saved before the colour mode decode as colour") func colorModeMissingDecodes() throws {
+        var state = ComplicationState.sample(units: "mg/dL", date: now)
+        state.colorMode = nil
+        let decoded = try JSONDecoder().decode(ComplicationState.self, from: JSONEncoder().encode(state))
+        #expect(!decoded.isMonochrome)
+    }
+
+    @Test("Colour mode travels to the watch in the payload") func colorModeInPayload() {
+        var state = WatchState(date: now)
+        state.complicationColorMode = .monochrome
+        let payload = BaseWatchManager.watchStateToDictionary(from: state)
+        #expect(payload[WatchMessageKeys.complicationColorMode] as? String == "monochrome")
     }
 
     @Test("A stale gauge replaces the glucose with dashes") func staleGauge() {
@@ -175,7 +207,7 @@ import WatchConnectivity
         let model = makeModel(.iob, state, at: now)
         #expect(!model.isStale)
         #expect(model.isLoopStale)
-        #expect(model.valueColor == .gray)
+        #expect(model.valueColor == ComplicationModel.staleText)
         #expect(model.statusLine == "loop 20 min")
         state.loopDate = nil
         #expect(!state.isLoopStale(at: now.addingTimeInterval(3600)))
@@ -213,7 +245,7 @@ import WatchConnectivity
         #expect(model.cobText == "--")
         #expect(model.displayedState.labelledText(for: .iob) == "IOB --")
         #expect(model.displayedState.plainText(for: .cob) == "--")
-        #expect(model.valueColor == .gray)
+        #expect(model.valueColor == ComplicationModel.staleText)
     }
 
     @Test("A missing loop date greys IOB and COB but keeps their values") func loopUnknown() {
@@ -224,7 +256,7 @@ import WatchConnectivity
         #expect(!model.isLoopStale)
         #expect(model.displayedState.iob == "1.25")
         #expect(model.iobText == "1.25 U")
-        #expect(model.valueColor == .gray)
+        #expect(model.valueColor == ComplicationModel.staleText)
         let rendering = ComplicationRendering(referenceDate: now, isPlaceholder: true)
         #expect(!ComplicationModel(kind: .iob, state: .placeholder, rendering: rendering).isLoopUnknown)
     }
@@ -265,8 +297,11 @@ import WatchConnectivity
             state: state,
             rendering: ComplicationRendering(referenceDate: now, fullColor: false)
         )
-        #expect(tinted.gaugeGradient == Gradient(colors: [.gray, .gray]))
-        #expect(makeModel(.gauge, state, at: now.addingTimeInterval(16 * 60)).gaugeGradient == Gradient(colors: [.gray, .gray]))
+        #expect(tinted.gaugeGradient == Gradient(colors: [ComplicationModel.staleText, ComplicationModel.staleText]))
+        #expect(
+            makeModel(.gauge, state, at: now.addingTimeInterval(16 * 60))
+                .gaugeGradient == Gradient(colors: [ComplicationModel.staleText, ComplicationModel.staleText])
+        )
     }
 
     @Test("Static ring stops are Trio's three bands with edges at the limits") func staticRingStops() {
@@ -350,7 +385,7 @@ import WatchConnectivity
         let rendering = ComplicationRendering(referenceDate: now, isPlaceholder: true)
         let model = ComplicationModel(kind: .gauge, state: state, rendering: rendering)
         #expect(model.gaugeValue == (45.0 + 290.0) / 2)
-        #expect(model.gaugeGradient == Gradient(colors: [.gray, .gray]))
+        #expect(model.gaugeGradient == Gradient(colors: [ComplicationModel.staleText, ComplicationModel.staleText]))
         #expect(state.history.isEmpty)
         #expect(state.trendArrow == "")
         #expect(Color(complicationHex: "#4cd964") != nil)
@@ -458,8 +493,8 @@ import WatchConnectivity
         let state = ComplicationState.sample(units: "mg/dL", settings: ComplicationSlotSettings(staleMinutes: 10), date: now)
         let model = makeModel(kind, state, at: now.addingTimeInterval(10 * 60 + 1))
         #expect([model.glucoseText, model.iobText, model.cobText] == ["--", "--", "--"])
-        #expect([model.glucoseColor, model.valueColor] == [.gray, .gray])
-        #expect(model.gaugeGradient == Gradient(colors: [.gray, .gray]))
+        #expect([model.glucoseColor, model.valueColor] == [ComplicationModel.staleText, ComplicationModel.staleText])
+        #expect(model.gaugeGradient == Gradient(colors: [ComplicationModel.staleText, ComplicationModel.staleText]))
     }
 
     @Test("No app group without a resolved AppGroupID") func appGroupNeedsResolvedID() {

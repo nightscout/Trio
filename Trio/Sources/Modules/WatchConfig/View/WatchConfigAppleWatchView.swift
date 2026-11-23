@@ -11,6 +11,9 @@ struct WatchConfigAppleWatchView: BaseView {
     static let markStaleAfterHint = String(
         localized: "Mark Stale After applies to every complication: once the reading is older than this, the glucose shows -- with the reading's age, and IOB and COB show -- when the loop has not run within that time.\n\nComplications can fall behind the phone, sometimes by a lot: with the watch app closed, watchOS limits how often they refresh. The Contact Image updates with every reading, so use it if you want every reading on your watch face."
     )
+    static let colorModeHint = String(
+        localized: "Color shows the glucose and trend arrow in the colors the phone uses for them. Monochrome shows them in white, which is easier to read in the dark. The gauge ring and the chart line keep their colors either way."
+    )
 
     let resolver: Resolver
     @ObservedObject var state: WatchConfig.StateModel
@@ -36,7 +39,8 @@ struct WatchConfigAppleWatchView: BaseView {
             settings: ComplicationSlotSettings(
                 cornerValue: state.complicationCornerValue,
                 secondaryValue: state.complicationSecondaryValue,
-                staleMinutes: state.complicationStaleMinutes
+                staleMinutes: state.complicationStaleMinutes,
+                colorMode: state.complicationColorMode
             ),
             ringStops: state.complicationRingStops
         )
@@ -204,6 +208,21 @@ struct WatchConfigAppleWatchView: BaseView {
                         miniHint: String(localized: "Show -- once data is older than this. Complications can lag."),
                         label: String(localized: "Mark Stale After"),
                         hint: Self.markStaleAfterHint
+                    )
+                }
+            }.listRowBackground(Color.chart)
+
+            Section {
+                VStack {
+                    Picker("Color Mode", selection: $state.complicationColorMode) {
+                        ForEach(WatchComplicationColorMode.allCases) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }.padding(.top)
+                    hintRow(
+                        miniHint: String(localized: "Glucose text in color or in white."),
+                        label: String(localized: "Color Mode"),
+                        hint: Self.colorModeHint
                     )
                 }
             }.listRowBackground(Color.chart)
