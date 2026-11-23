@@ -37,10 +37,7 @@ class TrioRemoteControl: Injectable {
             return
         }
 
-        guard let messenger = SecureMessenger(sharedSecret: storedSecret) else {
-            await logError("Command rejected: Failed to initialize security module. The shared secret might be invalid.")
-            return
-        }
+        let messenger = SecureMessenger(sharedSecret: storedSecret)
 
         let commandPayload: CommandPayload
         do {
