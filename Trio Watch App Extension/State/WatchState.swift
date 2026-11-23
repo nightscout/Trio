@@ -67,7 +67,6 @@ import WidgetKit
     var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
     var complicationColorMode: WatchComplicationColorMode = WatchComplicationDefaults.colorMode
     var complicationRingStops: [ComplicationRingStop] = []
-    var glucoseUnits: String = ComplicationState.defaultUnits
     var lowGlucoseLimit: Double?
     var highGlucoseLimit: Double?
 
@@ -216,6 +215,7 @@ import WidgetKit
 
     override init() {
         super.init()
+        restoreComplicationSettings()
         setupSession()
     }
 
@@ -810,10 +810,6 @@ import WidgetKit
             complicationColorMode = WatchComplicationColorMode(rawValue: raw) ?? WatchComplicationDefaults.colorMode
         }
 
-        if let units = message[WatchMessageKeys.units] as? String {
-            glucoseUnits = units
-        }
-
         if let stops = message[WatchMessageKeys.complicationRingStops] as? [[String: Any]] {
             complicationRingStops = stops.compactMap(ComplicationRingStop.init(payload:))
         }
@@ -1039,8 +1035,29 @@ struct WatchGlucoseRange: Codable, Equatable {
 }
 
 extension WatchState {
+    /// The phone's complication settings outlast a relaunch that only the watch's own readings follow.
+    private func restoreComplicationSettings() {
+        guard let saved = ComplicationStore.load() else { return }
+        complicationCornerValue = saved.cornerValue
+        complicationSecondaryValue = saved.secondaryValue
+        complicationStaleMinutes = saved.staleMinutes
+        complicationColorMode = saved.colorMode ?? WatchComplicationDefaults.colorMode
+        complicationRingStops = saved.ringStops ?? []
+        lowGlucoseLimit = saved.limits?.lowerBound
+        highGlucoseLimit = saved.limits?.upperBound
+        lastSavedComplicationState = saved
+    }
+
+    /// The reading the glucose bubble shows, whichever source it is from.
+    private var shownReading: (date: Date, glucose: Double)? {
+        if newestReadingIsOwn, let own = ownReadings.last, let value = own.glucose ?? own.sgv {
+            return (own.dateString, glucoseRange.display(value))
+        }
+        return glucoseValues.last.map { ($0.date, $0.glucose) }
+    }
+
     private func saveComplicationSnapshot() {
-        guard let latestReading = glucoseValues.last else { return }
+        guard let latestReading = shownReading else { return }
         let snapshot = complicationSnapshot(readingDate: latestReading.date, glucoseValue: latestReading.glucose)
         guard snapshot != lastSavedComplicationState else { return }
         do {
@@ -1068,7 +1085,7 @@ extension WatchState {
             secondaryValue: complicationSecondaryValue,
             staleMinutes: complicationStaleMinutes,
             colorMode: complicationColorMode,
-            units: glucoseUnits,
+            units: glucoseRange.isMmol ? GlucoseUnits.mmolL.rawValue : GlucoseUnits.mgdL.rawValue,
             glucoseValue: glucoseValue,
             history: complicationHistory(until: readingDate),
             loopDate: lastLoopDate,
@@ -1078,8 +1095,11 @@ extension WatchState {
     }
 
     private var complicationLimits: ClosedRange<Double>? {
-        guard let low = lowGlucoseLimit, let high = highGlucoseLimit, low < high else { return nil }
-        return low ... high
+        if let low = lowGlucoseLimit, let high = highGlucoseLimit, low < high { return low ... high }
+        let range = glucoseRange
+        let low = NSDecimalNumber(decimal: range.isMmol ? range.low.asMmolL : range.low).doubleValue
+        let high = NSDecimalNumber(decimal: range.isMmol ? range.high.asMmolL : range.high).doubleValue
+        return low < high ? low ... high : nil
     }
 
     private func reloadInstalledComplications() {
