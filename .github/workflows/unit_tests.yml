@@ -8,12 +8,12 @@ on:
 jobs:
   algorithm-package:
     name: Algorithm Package (swift test)
-    runs-on: macos-26
+    runs-on: xcode-27
     if: github.repository_owner == 'nightscout'
 
     steps:
       - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode_27.0.app/Contents/Developer
 
       - name: Checkout code
         uses: actions/checkout@v5
@@ -25,9 +25,9 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: AlgorithmPackage/.build
-          key: ${{ runner.os }}-spm-algorithm-${{ hashFiles('AlgorithmPackage/Package.swift', 'AlgorithmPackage/Package.resolved') }}
+          key: ${{ runner.os }}-xcode27.0-spm-algorithm-${{ hashFiles('AlgorithmPackage/Package.swift', 'AlgorithmPackage/Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-spm-algorithm-
+            ${{ runner.os }}-xcode27.0-spm-algorithm-
 
       - name: Show Swift version
         run: swift --version
@@ -42,7 +42,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: AlgorithmPackage/.build
-          key: ${{ runner.os }}-spm-algorithm-${{ hashFiles('AlgorithmPackage/Package.swift', 'AlgorithmPackage/Package.resolved') }}
+          key: ${{ runner.os }}-xcode27.0-spm-algorithm-${{ hashFiles('AlgorithmPackage/Package.swift', 'AlgorithmPackage/Package.resolved') }}
 
       - name: Annotate algorithm package results
         if: always()
@@ -66,11 +66,11 @@ jobs:
 
   test:
     name: Run Unit Tests
-    runs-on: macos-26
+    runs-on: xcode-27
     if: github.repository_owner == 'nightscout'
 
     env:
-      DESTINATION: "platform=iOS Simulator,name=iPhone 17,OS=26.2"
+      DESTINATION: "platform=iOS Simulator,name=iPhone 17,OS=27.0"
       # Default DerivedData location — deliberately OUTSIDE the repo working
       # tree. The Swiftformat build phase formats "${SRCROOT}", so anything
       # placed inside the checkout (as an earlier revision did with
@@ -82,7 +82,7 @@ jobs:
 
     steps:
       - name: Select Xcode version
-        run: sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode_27.0.app/Contents/Developer
 
       - name: Checkout code
         uses: actions/checkout@v5
@@ -97,7 +97,7 @@ jobs:
         run: git submodule status --recursive | awk '{print $1, $2}' > .submodule-status
 
       # DerivedData holds build products, the SwiftPM checkouts, AND the Xcode
-      # 26 compilation cache (CompilationCache.noindex at its root). The first
+      # compilation cache (CompilationCache.noindex at its root). The first
       # restore-key matches DerivedData last built with the SAME dependency
       # versions, so compiled deps come back warm and only changed app files
       # recompile. Saved per-SHA so the newest is always fresh.
@@ -106,10 +106,10 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-dd-${{ hashFiles('**/Package.resolved', '.submodule-status') }}-${{ github.sha }}
+          key: ${{ runner.os }}-xcode27.0-dd-${{ hashFiles('**/Package.resolved', '.submodule-status') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-dd-${{ hashFiles('**/Package.resolved', '.submodule-status') }}-
-            ${{ runner.os }}-dd-
+            ${{ runner.os }}-xcode27.0-dd-${{ hashFiles('**/Package.resolved', '.submodule-status') }}-
+            ${{ runner.os }}-xcode27.0-dd-
 
       # SwiftFormat is built from source by the Xcode build phase via
       # `swift run --package-path BuildTools`. Cache its build dir so that
@@ -118,12 +118,24 @@ jobs:
         uses: actions/cache@v5
         with:
           path: BuildTools/.build
-          key: ${{ runner.os }}-buildtools-${{ hashFiles('BuildTools/Package.swift', 'BuildTools/Package.resolved') }}
+          key: ${{ runner.os }}-xcode27.0-buildtools-${{ hashFiles('BuildTools/Package.swift', 'BuildTools/Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-buildtools-
+            ${{ runner.os }}-xcode27.0-buildtools-
 
       - name: List available simulators
         run: xcrun simctl list devices available
+
+      # The first boot of the simulator on a fresh runner takes several
+      # minutes, so it boots here and finishes while the app builds.
+      - name: Boot simulator
+        run: |
+          UDID=$(xcrun simctl list -j devices available | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]["com.apple.CoreSimulator.SimRuntime.iOS-27-0"]
+          print(next(d["udid"] for d in devices if d["name"] == "iPhone 17"))
+          ')
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
 
       # Explicit resolve so the build can run with automatic resolution off.
       # No-op when DerivedData restored warm; pinned versions only, no network
@@ -166,7 +178,7 @@ jobs:
         # entitlements — notably the App Group — WITHOUT any Apple Developer
         # credentials, so the test host can resolve its shared container at
         # launch. Manual style + empty team/profile keeps xcodebuild from
-        # reaching for a real certificate. To isolate the Xcode 26 compilation
+        # reaching for a real certificate. To isolate the Xcode compilation
         # cache if a build ever misbehaves, drop COMPILATION_CACHE_ENABLE_CACHING=YES.
 
       # Surface the failing lines directly in the job log on any build failure,
@@ -229,7 +241,13 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-dd-${{ hashFiles('**/Package.resolved', '.submodule-status') }}-${{ github.sha }}
+          key: ${{ runner.os }}-xcode27.0-dd-${{ hashFiles('**/Package.resolved', '.submodule-status') }}-${{ github.sha }}
+
+      - name: Wait for simulator boot
+        run: |
+          _start=$(date +%s)
+          xcrun simctl bootstatus "$SIM_UDID" -b
+          echo "Wait for simulator|$(( $(date +%s) - _start ))" >> "$GITHUB_WORKSPACE/.timings"
 
       - name: Run tests
         id: run_tests
@@ -315,5 +333,5 @@ jobs:
             dd_size=$(du -sh "$DD" 2>/dev/null | cut -f1 || echo "n/a")
             cc_size=$(du -sh "$DD/CompilationCache.noindex" 2>/dev/null | cut -f1 || echo "absent")
             echo "- DerivedData size (post-trim): \`${dd_size}\`"
-            echo "- CompilationCache.noindex size: \`${cc_size}\` (grows across runs as the Xcode 26 cache warms up)"
+            echo "- CompilationCache.noindex size: \`${cc_size}\` (grows across runs as the Xcode cache warms up)"
           } >> "$GITHUB_STEP_SUMMARY"
