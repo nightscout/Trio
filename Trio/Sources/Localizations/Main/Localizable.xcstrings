@@ -1139,9 +1139,6 @@
         }
       }
     },
-    "Available Complications" : {
-
-    },
     "BG" : {
 
     },
@@ -1190,6 +1187,9 @@
     },
     "Trio Chart" : {
       "comment" : "Name of the glucose chart watch complication"
+    },
+    "Trio draws your glucose into the photo of a contact on your iPhone. Put that contact on a watch face with the Contacts complication: it updates with every reading, also when the Trio complications lag." : {
+
     },
     "Trio Gauge" : {
       "comment" : "Name of the glucose ring watch complication"

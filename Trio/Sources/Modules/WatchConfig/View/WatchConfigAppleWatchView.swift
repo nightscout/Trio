@@ -105,8 +105,7 @@ struct WatchConfigAppleWatchView: BaseView {
                 miniHint: String(localized: "Shows forecast on the Apple Watch"),
                 verboseHint: Text(
                     "Enable this feature to show the forecast on the Apple Watch"
-                ),
-                headerText: String(localized: "Apple Watch Configuration")
+                )
             )
 
             SettingInputSection(
@@ -170,50 +169,56 @@ struct WatchConfigAppleWatchView: BaseView {
                             hint: Self.cornerLabelHint
                         )
                     }
-                    VStack {
-                        Picker("Small Line", selection: $state.complicationSecondaryValue) {
-                            ForEach(WatchComplicationValue.allCases) { value in
-                                Text(value.displayName).tag(value)
-                            }
-                        }.padding(.top)
-                        hintRow(
-                            miniHint: String(localized: "Second line on Trio Glucose, Trio Gauge and Trio Chart."),
-                            label: String(localized: "Small Line"),
-                            hint: Self.smallLineHint
-                        )
-                    }
-                    VStack {
-                        Stepper(
-                            value: $state.complicationStaleMinutes,
-                            in: WatchComplicationDefaults.staleMinutesRange,
-                            step: WatchComplicationDefaults.staleMinutesStep
-                        ) {
-                            HStack {
-                                Text("Mark Stale After")
-                                Spacer()
-                                Text("\(state.complicationStaleMinutes) min").foregroundStyle(.secondary)
-                            }
-                        }.padding(.top)
-                        hintRow(
-                            miniHint: String(localized: "Show -- once data is older than this. Complications can lag."),
-                            label: String(localized: "Mark Stale After"),
-                            hint: Self.markStaleAfterHint
-                        )
-                    }
                 }
             ).listRowBackground(Color.chart)
 
-            Section(
-                header: Text("Available Complications"),
-                content: {
-                    NavigationLink("Complication Previews") {
-                        WatchComplicationPreviewsView(preview: previewState)
-                    }.foregroundStyle(Color.accentColor)
+            Section {
+                VStack {
+                    Picker("Small Line", selection: $state.complicationSecondaryValue) {
+                        ForEach(WatchComplicationValue.allCases) { value in
+                            Text(value.displayName).tag(value)
+                        }
+                    }.padding(.top)
+                    hintRow(
+                        miniHint: String(localized: "Second line on Trio Glucose, Trio Gauge and Trio Chart."),
+                        label: String(localized: "Small Line"),
+                        hint: Self.smallLineHint
+                    )
                 }
-            ).listRowBackground(Color.chart)
+            }.listRowBackground(Color.chart)
+
+            Section {
+                VStack {
+                    Stepper(
+                        value: $state.complicationStaleMinutes,
+                        in: WatchComplicationDefaults.staleMinutesRange,
+                        step: WatchComplicationDefaults.staleMinutesStep
+                    ) {
+                        HStack {
+                            Text("Mark Stale After")
+                            Spacer()
+                            Text("\(state.complicationStaleMinutes) min").foregroundStyle(.secondary)
+                        }
+                    }.padding(.top)
+                    hintRow(
+                        miniHint: String(localized: "Show -- once data is older than this. Complications can lag."),
+                        label: String(localized: "Mark Stale After"),
+                        hint: Self.markStaleAfterHint
+                    )
+                }
+            }.listRowBackground(Color.chart)
+
+            Section {
+                NavigationLink("Complication Previews") {
+                    WatchComplicationPreviewsView(preview: previewState)
+                }.foregroundStyle(Color.accentColor)
+            }.listRowBackground(Color.chart)
 
             Section(
                 header: Text("Contact Image"),
+                footer: Text(
+                    "Trio draws your glucose into the photo of a contact on your iPhone. Put that contact on a watch face with the Contacts complication: it updates with every reading, also when the Trio complications lag."
+                ),
                 content: {
                     VStack {
                         HStack {
