@@ -5,135 +5,9 @@
       "comment" : "Bundle display name",
       "extractionState" : "extracted_with_value",
       "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "nb-NO" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
             "value" : "Trio"
           }
         }
@@ -143,135 +17,9 @@
       "comment" : "Bundle name",
       "extractionState" : "extracted_with_value",
       "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "nb-NO" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trio"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Trio"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
             "value" : "Trio"
           }
         }
@@ -1101,6 +849,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "行事曆用於建立新的血糖事件。"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Privacy - Camera Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Camera is used to scan the code on your Dexcom sensor packaging."
           }
         }
       }

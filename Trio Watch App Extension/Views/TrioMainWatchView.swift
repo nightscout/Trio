@@ -3,7 +3,8 @@ import SwiftUI
 import WatchKit
 
 struct TrioMainWatchView: View {
-    @State private var state = WatchState()
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var state = WatchState.shared
 
     // misc
     @State private var currentPage: Int = 0
@@ -20,15 +21,21 @@ struct TrioMainWatchView: View {
     // treatments
     @State private var selectedTreatment: TreatmentOption?
 
+    /// Ticks so staleness shows without new data.
+    @State private var now = Date()
+    private static let ticker = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+
+    /// The bubble goes stale by reading age.
+    private var isReadingDated: Bool {
+        guard let newestReading = state.glucoseValues.last?.date else { return isWatchStateDated }
+        return now.timeIntervalSince(newestReading) > 6 * 60
+    }
+
     var isWatchStateDated: Bool {
         // If `lastWatchStateUpdate` is nil, treat as "dated"
-        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else {
-            return true
-        }
-        let now = Date().timeIntervalSince1970
-        let secondsSinceUpdate = now - lastUpdateTimestamp
+        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else { return true }
         // Return true if last update older than 5 min, so 1 loop cycle
-        return secondsSinceUpdate > 5 * 60
+        return now.timeIntervalSince1970 - lastUpdateTimestamp > 5 * 60
     }
 
     var isSessionUnreachable: Bool {
@@ -67,7 +74,7 @@ struct TrioMainWatchView: View {
                     GlucoseTrendView(
                         state: state,
                         rotationDegrees: rotationDegrees,
-                        isWatchStateDated: isWatchStateDated || isSessionUnreachable
+                        isWatchStateDated: isReadingDated || isSessionUnreachable
                     )
 
                     if state.showSyncingAnimation {
@@ -226,10 +233,21 @@ struct TrioMainWatchView: View {
                 if newPath.isEmpty {
                     // Reset conditional view navigation when returning to root view
                     continueToBolus = false
+                    // Back on the main screen, so no entry is in progress
+                    state.clearEntry()
+                }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active { now = Date() }
+                // An entry left for more than 2 min (wrist down, app in the background) is
+                // cleared and the input screens are closed, so a stale amount can't be confirmed
+                if newPhase == .active, state.expireStaleEntry() {
+                    navigationPath = NavigationPath()
                 }
             }
         }
         .ignoresSafeArea()
+        .onReceive(Self.ticker) { now = $0 }
     }
 
     private func updateRotation(for trend: String?) {
