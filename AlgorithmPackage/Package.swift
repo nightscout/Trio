@@ -61,6 +61,9 @@ let package = Package(
         .target(
             name: "Trio",
             path: "Sources",
+            // The algorithm looks up strings in the main bundle; the string
+            // catalog's duplicate keys would fail SwiftPM's symbol generation.
+            exclude: ["Localizations"],
             sources: [
                 "APS/OpenAPSSwift",
                 "APS/Extensions/DecimalExtensions.swift"
