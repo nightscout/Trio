@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import WatchKit
 
 @main struct TrioWatchApp: App {
     @Environment(\.scenePhase) private var scenePhase
@@ -22,6 +23,7 @@ import UserNotifications
             if newScenePhase == .background {
                 WatchLogger.shared.info(.lifecycle, "App moved to background")
                 WatchLogger.shared.didEnterBackground()
+                WatchBackgroundRefresh.schedule()
             } else if newScenePhase == .active {
                 // looking at the watch is a wake that is not the sensor's own
                 WatchCGMHost.shared.recheckAcquisition()
@@ -30,5 +32,42 @@ import UserNotifications
                 WatchState.shared.refreshIfNeeded()
             }
         }
+    }
+}
+
+@MainActor enum WatchBackgroundRefresh {
+    private static let interval: TimeInterval = 15 * 60
+    private static let settleTimeout: TimeInterval = 5
+    private static let settlePoll: TimeInterval = 0.25
+
+    static func schedule() {
+        guard !WatchCGMHost.shared.isReadingDirectly else { return }
+        WKApplication.shared().scheduleBackgroundRefresh(
+            withPreferredDate: Date(timeIntervalSinceNow: interval),
+            userInfo: nil
+        ) { error in
+            if let error = error {
+                WatchLogger.shared.warning(.lifecycle, "Background refresh scheduling failed", error: error)
+            }
+        }
+    }
+
+    static func refresh(_ state: WatchState) async {
+        WatchLogger.shared.info(.lifecycle, "Background refresh ran")
+        schedule()
+        await settle(state)
+        state.ingestReceivedApplicationContext()
+        await settle(state)
+    }
+
+    static func settle(_ state: WatchState) async {
+        let deadline = Date(timeIntervalSinceNow: settleTimeout)
+        repeat {
+            do {
+                try await Task.sleep(for: .seconds(settlePoll))
+            } catch {
+                return
+            }
+        } while state.isAwaitingDelivery && Date() < deadline
     }
 }

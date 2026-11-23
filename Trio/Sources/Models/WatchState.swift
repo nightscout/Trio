@@ -16,6 +16,8 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var lastLoopTime: String?
     /// The watch ages it itself; `lastLoopTime` is only right when sent.
     var lastLoopDate: Date?
+    var lowGlucoseLimit: Double?
+    var highGlucoseLimit: Double?
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
 
@@ -29,12 +31,18 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
 
+    var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
+    var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
+    var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+    var complicationRingStops: [ComplicationRingStop] = []
+
     // Forecast options
     var showForecast: Bool = false
     var isForecastCone: Bool = false
     /// Latest CGM export while the CGM's Read on Apple Watch is on; nil until the phone has loaded its CGM manager.
     var watchSensorConfiguration: Data? = nil
     var watchReadsSensor: Bool = false
+    var useCriticalAlertsWatch: Bool = false
     /// The range and color scheme the watch colors its own readings by.
     var glucoseRangeLow: Decimal = 70
     var glucoseRangeHigh: Decimal = 180
@@ -51,6 +59,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         // apart from the chain below, which is at the edge of the type checker's budget
         let watchSensorIsEqual = lhs.watchSensorConfiguration == rhs.watchSensorConfiguration &&
             lhs.watchReadsSensor == rhs.watchReadsSensor &&
+            lhs.useCriticalAlertsWatch == rhs.useCriticalAlertsWatch &&
             lhs.glucoseRangeLow == rhs.glucoseRangeLow &&
             lhs.glucoseRangeHigh == rhs.glucoseRangeHigh &&
             lhs.glucoseRangeTarget == rhs.glucoseRangeTarget &&
@@ -71,6 +80,8 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.cob == rhs.cob &&
             lhs.lastLoopTime == rhs.lastLoopTime &&
             lhs.lastLoopDate == rhs.lastLoopDate &&
+            lhs.lowGlucoseLimit == rhs.lowGlucoseLimit &&
+            lhs.highGlucoseLimit == rhs.highGlucoseLimit &&
             lhs.overridePresets == rhs.overridePresets &&
             lhs.tempTargetPresets == rhs.tempTargetPresets &&
             lhs.maxBolus == rhs.maxBolus &&
@@ -79,6 +90,10 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.maxProtein == rhs.maxProtein &&
             lhs.bolusIncrement == rhs.bolusIncrement &&
             lhs.confirmBolusFaster == rhs.confirmBolusFaster &&
+            lhs.complicationCornerValue == rhs.complicationCornerValue &&
+            lhs.complicationSecondaryValue == rhs.complicationSecondaryValue &&
+            lhs.complicationStaleMinutes == rhs.complicationStaleMinutes &&
+            lhs.complicationRingStops == rhs.complicationRingStops &&
             lhs.showForecast == rhs.showForecast &&
             lhs.isForecastCone == rhs.isForecastCone &&
             lhs.forecastStartDate == rhs.forecastStartDate &&
@@ -105,6 +120,8 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(cob)
         hasher.combine(lastLoopTime)
         hasher.combine(lastLoopDate)
+        hasher.combine(lowGlucoseLimit)
+        hasher.combine(highGlucoseLimit)
         hasher.combine(overridePresets)
         hasher.combine(tempTargetPresets)
         hasher.combine(maxBolus)
@@ -113,10 +130,15 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(maxProtein)
         hasher.combine(bolusIncrement)
         hasher.combine(confirmBolusFaster)
+        hasher.combine(complicationCornerValue)
+        hasher.combine(complicationSecondaryValue)
+        hasher.combine(complicationStaleMinutes)
+        hasher.combine(complicationRingStops)
         hasher.combine(showForecast)
         hasher.combine(isForecastCone)
         hasher.combine(watchSensorConfiguration)
         hasher.combine(watchReadsSensor)
+        hasher.combine(useCriticalAlertsWatch)
         hasher.combine(glucoseRangeLow)
         hasher.combine(glucoseRangeHigh)
         hasher.combine(glucoseRangeTarget)

@@ -1089,6 +1089,117 @@
         }
       }
     },
+    "Complication Previews" : {
+
+    },
+    "Corner Label is the curved text on Trio Glucose corner slots." : {
+
+    },
+    "Curved text on Trio Glucose corner slots." : {
+
+    },
+    "Insulin on board first, with COB and glucose alongside. Fixed layout; only Mark Stale After applies." : {
+      "comment" : "Description of the insulin on board watch complication"
+    },
+    "Mark Stale After" : {
+
+    },
+    "Mark Stale After applies to every complication: once the reading is older than this, the glucose shows -- with the reading's age, and IOB and COB show -- when the loop has not run within that time.\n\nComplications can fall behind the phone, sometimes by a lot: with the watch app closed, watchOS limits how often they refresh. The Contact Image updates with every reading, so use it if you want every reading on your watch face." : {
+
+    },
+    "Previews use sample data in your units and follow your complication settings. Add them from the watch face editor under Trio. Corner slots curve the label round the face." : {
+
+    },
+    "Second line on Trio Glucose, Trio Gauge and Trio Chart." : {
+
+    },
+    "Show -- once data is older than this. Complications can lag." : {
+
+    },
+    "Small Line is the text under the glucose on Trio Glucose circular slots, beside the ring on Trio Gauge rectangular slots, and the second line of Trio Chart. Trio IOB has a fixed layout." : {
+
+    },
+    "%@ · loop %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · loop %2$@"
+          }
+        }
+      }
+    },
+    "%@ ago · loop %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ ago · loop %2$@"
+          }
+        }
+      }
+    },
+    "Available Complications" : {
+
+    },
+    "BG" : {
+
+    },
+    "COB %@" : {
+
+    },
+    "Complication Settings" : {
+
+    },
+    "Corner Label" : {
+
+    },
+    "Glucose and trend. Small Line sits under the glucose on circular slots, Corner Label on corners." : {
+      "comment" : "Description of the glucose watch complication"
+    },
+    "Glucose inside a ring that fills from low to high. Rectangular slots add Small Line, IOB and COB." : {
+      "comment" : "Description of the glucose ring watch complication"
+    },
+    "Glucose, the Small Line and IOB next to the last three hours of readings. Rectangular slots only." : {
+      "comment" : "Description of the glucose chart watch complication"
+    },
+    "IOB %@" : {
+
+    },
+    "IOB %@ · COB %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "IOB %1$@ · COB %2$@"
+          }
+        }
+      }
+    },
+    "Loop Age" : {
+      "comment" : "Minutes since the last loop"
+    },
+    "no data" : {
+
+    },
+    "Nothing" : {
+      "comment" : "Complication slot shows nothing"
+    },
+    "Small Line" : {
+
+    },
+    "Trio Chart" : {
+      "comment" : "Name of the glucose chart watch complication"
+    },
+    "Trio Gauge" : {
+      "comment" : "Name of the glucose ring watch complication"
+    },
+    "Trio Glucose" : {
+      "comment" : "Name of the glucose watch complication"
+    },
+    "Trio IOB" : {
+      "comment" : "Name of the insulin on board watch complication"
+    },
     " " : {
       "localizations" : {
         "bg" : {

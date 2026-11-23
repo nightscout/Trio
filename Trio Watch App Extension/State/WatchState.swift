@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import UserNotifications
 import WatchConnectivity
+import WidgetKit
 
 /// WatchState manages the communication between the Watch app and the iPhone app using WatchConnectivity.
 /// It handles glucose data synchronization and sending treatment requests (bolus, carbs) to the phone.
@@ -61,6 +62,14 @@ import WatchConnectivity
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
 
+    var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
+    var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
+    var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+    var complicationRingStops: [ComplicationRingStop] = []
+    var glucoseUnits: String = ComplicationState.defaultUnits
+    var lowGlucoseLimit: Double?
+    var highGlucoseLimit: Double?
+
     // Forecast options
     var showForecast: Bool = false
     var isForecastCone: Bool = false
@@ -102,8 +111,8 @@ import WatchConnectivity
     var recommendedBolus: Decimal = 0
 
     /// Snapshots older than this are dropped at the top of the WC delegate
-    /// methods. Single source of truth for both `didReceiveMessage` and
-    /// `didReceiveUserInfo`.
+    /// methods. Single source of truth for `didReceiveMessage`,
+    /// `didReceiveUserInfo` and `didReceiveApplicationContext`.
     private static let maxAcceptableMessageAgeInMinutes: TimeInterval = 15 * 60
 
     /// In memory, so relaunches accept any payload.
@@ -117,9 +126,20 @@ import WatchConnectivity
 
     /// Temporary storage for new data arriving via WatchConnectivity.
     private var pendingData: [String: Any] = [:]
+    private var lastSavedComplicationState: ComplicationState?
+    private static let maxComplicationHistoryPoints = 40.0
 
     /// Work item to schedule finalizing the pending data.
     private var finalizeWorkItem: DispatchWorkItem?
+    private let complicationReloader = ComplicationReloader(
+        fetchInstalledKinds: { completion in
+            WidgetCenter.shared.getCurrentConfigurations { result in
+                let installedKinds = (try? result.get())?.map(\.kind) ?? []
+                DispatchQueue.main.async { completion(installedKinds) }
+            }
+        },
+        reloadTimelines: { WidgetCenter.shared.reloadTimelines(ofKind: $0) }
+    )
 
     /// Debounce only in the foreground.
     private var isAppActive = false
@@ -196,6 +216,17 @@ import WatchConnectivity
     override init() {
         super.init()
         setupSession()
+    }
+
+    func ingestReceivedApplicationContext() {
+        guard let context = session?.receivedApplicationContext, !context.isEmpty else { return }
+        handleIncomingWatchStatePayload(context)
+    }
+
+    var isAwaitingDelivery: Bool {
+        guard let session else { return false }
+        return session.activationState != .activated || session.hasContentPending || !pendingData.isEmpty ||
+            complicationReloader.isReloading
     }
 
     /// Configures the WatchConnectivity session if supported on the device
@@ -326,6 +357,8 @@ import WatchConnectivity
 
             if activationState == .activated {
                 WatchLogger.shared.info(.connectivity, "Session activated, phone reachable: \(session.isReachable)")
+
+                WatchBackgroundRefresh.schedule()
 
                 self.handleSessionActivated(session)
             }
@@ -760,6 +793,34 @@ import WatchConnectivity
             }
         }
 
+        if let raw = message[WatchMessageKeys.complicationCornerValue] as? String {
+            complicationCornerValue = WatchComplicationValue(rawValue: raw) ?? WatchComplicationDefaults.cornerValue
+        }
+
+        if let raw = message[WatchMessageKeys.complicationSecondaryValue] as? String {
+            complicationSecondaryValue = WatchComplicationValue(rawValue: raw) ?? WatchComplicationDefaults.secondaryValue
+        }
+
+        if let minutes = (message[WatchMessageKeys.complicationStaleMinutes] as? NSNumber)?.intValue {
+            complicationStaleMinutes = WatchComplicationDefaults.clampedStaleMinutes(minutes)
+        }
+
+        if let units = message[WatchMessageKeys.units] as? String {
+            glucoseUnits = units
+        }
+
+        if let stops = message[WatchMessageKeys.complicationRingStops] as? [[String: Any]] {
+            complicationRingStops = stops.compactMap(ComplicationRingStop.init(payload:))
+        }
+
+        if let low = (message[WatchMessageKeys.lowGlucoseLimit] as? NSNumber)?.doubleValue {
+            lowGlucoseLimit = low
+        }
+
+        if let high = (message[WatchMessageKeys.highGlucoseLimit] as? NSNumber)?.doubleValue {
+            highGlucoseLimit = high
+        }
+
         if let showForecast = message[WatchMessageKeys.showForecastWatch] as? Bool {
             self.showForecast = showForecast
         }
@@ -840,7 +901,10 @@ import WatchConnectivity
     /// the watch has none. Idempotent: built each time from the phone's copy and the watch's own.
     private func applyOwnOverlay(now: Date = Date()) {
         // the watch's own reading gives way to the phone's once it is no longer fresh
-        defer { scheduleOwnReadingExpiry(now: now) }
+        defer {
+            scheduleOwnReadingExpiry(now: now)
+            saveComplicationSnapshot()
+        }
         ownReadings.removeAll { $0.dateString < now.addingTimeInterval(-6 * 60 * 60) }
         let range = glucoseRange
         let own = ownReadings.compactMap { reading in (reading.glucose ?? reading.sgv).map { (reading, $0) } }
@@ -966,5 +1030,62 @@ struct WatchGlucoseRange: Codable, Equatable {
             targetGlucose: target,
             glucoseColorScheme: scheme
         )
+    }
+}
+
+extension WatchState {
+    private func saveComplicationSnapshot() {
+        guard let latestReading = glucoseValues.last else { return }
+        let snapshot = complicationSnapshot(readingDate: latestReading.date, glucoseValue: latestReading.glucose)
+        guard snapshot != lastSavedComplicationState else { return }
+        do {
+            try ComplicationStore.save(snapshot)
+            lastSavedComplicationState = snapshot
+            reloadInstalledComplications()
+            let readingAge = Int(Date().timeIntervalSince(latestReading.date) / 60)
+            WatchLogger.shared.info(.data, "Complication snapshot saved, reading \(readingAge) min old")
+        } catch {
+            WatchLogger.shared.warning(.data, "Complication snapshot not saved", error: error)
+        }
+    }
+
+    private func complicationSnapshot(readingDate: Date, glucoseValue: Double) -> ComplicationState {
+        ComplicationState(
+            date: readingDate,
+            glucose: currentGlucose,
+            glucoseColorHex: currentGlucoseColorString,
+            trend: trend ?? "",
+            delta: ComplicationState.presentOrMissing(delta),
+            iob: ComplicationState.presentOrMissing(iob),
+            cob: ComplicationState.presentOrMissing(cob),
+            lastLoopTime: ComplicationState.presentOrMissing(lastLoopTime),
+            cornerValue: complicationCornerValue,
+            secondaryValue: complicationSecondaryValue,
+            staleMinutes: complicationStaleMinutes,
+            units: glucoseUnits,
+            glucoseValue: glucoseValue,
+            history: complicationHistory(until: readingDate),
+            loopDate: lastLoopDate,
+            limits: complicationLimits,
+            ringStops: complicationRingStops.isEmpty ? nil : complicationRingStops
+        )
+    }
+
+    private var complicationLimits: ClosedRange<Double>? {
+        guard let low = lowGlucoseLimit, let high = highGlucoseLimit, low < high else { return nil }
+        return low ... high
+    }
+
+    private func reloadInstalledComplications() {
+        complicationReloader.reload(Set(ComplicationKind.allCases.map(\.widgetKind)))
+    }
+
+    private func complicationHistory(until end: Date) -> [ComplicationPoint] {
+        let from = end.addingTimeInterval(-ComplicationState.chartWindow)
+        let recent = glucoseValues.filter { $0.date >= from }
+        let step = max(1, Int((Double(recent.count) / Self.maxComplicationHistoryPoints).rounded(.up)))
+        return recent.enumerated()
+            .filter { $0.offset % step == 0 || $0.offset == recent.count - 1 }
+            .map { ComplicationPoint(timestamp: $0.element.date.timeIntervalSince1970, glucose: $0.element.glucose) }
     }
 }
