@@ -123,7 +123,7 @@ import WatchConnectivity
         let state = ComplicationState.sample(units: "mg/dL", settings: settings, date: now)
         let fresh = makeModel(.glucose, state, at: now.addingTimeInterval(7 * 60))
         #expect(fresh.valueColor == .primary)
-        #expect(fresh.dimColor == ComplicationModel.dimText)
+        #expect(fresh.dimColor == .primary)
         let stale = makeModel(.glucose, state, at: now.addingTimeInterval(11 * 60))
         #expect(stale.glucoseColor == ComplicationModel.staleText)
         #expect(stale.valueColor == ComplicationModel.staleText)
@@ -538,6 +538,37 @@ import WatchConnectivity
         #expect(state.staleTransitionDates(after: now.addingTimeInterval(20 * 60), within: 2 * 60 * 60).isEmpty)
         state.loopDate = nil
         #expect(state.staleTransitionDates(after: now, within: 2 * 60 * 60).count == 1)
+    }
+
+    @Test("The loop turns from green to yellow to red") func loopFreshness() {
+        var state = ComplicationState.sample(units: "mg/dL", date: now)
+        state.loopDate = now
+        #expect(makeModel(.loop, state, at: now.addingTimeInterval(5 * 60 + 30)).loopColor == ComplicationModel.loopGreen)
+        #expect(makeModel(.loop, state, at: now.addingTimeInterval(5 * 60 + 31)).loopColor == ComplicationModel.loopYellow)
+        let overdue = makeModel(.loop, state, at: now.addingTimeInterval(10 * 60 + 31))
+        #expect(overdue.loopColor == ComplicationModel.loopRed)
+        #expect(overdue.loopSymbol == "iphone.slash")
+        state.loopDate = nil
+        let unknown = makeModel(.loop, state, at: now)
+        #expect(unknown.loopColor == ComplicationModel.staleText)
+        #expect(unknown.loopSymbol == "iphone")
+        #expect(unknown.loopTimeText == "--")
+    }
+
+    @Test("Timeline has an entry when the loop turns yellow and red") func loopFreshnessTransitionDates() {
+        var state = ComplicationState.sample(units: "mg/dL", date: now)
+        state.loopDate = now.addingTimeInterval(-2 * 60)
+        let dates = state.loopFreshnessTransitionDates(after: now, within: 2 * 60 * 60)
+        #expect(dates == [now.addingTimeInterval(3 * 60 + 31), now.addingTimeInterval(8 * 60 + 31)])
+        state.loopDate = nil
+        #expect(state.loopFreshnessTransitionDates(after: now, within: 2 * 60 * 60).isEmpty)
+    }
+
+    @Test("The last loop's time hides once it is a day old") func loopTimeHidesAfterADay() {
+        var state = ComplicationState.sample(units: "mg/dL", date: now)
+        state.loopDate = now
+        #expect(makeModel(.loop, state, at: now.addingTimeInterval(60)).loopTimeText != "--")
+        #expect(makeModel(.loop, state, at: now.addingTimeInterval(24 * 60 * 60 + 1)).loopTimeText == "--")
     }
 }
 

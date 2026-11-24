@@ -179,6 +179,42 @@ struct ComplicationState: Codable, Equatable {
             .filter { $0 > now && $0 < end }
     }
 
+    enum LoopFreshness {
+        case fresh
+        case late
+        case overdue
+        case unknown
+    }
+
+    private static let loopLag: TimeInterval = 30
+    private static let loopLateAfter: TimeInterval = 5 * 60
+    private static let loopOverdueAfter: TimeInterval = 10 * 60
+
+    /// As the loop status on the phone and in the watch app: green up to 5 minutes, yellow up to 10, red after.
+    func loopFreshness(at reference: Date) -> LoopFreshness {
+        guard let loopDate = loopDate else { return .unknown }
+        let age = reference.timeIntervalSince(loopDate) - Self.loopLag
+        if age <= Self.loopLateAfter { return .fresh }
+        if age <= Self.loopOverdueAfter { return .late }
+        return .overdue
+    }
+
+    func loopFreshnessTransitionDates(after now: Date, within span: TimeInterval) -> [Date] {
+        guard let loopDate = loopDate else { return [] }
+        let end = now.addingTimeInterval(span)
+        return [Self.loopLateAfter, Self.loopOverdueAfter]
+            .map { loopDate.addingTimeInterval(Self.loopLag + $0 + 1) }
+            .filter { $0 > now && $0 < end }
+    }
+
+    /// The last loop's time; none once it is older than a day, where a time of day alone misleads.
+    func loopTime(at reference: Date) -> Date? {
+        guard let loopDate = loopDate,
+              reference.timeIntervalSince(loopDate) <= TimeInterval(Self.maxLoopAgeMinutes) * 60
+        else { return nil }
+        return loopDate
+    }
+
     func loopAgeText(at reference: Date) -> String {
         guard let loopDate = loopDate else { return lastLoopTime }
         let minutes = max(0, Int(reference.timeIntervalSince(loopDate) / 60))

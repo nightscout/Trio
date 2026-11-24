@@ -1075,7 +1075,8 @@ extension WatchState {
         ComplicationState(
             date: readingDate,
             glucose: currentGlucose,
-            glucoseColorHex: currentGlucoseColorString,
+            // the bubble's color is white in range; the complication colors every reading
+            glucoseColorHex: glucoseValues.last?.color.toHexString() ?? currentGlucoseColorString,
             trend: trend ?? "",
             delta: ComplicationState.presentOrMissing(delta),
             iob: ComplicationState.presentOrMissing(iob),

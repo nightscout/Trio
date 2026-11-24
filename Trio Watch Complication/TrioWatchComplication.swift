@@ -51,7 +51,10 @@ struct TrioGlucoseProvider: TimelineProvider {
         }
 
         let gridDates = stride(from: 0, through: Self.timelineSpan, by: Self.timelineStep).map { now.addingTimeInterval($0) }
-        let dates = gridDates + current.content.state.staleTransitionDates(after: now, within: Self.timelineSpan)
+        let state = current.content.state
+        let dates = gridDates
+            + state.staleTransitionDates(after: now, within: Self.timelineSpan)
+            + state.loopFreshnessTransitionDates(after: now, within: Self.timelineSpan)
         let entries = dates.sorted().map { TrioGlucoseEntry(date: $0, content: current.content) }
         completion(Timeline(entries: entries, policy: .atEnd))
     }
@@ -156,6 +159,10 @@ struct TrioIobComplication: Widget {
 
 struct TrioChartComplication: Widget {
     var body: some WidgetConfiguration { complicationConfiguration(for: .chart) }
+}
+
+struct TrioLoopComplication: Widget {
+    var body: some WidgetConfiguration { complicationConfiguration(for: .loop) }
 }
 
 // MARK: - Timeline Entry
@@ -264,6 +271,7 @@ struct TrioWatchComplication: Widget {
         TrioGaugeComplication()
         TrioIobComplication()
         TrioChartComplication()
+        TrioLoopComplication()
         TrioWatchComplication()
     }
 }

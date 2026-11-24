@@ -5,6 +5,7 @@ enum ComplicationKind: String, CaseIterable, Identifiable {
     case gauge
     case iob
     case chart
+    case loop
 
     var id: String { rawValue }
 
@@ -14,6 +15,7 @@ enum ComplicationKind: String, CaseIterable, Identifiable {
         case .gauge: return "TrioGaugeComplication"
         case .iob: return "TrioIobComplication"
         case .chart: return "TrioChartComplication"
+        case .loop: return "TrioLoopComplication"
         }
     }
 
@@ -23,6 +25,7 @@ enum ComplicationKind: String, CaseIterable, Identifiable {
         case .gauge: return String(localized: "Trio Gauge", comment: "Name of the glucose ring watch complication")
         case .iob: return String(localized: "Trio IOB", comment: "Name of the insulin on board watch complication")
         case .chart: return String(localized: "Trio Chart", comment: "Name of the glucose chart watch complication")
+        case .loop: return String(localized: "Trio Loop", comment: "Name of the loop status watch complication")
         }
     }
 
@@ -48,6 +51,11 @@ enum ComplicationKind: String, CaseIterable, Identifiable {
                 localized: "Glucose, the Small Line and IOB next to the last three hours of readings. Rectangular slots only.",
                 comment: "Description of the glucose chart watch complication"
             )
+        case .loop:
+            return String(
+                localized: "Shows if Trio is looping. Green: looped in the last 5 minutes. Yellow: up to 10 minutes ago. Red: longer ago. Below is the time of the last loop.",
+                comment: "Description of the loop status watch complication"
+            )
         }
     }
 
@@ -56,7 +64,8 @@ enum ComplicationKind: String, CaseIterable, Identifiable {
         case .chart: return [.rectangular]
         case .gauge: return [.corner, .circular, .rectangular]
         case .glucose,
-             .iob: return [.corner, .circular, .rectangular, .inline]
+             .iob,
+             .loop: return [.corner, .circular, .rectangular, .inline]
         }
     }
 }
@@ -76,8 +85,10 @@ struct ComplicationRendering {
 
 struct ComplicationModel {
     static let neutralRing = Gradient(colors: [.white, .white])
-    static let dimText = Color(white: 0.8)
     static let staleText = Color(white: 0.65)
+    static let loopGreen = Color(complicationHex: "#6FCF97") ?? .green
+    static let loopYellow = Color(complicationHex: "#FFC145") ?? .yellow
+    static let loopRed = Color(complicationHex: "#EB5757") ?? .red
 
     let kind: ComplicationKind
     let displayedState: ComplicationState
@@ -117,7 +128,7 @@ struct ComplicationModel {
 
     var valueColor: Color { isStale || isLoopStale || isLoopUnknown ? Self.staleText : .primary }
 
-    var loopLineColor: Color { isLoopStale || isLoopUnknown ? Self.staleText : Self.dimText }
+    var loopLineColor: Color { isLoopStale || isLoopUnknown ? Self.staleText : .primary }
 
     var statusLine: String {
         if isStale { return ageText }
@@ -125,7 +136,7 @@ struct ComplicationModel {
         return "COB \(displayedState.cob)"
     }
 
-    var dimColor: Color { isStale ? Self.staleText : Self.dimText }
+    var dimColor: Color { isStale ? Self.staleText : .primary }
 
     var trendArrow: String { isStale ? "" : displayedState.trendArrow }
 
@@ -137,13 +148,39 @@ struct ComplicationModel {
         trendArrow.isEmpty ? glucoseText : "\(glucoseText)\(trendArrow)"
     }
 
+    var glucoseWithArrowText: Text {
+        Text(glucoseText).foregroundStyle(glucoseTextColor) + Text(trendArrow).foregroundStyle(.primary)
+    }
+
     var cornerMainText: String {
         switch kind {
         case .iob: return displayedState.iob
         case .gauge: return glucoseText
         case .chart,
              .glucose: return glucoseWithArrow
+        case .loop: return loopTimeText
         }
+    }
+
+    var loopFreshness: ComplicationState.LoopFreshness {
+        isPlaceholder ? .unknown : displayedState.loopFreshness(at: referenceDate)
+    }
+
+    var loopColor: Color {
+        switch loopFreshness {
+        case .fresh: return Self.loopGreen
+        case .late: return Self.loopYellow
+        case .overdue: return Self.loopRed
+        case .unknown: return Self.staleText
+        }
+    }
+
+    /// The slash tells red from green without color.
+    var loopSymbol: String { loopFreshness == .overdue ? "iphone.slash" : "iphone" }
+
+    var loopTimeText: String {
+        guard !isPlaceholder, let time = displayedState.loopTime(at: referenceDate) else { return ComplicationState.missingValue }
+        return time.formatted(.timeOfDay.hour(.defaultDigits(amPM: .omitted)))
     }
 
     var ageText: String {
@@ -231,11 +268,24 @@ struct ComplicationCircularContent: View {
                 GlucoseRingGauge(model: model, fontSize: 16)
             case .iob:
                 iob
+            case .loop:
+                loop
             }
         }
         .fontDesign(.rounded)
         .lineLimit(1)
         .minimumScaleFactor(0.6)
+    }
+
+    private var loop: some View {
+        VStack(spacing: 1) {
+            Image(systemName: model.loopSymbol)
+                .font(.system(size: 22, weight: .semibold))
+                .foregroundStyle(model.loopColor)
+            Text(model.loopTimeText)
+                .font(.system(size: 12, weight: .semibold))
+        }
+        .padding(.horizontal, 2)
     }
 
     private var glucose: some View {
@@ -270,11 +320,24 @@ struct ComplicationCornerMain: View {
     let model: ComplicationModel
 
     var body: some View {
-        Text(model.cornerMainText)
-            .font(.system(size: 20, weight: .bold, design: .rounded))
-            .minimumScaleFactor(0.6)
-            .lineLimit(1)
-            .foregroundStyle(model.kind == .iob ? model.valueColor : model.glucoseTextColor)
+        Group {
+            switch model.kind {
+            case .loop:
+                Image(systemName: model.loopSymbol)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(model.loopColor)
+            case .iob:
+                Text(model.cornerMainText).foregroundStyle(model.valueColor)
+            case .gauge:
+                Text(model.cornerMainText).foregroundStyle(model.glucoseTextColor)
+            case .chart,
+                 .glucose:
+                model.glucoseWithArrowText
+            }
+        }
+        .font(.system(size: 20, weight: .bold, design: .rounded))
+        .minimumScaleFactor(0.6)
+        .lineLimit(1)
     }
 }
 
@@ -303,6 +366,8 @@ struct ComplicationCornerLabel: View {
         case .chart,
              .glucose:
             Text(model.cornerText)
+        case .loop:
+            Text("Loop \(model.loopTimeText)")
         }
     }
 }
@@ -321,6 +386,8 @@ struct ComplicationRectangularContent: View {
                 iob
             case .chart:
                 chart
+            case .loop:
+                loop
             }
         }
         .fontDesign(.rounded)
@@ -337,7 +404,7 @@ struct ComplicationRectangularContent: View {
             if !model.isStale {
                 Text(model.displayedState.trendArrow)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(model.glucoseTextColor)
+                    .foregroundStyle(.primary)
                 Text(model.displayedState.delta)
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(model.dimColor)
@@ -387,9 +454,8 @@ struct ComplicationRectangularContent: View {
                 LabelledValue(model: model, label: "COB", value: model.cobText, size: 22)
             }
             HStack(spacing: 4) {
-                Text(model.glucoseWithArrow)
+                model.glucoseWithArrowText
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(model.glucoseTextColor)
                 Text(
                     model.isStale
                         ? "\(model.ageText) ago"
@@ -401,12 +467,26 @@ struct ComplicationRectangularContent: View {
         }
     }
 
+    private var loop: some View {
+        HStack(spacing: 8) {
+            Image(systemName: model.loopSymbol)
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundStyle(model.loopColor)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Last loop")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(model.loopTimeText)
+                    .font(.system(size: 22, weight: .bold))
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
     private var chart: some View {
         HStack(spacing: 6) {
             VStack(alignment: .leading, spacing: 0) {
-                Text(model.glucoseWithArrow)
+                model.glucoseWithArrowText
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(model.glucoseTextColor)
                 Text(model.secondaryTextBesideArrow)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(model.dimColor)
@@ -430,7 +510,11 @@ struct ComplicationInlineContent: View {
     let model: ComplicationModel
 
     var body: some View {
-        Text(text)
+        if model.kind == .loop {
+            Text(Image(systemName: model.loopSymbol)) + Text(" \(model.loopTimeText)")
+        } else {
+            Text(text)
+        }
     }
 
     private var text: String {
@@ -441,7 +525,8 @@ struct ComplicationInlineContent: View {
                 : "IOB \(model.iobText) · COB \(model.cobText) · \(model.glucoseWithArrow)"
         case .chart,
              .gauge,
-             .glucose:
+             .glucose,
+             .loop:
             return model.isStale
                 ? "\(model.glucoseText) · \(model.ageText) ago"
                 : "\(model.glucoseWithArrow) \(model.displayedState.delta) · IOB \(model.displayedState.iob)"
@@ -496,7 +581,7 @@ struct ComplicationSparkline: View {
             } else {
                 Text("no data")
                     .font(.system(size: 10, design: .rounded))
-                    .foregroundStyle(ComplicationModel.dimText)
+                    .foregroundStyle(ComplicationModel.staleText)
                     .frame(width: geometry.size.width, height: geometry.size.height)
             }
         }
