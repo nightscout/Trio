@@ -12,7 +12,7 @@ extension IconConfig {
         var body: some View {
             IconSelection()
                 .onAppear(perform: configureView)
-                .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme).ignoresSafeArea())
+                .scrollContentBackground(.hidden).background(appState.trioBackgroundColor(for: colorScheme))
         }
     }
 }
