@@ -579,7 +579,7 @@ import Testing
         var engine = SettingsAnalysis.Engine(units: .mgdL)
         let context = self.context
         engine.loadHistory = {
-            await SettingsAnalysis.HistoryLoader.load($0, excludedAdjustments: $1, context: context)
+            await SettingsAnalysis.HistoryLoader.load($0, exerciseAdjustments: $1, context: context)
         }
         let report = await engine.analyze(timeFrame: frame, snapshot: .defaults, catalog: nil, catalogError: nil)
 
@@ -590,12 +590,12 @@ import Testing
         #expect(!found.contains(.unannouncedMeal))
         #expect(report.readings == 289)
 
-        // The user says "Exercise" is not activity: no activity drop.
+        // The user marks nothing as exercise: no activity drop.
         let usages = await SettingsAnalysis.HistoryLoader.adjustmentUsages(frame, context: context)
         #expect(usages.map(\.adjustment.name) == ["Exercise"])
         let excluded = await engine.analyze(
             timeFrame: frame,
-            excludedAdjustments: Set(usages.map(\.id)),
+            exerciseAdjustments: [],
             snapshot: .defaults,
             catalog: nil,
             catalogError: nil
@@ -624,7 +624,17 @@ import Testing
         #expect(usages.map(\.count) == [2, 2, 1])
         #expect(usages.first(where: { $0.adjustment == afterLow })?.duration == 3600)
 
-        history.excludeAdjustments([afterLow.id])
+        // Until the user picks, raised temp targets count.
+        history.selectExercise(nil)
+        #expect(history.activity.map(\.start) == [at(3), at(8), at(10), at(15), at(17)])
+        // Only the ones marked as exercise count.
+        history.selectExercise([custom140.id, custom120.id])
         #expect(history.activity.map(\.start) == [at(8), at(15), at(17)])
+
+        // Unused presets are listed too, after the used ones.
+        let sport = Adjustment(kind: .override, name: "Sport", target: nil, percentage: 70)
+        let withPresets = SettingsAnalysis.AdjustmentUsage.usages(of: history.adjustments, presets: [afterLow, sport], in: frame)
+        #expect(withPresets.map(\.count) == [2, 2, 1, 0])
+        #expect(withPresets.last?.adjustment == sport)
     }
 }

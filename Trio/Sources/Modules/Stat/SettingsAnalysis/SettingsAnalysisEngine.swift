@@ -3,19 +3,20 @@ import Foundation
 extension SettingsAnalysis {
     struct Engine {
         let units: GlucoseUnits
-        var loadHistory: (TimeFrame, Set<String>) async -> History = {
-            await HistoryLoader.load($0, excludedAdjustments: $1)
+        var loadHistory: (TimeFrame, Set<String>?) async -> History = {
+            await HistoryLoader.load($0, exerciseAdjustments: $1)
         }
 
-        /// `excludedAdjustments` holds `Adjustment.id`s the user does not want counted as activity.
+        /// `exerciseAdjustments` holds the `Adjustment.id`s the user uses for exercise;
+        /// `nil` until they pick, which uses raised temp targets and reduced-insulin overrides.
         func analyze(
             timeFrame: TimeFrame,
-            excludedAdjustments: Set<String> = [],
+            exerciseAdjustments: Set<String>? = nil,
             snapshot: SettingsSnapshot,
             catalog: Catalog?,
             catalogError: String?
         ) async -> Report {
-            let history = await loadHistory(timeFrame, excludedAdjustments)
+            let history = await loadHistory(timeFrame, exerciseAdjustments)
             return Self.report(
                 history: history,
                 timeFrame: timeFrame,
