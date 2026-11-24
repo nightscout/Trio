@@ -29,6 +29,14 @@ extension Formatter {
         return formatter
     }()
 
+    static let decimalFormatterWithOneFractionDigit: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = .current
+        formatter.maximumFractionDigits = 1
+        return formatter
+    }()
+  
     static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .short
@@ -101,6 +109,29 @@ extension Duration {
 }
 
 extension Date {
+    /// An hour of the day (0–23), to format with `.timeOfDay`.
+    init(hourOfDay: Int) {
+        self.init(minuteOfDay: hourOfDay * 60)
+    }
+
+    /// Minutes after midnight, as therapy schedules store them, to format with `.timeOfDay`.
+    /// The date has no day, so a daylight-saving change can't shift the time.
+    init(minuteOfDay: Int) {
+        self = Calendar.current.date(from: DateComponents(minute: minuteOfDay))!
+    }
+
+    /// "22:00 – 06:00", "10:00 PM – 6:00 AM". Each end is formatted on its own,
+    /// because `Date.IntervalFormatStyle` adds dates to a range that crosses midnight.
+    func formattedTimeRange(to end: Date, locale: Locale = .autoupdatingCurrent) -> String {
+        formatted(.timeOfDay.locale(locale)) + " – " + end.formatted(.timeOfDay.locale(locale))
+    }
+
+    /// The clock hour this date falls in, for hourly stats: "14:00 – 15:00", "11:00 PM – 12:00 AM".
+    func formattedHourRange(locale: Locale = .autoupdatingCurrent) -> String {
+        let hour = Calendar.current.component(.hour, from: self)
+        return Date(hourOfDay: hour).formattedTimeRange(to: Date(hourOfDay: (hour + 1) % 24), locale: locale)
+    }
+
     /// Time since this date, rounded down: "7 min", "1 hr 30 min", "< 1 min".
     func formattedTimeAgo(locale: Locale = .autoupdatingCurrent) -> String {
         Duration.seconds(-timeIntervalSinceNow).formattedTimeSpan(.largestTwoUnits, locale: locale)
@@ -145,6 +176,14 @@ extension JSONEncoder.DateEncodingStrategy {
         var container = $1.singleValueContainer()
         try container.encode(Formatter.iso8601withFractionalSeconds.string(from: $0))
     }
+}
+
+extension FormatStyle where Self == Date.FormatStyle {
+    /// Time of day in the user's 12/24h style: "6:07 AM", "06:07".
+    static var timeOfDay: Self { .dateTime.hour().minute() }
+
+    /// Numeric date with the time of day: "1/5/2026, 6:07 AM", "5.1.2026, 06:07".
+    static var dateAndTime: Self { .timeOfDay.year().month(.defaultDigits).day() }
 }
 
 extension FormatStyle where Self == FloatingPointFormatStyle<Double>.Percent {

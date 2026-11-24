@@ -66,8 +66,8 @@ extension AlarmWindows {
                             Button(
                                 action: {
                                     hintLabel = String(localized: "Day and Night Window")
-                                    let dayDefault = Self.formattedTimeOfDay(hour: 6, minute: 0)
-                                    let nightDefault = Self.formattedTimeOfDay(hour: 22, minute: 0)
+                                    let dayDefault = Date(hourOfDay: 6).formatted(.timeOfDay)
+                                    let nightDefault = Date(hourOfDay: 22).formatted(.timeOfDay)
                                     selectedVerboseHint = AnyView(
                                         VStack(alignment: .leading, spacing: 10) {
                                             Text(
@@ -125,13 +125,6 @@ extension AlarmWindows {
         private static func timeOfDay(from date: Date) -> TimeOfDay {
             let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
             return TimeOfDay(hour: comps.hour ?? 0, minute: comps.minute ?? 0)
-        }
-
-        /// Locale-aware HH:mm / h:mm a. Used so 12-hour locales see "10:00 PM"
-        /// instead of "22:00" in hint copy.
-        private static func formattedTimeOfDay(hour: Int, minute: Int) -> String {
-            let date = Calendar.current.date(bySettingHour: hour, minute: minute, second: 0, of: Date()) ?? Date()
-            return date.formatted(.dateTime.hour().minute())
         }
     }
 }
