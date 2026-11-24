@@ -35,6 +35,7 @@ extension Notification.Name {
     let initState = InitState()
 
     @State private var appState = AppState()
+    @StateObject private var icons = Icons()
     @State private var developmentBranchAlerter = DevelopmentBranchAlerter.shared
     @State private var showLoadingView = true
     @State private var showLoadingError = false
@@ -355,7 +356,7 @@ extension Notification.Name {
                                 coreDataStack.persistentContainer.viewContext
                             )
                             .environment(appState)
-                            .environmentObject(Icons())
+                            .environmentObject(icons)
                             .onOpenURL(perform: handleURL)
                     }
                 } else if onboardingManager.shouldShowOnboarding {
@@ -372,7 +373,7 @@ extension Notification.Name {
                         .preferredColorScheme(colorScheme(for: colorSchemePreference) ?? nil)
                         .environment(\.managedObjectContext, coreDataStack.persistentContainer.viewContext)
                         .environment(appState)
-                        .environmentObject(Icons())
+                        .environmentObject(icons)
                         .onOpenURL(perform: handleURL)
                 }
             }

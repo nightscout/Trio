@@ -5,7 +5,7 @@ struct IconSelection: View {
     @EnvironmentObject var model: Icons
 
     var body: some View {
-        let columns = Array(repeating: GridItem(.adaptive(minimum: 114, maximum: 1024), spacing: 0), count: 3)
+        let columns = [GridItem(.adaptive(minimum: 100), spacing: 0)]
 
         VStack {
             HStack {
@@ -45,9 +45,7 @@ struct IconSelection: View {
     }
 }
 
-struct IconSelectionRootView_Previews: PreviewProvider {
-    static var previews: some View {
-        IconSelection()
-            .environmentObject(Icons())
-    }
+#Preview {
+    IconSelection()
+        .environmentObject(Icons())
 }
