@@ -5,7 +5,7 @@ struct IconSelection: View {
     @EnvironmentObject var model: Icons
 
     var body: some View {
-        let columns = [GridItem(.adaptive(minimum: 100), spacing: 0)]
+        let columns = Array(repeating: GridItem(.adaptive(minimum: 114, maximum: 1024), spacing: 0), count: 3)
 
         VStack {
             HStack {
