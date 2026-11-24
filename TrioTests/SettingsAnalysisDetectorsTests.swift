@@ -591,7 +591,7 @@ import Testing
         #expect(report.readings == 289)
 
         // The user marks nothing as exercise: no activity drop.
-        let usages = await SettingsAnalysis.HistoryLoader.adjustmentUsages(frame, context: context)
+        let usages = await SettingsAnalysis.HistoryLoader.adjustmentUsages(now: frame.end, context: context)
         #expect(usages.map(\.adjustment.name) == ["Exercise"])
         let excluded = await engine.analyze(
             timeFrame: frame,

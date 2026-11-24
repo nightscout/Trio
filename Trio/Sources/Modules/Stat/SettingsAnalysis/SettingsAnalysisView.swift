@@ -14,7 +14,7 @@ struct SettingsAnalysisView: View {
     @State private var isAnalyzing = false
     @State private var report: SettingsAnalysis.Report?
 
-    /// All presets plus the temp targets and overrides used in the time frame.
+    /// All presets plus every temp target and override ever used.
     @State private var adjustments: [SettingsAnalysis.AdjustmentUsage] = []
     /// `Adjustment.id`s used for exercise, newline-separated; `nil` until the user picks.
     @AppStorage("SettingsAnalysis.exerciseAdjustments") private var exerciseAdjustmentsRaw: String?
@@ -25,21 +25,6 @@ struct SettingsAnalysisView: View {
 
     private func isExercise(_ adjustment: SettingsAnalysis.Adjustment) -> Bool {
         exerciseAdjustments?.contains(adjustment.id) ?? adjustment.suggestsExercise
-    }
-
-    private struct TimeFrameKey: Hashable {
-        let preset: SettingsAnalysis.TimeFramePreset?
-        let start: Date
-        let end: Date
-    }
-
-    /// Stable while a preset is selected, unlike `timeFrame`, which moves with the clock.
-    private var timeFrameKey: TimeFrameKey {
-        TimeFrameKey(
-            preset: preset,
-            start: preset == nil ? customStart : .distantPast,
-            end: preset == nil ? customEnd : .distantPast
-        )
     }
 
     private var timeFrame: SettingsAnalysis.TimeFrame {
@@ -62,12 +47,8 @@ struct SettingsAnalysisView: View {
         .onChange(of: preset) { report = nil }
         .onChange(of: customStart) { report = nil }
         .onChange(of: customEnd) { report = nil }
-        .task(id: timeFrameKey) {
-            guard timeFrame.isValid else {
-                adjustments = []
-                return
-            }
-            adjustments = await SettingsAnalysis.HistoryLoader.adjustmentUsages(timeFrame)
+        .task {
+            adjustments = await SettingsAnalysis.HistoryLoader.adjustmentUsages()
         }
 
         if preset == nil {
@@ -212,7 +193,7 @@ struct SettingsAnalysisExerciseAdjustmentsView: View {
             section(.override, title: Text("Overrides"))
             Section {} footer: {
                 Text(
-                    "Activity Drop only looks at the temp targets and overrides marked here. Until you change anything, raised temp targets and reduced-insulin overrides are marked. Presets are always listed; custom ones when they were used in the selected time frame."
+                    "Activity Drop only looks at the temp targets and overrides marked here. Until you change anything, raised temp targets and reduced-insulin overrides are marked. All presets and every custom one you have used are listed, whatever time frame you analyze."
                 )
             }
         }
@@ -262,7 +243,7 @@ struct SettingsAnalysisExerciseAdjustmentsView: View {
             parts.append(target.formatted(withUnits: units))
         }
         if usage.isUnused {
-            parts.append(String(localized: "not used in this time frame"))
+            parts.append(String(localized: "not used yet"))
         } else {
             parts.append(String(localized: "used \(usage.count)×"))
             parts.append(

@@ -82,14 +82,14 @@ extension SettingsAnalysis {
         let interval: DateInterval
     }
 
-    /// How often an adjustment ran in a time frame, for the exercise selection.
-    /// Presets that did not run have a count of 0.
+    /// How often an adjustment ran, for the exercise selection.
+    /// Presets that never ran have a count of 0.
     struct AdjustmentUsage: Identifiable, Equatable {
         let adjustment: Adjustment
         let count: Int
         let duration: TimeInterval
         var id: String { adjustment.id }
-        /// A preset that did not run in the time frame.
+        /// A preset that never ran.
         var isUnused: Bool { count < 1 }
 
         static func usages(
@@ -172,13 +172,14 @@ extension SettingsAnalysis {
             }
         }
 
-        /// Every preset plus the temp targets and overrides used in a time frame,
-        /// for choosing which are for exercise.
+        /// Every preset plus every temp target and override ever used, for choosing which are
+        /// for exercise. Not limited to a time frame, so the list stays the same whatever is analyzed.
         static func adjustmentUsages(
-            _ timeFrame: TimeFrame,
+            now: Date = Date(),
             context: NSManagedObjectContext = CoreDataStack.shared.newTaskContext()
         ) async -> [AdjustmentUsage] {
-            await context.perform {
+            let timeFrame = TimeFrame(start: .distantPast, end: now)
+            return await context.perform {
                 AdjustmentUsage.usages(
                     of: adjustmentPeriods(from: timeFrame.start, to: timeFrame.end, in: context),
                     presets: presets(in: context),
