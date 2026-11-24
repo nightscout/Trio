@@ -124,6 +124,15 @@ struct SensitiveValues {
         add(PropertyPersistentFlags.shared.telemetryInstallId, .installID)
     }
 
+    // G7 logs the Share account at sign-in; after a sign-out that line is the only record of it
+    mutating func add(deviceLogMessage message: String) {
+        let prefix = "Signed in to Dexcom Share as "
+        guard message.hasPrefix(prefix) else { return }
+        let rest = message.dropFirst(prefix.count)
+        guard let server = rest.range(of: " (", options: .backwards) else { return }
+        add(String(rest[..<server.lowerBound]), .account)
+    }
+
     mutating func add(tidepool service: TidepoolService?) {
         guard let session = service?.session else { return }
         add(session.accessToken, .secret)

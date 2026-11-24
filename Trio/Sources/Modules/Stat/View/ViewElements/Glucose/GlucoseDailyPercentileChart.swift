@@ -117,16 +117,11 @@ struct GlucoseDailyPercentileChart: View {
         )
     }
 
-    // Format a single date for display
-    private func formatDate(_ date: Date) -> String {
-        date.formatted(.dateTime.weekday(.wide).month(.wide).day().year())
-    }
-
     // Get the appropriate detail view data
     private var detailViewData: (data: GlucoseDailyPercentileStats, dateText: String)? {
         if let selectedData = selectedDateStats {
             // Case 1: Selected specific day
-            return (selectedData, selectedData.date.formatted(.dateTime.weekday(.wide).month(.wide).day().year()))
+            return (selectedData, selectedData.date.formatted(date: .complete, time: .omitted))
         } else if let aggregatedData = aggregatedVisibleStats {
             // Case 2: Using aggregated data
             return (aggregatedData, StatChartUtils.formatVisibleDateRange(
@@ -375,25 +370,6 @@ struct GlucoseDailyPercentileChart: View {
 
     // Calculate an appropriate Y axis domain for the chart
     private func glucoseYScaleDomain() -> ClosedRange<Double> {
-        let padding = units == .mgdL ? 20.0 : 1.0
-        let bottomLimit = 40.0.asUnit(units)
-        let topLimit = 400.0.asUnit(units)
-
-        if visibleDailyStats.isEmpty {
-            return bottomLimit ... topLimit
-        }
-
-        var allValues: [Double] = []
-        for day in visibleDailyStats where day.minimum > 0 {
-            allValues.append(day.maximum.asUnit(units))
-        }
-
-        guard !allValues.isEmpty else {
-            return bottomLimit ... topLimit
-        }
-
-        let maxValue = allValues.max() ?? topLimit
-
-        return bottomLimit ... max(Double(highLimit.asUnit(units)), maxValue + padding)
+        StatChartUtils.glucosePercentileYScaleDomain(for: visibleDailyStats, highLimit: highLimit, units: units)
     }
 }

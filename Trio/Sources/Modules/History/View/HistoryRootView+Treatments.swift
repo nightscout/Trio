@@ -92,7 +92,9 @@ extension History.RootView {
                 )
                 .foregroundColor(.secondary)
                 if tempBasal.duration > 0 {
-                    Text("\(tempBasal.duration.string) min").foregroundColor(.secondary)
+                    let duration = Duration.seconds(Int(tempBasal.duration) * 60)
+                    Text(duration.formattedTimeSpan()).foregroundColor(.secondary)
+                        .accessibilityLabel(duration.formattedSpokenTimeSpan())
                 }
             } else {
                 Image(systemName: "circle.fill").foregroundColor(Color.loopGray)
@@ -100,7 +102,7 @@ extension History.RootView {
                 Text(item.type ?? "Pump Event")
             }
             Spacer()
-            Text(Formatter.dateFormatter.string(from: item.timestamp ?? Date())).moveDisabled(true)
+            Text(item.timestamp ?? Date(), format: .timeOfDay).moveDisabled(true)
         }
         .contextMenu {
             if item.bolus != nil {

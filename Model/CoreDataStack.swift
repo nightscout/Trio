@@ -2,6 +2,7 @@ import Combine
 import CoreData
 import Foundation
 import OSLog
+import UIKit
 
 class CoreDataStack: ObservableObject {
     static let shared = CoreDataStack()
@@ -29,6 +30,14 @@ class CoreDataStack: ObservableObject {
     var entityChangePublisher: AnyPublisher<Set<NSManagedObjectID>, Never> {
         entityChangeSubject.eraseToAnyPublisher()
     }
+
+    /// Ignores updates of upload flags only.
+    private let contentChangeSubject = PassthroughSubject<Set<NSManagedObjectID>, Never>()
+    var contentChangePublisher: AnyPublisher<Set<NSManagedObjectID>, Never> {
+        contentChangeSubject.eraseToAnyPublisher()
+    }
+
+    private static let uploadFlags: Set<String> = ["isUploadedToNS", "isUploadedToHealth", "isUploadedToTidepool"]
 
     private init(inMemory: Bool = false) {
         self.inMemory = inMemory
@@ -174,7 +183,14 @@ class CoreDataStack: ObservableObject {
         // Update view context with objectIDs from history change request
         /// - Tag: mergeChanges
         let viewContext = persistentContainer.viewContext
-        let changedObjectIDs = Set(history.flatMap { $0.changes ?? [] }.map(\.changedObjectID))
+        let changes = history.flatMap { $0.changes ?? [] }
+        let changedObjectIDs = Set(changes.map(\.changedObjectID))
+        let contentChangedObjectIDs = Set(
+            changes.filter { change in
+                guard change.changeType == .update, let updated = change.updatedProperties else { return true }
+                return !updated.allSatisfy { Self.uploadFlags.contains($0.name) }
+            }.map(\.changedObjectID)
+        )
 
         viewContext.perform {
             for transaction in history {
@@ -186,6 +202,9 @@ class CoreDataStack: ObservableObject {
             // change feed replaces the hand-rolled changedObjectsOnManagedObjectContextDidSavePublisher.
             if !changedObjectIDs.isEmpty {
                 self.entityChangeSubject.send(changedObjectIDs)
+            }
+            if !contentChangedObjectIDs.isEmpty {
+                self.contentChangeSubject.send(contentChangedObjectIDs)
             }
         }
     }
@@ -294,8 +313,12 @@ class CoreDataStack: ObservableObject {
             if retryCount < maxRetries {
                 debug(.storage, "Retrying Core Data initialization (\(retryCount + 1)/\(maxRetries))")
 
-                // Wait before retrying
-                try await Task.sleep(for: .seconds(1))
+                // Before the first unlock after a restart the store is unreadable, so wait for the unlock
+                if Self.isProtectedDataUnavailableError(initError) {
+                    await Self.waitForProtectedData()
+                } else {
+                    try await Task.sleep(for: .seconds(1))
+                }
 
                 // Retry the initialization
                 try await initializeStack(retryCount: retryCount + 1)
@@ -305,6 +328,63 @@ class CoreDataStack: ObservableObject {
                 throw initError
             }
         }
+    }
+}
+
+// MARK: - Protected Data
+
+extension CoreDataStack {
+    /// After a restart, iOS can launch Trio in the background before the first unlock, when the store file
+    /// is unreadable and SQLite reports SQLITE_AUTH (23). `isProtectedDataAvailable` alone can't tell this
+    /// apart from an ordinary lock, during which the store stays readable.
+    static func isProtectedDataUnavailableError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        if (nsError.userInfo[NSSQLiteErrorDomain] as? Int) == 23 {
+            return true
+        }
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error {
+            return isProtectedDataUnavailableError(underlying)
+        }
+        return false
+    }
+
+    /// Waits until protected data is available, i.e. the device has been unlocked.
+    @MainActor static func waitForProtectedData(
+        isAvailable: @MainActor() -> Bool = { UIApplication.shared.isProtectedDataAvailable },
+        notificationCenter: Foundation.NotificationCenter = .default
+    ) async {
+        guard !isAvailable() else { return }
+        info(.storage, "Waiting for the first unlock before opening the Core Data store")
+
+        final class Waiter {
+            var observer: NSObjectProtocol?
+            var continuation: CheckedContinuation<Void, Never>?
+        }
+        let waiter = Waiter()
+
+        await withCheckedContinuation { continuation in
+            waiter.continuation = continuation
+            let finish = {
+                guard let continuation = waiter.continuation else { return }
+                waiter.continuation = nil
+                if let observer = waiter.observer {
+                    notificationCenter.removeObserver(observer)
+                }
+                continuation.resume()
+            }
+            waiter.observer = notificationCenter.addObserver(
+                forName: UIApplication.protectedDataDidBecomeAvailableNotification,
+                object: nil,
+                queue: .main
+            ) { _ in
+                MainActor.assumeIsolated { finish() }
+            }
+            // An unlock between the first check and adding the observer would otherwise be missed
+            if isAvailable() {
+                finish()
+            }
+        }
+        info(.storage, "Device unlocked, opening the Core Data store")
     }
 }
 

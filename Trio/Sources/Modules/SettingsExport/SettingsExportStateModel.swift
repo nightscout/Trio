@@ -11,6 +11,7 @@ extension SettingsExport {
         @Injected() private var storage: FileStorage!
         @Injected() var overrideStorage: OverrideStorage!
         @Injected() var tempTargetsStorage: TempTargetsStorage!
+        @Injected() private var therapyProfileManager: TherapyProfileManager!
 
         // Help Sheet
         var isHelpSheetPresented: Bool = false
@@ -36,6 +37,7 @@ extension SettingsExport {
             case metadata = "Metadata"
             case devices = "Devices"
             case therapy = "Therapy"
+            case therapyProfiles = "Therapy Profiles"
             case algorithm = "Algorithm"
             case features = "Features"
             case notifications = "Notifications"
@@ -256,7 +258,7 @@ extension SettingsExport {
                         addSetting(
                             category: therapyCategory,
                             subcategory: glucoseTargetsSubcategory,
-                            name: String(localized: "Target (\(entry.start.formattedHourMinuteFromTimeString()))"),
+                            name: String(localized: "Target (\(Date(minuteOfDay: entry.offset).formatted(.timeOfDay)))"),
                             value: String(describing: targetValue),
                             unit: trioSettings.units.rawValue
                         )
@@ -269,7 +271,7 @@ extension SettingsExport {
                     addSetting(
                         category: therapyCategory,
                         subcategory: basalRatesSubcategory,
-                        name: String(localized: "Basal Rate (\(entry.start.formattedHourMinuteFromTimeString()))"),
+                        name: String(localized: "Basal Rate (\(Date(minuteOfDay: entry.minutes).formatted(.timeOfDay)))"),
                         value: String(describing: entry.rate),
                         unit: String(localized: "U/hr", comment: "Insulin unit per hour abbreviation")
                     )
@@ -282,7 +284,7 @@ extension SettingsExport {
                         addSetting(
                             category: therapyCategory,
                             subcategory: carbRatiosSubcategory,
-                            name: String(localized: "Carb Ratio (\(entry.start.formattedHourMinuteFromTimeString()))"),
+                            name: String(localized: "Carb Ratio (\(Date(minuteOfDay: entry.offset).formatted(.timeOfDay)))"),
                             value: String(describing: entry.ratio),
                             unit: String(localized: "g/U")
                         )
@@ -297,11 +299,75 @@ extension SettingsExport {
                         addSetting(
                             category: therapyCategory,
                             subcategory: insulinSensitivitiesSubcategory,
-                            name: String(localized: "ISF (\(entry.start.formattedHourMinuteFromTimeString()))"),
+                            name: String(localized: "ISF (\(Date(minuteOfDay: entry.offset).formatted(.timeOfDay)))"),
                             value: String(describing: isfValue),
                             unit: trioSettings.units.rawValue
                         )
                     }
+                }
+            }
+
+            if categoriesToExport.contains(.therapyProfiles) {
+                let category = String(localized: "Therapy Profiles")
+                let units = trioSettings.units
+                let activeProfileName = therapyProfileManager.activeProfileName
+
+                func time(_ seconds: Int) -> String {
+                    Date(minuteOfDay: seconds / 60).formatted(.timeOfDay)
+                }
+
+                for profile in therapyProfileManager.profiles() {
+                    addSetting(
+                        category: category,
+                        subcategory: profile.name,
+                        name: String(localized: "Status"),
+                        value: profile.name == activeProfileName ? String(localized: "Active") : String(localized: "Not active")
+                    )
+                    for entry in profile.target {
+                        addSetting(
+                            category: category,
+                            subcategory: profile.name,
+                            name: String(localized: "Target (\(time(entry.seconds)))"),
+                            value: String(describing: entry.low.asUnit(units)),
+                            unit: units.rawValue
+                        )
+                    }
+                    for entry in profile.basal {
+                        addSetting(
+                            category: category,
+                            subcategory: profile.name,
+                            name: String(localized: "Basal Rate (\(time(entry.seconds)))"),
+                            value: String(describing: entry.value),
+                            unit: String(localized: "U/hr", comment: "Insulin unit per hour abbreviation")
+                        )
+                    }
+                    for entry in profile.carbRatio {
+                        addSetting(
+                            category: category,
+                            subcategory: profile.name,
+                            name: String(localized: "Carb Ratio (\(time(entry.seconds)))"),
+                            value: String(describing: entry.value),
+                            unit: String(localized: "g/U")
+                        )
+                    }
+                    for entry in profile.sensitivity {
+                        addSetting(
+                            category: category,
+                            subcategory: profile.name,
+                            name: String(localized: "ISF (\(time(entry.seconds)))"),
+                            value: String(describing: entry.value.asUnit(units)),
+                            unit: units.rawValue
+                        )
+                    }
+                }
+
+                for entry in therapyProfileManager.scheduledSwitches() {
+                    addSetting(
+                        category: category,
+                        subcategory: String(localized: "Scheduled Switches"),
+                        name: "\(TherapyProfileValidator.weekdayName(entry.weekday)) \(time(entry.time))",
+                        value: entry.paused ? String(localized: "\(entry.profileName) (paused)") : entry.profileName
+                    )
                 }
             }
 
@@ -1056,8 +1122,8 @@ extension SettingsExport {
                                     category: category,
                                     subcategory: presetName,
                                     name: String(localized: "Basal Rate Adjustment"),
-                                    value: String(format: "%.0f%%", preset.percentage),
-                                    unit: ""
+                                    value: String(format: "%.0f", preset.percentage),
+                                    unit: "%"
                                 ))
 
                                 processedOverridePresets.append(.init(

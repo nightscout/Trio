@@ -1,6 +1,6 @@
 import CoreData
 import Foundation
-import LoopAlgorithm
+import LoopKit
 import Swinject
 import Testing
 

@@ -49,13 +49,6 @@ struct EditTempTargetForm: View {
         _percentage = State(initialValue: calcPercentage)
     }
 
-    private var dateFormatter: DateFormatter {
-        let f = DateFormatter()
-        f.dateStyle = .short
-        f.timeStyle = .short
-        return f
-    }
-
     var body: some View {
         NavigationView {
             List {
@@ -125,17 +118,8 @@ struct EditTempTargetForm: View {
 
     private func formattedEndTime(startDate: Date, totalDuration: Decimal) -> String {
         let endDate = calculatedEndDate(from: startDate, totalDuration: totalDuration)
-        let formatter = DateFormatter()
-
-        if Calendar.current.isDateInToday(endDate) {
-            formatter.dateStyle = .none
-            formatter.timeStyle = .short // show only the time
-        } else {
-            formatter.dateStyle = .short
-            formatter.timeStyle = .short // show Date and time
-        }
-
-        return formatter.string(from: endDate)
+        let isDateInToday = Calendar.current.isDateInToday(endDate)
+        return endDate.formatted(isDateInToday ? .timeOfDay : .dateAndTime)
     }
 
     @ViewBuilder private func editTempTarget() -> some View {
@@ -206,7 +190,7 @@ struct EditTempTargetForm: View {
                             }
                         }
 
-                        Text("\(formattedPercentage(percentage))% Insulin")
+                        Text("\((percentage / 100).formatted(.wholePercent)) Insulin")
                             .foregroundColor(isUsingSlider ? .orange : Color.tabBar)
                             .font(.title3)
                             .fontWeight(.bold)
@@ -232,10 +216,10 @@ struct EditTempTargetForm: View {
                                 step: 5
                             ) {}
                             minimumValueLabel: {
-                                Text("\(state.computeSliderLow(usingTarget: target), specifier: "%.0f")%")
+                                Text((state.computeSliderLow(usingTarget: target) / 100).formatted(.wholePercent))
                             }
                             maximumValueLabel: {
-                                Text("\(state.computeSliderHigh(usingTarget: target), specifier: "%.0f")%")
+                                Text((state.computeSliderHigh(usingTarget: target) / 100).formatted(.wholePercent))
                             }
                             .listRowSeparator(.hidden, edges: .top)
                         }
@@ -254,7 +238,7 @@ struct EditTempTargetForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHoursAndMinutes(Int(duration)))
+                        Text(Duration(minutes: duration).formattedTimeSpan())
                             .foregroundColor(!displayPickerDuration ? (duration > 0 ? .primary : .secondary) : .accentColor)
                             .onTapGesture {
                                 displayPickerDuration = toggleScrollWheel(displayPickerDuration)
@@ -327,7 +311,7 @@ struct EditTempTargetForm: View {
                 saveChanges()
                 info(
                     .treatments,
-                    "Temp target edited: target \(target) mg/dL, half basal target \(halfBasalTarget.map { "\($0) mg/dL" } ?? "default"), insulin \(Int(percentage))%"
+                    "Temp target edited: target \(target) mg/dL, half basal target \(halfBasalTarget.map { "\($0) mg/dL" } ?? "default"), insulin \(Int(percentage.rounded()))%"
                 )
                 do {
                     guard let moc = tempTarget.managedObjectContext else { return }
@@ -411,17 +395,5 @@ struct EditTempTargetForm: View {
     private func totalDurationInMinutes() -> Int {
         let durationTotal = (durationHours * 60) + durationMinutes
         return max(0, durationTotal)
-    }
-
-    private var formatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return formatter
-    }
-
-    private func formattedPercentage(_ value: Double) -> String {
-        let percentageNumber = NSNumber(value: value)
-        return formatter.string(from: percentageNumber) ?? "\(value)"
     }
 }

@@ -26,7 +26,7 @@ extension Home {
         }
 
         func pumpReservoir() async -> Decimal? {
-            await storage.retrieveAsync(OpenAPS.Monitor.reservoir, as: Decimal.self)
+            apsManager.pumpManager?.currentReservoir
         }
 
         func getBasalProfile() async -> [BasalProfileEntry] {

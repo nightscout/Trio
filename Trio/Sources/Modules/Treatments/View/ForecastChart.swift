@@ -223,7 +223,7 @@ struct ForecastChart: View {
             VStack(alignment: .leading) {
                 HStack {
                     Image(systemName: "clock")
-                    Text(selectedGlucose?.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? "")
+                    Text(selectedGlucose?.date?.formatted(.timeOfDay) ?? "")
                         .font(.footnote).bold()
                 }.font(.footnote).padding(.bottom, 5)
 
