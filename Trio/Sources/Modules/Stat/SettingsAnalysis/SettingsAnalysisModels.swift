@@ -131,7 +131,7 @@ extension SettingsAnalysis {
                 return String(localized: "In range 2 h after a meal, then above \(high) 3–6 h after it.")
             case .exerciseDrop:
                 return String(
-                    localized: "Drop of more than \(drop) within 1 h, during a raised temp target or a reduced-insulin override, or the hour after it. Temp targets and overrides set during a low or within 30 min after it are not counted."
+                    localized: "Drop of more than \(drop) within 1 h, during a raised temp target or a reduced-insulin override, or the hour after it. Temp targets and overrides set during a low or within 30 min after it, and those you turn off before analyzing, are not counted."
                 )
             case .unannouncedMeal:
                 return String(

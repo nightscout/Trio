@@ -3,15 +3,19 @@ import Foundation
 extension SettingsAnalysis {
     struct Engine {
         let units: GlucoseUnits
-        var loadHistory: (TimeFrame) async -> History = { await HistoryLoader.load($0) }
+        var loadHistory: (TimeFrame, Set<String>) async -> History = {
+            await HistoryLoader.load($0, excludedAdjustments: $1)
+        }
 
+        /// `excludedAdjustments` holds `Adjustment.id`s the user does not want counted as activity.
         func analyze(
             timeFrame: TimeFrame,
+            excludedAdjustments: Set<String> = [],
             snapshot: SettingsSnapshot,
             catalog: Catalog?,
             catalogError: String?
         ) async -> Report {
-            let history = await loadHistory(timeFrame)
+            let history = await loadHistory(timeFrame, excludedAdjustments)
             return Self.report(
                 history: history,
                 timeFrame: timeFrame,

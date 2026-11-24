@@ -27,16 +27,96 @@ extension SettingsAnalysis {
         let iob: Double
     }
 
+    /// A temp target or override that counts as activity (raised target or reduced insulin).
+    /// Named ones are identified by name, unnamed custom ones by their values, so the user
+    /// can exclude e.g. the temp target they set after a low.
+    struct Adjustment: Hashable, Identifiable {
+        enum Kind: String {
+            case tempTarget
+            case override
+        }
+
+        let kind: Kind
+        /// Preset or custom name; nil for unnamed custom adjustments.
+        let name: String?
+        /// mg/dL
+        let target: Decimal?
+        let percentage: Double?
+
+        init(kind: Kind, name: String?, target: Decimal?, percentage: Double? = nil) {
+            self.kind = kind
+            let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            self.name = Self.defaultNames.contains(trimmed) ? nil : trimmed
+            self.target = target
+            self.percentage = percentage
+        }
+
+        /// Names Trio gives custom adjustments, which say nothing about their purpose.
+        private static let defaultNames: Set<String> = [
+            "",
+            "Custom",
+            "Custom Override",
+            "Custom Temp Target",
+            String(localized: "Custom Override"),
+            String(localized: "Custom Temp Target")
+        ]
+
+        var id: String {
+            if let name { return "\(kind.rawValue):\(name)" }
+            let target = self.target.map { "\(NSDecimalNumber(decimal: $0).intValue)" } ?? "-"
+            let percentage = self.percentage.map { "\(Int($0.rounded()))" } ?? "-"
+            return "\(kind.rawValue):custom:\(target):\(percentage)"
+        }
+
+        static func == (lhs: Adjustment, rhs: Adjustment) -> Bool { lhs.id == rhs.id }
+        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    }
+
+    struct AdjustmentPeriod: Equatable {
+        let adjustment: Adjustment
+        let interval: DateInterval
+    }
+
+    /// How often an adjustment ran in a time frame, for the exclusion list.
+    struct AdjustmentUsage: Identifiable, Equatable {
+        let adjustment: Adjustment
+        let count: Int
+        let duration: TimeInterval
+        var id: String { adjustment.id }
+
+        static func usages(of periods: [AdjustmentPeriod], in timeFrame: TimeFrame) -> [AdjustmentUsage] {
+            let inFrame = periods.filter { $0.interval.end >= timeFrame.start && $0.interval.start <= timeFrame.end }
+            return Dictionary(grouping: inFrame, by: \.adjustment.id).values.compactMap { group in
+                guard let first = group.first else { return nil }
+                return AdjustmentUsage(
+                    adjustment: first.adjustment,
+                    count: group.count,
+                    duration: group.map(\.interval.duration).reduce(0, +)
+                )
+            }
+            .sorted { $0.count != $1.count ? $0.count > $1.count : $0.id < $1.id }
+        }
+    }
+
     /// Glucose in mg/dL; all arrays sorted by date.
     struct History {
         var glucose: [GlucosePoint] = []
         var carbs: [CarbEvent] = []
         var boluses: [BolusEvent] = []
-        /// Periods with a raised temp target or a reduced-insulin override.
+        /// Every temp target and override that counts as activity, before exclusions.
+        var adjustments: [AdjustmentPeriod] = []
+        /// Merged periods of the adjustments the user did not exclude.
         var activity: [DateInterval] = []
         var iob: [IOBPoint] = []
         /// Rewind, prime or site change events.
         var siteChanges: [Date] = []
+
+        /// Rebuilds `activity` without the excluded adjustments (by `Adjustment.id`).
+        mutating func excludeAdjustments(_ excluded: Set<String>) {
+            activity = HistoryLoader.merge(
+                adjustments.filter { !excluded.contains($0.adjustment.id) }.map(\.interval)
+            )
+        }
     }
 }
 
@@ -53,6 +133,7 @@ extension SettingsAnalysis {
 
         static func load(
             _ timeFrame: TimeFrame,
+            excludedAdjustments: Set<String> = [],
             context: NSManagedObjectContext = CoreDataStack.shared.newTaskContext()
         ) async -> History {
             let start = timeFrame.start.addingTimeInterval(-lookback)
@@ -64,11 +145,25 @@ extension SettingsAnalysis {
                 history.carbs = carbs(from: start, to: end, in: context)
                 history.boluses = boluses(from: start, to: end, in: context)
                 history.siteChanges = siteChanges(from: start.addingTimeInterval(-siteLookback), to: end, in: context)
-                history.activity = activity(from: start, to: end, in: context)
+                history.adjustments = adjustmentPeriods(from: start, to: end, in: context)
+                history.excludeAdjustments(excludedAdjustments)
                 if !history.activity.isEmpty {
                     history.iob = iob(from: start, to: end, in: context)
                 }
                 return history
+            }
+        }
+
+        /// The activity adjustments in a time frame, for choosing which to exclude.
+        static func adjustmentUsages(
+            _ timeFrame: TimeFrame,
+            context: NSManagedObjectContext = CoreDataStack.shared.newTaskContext()
+        ) async -> [AdjustmentUsage] {
+            await context.perform {
+                AdjustmentUsage.usages(
+                    of: adjustmentPeriods(from: timeFrame.start, to: timeFrame.end, in: context),
+                    in: timeFrame
+                )
             }
         }
 
@@ -184,17 +279,23 @@ extension SettingsAnalysis {
 
         /// Run entities only exist for cancelled adjustments; expired ones are
         /// rebuilt from the stored row's start and duration.
-        private static func activity(from start: Date, to end: Date, in context: NSManagedObjectContext) -> [DateInterval] {
-            var intervals: [DateInterval] = []
+        private static func adjustmentPeriods(
+            from start: Date,
+            to end: Date,
+            in context: NSManagedObjectContext
+        ) -> [AdjustmentPeriod] {
+            var periods: [AdjustmentPeriod] = []
             let overlaps = NSPredicate(format: "startDate <= %@ AND endDate >= %@", end as NSDate, start as NSDate)
 
             let tempTargetRuns: NSFetchRequest<TempTargetRunStored> = TempTargetRunStored.fetchRequest()
             tempTargetRuns.predicate = overlaps
+            tempTargetRuns.relationshipKeyPathsForPrefetching = ["tempTarget"]
             for run in (try? context.fetch(tempTargetRuns)) ?? [] {
                 guard let runStart = run.startDate, let runEnd = run.endDate,
-                      (run.target as Decimal?) ?? 0 >= activityTarget
+                      let target = run.target as Decimal?, target >= activityTarget
                 else { continue }
-                intervals.append(interval(runStart, runEnd))
+                let adjustment = Adjustment(kind: .tempTarget, name: run.name ?? run.tempTarget?.name, target: target)
+                periods.append(AdjustmentPeriod(adjustment: adjustment, interval: interval(runStart, runEnd)))
             }
 
             // A run links to its override only until that preset runs again (the relationship is
@@ -214,7 +315,13 @@ extension SettingsAnalysis {
                 guard let runStart = run.startDate, let runEnd = run.endDate,
                       isActivity(target: run.target as Decimal?, percentage: percentage)
                 else { continue }
-                intervals.append(interval(runStart, runEnd))
+                let adjustment = Adjustment(
+                    kind: .override,
+                    name: run.name ?? run.override?.name,
+                    target: run.target as Decimal?,
+                    percentage: percentage
+                )
+                periods.append(AdjustmentPeriod(adjustment: adjustment, interval: interval(runStart, runEnd)))
             }
 
             // Rows without a run: the enabled one (however long ago it started) and older one-off
@@ -238,10 +345,13 @@ extension SettingsAnalysis {
             let tempTargets: NSFetchRequest<TempTargetStored> = TempTargetStored.fetchRequest()
             tempTargets.predicate = rows(runKey: "tempTargetRun")
             for row in (try? context.fetch(tempTargets)) ?? [] {
-                guard let rowStart = row.date, (row.target as Decimal?) ?? 0 >= activityTarget,
+                guard let rowStart = row.date, let target = row.target as Decimal?, target >= activityTarget,
                       let minutes = (row.duration as Decimal?).map({ NSDecimalNumber(decimal: $0).doubleValue }), minutes > 0
                 else { continue }
-                intervals.append(interval(rowStart, min(rowStart.addingTimeInterval(minutes * 60), end)))
+                periods.append(AdjustmentPeriod(
+                    adjustment: Adjustment(kind: .tempTarget, name: row.name, target: target),
+                    interval: interval(rowStart, min(rowStart.addingTimeInterval(minutes * 60), end))
+                ))
             }
 
             let overrides: NSFetchRequest<OverrideStored> = OverrideStored.fetchRequest()
@@ -254,10 +364,20 @@ extension SettingsAnalysis {
                     ? (row.enabled ? end : rowStart)
                     : min(rowStart.addingTimeInterval(minutes * 60), end)
                 guard rowEnd > rowStart else { continue }
-                intervals.append(interval(rowStart, rowEnd))
+                periods.append(AdjustmentPeriod(
+                    adjustment: Adjustment(
+                        kind: .override,
+                        name: row.name,
+                        target: row.target as Decimal?,
+                        percentage: row.percentage
+                    ),
+                    interval: interval(rowStart, rowEnd)
+                ))
             }
 
-            return merge(intervals).filter { $0.end >= start && $0.start <= end }
+            return periods
+                .filter { $0.interval.end >= start && $0.interval.start <= end }
+                .sorted { $0.interval.start < $1.interval.start }
         }
 
         private static func isActivity(target: Decimal?, percentage: Double?) -> Bool {

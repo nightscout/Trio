@@ -14,6 +14,30 @@ struct SettingsAnalysisView: View {
     @State private var isAnalyzing = false
     @State private var report: SettingsAnalysis.Report?
 
+    /// Temp targets and overrides in the time frame that would count as activity.
+    @State private var adjustments: [SettingsAnalysis.AdjustmentUsage] = []
+    /// Excluded `Adjustment.id`s, newline-separated; kept across analyses.
+    @AppStorage("SettingsAnalysis.excludedAdjustments") private var excludedAdjustmentsRaw = ""
+
+    private var excludedAdjustments: Set<String> {
+        Set(excludedAdjustmentsRaw.split(separator: "\n").map(String.init))
+    }
+
+    private struct TimeFrameKey: Hashable {
+        let preset: SettingsAnalysis.TimeFramePreset?
+        let start: Date
+        let end: Date
+    }
+
+    /// Stable while a preset is selected, unlike `timeFrame`, which moves with the clock.
+    private var timeFrameKey: TimeFrameKey {
+        TimeFrameKey(
+            preset: preset,
+            start: preset == nil ? customStart : .distantPast,
+            end: preset == nil ? customEnd : .distantPast
+        )
+    }
+
     private var timeFrame: SettingsAnalysis.TimeFrame {
         if let preset { return .preset(preset) }
         return SettingsAnalysis.TimeFrame(start: customStart, end: customEnd)
@@ -34,6 +58,13 @@ struct SettingsAnalysisView: View {
         .onChange(of: preset) { report = nil }
         .onChange(of: customStart) { report = nil }
         .onChange(of: customEnd) { report = nil }
+        .task(id: timeFrameKey) {
+            guard timeFrame.isValid else {
+                adjustments = []
+                return
+            }
+            adjustments = await SettingsAnalysis.HistoryLoader.adjustmentUsages(timeFrame)
+        }
 
         if preset == nil {
             StatCard {
@@ -68,6 +99,15 @@ struct SettingsAnalysisView: View {
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal)
+
+        if !adjustments.isEmpty {
+            SettingsAnalysisAdjustmentsCard(
+                adjustments: adjustments,
+                units: units,
+                isIncluded: { !excludedAdjustments.contains($0.id) },
+                setIncluded: setIncluded
+            )
+        }
 
         Button(action: analyze) {
             HStack {
@@ -109,9 +149,17 @@ struct SettingsAnalysisView: View {
 
     // MARK: Actions
 
+    private func setIncluded(_ adjustment: SettingsAnalysis.Adjustment, _ included: Bool) {
+        var excluded = excludedAdjustments
+        if included { excluded.remove(adjustment.id) } else { excluded.insert(adjustment.id) }
+        excludedAdjustmentsRaw = excluded.sorted().joined(separator: "\n")
+        report = nil
+    }
+
     private func analyze() {
         isAnalyzing = true
         let timeFrame = self.timeFrame
+        let excludedAdjustments = self.excludedAdjustments
         Task { @MainActor in
             var catalog: SettingsAnalysis.Catalog?
             var catalogError: String?
@@ -122,12 +170,74 @@ struct SettingsAnalysisView: View {
             }
             report = await SettingsAnalysis.Engine(units: units).analyze(
                 timeFrame: timeFrame,
+                excludedAdjustments: excludedAdjustments,
                 snapshot: await snapshot(),
                 catalog: catalog,
                 catalogError: catalogError
             )
             isAnalyzing = false
         }
+    }
+}
+
+// MARK: - Adjustments
+
+/// Lets the user leave out temp targets and overrides that are not used for activity,
+/// for example a high temp target set after a low to keep the loop from over-correcting.
+struct SettingsAnalysisAdjustmentsCard: View {
+    let adjustments: [SettingsAnalysis.AdjustmentUsage]
+    let units: GlucoseUnits
+    let isIncluded: (SettingsAnalysis.Adjustment) -> Bool
+    let setIncluded: (SettingsAnalysis.Adjustment, Bool) -> Void
+
+    var body: some View {
+        SettingsAnalysisCard(Text("Activity Temp Targets & Overrides")) {
+            ForEach(Array(adjustments.enumerated()), id: \.element.id) { index, usage in
+                if index > 0 { Divider() }
+                Toggle(isOn: Binding(
+                    get: { isIncluded(usage.adjustment) },
+                    set: { setIncluded(usage.adjustment, $0) }
+                )) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title(usage.adjustment))
+                        Text(subtitle(usage))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } footer: {
+            Text(
+                "Activity Drop treats raised temp targets and reduced-insulin overrides as activity. Turn off any you use for something else, for example a high temp target after a low."
+            )
+        }
+    }
+
+    private func title(_ adjustment: SettingsAnalysis.Adjustment) -> String {
+        if let name = adjustment.name { return name }
+        switch adjustment.kind {
+        case .tempTarget: return String(localized: "Custom Temp Target")
+        case .override: return String(localized: "Custom Override")
+        }
+    }
+
+    private func subtitle(_ usage: SettingsAnalysis.AdjustmentUsage) -> String {
+        let adjustment = usage.adjustment
+        var parts: [String] = [
+            adjustment.kind == .tempTarget ? String(localized: "Temp Target") : String(localized: "Override")
+        ]
+        if let percentage = adjustment.percentage, Int(percentage.rounded()) != 100 {
+            parts.append("\(Int(percentage.rounded()))%")
+        }
+        if let target = adjustment.target, target > 0 {
+            parts.append(target.formatted(withUnits: units))
+        }
+        parts.append(String(localized: "used \(usage.count)×"))
+        parts.append(
+            Duration.seconds(usage.duration)
+                .formatted(.units(allowed: [.hours, .minutes], width: .abbreviated, maximumUnitCount: 2))
+        )
+        return parts.joined(separator: " · ")
     }
 }
 
