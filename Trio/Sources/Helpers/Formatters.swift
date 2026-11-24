@@ -36,6 +36,12 @@ extension Formatter {
         formatter.maximumFractionDigits = 1
         return formatter
     }()
+  
+    static let dateFormatter: DateFormatter = {
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeStyle = .short
+        return dateFormatter
+    }()
 
     static let integerFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
@@ -144,6 +150,13 @@ extension Date {
             localized: "\(elapsed.formattedSpokenTimeSpan(.largestTwoUnits, locale: locale)) ago",
             comment: "Accessibility: elapsed time; %@ is a duration like \"1 hour, 59 minutes\". Word it so %@ stays unchanged (German: \"%@ her\")."
         )
+    }
+}
+
+extension Decimal {
+    /// IOB, up to two decimals. Rounds first so -0.004 shows "0", not "-0".
+    func formattedIOB(locale: Locale = .autoupdatingCurrent) -> String {
+        rounded(scale: 2).formatted(.number.precision(.fractionLength(0 ... 2)).locale(locale))
     }
 }
 
