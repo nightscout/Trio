@@ -13,6 +13,7 @@ extension AutosensSettings {
         @State private var booleanPlaceholder: Bool = false
 
         @Environment(\.colorScheme) var colorScheme
+        @EnvironmentObject var appIcons: Icons
         @Environment(AppState.self) var appState
 
         var autosensVerboseHint: some View {
