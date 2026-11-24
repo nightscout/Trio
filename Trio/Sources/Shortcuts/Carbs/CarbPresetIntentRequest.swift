@@ -37,11 +37,7 @@ final class CarbPresetIntentRequest: BaseIntentsRequest {
             resultDisplay = String(localized: "\(resultDisplay) and \(quantityProtein) g protein")
         }
         if dateDefinedByUser {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .none
-            dateFormatter.timeStyle = .short
-
-            let hourName = dateFormatter.string(from: dateAdded)
+            let hourName = dateAdded.formatted(.timeOfDay)
             resultDisplay = String(localized: "\(resultDisplay) at \(hourName)")
 
             let dayStatus = determineDateStatus(dateAdded)
