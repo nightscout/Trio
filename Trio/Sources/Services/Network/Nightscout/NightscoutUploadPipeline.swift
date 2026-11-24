@@ -10,6 +10,7 @@ public enum NightscoutUploadPipeline: String, CaseIterable {
     case tempTargets
     case glucose
     case deviceStatus
+    case profiles
 }
 
 /// Keys used in Nightscout upload notifications.

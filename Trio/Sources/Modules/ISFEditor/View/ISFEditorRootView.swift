@@ -1,13 +1,13 @@
-import Charts
 import SwiftUI
 import Swinject
 
 extension ISFEditor {
     struct RootView: BaseView {
         let resolver: Resolver
+        /// A stored profile to edit; nil edits the live settings.
+        var profileName: String? = nil
         @State var state = StateModel()
         @State private var refreshUI = UUID()
-        @State private var now = Date()
         @Namespace private var bottomID
 
         @Environment(\.colorScheme) var colorScheme
@@ -68,6 +68,10 @@ extension ISFEditor {
                     ScrollView {
                         LazyVStack {
                             VStack(alignment: .leading, spacing: 0) {
+                                if let bannerInfo = state.bannerInfo {
+                                    TherapyProfileBanner(info: bannerInfo)
+                                }
+
                                 // Chart visualization
                                 if !state.items.isEmpty {
                                     isfChart
@@ -117,9 +121,20 @@ extension ISFEditor {
                     }
 
                     saveButton
+                        .alert(
+                            "Unable to Save",
+                            isPresented: Binding(
+                                get: { state.profileSaveError != nil },
+                                set: { if !$0 { state.profileSaveError = nil } }
+                            )
+                        ) {
+                            Button("OK", role: .cancel) {}
+                        } message: {
+                            Text(state.profileSaveError ?? "")
+                        }
                 }
                 .background(appState.trioBackgroundColor(for: colorScheme))
-                .onAppear(perform: configureView)
+                .onAppear { configureView { state.profileName = profileName } }
                 .navigationTitle("Insulin Sensitivities")
                 .navigationBarTitleDisplayMode(.automatic)
                 .onAppear {
@@ -135,67 +150,18 @@ extension ISFEditor {
 
         // Chart for visualizing ISF profile
         private var isfChart: some View {
-            Chart {
-                ForEach(Array(state.items.enumerated()), id: \.element.id) { index, item in
-                    let displayValue = state.units == .mgdL ? state.rateValues[item.rateIndex] : state.rateValues[item.rateIndex]
-                        .asMmolL
-
-                    let startDate = Calendar.current
-                        .startOfDay(for: now)
-                        .addingTimeInterval(state.timeValues[item.timeIndex])
-
-                    var offset: TimeInterval {
-                        if state.items.count > index + 1 {
-                            return state.timeValues[state.items[index + 1].timeIndex]
-                        } else {
-                            return state.timeValues.last! + 30 * 60
-                        }
-                    }
-
-                    let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
-
-                    RectangleMark(
-                        xStart: .value("start", startDate),
-                        xEnd: .value("end", endDate),
-                        yStart: .value("rate-start", displayValue),
-                        yEnd: .value("rate-end", 0)
-                    ).foregroundStyle(
-                        .linearGradient(
-                            colors: [
-                                Color.cyan.opacity(0.6),
-                                Color.cyan.opacity(0.1)
-                            ],
-                            startPoint: .bottom,
-                            endPoint: .top
-                        )
-                    ).alignsMarkStylesWithPlotArea()
-
-                    LineMark(x: .value("End Date", startDate), y: .value("ISF", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.cyan)
-
-                    LineMark(x: .value("Start Date", endDate), y: .value("ISF", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.cyan)
-                }
-            }
-            .id(refreshUI) // Force chart update
-            .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
-                    AxisValueLabel(format: .dateTime.hour())
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }
-            .chartXScale(
-                domain: Calendar.current.startOfDay(for: now) ... Calendar.current.startOfDay(for: now)
-                    .addingTimeInterval(60 * 60 * 24)
+            TherapyProfileChart(
+                entries: state.items.map {
+                    let value = state.rateValues[$0.rateIndex]
+                    return TherapyProfileChart.Entry(
+                        start: state.timeValues[$0.timeIndex],
+                        value: state.units == .mgdL ? value : value.asMmolL
+                    )
+                },
+                color: .cyan,
+                accessibilityLabel: Text("Insulin sensitivity profile chart, 24 hours")
             )
-            .chartYAxis {
-                AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                    AxisValueLabel()
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("Insulin sensitivity profile chart, 24 hours"))
+            .id(refreshUI) // Force chart update
         }
     }
 }
