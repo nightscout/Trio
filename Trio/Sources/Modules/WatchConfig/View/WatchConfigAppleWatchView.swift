@@ -12,8 +12,17 @@ struct WatchConfigAppleWatchView: BaseView {
         localized: "Mark Stale After applies to every complication: once the reading is older than this, the glucose shows -- with the reading's age, and IOB and COB show -- when the loop has not run within that time.\n\nComplications can fall behind the phone, sometimes by a lot: with the watch app closed, watchOS limits how often they refresh. The Contact Image updates with every reading, so use it if you want every reading on your watch face."
     )
     static let colorModeHint = String(
-        localized: "Color shows the glucose and trend arrow in the colors the phone uses for them. Monochrome shows them in white, which is easier to read in the dark. The gauge ring and the chart line keep their colors either way."
+        localized: "Color: the glucose number uses the same colors as the Trio app on your iPhone.\n\nMonochrome: the glucose number is white. This can be easier to read in the dark.\n\nThe ring and the chart line always keep their colors. Small text, like the trend arrow, is always white."
     )
+    static let contactImageHint = String(
+        localized: "Use this when the Trio complications fall behind. Your watch only lets complications update a few times an hour, so they can show old numbers. The Contact Image does not have this limit: it changes with every new reading.\n\nTrio draws your data into the photo of a contact on your iPhone. You pick what it shows, like glucose, trend, IOB, COB or the last loop. Add that contact to a watch face with the Contacts complication."
+    )
+
+    static func readOnWatchHint(cgmName: String) -> String {
+        String(
+            localized: "Your watch can get readings straight from your \(cgmName). This helps when your iPhone is out of reach.\n\nYour watch shows the readings from your iPhone first. If they stop coming, your watch reads the sensor itself. You then see a small watch symbol in the glucose bubble.\n\nTo turn this on or off, open your \(cgmName) settings and use “Read on Apple Watch”."
+        )
+    }
 
     let resolver: Resolver
     @ObservedObject var state: WatchConfig.StateModel
@@ -135,10 +144,12 @@ struct WatchConfigAppleWatchView: BaseView {
             if state.cgmSharesWithWatch {
                 Section(
                     header: Text("Glucose on the Watch"),
-                    footer: Text(
-                        String(
-                            localized: "The watch reads the \(state.cgmName) itself while “Read on Apple Watch” is on in its settings. It shows the iPhone’s readings while they come, and its own, with a watch symbol in the glucose bubble, once they stop."
-                        )
+                    footer: hintRow(
+                        miniHint: String(
+                            localized: "Your watch can read your \(state.cgmName) by itself when your iPhone is out of reach."
+                        ),
+                        label: String(localized: "Read on Apple Watch"),
+                        hint: Self.readOnWatchHint(cgmName: state.cgmName)
                     ),
                     content: {
                         HStack {
@@ -146,7 +157,7 @@ struct WatchConfigAppleWatchView: BaseView {
                             Spacer()
                             Text(state.watchReadsSensor ? "On" : "Off").foregroundStyle(.secondary)
                         }
-                        NavigationLink(String(localized: "Change in the \(state.cgmName) Settings")) {
+                        NavigationLink(String(localized: "Open CGM Settings")) {
                             CGMSettings.RootView(
                                 resolver: resolver,
                                 displayClose: false,
@@ -220,7 +231,7 @@ struct WatchConfigAppleWatchView: BaseView {
                         }
                     }.padding(.top)
                     hintRow(
-                        miniHint: String(localized: "Glucose text in color or in white."),
+                        miniHint: String(localized: "Glucose number in color or in white."),
                         label: String(localized: "Color Mode"),
                         hint: Self.colorModeHint
                     )
@@ -235,8 +246,12 @@ struct WatchConfigAppleWatchView: BaseView {
 
             Section(
                 header: Text("Contact Image"),
-                footer: Text(
-                    "Trio draws your glucose into the photo of a contact on your iPhone. Put that contact on a watch face with the Contacts complication: it updates with every reading, also when the Trio complications lag."
+                footer: hintRow(
+                    miniHint: String(
+                        localized: "Use this if the Trio complications lag. It shows every new reading on your watch face."
+                    ),
+                    label: String(localized: "Contact Image"),
+                    hint: Self.contactImageHint
                 ),
                 content: {
                     VStack {
@@ -250,6 +265,7 @@ struct WatchConfigAppleWatchView: BaseView {
             ).listRowBackground(Color.chart)
         }
         .listSectionSpacing(sectionSpacing)
+        .contentMargins(.bottom, 40, for: .scrollContent)
         // back from the CGM's settings
         .onAppear { state.refreshWatchSensor() }
         .sheet(isPresented: $shouldDisplayHint) {
