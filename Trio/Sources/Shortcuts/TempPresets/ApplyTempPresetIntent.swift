@@ -36,20 +36,6 @@ struct ApplyTempPresetIntent: AppIntent {
         })
     }
 
-    /// Converts a decimal duration value into a formatted time string.
-    ///
-    /// - Parameter decimal: The duration value in decimal format.
-    /// - Returns: A string representing the formatted time in hours and minutes.
-    private func decimalToTimeFormattedString(decimal: Decimal) -> String {
-        let timeInterval = TimeInterval(decimal * 60) // Convert minutes to seconds
-
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute]
-        formatter.unitsStyle = .brief // Example: "1h 10m"
-
-        return formatter.string(from: timeInterval) ?? ""
-    }
-
     /// Executes the intent to apply the selected temporary target preset.
     ///
     /// - Returns: A dialog indicating whether the temporary target was successfully applied or failed.
