@@ -187736,6 +187736,9 @@
         }
       }
     },
+    "Loop" : {
+
+    },
     "Loop –" : {
       "comment" : "Watch: the phone's last loop is not known"
     },

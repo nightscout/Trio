@@ -99,13 +99,22 @@ struct TrioComplicationEntryView: View {
                 .widgetBackground(backgroundView: Color.clear)
         #if os(watchOS)
             case .accessoryCorner:
-                ComplicationCornerMain(model: model)
-                    .widgetAccentable()
-                    .widgetCurvesContent()
-                    .widgetLabel {
-                        ComplicationCornerLabel(model: model)
-                    }
-                    .widgetBackground(backgroundView: Color.clear)
+                if kind == .loop {
+                    ComplicationCornerMain(model: model)
+                        .widgetAccentable()
+                        .widgetLabel {
+                            ComplicationCornerLabel(model: model)
+                        }
+                        .widgetBackground(backgroundView: Color.clear)
+                } else {
+                    ComplicationCornerMain(model: model)
+                        .widgetAccentable()
+                        .widgetCurvesContent()
+                        .widgetLabel {
+                            ComplicationCornerLabel(model: model)
+                        }
+                        .widgetBackground(backgroundView: Color.clear)
+                }
         #endif
         default:
             ZStack {
