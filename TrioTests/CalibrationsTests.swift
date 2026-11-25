@@ -7,7 +7,7 @@ import Testing
 @Suite("Calibration Service Tests", .serialized) struct CalibrationTests: Injectable {
     let fileStorage = BaseFileStorage()
     @Injected() var calibrationService: CalibrationService!
-    let resolver = TrioApp().resolver
+    let resolver = TrioApp.resolver
 
     init() {
         injectServices(resolver)

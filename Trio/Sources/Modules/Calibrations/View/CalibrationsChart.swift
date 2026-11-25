@@ -3,13 +3,6 @@ import SwiftUI
 struct CalibrationsChart: View {
     var state: Calibrations.StateModel
 
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.dateStyle = .short
-        return formatter
-    }
-
     private let maxValue = 400.0
 
     var body: some View {
@@ -43,7 +36,7 @@ struct CalibrationsChart: View {
                                 x: value.x / maxValue * geo.size.width,
                                 y: geo.size.width - (value.y / maxValue * geo.size.width)
                             )
-                        Text(dateFormatter.string(from: value.date))
+                        Text(value.date, format: .dateAndTime)
                             .foregroundColor(.white)
                             .font(.caption2)
                             .position(

@@ -1,6 +1,8 @@
 import SwiftUI
 import Testing
 @testable import Trio_Watch_App
+import UIKit
+import WatchKit
 
 @Suite("Watch App Tests", .serialized) @MainActor final class TrioWatchAppTests {
     var watchState = WatchState()
@@ -209,8 +211,7 @@ import Testing
         #expect(watchState.isEntryFresh(at: entryStart.addingTimeInterval(200)))
     }
 
-    @Test("Confirming an entry older than 2 minutes sends nothing and clears it")
-    func testExpiredEntryNotSent() throws {
+    @Test("Confirming an entry older than 2 minutes sends nothing and clears it") func testExpiredEntryNotSent() throws {
         enterMealBolus()
 
         watchState.sendConfirmedEntry(bolusAmount: 3.0, at: entryStart.addingTimeInterval(121))
@@ -272,5 +273,73 @@ import Testing
 
     @Test("Returning to the app with no entry in progress changes nothing") func testNoEntryOnReturn() throws {
         #expect(!watchState.expireStaleEntry(at: entryStart))
+    }
+}
+
+// MARK: - Bolus Confirmation Crown Hint Tests
+
+/// The bolus confirmation screen fills its progress bar as the Digital Crown value goes up, and shows an arrow
+/// icon in the toolbar saying which way to turn the crown. These tests check that arrow against the turn that
+/// actually confirms, for every combination of the watch's wrist and Digital Crown settings.
+@Suite("Bolus confirmation crown hint") struct BolusConfirmationCrownHintTests {
+    /// Which way the crown turns, looking at the end of the crown from outside the watch.
+    enum CrownTurn: Equatable {
+        case clockwise
+        case counterclockwise
+    }
+
+    /// The turn the hint icon tells the user to make.
+    static func shownTurn(symbolName: String) -> CrownTurn? {
+        switch symbolName {
+        case "digitalcrown.arrow.clockwise.fill": return .clockwise
+        case "digitalcrown.arrow.counterclockwise.fill": return .counterclockwise
+        default: return nil
+        }
+    }
+
+    /// The turn that raises the crown value and so fills the confirmation bar.
+    ///
+    /// watchOS reports crown rotation relative to the display, not the hardware: the value goes up when the edge
+    /// of the crown nearest the screen rolls toward the top of the display, however the watch is worn. Looking at
+    /// the end of the crown, that is clockwise when the crown sits on the right of the display and counterclockwise
+    /// when it sits on the left. The Digital Crown setting is that side, as seen by the wearer, so the wrist does
+    /// not change which way to turn.
+    ///
+    /// Left wrist with the crown on the right is the default, and the app already shows clockwise there.
+    static func requiredTurn(crownOrientation: WKInterfaceDeviceCrownOrientation) -> CrownTurn {
+        crownOrientation == .right ? .clockwise : .counterclockwise
+    }
+
+    @Test(
+        "Crown hint arrow matches the turn that confirms a bolus",
+        arguments: [WKInterfaceDeviceWristLocation.left, .right],
+        [WKInterfaceDeviceCrownOrientation.left, .right]
+    ) func crownHintMatchesRequiredTurn(
+        wristLocation: WKInterfaceDeviceWristLocation,
+        crownOrientation: WKInterfaceDeviceCrownOrientation
+    ) throws {
+        let symbolName = BolusConfirmationView.crownHintSymbolName(
+            wristLocation: wristLocation,
+            crownOrientation: crownOrientation
+        )
+        let shown = try #require(Self.shownTurn(symbolName: symbolName))
+        let required = Self.requiredTurn(crownOrientation: crownOrientation)
+
+        #expect(shown == required)
+    }
+
+    @Test(
+        "Crown hint icon is a symbol watchOS can draw",
+        arguments: [WKInterfaceDeviceWristLocation.left, .right],
+        [WKInterfaceDeviceCrownOrientation.left, .right]
+    ) func crownHintSymbolExists(
+        wristLocation: WKInterfaceDeviceWristLocation,
+        crownOrientation: WKInterfaceDeviceCrownOrientation
+    ) {
+        let symbolName = BolusConfirmationView.crownHintSymbolName(
+            wristLocation: wristLocation,
+            crownOrientation: crownOrientation
+        )
+        #expect(UIImage(systemName: symbolName) != nil)
     }
 }

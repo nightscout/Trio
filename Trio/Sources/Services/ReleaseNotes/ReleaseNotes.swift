@@ -42,7 +42,7 @@ struct ReleaseNotes: Codable, Equatable, Identifiable {
 
     /// Publication date, or `nil` when GitHub supplied none.
     var publishedDate: Date? {
-        publishedAt.isEmpty ? nil : ISO8601DateFormatter().date(from: publishedAt)
+        publishedAt.isEmpty ? nil : Formatter.iso8601.date(from: publishedAt)
     }
 
     /// Publication date formatted for display, empty when unavailable.

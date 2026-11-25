@@ -78,7 +78,7 @@ struct GlucoseDailyDistributionChart: View {
                 .frame(height: 200)
 
             // Date label with transition
-            Text(selectedDate.map { formattedDate(for: $0) } ?? StatChartUtils.formatVisibleDateRange(
+            Text(selectedDate.map { $0.formatted(date: .complete, time: .omitted) } ?? StatChartUtils.formatVisibleDateRange(
                 from: visibleDateRange.start,
                 to: visibleDateRange.end,
                 for: selectedInterval
@@ -124,13 +124,6 @@ struct GlucoseDailyDistributionChart: View {
             isDaySelected = false
             scrollPosition = StatChartUtils.getInitialScrollPosition(for: selectedInterval)
         }
-    }
-
-    /// Formatted date string for display
-    private func formattedDate(for date: Date) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "EEEE, MMMM d, yyyy"
-        return dateFormatter.string(from: date)
     }
 
     /// The main chart visualization showing glucose distribution by day
@@ -191,22 +184,12 @@ struct GlucoseDailyDistributionChart: View {
 
     /// Formats a short string with the glucose values of the requested range.
     private func legend(_ rangeName: String) -> String {
-        switch rangeName {
-        case "veryLow":
-            return "<\(Decimal(54).formatted(for: units))"
-        case "low":
-            return "\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold - 1).formatted(for: units))"
-        case "inSmallRange":
-            return "\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units))"
-        case "inRange":
-            return "\(Decimal(timeInRangeType.topThreshold + 1).formatted(for: units))-\(highLimit.formatted(for: units))"
-        case "high":
-            return "\((highLimit + 1).formatted(for: units))-\(Decimal(250).formatted(for: units))"
-        case "veryHigh":
-            return ">\(Decimal(250).formatted(for: units))"
-        default:
-            return "error"
-        }
+        StatChartUtils.glucoseDistributionRangeLabel(
+            rangeName,
+            highLimit: highLimit,
+            units: units,
+            timeInRangeType: timeInRangeType
+        )
     }
 
     /// Creates a bar mark for the requested date and range
