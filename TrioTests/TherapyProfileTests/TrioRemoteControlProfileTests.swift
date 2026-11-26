@@ -134,7 +134,6 @@ private final class ProfileTestAssembly: Assembly {
         UserDefaults.standard.set(secret, forKey: "trioRemoteControlSharedSecret")
         URLProtocol.registerClass(APNsCaptureProtocol.self)
         APNsCaptureProtocol.reset()
-        APNSJWTManager.shared.invalidateCache()
     }
 
     private func encrypt(_ object: [String: Any]) throws -> String {
