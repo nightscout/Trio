@@ -16,12 +16,6 @@ struct BasalProfileStepView: View {
     @State private var now = Date()
     @Namespace private var bottomID
 
-    private var rateFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        return formatter
-    }
-
     var body: some View {
         ScrollViewReader { proxy in
             LazyVStack {
@@ -70,7 +64,7 @@ struct BasalProfileStepView: View {
                                 Spacer()
 
                                 HStack {
-                                    Text(rateFormatter.string(from: state.totalDailyBasal() as NSNumber) ?? "0")
+                                    Text(state.totalDailyBasal().formatted(.insulin))
                                     Text("U/day")
                                         .foregroundStyle(Color.secondary)
                                 }

@@ -21,49 +21,10 @@ extension Formatter {
         return formatter
     }()
 
-    static let decimalFormatterWithThreeFractionDigits: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = .current
-        formatter.maximumFractionDigits = 3
-        return formatter
-    }()
-
-    static let decimalFormatterWithOneFractionDigit: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = .current
-        formatter.maximumFractionDigits = 1
-        return formatter
-    }()
-  
-    static let dateFormatter: DateFormatter = {
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeStyle = .short
-        return dateFormatter
-    }()
-
     static let integerFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = 0
-        return formatter
-    }()
-
-    static let timaAgoFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        formatter.negativePrefix = ""
-        return formatter
-    }()
-  
-    static let bolusFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = .current
-        formatter.minimumIntegerDigits = 1
-        formatter.maximumFractionDigits = 2
         return formatter
     }()
 }
@@ -170,7 +131,7 @@ extension Decimal {
 
 extension FormatStyle where Self == Decimal.FormatStyle {
     /// Insulin amounts, exact to the smallest pump step: 0.025 → "0.025", 2 → "2".
-    static var insulin: Self { .number.precision(.fractionLength(0 ... 3)) }
+    static var insulin: Self { .number.precision(.fractionLength(0 ... 3)).rounded(rule: .toNearestOrAwayFromZero) }
 }
 
 extension JSONDecoder.DateDecodingStrategy {
