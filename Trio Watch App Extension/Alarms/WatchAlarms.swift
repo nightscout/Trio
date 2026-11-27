@@ -30,9 +30,9 @@ import WatchKit
         let body = [formatted, Self.arrow(latest.direction)].filter { !$0.isEmpty }.joined(separator: " ")
         if mgdl <= range.urgentLowAlarm {
             alarm("urgentLow", title: String(localized: "Urgent Low"), body: body, every: 5 * 60)
-        } else if mgdl <= range.lowAlarm ?? range.low {
+        } else if let low = range.lowAlarm, mgdl <= low {
             alarm("low", title: String(localized: "Low Glucose"), body: body, every: 15 * 60)
-        } else if mgdl >= range.highAlarm ?? range.high {
+        } else if let high = range.highAlarm, mgdl >= high {
             alarm("high", title: String(localized: "High Glucose"), body: body, every: 60 * 60)
         }
     }
