@@ -45,8 +45,8 @@ extension Adjustments {
             ZStack(alignment: .center, content: {
                 VStack {
                     Picker("Adjustment Tabs", selection: $state.selectedTab) {
-                        ForEach(Adjustments.Tab.allCases.indexed(), id: \.1) { index, item in
-                            Text(item.name).tag(index)
+                        ForEach(Adjustments.Tab.allCases, id: \.self) { tab in
+                            Text(tab.name).tag(tab)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())

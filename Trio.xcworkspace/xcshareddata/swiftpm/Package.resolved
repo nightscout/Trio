@@ -1,5 +1,5 @@
 {
-  "originHash" : "0e4044af3b81bb544d1555319fb488ca4bb8dcc296e2dc515628465d4a341f5a",
+  "originHash" : "0a85f6e01f3ef322a3ff36b110681268fb1ce3eedde384c00925f9421596c744",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -137,15 +137,6 @@
       }
     },
     {
-      "identity" : "mkringprogressview",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/maxkonovalov/MKRingProgressView.git",
-      "state" : {
-        "branch" : "master",
-        "revision" : "660888aab1d2ab0ed7eb9eb53caec12af4955fa7"
-      }
-    },
-    {
       "identity" : "nanopb",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/nanopb.git",
@@ -170,24 +161,6 @@
       "state" : {
         "branch" : "main",
         "revision" : "5eacebba4d7deeb693592bc9a62ab2d2181e133b"
-      }
-    },
-    {
-      "identity" : "swift-algorithms",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-algorithms",
-      "state" : {
-        "revision" : "2327673b0e9c7e90e6b1826376526ec3627210e4",
-        "version" : "0.2.1"
-      }
-    },
-    {
-      "identity" : "swift-numerics",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-numerics",
-      "state" : {
-        "revision" : "6583ac70c326c3ee080c1d42d9ca3361dca816cd",
-        "version" : "0.1.0"
       }
     },
     {
