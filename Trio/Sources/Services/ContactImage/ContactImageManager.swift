@@ -225,7 +225,7 @@ final class BaseContactImageManager: NSObject, ContactImageManager, Injectable {
 
             let iobValue = iobService.currentIOB ?? 0.0
             state.iob = iobValue
-            state.iobText = Formatter.decimalFormatterWithOneFractionDigit.string(from: iobValue as NSNumber)
+            state.iobText = iobValue.formattedIOB()
 
             // we need to do it complex and unelegant, otherwise unwrapping and parsing of cob results in 0
             if let cobValue = lastDetermination?.cob {

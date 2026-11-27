@@ -31,13 +31,6 @@ extension Calibrations {
             return formatter
         }
 
-        private var dateFormatter: DateFormatter {
-            let formatter = DateFormatter()
-            formatter.timeStyle = .short
-            formatter.dateStyle = .short
-            return formatter
-        }
-
         var body: some View {
             GeometryReader { geo in
                 Form {
@@ -89,7 +82,7 @@ extension Calibrations {
                         List {
                             ForEach(state.items) { item in
                                 HStack {
-                                    Text(dateFormatter.string(from: item.calibration.date))
+                                    Text(item.calibration.date, format: .dateAndTime)
                                     Spacer()
                                     VStack(alignment: .leading) {
                                         Text("raw: \(item.calibration.x)")

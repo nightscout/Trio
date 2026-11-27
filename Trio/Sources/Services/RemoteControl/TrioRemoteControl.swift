@@ -102,18 +102,21 @@ class TrioRemoteControl: Injectable {
             return
         }
 
-        guard let messenger = SecureMessenger(sharedSecret: storedSecret) else {
-            await logError("Command rejected: Failed to initialize security module. The shared secret might be invalid.")
-            return
-        }
+        let messenger = SecureMessenger(sharedSecret: storedSecret)
 
         let commandPayload: CommandPayload
-        do {
+        do throws (SecureMessengerError) {
             commandPayload = try messenger.decrypt(base64EncodedString: encryptedData)
         } catch {
-            await logError(
-                "Command rejected: Decryption failed. Mismatched shared secret or corrupted message. Error: \(error.localizedDescription)"
-            )
+            let note = switch error {
+            case .invalidMessage:
+                "Command rejected: the message is not a valid remote command."
+            case .authenticationFailed:
+                "Command rejected: shared secret does not match. Enter the same shared secret in LoopFollow and in Trio's Remote Control settings."
+            case .undecodableCommand:
+                "Command rejected: the shared secret is correct, but this version of Trio cannot read the command. Check that Trio and LoopFollow are up to date."
+            }
+            await logError(note, logMessage: "\(note) Error: \(error)")
             return
         }
 

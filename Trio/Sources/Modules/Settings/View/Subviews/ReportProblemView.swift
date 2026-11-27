@@ -114,7 +114,7 @@ private struct SentReportRow: View {
                 Text(verbatim: report.id)
                     .font(.body.monospaced())
                     .textSelection(.enabled)
-                Text(report.date, format: .dateTime.day().month().year().hour().minute())
+                Text(report.date, format: .dateAndTime)
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }

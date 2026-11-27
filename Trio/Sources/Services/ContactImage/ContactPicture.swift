@@ -9,12 +9,6 @@ struct ContactPicture: View {
     @Binding var contact: ContactImageEntry
     @Binding var state: ContactImageState
 
-    private static let formatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }()
-
     static func getImage(
         contact: ContactImageEntry,
         state: ContactImageState
@@ -273,7 +267,8 @@ struct ContactPicture: View {
         case .eventualBG: state.eventualBG
         case .delta: state.delta
         case .trend: state.trend
-        case .lastLoopDate: state.lastLoopDate.map({ formatter.string(from: $0) })
+        // Without AM/PM, so a 12h time stays as short as a 24h one in the small watch face slot.
+        case .lastLoopDate: state.lastLoopDate?.formatted(.timeOfDay.hour(.defaultDigits(amPM: .omitted)))
         case .cob: state.cobText
         case .iob: state.iobText
         default: nil

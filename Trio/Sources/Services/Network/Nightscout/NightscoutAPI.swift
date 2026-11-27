@@ -1,7 +1,6 @@
 import Combine
 import CommonCrypto
 import Foundation
-import JavaScriptCore
 import Swinject
 
 class NightscoutAPI {
