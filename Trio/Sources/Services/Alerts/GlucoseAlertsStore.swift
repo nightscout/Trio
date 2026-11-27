@@ -77,14 +77,17 @@ final class GlucoseAlertsStore: ObservableObject {
 
     // MARK: - Mutators
 
-    /// Rate alarms are seeded with the mg/dL default; move disabled ones still
-    /// on the other unit's default to the default for `units`.
+    /// Rate alarms are seeded with the mg/dL defaults; move disabled ones still
+    /// on the other unit's defaults to the defaults for `units`.
     func applyUnitDefaults(_ units: GlucoseUnits) {
         let otherUnits: GlucoseUnits = units == .mgdL ? .mmolL : .mgdL
         for index in alerts.indices where alerts[index].type.isRateDriven && !alerts[index].isEnabled {
             let type = alerts[index].type
             if alerts[index].thresholdMgDL == type.defaultThresholdMgDL(for: otherUnits) {
                 alerts[index].thresholdMgDL = type.defaultThresholdMgDL(for: units)
+            }
+            if alerts[index].glucoseLimitMgDL == type.defaultGlucoseLimitMgDL(for: otherUnits) {
+                alerts[index].glucoseLimitMgDL = type.defaultGlucoseLimitMgDL(for: units)
             }
         }
     }

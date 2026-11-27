@@ -31,7 +31,7 @@ struct GlucoseAlert: Identifiable, Codable, Equatable {
         name = type.displayName
         isEnabled = true
         thresholdMgDL = type.defaultThresholdMgDL(for: units)
-        glucoseLimitMgDL = type.defaultGlucoseLimitMgDL
+        glucoseLimitMgDL = type.defaultGlucoseLimitMgDL(for: units)
         soundFilename = type.defaultSoundFilename
         playsSound = true
         overridesSilenceAndDND = type.defaultOverridesSilenceAndDND

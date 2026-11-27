@@ -106,6 +106,12 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
         isRateDriven ? 140 : nil
     }
 
+    /// Default glucose limit in the user's units. 140 mg/dL is off the
+    /// 0.5 mmol/L picker grid, so mmol/L users get 144 mg/dL (8.0 mmol/L).
+    func defaultGlucoseLimitMgDL(for units: GlucoseUnits) -> Decimal? {
+        isRateDriven && units == .mmolL ? 144 : defaultGlucoseLimitMgDL
+    }
+
     /// Default bundled sound filename. See `Trio/Resources/Sounds/`.
     /// Acoustic, Medium — the set the sound designer recommends as default
     /// after hallway testing. Falls back to the old generic tone only if the
@@ -138,7 +144,8 @@ enum GlucoseAlertType: String, Codable, CaseIterable, Identifiable {
     static let rateRange: ClosedRange<Decimal> = 5 ... 30
 
     /// Glucose limits offered for `fallingFast` / `risingFast`, in mg/dL.
-    static let glucoseLimitRange: ClosedRange<Decimal> = 70 ... 180
+    /// Only When Below 400 matches Dexcom's unlimited Falling Fast alert.
+    static let glucoseLimitRange: ClosedRange<Decimal> = 70 ... 400
 
     /// A mg/dL per 5 minutes rate in the user's units, e.g. "10 mg/dL/5 min" or "0.5 mmol/L/5 min".
     static func formattedRate(_ mgDLPer5Minutes: Decimal, units: GlucoseUnits) -> String {

@@ -43,15 +43,17 @@ import Testing
         }
     }
 
-    @Test("mmol/L moves disabled default rate alarms to 0.5 mmol/L and back") func unitDefaultsForRateAlarms() {
+    @Test("mmol/L moves disabled default rate alarms to 0.5 and 8.0 mmol/L and back") func unitDefaultsForRateAlarms() {
         let store = Self.makeStore()
         store.applyUnitDefaults(.mmolL)
         for alert in store.alerts where alert.type.isRateDriven {
             #expect(alert.thresholdMgDL == 9)
+            #expect(alert.glucoseLimitMgDL == 144)
         }
         store.applyUnitDefaults(.mgdL)
         for alert in store.alerts where alert.type.isRateDriven {
             #expect(alert.thresholdMgDL == 10)
+            #expect(alert.glucoseLimitMgDL == 140)
         }
     }
 

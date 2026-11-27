@@ -6,6 +6,8 @@ struct AlarmBGSection: View {
     let title: String
     let range: ClosedRange<Decimal>
     let step: Decimal
+    /// mmol/L step for the picker; nil derives mmol/L values from `step`.
+    var mmolStep: Decimal?
     let units: GlucoseUnits
     @Binding var valueMgDL: Decimal
 
@@ -52,13 +54,38 @@ struct AlarmBGSection: View {
     }
 
     private var pickerValues: [Decimal] {
-        let setting = PickerSetting(
-            value: valueMgDL,
-            step: step,
-            min: range.lowerBound,
-            max: range.upperBound,
-            type: .glucose
-        )
-        return PickerSettingsProvider.shared.generatePickerValues(from: setting, units: units)
+        Self.pickerValues(range: range, step: step, mmolStep: mmolStep, units: units, current: valueMgDL)
+    }
+
+    /// Picker values in mg/dL. With `mmolStep`, keeps `current` selectable when it is off the grid.
+    static func pickerValues(
+        range: ClosedRange<Decimal>,
+        step: Decimal,
+        mmolStep: Decimal?,
+        units: GlucoseUnits,
+        current: Decimal
+    ) -> [Decimal] {
+        var values: [Decimal] = []
+        if units == .mmolL, let mmolStep {
+            var mmol = (range.lowerBound.asMmolL / mmolStep).rounded(scale: 0, roundingMode: .up) * mmolStep
+            while mmol <= range.upperBound * GlucoseUnits.exchangeRate {
+                values.append(mmol.asMgdL)
+                mmol += mmolStep
+            }
+        } else {
+            let setting = PickerSetting(
+                value: current,
+                step: step,
+                min: range.lowerBound,
+                max: range.upperBound,
+                type: .glucose
+            )
+            values = PickerSettingsProvider.shared.generatePickerValues(from: setting, units: units)
+        }
+        if mmolStep != nil, !values.contains(current) {
+            values.append(current)
+            values.sort()
+        }
+        return values
     }
 }

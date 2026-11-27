@@ -168,7 +168,8 @@ struct GlucoseAlertEditorView: View {
             footer: String(localized: "Fires only when glucose is at or below this value."),
             title: String(localized: "Glucose"),
             range: GlucoseAlertType.glucoseLimitRange,
-            step: 1,
+            step: 10,
+            mmolStep: 0.5,
             units: units,
             valueMgDL: glucoseLimitBinding
         )
@@ -191,7 +192,8 @@ struct GlucoseAlertEditorView: View {
             footer: String(localized: "Fires only when glucose is at or above this value."),
             title: String(localized: "Glucose"),
             range: GlucoseAlertType.glucoseLimitRange,
-            step: 1,
+            step: 10,
+            mmolStep: 0.5,
             units: units,
             valueMgDL: glucoseLimitBinding
         )
