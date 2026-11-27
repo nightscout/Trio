@@ -106,8 +106,8 @@ extension Stat.StateModel {
             // Define glucose ranges and their conditions
             // Ranges are processed from bottom to top in the stacked chart
             let ranges: [(name: String, condition: (Int) -> Bool)] = [
-                ("<54", { g in g <= 54 }),
-                ("54-\(timeInRangeType.bottomThreshold)", { g in g > 54 && g < timeInRangeType.bottomThreshold }),
+                ("<54", { g in g < 54 }),
+                ("54-\(timeInRangeType.bottomThreshold)", { g in g >= 54 && g < timeInRangeType.bottomThreshold }),
                 (
                     "\(timeInRangeType.bottomThreshold)-\(timeInRangeType.topThreshold)",
                     { g in g >= timeInRangeType.bottomThreshold && g <= timeInRangeType.topThreshold }
