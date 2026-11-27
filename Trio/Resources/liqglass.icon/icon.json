@@ -1,0 +1,105 @@
+{
+  "fill-specializations" : [
+    {
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.96774,1.00000,1.00000,1.00000",
+          "display-p3:0.76198,0.77872,0.77872,1.00000"
+        ],
+        "orientation" : {
+          "start" : {
+            "x" : 0.5,
+            "y" : 1
+          },
+          "stop" : {
+            "x" : 0.5,
+            "y" : 0
+          }
+        }
+      }
+    },
+    {
+      "appearance" : "dark",
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.17342,0.17342,0.17342,1.00000",
+          "display-p3:0.08372,0.08556,0.08556,1.00000"
+        ],
+        "orientation" : {
+          "start" : {
+            "x" : 0.5,
+            "y" : 1
+          },
+          "stop" : {
+            "x" : 0.5,
+            "y" : 0
+          }
+        }
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "blend-mode-specializations" : [
+        {
+          "appearance" : "dark",
+          "value" : "normal"
+        }
+      ],
+      "blur-material" : null,
+      "hidden" : false,
+      "layers" : [
+        {
+          "image-name" : "c2.svg",
+          "name" : "c2",
+          "position" : {
+            "scale" : 0.92,
+            "translation-in-points" : [
+              -163.916,
+              36.033
+            ]
+          }
+        },
+        {
+          "glass" : false,
+          "image-name" : "c1.svg",
+          "name" : "c1",
+          "position" : {
+            "scale" : 0.92,
+            "translation-in-points" : [
+              110.426,
+              -161.183
+            ]
+          }
+        },
+        {
+          "glass" : false,
+          "image-name" : "c3.svg",
+          "name" : "c3",
+          "position" : {
+            "scale" : 0.92,
+            "translation-in-points" : [
+              150.575,
+              194.42
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.2
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

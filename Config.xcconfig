@@ -1,6 +1,6 @@
 // Some of the items can be modified to match the user's preference
 APP_DISPLAY_NAME = Trio
-APP_ICON = trioBlack
+APP_ICON = liqglass
 APP_URL_SCHEME = Trio
 
 // DEVELOPER_TEAM will be set to your Apple Developer ID - typically using ConfigOverride.xcconfig

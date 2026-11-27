@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Created with Linearity Curve (http://linearity.io/curve) -->
+<svg height="100%" stroke-miterlimit="10" style="fill-rule:nonzero;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;" version="1.1" viewBox="-37.0419 -648.724 511 519.219" width="100%" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:vectornator="http://vectornator.io" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<linearGradient gradientTransform="matrix(651.991 305.85 -305.85 651.991 46.2402 -477.05)" gradientUnits="userSpaceOnUse" id="LinearGradient" x1="0" x2="1" y1="0" y2="0">
+<stop offset="0" stop-color="#7161ef"/>
+<stop offset="1" stop-color="#43bbe9"/>
+</linearGradient>
+</defs>
+<g id="Layer">
+<path d="M214.364-648.724C93.4462-648.724-8.17698-566.033-37.0419-454.131C102.532-449.791 214.364-335.383 214.364-194.756C214.364-172.298 211.507-150.508 206.146-129.724C208.885-129.639 211.605-129.506 214.364-129.506C357.741-129.506 473.958-245.723 473.958-389.099C473.958-532.476 357.741-648.724 214.364-648.724Z" fill="url(#LinearGradient)" fill-rule="nonzero" opacity="1" stroke="none"/>
+</g>
+</svg>

@@ -1,12 +1,12 @@
-
-import Foundation
+import SwiftUI
 import UIKit
 
 enum Icon_: String, CaseIterable, Identifiable {
-    case primary = "trioBlack"
+    case primary = "liqglass"
     case trioWhiteShadow
     case trioColorBG
     case trioWhite
+    case trioBlack
     case trioCircledNoBackground
     case trio3D
     case wilford = "diabeetus"
@@ -15,34 +15,23 @@ enum Icon_: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
-class Icons: ObservableObject, Equatable {
-    @Published var appIcon: Icon_ = .primary
+@MainActor final class Icons: ObservableObject {
+    @Published private(set) var appIcon: Icon_
 
-    static func == (lhs: Icons, rhs: Icons) -> Bool {
-        lhs.appIcon == rhs.appIcon
+    init() {
+        // An icon removed or renamed in a later build falls back to the primary one.
+        appIcon = UIApplication.shared.alternateIconName.flatMap(Icon_.init(rawValue:)) ?? .primary
     }
 
     func setAlternateAppIcon(icon: Icon_) {
-        let iconName: String? = (icon != .primary) ? icon.rawValue : nil
-
-        guard UIApplication.shared.alternateIconName != iconName else { return }
-
-        UIApplication.shared.setAlternateIconName(iconName) { error in
-            if let error = error {
+        guard icon != appIcon else { return }
+        Task {
+            do {
+                try await UIApplication.shared.setAlternateIconName(icon == .primary ? nil : icon.rawValue)
+                appIcon = icon
+            } catch {
                 warning(.ui, "Changing the app icon failed", error: error)
             }
-        }
-
-        appIcon = icon
-    }
-
-    init() {
-        let iconName = UIApplication.shared.alternateIconName
-
-        if iconName == nil {
-            appIcon = .primary
-        } else {
-            appIcon = Icon_(rawValue: iconName!)!
         }
     }
 }

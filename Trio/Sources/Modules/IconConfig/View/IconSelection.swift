@@ -45,9 +45,7 @@ struct IconSelection: View {
     }
 }
 
-struct IconSelectionRootView_Previews: PreviewProvider {
-    static var previews: some View {
-        IconSelection()
-            .environmentObject(Icons())
-    }
+#Preview {
+    IconSelection()
+        .environmentObject(Icons())
 }
