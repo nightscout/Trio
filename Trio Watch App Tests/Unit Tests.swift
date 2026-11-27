@@ -274,6 +274,21 @@ import WatchKit
     @Test("Returning to the app with no entry in progress changes nothing") func testNoEntryOnReturn() throws {
         #expect(!watchState.expireStaleEntry(at: entryStart))
     }
+
+    @Test("Ring stops from the phone are kept only when well formed") func ringStopsFromPhone() {
+        let payload: [[String: Any]] = [
+            ["location": 0.0, "color": "#E65C5C"],
+            ["location": 1.5, "color": "#A35CE6"],
+            ["location": 0.5, "color": "not a colour"],
+            ["location": Double.nan, "color": "#5CE65C"],
+            ["color": "#5CE65C"]
+        ]
+        let stops = payload.compactMap(ComplicationRingStop.init(payload:))
+        #expect(stops == [
+            ComplicationRingStop(location: 0, colorHex: "#E65C5C"),
+            ComplicationRingStop(location: 1, colorHex: "#A35CE6")
+        ])
+    }
 }
 
 // MARK: - Bolus Confirmation Crown Hint Tests
@@ -341,5 +356,16 @@ import WatchKit
             crownOrientation: crownOrientation
         )
         #expect(UIImage(systemName: symbolName) != nil)
+    }
+
+    @Test("A key a kit update adds to the CGM export keeps the watch's manager") func testSameSensorIgnoresNewKeys() throws {
+        let g7 = try #require(watchCGMManagersByIdentifier["G7CGMManager"])
+        let built: [String: Any] = ["sensorID": "ABC123", "activatedAt": Date(timeIntervalSince1970: 1000), "pairingCode": "1234"]
+        var updated = built
+        updated["calibrationAdviceSeen"] = false
+        #expect(g7.sameSensor(built, updated))
+        updated["sensorID"] = "XYZ789"
+        #expect(!g7.sameSensor(built, updated))
+        #expect(!g7.sameSensor(built, ["sensorID": "ABC123", "activatedAt": Date(timeIntervalSince1970: 1000)]))
     }
 }
