@@ -19,7 +19,12 @@ extension JSON {
             let object = try JSONCoding.decoder.decode(Self.self, from: data)
             self = object
         } catch {
-            warning(.storage, "Decoding \(Self.self) from JSON failed", error: error)
+            #if os(watchOS)
+                // the watch app compiles this file without the phone's logger
+                WatchLogger.shared.warning(.data, "Decoding \(Self.self) from JSON failed", error: error)
+            #else
+                warning(.storage, "Decoding \(Self.self) from JSON failed", error: error)
+            #endif
             return nil
         }
     }

@@ -147,6 +147,10 @@ extension PluginSource: CGMManagerDelegate {
         processQueue.async { self.glucoseManager?.trioAlertManager?.retractAlert(identifier: alert.identifier) }
     }
 
+    /// Trio's watch reads a CGM itself from its shared configuration (`WatchCGMHost`), so the CGM may offer
+    /// Read on Apple Watch.
+    func supportsWatchDirectRead(for _: CGMManager) -> Bool { true }
+
     func cgmManagerWantsDeletion(_ manager: CGMManager) async {
         info(.cgm, "CGM \(manager.pluginIdentifier) requested removal")
         await glucoseManager?.deleteGlucoseSource()

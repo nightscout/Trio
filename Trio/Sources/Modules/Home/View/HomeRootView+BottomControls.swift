@@ -96,14 +96,6 @@ extension Home.RootView {
             }
         }
 
-        let smbScheduleString = latestOverride
-            .smbIsScheduledOff && ((latestOverride.start?.stringValue ?? "") != (latestOverride.end?.stringValue ?? ""))
-            ? " \(formatTimeRange(start: latestOverride.start?.stringValue, end: latestOverride.end?.stringValue))"
-            : ""
-
-        let smbToggleString = latestOverride.smbIsOff || latestOverride
-            .smbIsScheduledOff ? String(localized: "SMBs Off\(smbScheduleString)") : ""
-
         var smbMinuteLabel = (text: "", spoken: "")
         var uamMinuteLabel = (text: "", spoken: "")
 
@@ -129,7 +121,7 @@ extension Home.RootView {
             }
         }
 
-        let otherComponents = [percentString, targetString, smbToggleString]
+        let otherComponents = [percentString, targetString, latestOverride.smbOffText]
         let components = ([durationLabel.text] + otherComponents + [smbMinuteLabel.text, uamMinuteLabel.text])
             .filter { !$0.isEmpty }
         let spokenComponents = ([durationLabel.spoken] + otherComponents + [smbMinuteLabel.spoken, uamMinuteLabel.spoken])

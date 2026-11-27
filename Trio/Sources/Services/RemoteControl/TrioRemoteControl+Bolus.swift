@@ -69,7 +69,7 @@ private extension BolusSafetyRejection {
         case .iobUnavailable:
             return "Command rejected: current IOB is not available."
         case let .exceedsMaxIOB(currentIOB, maxIOB):
-            return "Command rejected: bolus amount (\(bolusAmount) units) would exceed max IOB (\(maxIOB) units). Current IOB: \(currentIOB) units."
+            return "Command rejected: bolus amount (\(bolusAmount) units) would exceed max IOB (\(maxIOB) units). Current IOB: \(currentIOB.formattedIOB(locale: Locale(identifier: "en_US_POSIX"))) units."
         case .recentBolusWithinWindow:
             return "Command rejected: boluses totaling more than 20% of the requested amount have been delivered since the command was sent."
         }
