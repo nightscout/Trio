@@ -5,18 +5,12 @@ import Swinject
 /// Shared safety checks applied to any bolus command originating outside the main bolus UI
 /// (remote notifications, Shortcuts, etc.). Keeps validation logic consistent across call sites.
 protocol BolusSafetyValidator {
-    /// - Parameter lookbackStart: start of the window used for the recent-bolus 20% check.
-    ///   Defaults to `now - BolusSafetyEvaluator.recentBolusWindowMinutes`. Callers that know when the
-    ///   command was originally issued (e.g. APNS payload timestamp) should pass that instead so the
-    ///   check covers any bolus since the command was sent.
-    func validate(bolusAmount: Decimal, lookbackStart: Date?) async throws -> BolusSafetyResult
+    /// Max bolus, max IOB, and the recent-bolus 20% check over the last
+    /// `BolusSafetyEvaluator.recentBolusWindowMinutes`.
+    func validate(bolusAmount: Decimal) async throws -> BolusSafetyResult
+    /// Max bolus and max IOB only, for callers that check recent treatments themselves.
+    func validateLimits(bolusAmount: Decimal) -> BolusSafetyResult
     func fetchTotalRecentBolusAmount(since date: Date) async throws -> Decimal
-}
-
-extension BolusSafetyValidator {
-    func validate(bolusAmount: Decimal) async throws -> BolusSafetyResult {
-        try await validate(bolusAmount: bolusAmount, lookbackStart: nil)
-    }
 }
 
 enum BolusSafetyResult: Equatable {
@@ -43,16 +37,32 @@ enum BolusSafetyEvaluator {
     static let recentBolusThreshold: Decimal = 0.2
     static let recentBolusWindowMinutes: Int = 6
 
-    static func evaluate(bolusAmount: Decimal, inputs: BolusSafetyInputs) -> BolusSafetyResult {
-        if bolusAmount > inputs.maxBolus {
-            return .rejected(.exceedsMaxBolus(maxBolus: inputs.maxBolus))
+    static func evaluateLimits(
+        bolusAmount: Decimal,
+        maxBolus: Decimal,
+        maxIOB: Decimal,
+        currentIOB: Decimal?
+    ) -> BolusSafetyResult {
+        if bolusAmount > maxBolus {
+            return .rejected(.exceedsMaxBolus(maxBolus: maxBolus))
         }
-        guard let currentIOB = inputs.currentIOB else {
+        guard let currentIOB = currentIOB else {
             return .rejected(.iobUnavailable)
         }
-        if (currentIOB + bolusAmount) > inputs.maxIOB {
-            return .rejected(.exceedsMaxIOB(currentIOB: currentIOB, maxIOB: inputs.maxIOB))
+        if (currentIOB + bolusAmount) > maxIOB {
+            return .rejected(.exceedsMaxIOB(currentIOB: currentIOB, maxIOB: maxIOB))
         }
+        return .allowed
+    }
+
+    static func evaluate(bolusAmount: Decimal, inputs: BolusSafetyInputs) -> BolusSafetyResult {
+        let limits = evaluateLimits(
+            bolusAmount: bolusAmount,
+            maxBolus: inputs.maxBolus,
+            maxIOB: inputs.maxIOB,
+            currentIOB: inputs.currentIOB
+        )
+        guard limits == .allowed else { return limits }
         if inputs.totalRecentBolus >= bolusAmount * recentBolusThreshold {
             return .rejected(.recentBolusWithinWindow(totalRecent: inputs.totalRecentBolus))
         }
@@ -68,9 +78,17 @@ final class BaseBolusSafetyValidator: BolusSafetyValidator, Injectable {
         injectServices(resolver)
     }
 
-    func validate(bolusAmount: Decimal, lookbackStart: Date?) async throws -> BolusSafetyResult {
-        let windowStart = lookbackStart
-            ?? Date().addingTimeInterval(-Double(BolusSafetyEvaluator.recentBolusWindowMinutes * 60))
+    func validateLimits(bolusAmount: Decimal) -> BolusSafetyResult {
+        BolusSafetyEvaluator.evaluateLimits(
+            bolusAmount: bolusAmount,
+            maxBolus: settingsManager.pumpSettings.maxBolus,
+            maxIOB: settingsManager.preferences.maxIOB,
+            currentIOB: iobService.currentIOB
+        )
+    }
+
+    func validate(bolusAmount: Decimal) async throws -> BolusSafetyResult {
+        let windowStart = Date().addingTimeInterval(-Double(BolusSafetyEvaluator.recentBolusWindowMinutes * 60))
         let inputs = BolusSafetyInputs(
             maxBolus: settingsManager.pumpSettings.maxBolus,
             maxIOB: settingsManager.preferences.maxIOB,

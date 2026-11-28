@@ -28,6 +28,8 @@ struct CommandPayload: Decodable, Sendable {
     var profile: CompactTherapyProfile?
     var scheduledSwitches: [ScheduledProfileSwitch]?
     var returnNotification: ReturnNotificationInfo?
+    /// Newest Nightscout `_id` among the treatments the sender had fetched when it sent the command.
+    var knownThroughId: String?
 
     /// Nightscout `id` of the meal root or of one of its carb equivalents.
     var mealHandle: UUID? {
@@ -72,6 +74,7 @@ struct CommandPayload: Decodable, Sendable {
         case profile
         case scheduledSwitches = "scheduled_switches"
         case returnNotification = "return_notification"
+        case knownThroughId = "known_through_id"
     }
 
     func humanReadableDescription() -> String {

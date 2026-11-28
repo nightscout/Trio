@@ -68,7 +68,7 @@ final class ProfileTestNightscoutManager: NightscoutManager {
     func fetchIfNeeded() -> AnyPublisher<[BloodGlucose], Never> { Just([]).eraseToAnyPublisher() }
     func sourceInfo() -> [String: Any]? { nil }
     func fetchGlucose(since _: Date) async -> [BloodGlucose] { [] }
-    func fetchCarbs() async -> [CarbsEntry] { [] }
+    func fetchCarbs() async -> (entries: [CarbsEntry], siteURL: String?) { ([], nil) }
     func fetchTempTargets() async -> [TempTarget] { [] }
     func deleteCarbs(withID _: String) async -> Bool { true }
     func deleteInsulin(withID _: String) async {}
@@ -375,7 +375,7 @@ private final class ProfileTestAssembly: Assembly {
         let old = try await send(command(
             "switch_profile",
             ["profile_name": "Sport", "base_fingerprint": sport.fingerprint(units: .mgdL)],
-            timestamp: Date().timeIntervalSince1970 - 601
+            timestamp: Date().timeIntervalSince1970 - 721
         ))
         #expect(old["command_status"] as? String == "failed")
         #expect(manager.activeProfileName == "Default")

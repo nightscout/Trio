@@ -13,7 +13,8 @@ protocol APSManager {
     /// usual dwell threshold — when the user explicitly asks for a loop,
     /// they want feedback even if the underlying error is "transient".
     func markNextLoopUserInitiated()
-    func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async
+    /// Reports whether the bolus was enacted, failed, or may have been delivered.
+    func enactBolus(amount: Double, isSMB: Bool, completion: ((BolusEnactmentResult) -> Void)?) async
     var pumpManager: PumpManagerUI? { get set }
     var bluetoothManager: BluetoothStateManager? { get }
     var pumpDisplayState: CurrentValueSubject<PumpDisplayState?, Never> { get }
@@ -40,6 +41,48 @@ protocol APSManager {
     var lastError: CurrentValueSubject<Error?, Never> { get }
     func cancelBolus(_ callback: ((Bool, String) -> Void)?) async
     var iobFileDidUpdate: PassthroughSubject<Void, Never> { get }
+}
+
+extension APSManager {
+    /// `enactBolus(amount:isSMB:completion:)`, reporting success and the message.
+    func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
+        await enactBolus(amount: amount, isSMB: isSMB) { (result: BolusEnactmentResult) in
+            callback?(result.isSuccess, result.message)
+        }
+    }
+}
+
+enum BolusEnactmentResult {
+    case enacted(message: String)
+    /// Nothing was delivered. `error` is the pump's error when the pump refused the bolus.
+    case failed(message: String, error: Error?)
+    /// The command was sent to the pump without a confirmation; the bolus may have been delivered.
+    case uncertainDelivery(message: String, error: Error)
+
+    var isSuccess: Bool {
+        if case .enacted = self { return true }
+        return false
+    }
+
+    var message: String {
+        switch self {
+        case let .enacted(message),
+             let .failed(message, _),
+             let .uncertainDelivery(message, _):
+            return message
+        }
+    }
+
+    /// The result of a bolus that threw `error`.
+    static func failure(message: String, error: Error) -> BolusEnactmentResult {
+        if case PumpManagerError.uncertainDelivery = error {
+            return .uncertainDelivery(message: message, error: error)
+        }
+        if case let APSError.pumpError(pumpError) = error, case PumpManagerError.uncertainDelivery = pumpError {
+            return .uncertainDelivery(message: message, error: error)
+        }
+        return .failed(message: message, error: error)
+    }
 }
 
 /// Notified after a bolus-related failure so observing UI (e.g. the
@@ -633,11 +676,11 @@ final class BaseAPSManager: APSManager, Injectable {
         return min(rounded, maxBolus)
     }
 
-    func enactBolus(amount: Double, isSMB: Bool, callback: ((Bool, String) -> Void)?) async {
+    func enactBolus(amount: Double, isSMB: Bool, completion: ((BolusEnactmentResult) -> Void)?) async {
         // Answer every caller: a silent return here left the watch waiting on "Processing…" forever
         guard amount > 0 else {
             warning(.bolus, "Bolus of \(amount) U not enacted, amount must be above 0")
-            callback?(false, Self.invalidBolusAmountMessage)
+            completion?(.failed(message: Self.invalidBolusAmountMessage, error: nil))
             return
         }
 
@@ -651,12 +694,18 @@ final class BaseAPSManager: APSManager, Injectable {
                     $0.bolusDidFail()
                 }
             }
-            callback?(false, String(localized: "Error! Failed to enact bolus.", comment: "Error message for enacting a bolus"))
+            completion?(.failed(
+                message: String(localized: "Error! Failed to enact bolus.", comment: "Error message for enacting a bolus"),
+                error: nil
+            ))
             return
         }
 
         guard let pump = pumpManager else {
-            callback?(false, String(localized: "Error! Failed to enact bolus.", comment: "Error message for enacting a bolus"))
+            completion?(.failed(
+                message: String(localized: "Error! Failed to enact bolus.", comment: "Error message for enacting a bolus"),
+                error: nil
+            ))
             return
         }
 
@@ -664,7 +713,7 @@ final class BaseAPSManager: APSManager, Injectable {
 
         guard roundedAmount > 0 else {
             warning(.bolus, "Bolus of \(amount) U not enacted, rounds to 0 U on this pump")
-            callback?(false, Self.invalidBolusAmountMessage)
+            completion?(.failed(message: Self.invalidBolusAmountMessage, error: nil))
             return
         }
 
@@ -674,7 +723,9 @@ final class BaseAPSManager: APSManager, Injectable {
             try await pump.enactBolus(units: roundedAmount, automatic: isSMB)
             info(.bolus, "Bolus enacted: \(roundedAmount) U, \(isSMB ? "automatic" : "manual")")
             bolusProgress.send(0)
-            callback?(true, String(localized: "Bolus enacted successfully.", comment: "Success message for enacting a bolus"))
+            completion?(.enacted(
+                message: String(localized: "Bolus enacted successfully.", comment: "Success message for enacting a bolus")
+            ))
             if !isSMB {
                 do {
                     try await determineBasalSync()
@@ -699,10 +750,10 @@ final class BaseAPSManager: APSManager, Injectable {
                     }
                 }
             }
-            callback?(
-                false,
-                String(localized: "Error! Bolus failed with error: \(bolusError.localizedDescription)")
-            )
+            completion?(.failure(
+                message: String(localized: "Error! Bolus failed with error: \(bolusError.localizedDescription)"),
+                error: bolusError
+            ))
         }
     }
 

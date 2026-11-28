@@ -100,6 +100,7 @@ extension NightscoutConfig {
                     self.message = "Connected!"
                     self.keychain.setValue(self.url, forKey: Config.urlKey)
                     self.keychain.setValue(self.secret, forKey: Config.secretKey)
+                    NightscoutObjectIdStore.shared.snapshot()
                     self.connecting = true
                     self.isConnectedToNS = self.nightscoutAPI != nil
                 }
@@ -167,6 +168,7 @@ extension NightscoutConfig {
         func delete() {
             keychain.removeObject(forKey: Config.urlKey)
             keychain.removeObject(forKey: Config.secretKey)
+            NightscoutObjectIdStore.shared.snapshot()
             url = ""
             secret = ""
             isConnectedToNS = false

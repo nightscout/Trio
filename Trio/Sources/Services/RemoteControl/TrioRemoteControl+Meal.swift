@@ -37,26 +37,17 @@ extension TrioRemoteControl {
             return
         }
 
-        let payloadDate = Date(timeIntervalSince1970: payload.timestamp)
-        let taskContext = CoreDataStack.shared.newTaskContext()
-        // Only entries already in the past can indicate a replay; equivalents and scheduled
-        // meals are dated ahead and would otherwise reject every command until their date passed.
-        let results = try await CoreDataStack.shared.fetchEntitiesAsync(
-            ofType: CarbEntryStored.self, onContext: taskContext, predicate: NSPredicate(
-                format: "date > %@ AND date <= %@",
-                payloadDate as NSDate,
-                Date() as NSDate
-            ), key: "date", ascending: false
-        )
-
-        let hasNewerCarbEntries = await taskContext.perform {
-            (results as? [CarbEntryStored])?.isEmpty == false
+        if let bolusAmount = payload.bolusAmount, let rejection = bolusLimitRejection(bolusAmount: bolusAmount) {
+            await logError(rejection, payload: payload)
+            return
         }
-        if hasNewerCarbEntries {
-            await logError(
-                "Command rejected: newer carb entries have been logged since the command was sent.",
-                payload: payload
-            )
+
+        if let rejection = try await treatmentGuardRejection(
+            for: payload,
+            bolusAmount: payload.bolusAmount,
+            checkCarbs: true
+        ) {
+            await logError(rejection, payload: payload)
             return
         }
 
@@ -71,8 +62,8 @@ extension TrioRemoteControl {
 
         try await carbsStorage.storeCarbs([mealEntry], areFetchedFromRemote: false)
 
-        if payload.bolusAmount != nil {
-            try await handleBolusCommand(payload)
+        if let bolusAmount = payload.bolusAmount {
+            await enactRemoteBolus(payload, bolusAmount: bolusAmount, carbsStored: true)
             return
         }
 
