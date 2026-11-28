@@ -1089,6 +1089,66 @@
         }
       }
     },
+    "Answers are created on your iPhone from the Trio documentation and can be incomplete or wrong. They are not medical advice. Talk to your diabetes care team before you change your therapy settings." : {
+      "comment" : "Disclaimer below every answer of the on-device docs assistant"
+    },
+    "Answers on this device need Apple Intelligence, which isn't available here." : {
+      "comment" : "Docs assistant error"
+    },
+    "Apple Intelligence doesn't support this language yet. Try asking in English." : {
+      "comment" : "Docs assistant error"
+    },
+    "Apple Intelligence is busy right now. Please try again in a moment." : {
+      "comment" : "Docs assistant error"
+    },
+    "Apple Intelligence is still preparing its model. Please try again in a little while." : {
+      "comment" : "Docs assistant error"
+    },
+    "Apple Intelligence isn't available" : {
+      "comment" : "Docs assistant unavailable heading"
+    },
+    "Ask" : {
+
+    },
+    "Ask another question" : {
+      "comment" : "Placeholder of the docs assistant input field"
+    },
+    "Ask Trio Docs" : {
+
+    },
+    "Ask Trioneer!" : {
+
+    },
+    "From the Trio documentation" : {
+      "comment" : "Heading above the documentation sections an answer was based on"
+    },
+    "Get an answer to »%@« on this iPhone, based on the Trio documentation." : {
+
+    },
+    "Nothing in the Trio documentation matches this question. Try different words, or search Trio Docs on the web." : {
+      "comment" : "Docs assistant error"
+    },
+    "Open Trio Docs in the browser" : {
+      "comment" : "Link shown when the on-device assistant is unavailable"
+    },
+    "Searching the Trio documentation…" : {
+
+    },
+    "The built-in copy of the Trio documentation couldn't be loaded." : {
+      "comment" : "Docs assistant error"
+    },
+    "The on-device model declined to answer this question. Try rephrasing it, or look it up in Trio Docs on the web." : {
+      "comment" : "Docs assistant error"
+    },
+    "Trioneer" : {
+
+    },
+    "Turn on Apple Intelligence in the iOS Settings app to get answers on this device." : {
+      "comment" : "Docs assistant error"
+    },
+    "Writing the answer" : {
+
+    },
     " " : {
       "localizations" : {
         "bg" : {

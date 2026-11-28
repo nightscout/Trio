@@ -622,6 +622,7 @@
 				3821ECD025DC703C00BC42AD /* Embed Frameworks */,
 				38E8753D27554D5900975559 /* Embed Watch Content */,
 				6B1A8D122B14D88E00E76752 /* Embed Foundation Extensions */,
+				DA5D0C5A000000000000000A /* Run Script: Refresh Trio Docs Index */,
 				DD88C8DF2C4D583900F2D558 /* Run Script: Capture Build Details */,
 				DB0BB0020000000000000011 /* Run Script: Capture Release Notes */,
 				3B47C6112DA0A52C00B0E5EF /* Run Script: Copy dSYM to Crashlytics */,
@@ -891,6 +892,25 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		DA5D0C5A000000000000000A /* Run Script: Refresh Trio Docs Index */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Script: Refresh Trio Docs Index";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/scripts/refresh-docs-index.sh\"\n";
+		};
 		3811DEF525CA169200A708ED /* Swiftformat */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
