@@ -1,6 +1,6 @@
 import SwiftUI
 import Testing
-@testable import Trio_Watch_App
+@testable import Trio
 import UIKit
 import WatchKit
 
