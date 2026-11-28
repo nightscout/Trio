@@ -32,7 +32,7 @@ extension ISFEditor {
 
         var rateValues: [Decimal] {
             let settingsProvider = PickerSettingsProvider.shared
-            let sensitivityPickerSetting = PickerSetting(value: 100, step: 1, min: 9, max: 540, type: .glucose)
+            let sensitivityPickerSetting = TherapyProfileLimits.sensitivity.glucosePickerSetting(value: 100)
             return settingsProvider.generatePickerValues(from: sensitivityPickerSetting, units: units)
         }
 

@@ -368,7 +368,7 @@ private extension AlertCatalogRegistry {
 // MARK: - Trio internal — Profiles
 
 private extension AlertCatalogRegistry {
-    /// Scheduled profile switch alerts emitted by `TherapyProfileManager`
+    /// Scheduled profile switch and profile validation alerts emitted by `TherapyProfileManager`
     /// under `manager = "trio.therapyProfiles"`. Levels match what the
     /// manager sets at construction.
     static let trioProfileEntries: [Alert.CatalogEntry] = [
@@ -388,7 +388,15 @@ private extension AlertCatalogRegistry {
             "Profiles",
             .scheduledProfileSwitchNotDone
         ),
-        addEntry("trio.therapyProfiles", "scheduledSwitch.done", .active, "Profile Switched", "Profiles", .profileSwitched)
+        addEntry("trio.therapyProfiles", "scheduledSwitch.done", .active, "Profile Switched", "Profiles", .profileSwitched),
+        addEntry(
+            "trio.therapyProfiles",
+            "profilesNotActivatable",
+            .active,
+            "Profiles Need Attention",
+            "Profiles",
+            .profilesNotActivatable
+        )
     ]
 }
 

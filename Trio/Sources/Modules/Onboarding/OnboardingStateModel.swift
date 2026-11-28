@@ -124,11 +124,10 @@ extension Onboarding {
 
         // MARK: - Carb Ratio
 
-        let carbRatioPickerSetting = PickerSetting(value: 30, step: 0.1, min: 1, max: 50, type: .gram)
         var carbRatioItems: [CarbRatioEditor.Item] = []
         var initialCarbRatioItems: [CarbRatioEditor.Item] = []
         var carbRatioTimeValues: [TimeInterval] { sharedTimeValues }
-        var carbRatioRateValues: [Decimal] { settingsProvider.generatePickerValues(from: carbRatioPickerSetting, units: units) }
+        var carbRatioRateValues: [Decimal] { TherapyProfileLimits.carbRatio.values }
 
         // MARK: - Basal Profile
 
@@ -153,7 +152,7 @@ extension Onboarding {
 
         // MARK: - Insulin Sensitivity Factor (ISF)
 
-        var sensitivityPickerSetting = PickerSetting(value: 200, step: 1, min: 9, max: 540, type: .glucose)
+        var sensitivityPickerSetting = TherapyProfileLimits.sensitivity.glucosePickerSetting(value: 200)
         var isfItems: [ISFEditor.Item] = []
         var initialISFItems: [ISFEditor.Item] = []
         var isfTimeValues: [TimeInterval] { sharedTimeValues }
@@ -161,7 +160,7 @@ extension Onboarding {
 
         // MARK: - Glucose Targets
 
-        let letTargetPickerSetting = PickerSetting(value: 110, step: 1, min: 72, max: 180, type: .glucose)
+        let letTargetPickerSetting = TherapyProfileLimits.target.glucosePickerSetting(value: 110)
         var targetItems: [TargetsEditor.Item] = []
         var initialTargetItems: [TargetsEditor.Item] = []
         var targetTimeValues: [TimeInterval] { sharedTimeValues }

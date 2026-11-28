@@ -6,6 +6,7 @@ extension UnitsLimitsSettings {
         @Injected() var settings: SettingsManager!
         @Injected() var storage: FileStorage!
         @Injected() private var tidepoolManager: TidepoolManager!
+        @Injected() private var therapyProfileManager: TherapyProfileManager!
 
         @Published var units: GlucoseUnits = .mgdL
         @Published var unitsIndex = 0 // index 0 is mg/dl
@@ -16,6 +17,8 @@ extension UnitsLimitsSettings {
         @Published var maxCOB: Decimal = 120
         @Published var hasChanged: Bool = false
         @Published var threshold_setting: Decimal = 60
+        /// Names the profiles a lower max basal rate keeps from being activated.
+        @Published var maxBasalProfileWarning: String?
 
         var preferences: Preferences {
             settingsManager.preferences
@@ -37,6 +40,24 @@ extension UnitsLimitsSettings {
 
             maxBasal = pumpSettings.maxBasal
             maxBolus = pumpSettings.maxBolus
+
+            let currentProblems = therapyProfileManager.activationProblems()
+            $maxBasal
+                .removeDuplicates()
+                .map { [weak self] in self?.profileWarning(maxBasal: $0, currentProblems: currentProblems) }
+                .assign(to: &$maxBasalProfileWarning)
+        }
+
+        /// Names the profiles that the edited max basal rate keeps from being activated, when the stored one does not.
+        private func profileWarning(maxBasal: Decimal, currentProblems: [String: String]) -> String? {
+            guard maxBasal != pumpSettings.maxBasal else { return nil }
+            let names = therapyProfileManager.activationProblems(maxBasal: maxBasal).keys
+                .filter { currentProblems[$0] == nil }
+                .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            guard !names.isEmpty else { return nil }
+            return String(
+                localized: "These profiles have basal rates above \(maxBasal.formatted()) U/hr and cannot be activated until they are edited: \(names.joined(separator: ", "))."
+            )
         }
 
         var isPumpSettingUnchanged: Bool {

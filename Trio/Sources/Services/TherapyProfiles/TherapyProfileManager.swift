@@ -139,9 +139,19 @@ protocol TherapyProfileManager: AnyObject {
     /// Switches to the profile of the newest scheduled start that is due, and arms the alert for a start that does not
     /// happen in time.
     func runDueScheduledSwitch() async
+
+    /// The reason each profile that cannot be activated fails validation, by profile name, the active one included. Uses
+    /// `maxBasal` in place of the stored max basal rate when given.
+    func activationProblems(maxBasal: Decimal?) -> [String: String]
+    /// Tells the user which profiles cannot be activated, for any reason, with the connected pump.
+    func alertProfilesNotActivatableWithPump()
 }
 
 extension TherapyProfileManager {
+    func activationProblems() -> [String: String] {
+        activationProblems(maxBasal: nil)
+    }
+
     @discardableResult func activate(_ name: String, expectedFingerprint: String?) async throws -> TrioTherapyProfile {
         try await activate(name, expectedFingerprint: expectedFingerprint, trigger: .local)
     }
@@ -539,8 +549,10 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
             }
 
             let updated = profile.renamed(newName)
-            let keepsValues = original.map { updated.hasSameValues(as: $0) } ?? false
-            if !keepsValues, let reason = TherapyProfileValidator.validate(updated, basalLimits: self.basalLimits) {
+            let reason = original.map {
+                TherapyProfileValidator.validateChanges(updated, from: $0, basalLimits: self.basalLimits)
+            } ?? TherapyProfileValidator.validate(updated, basalLimits: self.basalLimits)
+            if let reason {
                 throw TherapyProfileError.invalidValues(reason)
             }
             if updated == original {
@@ -759,6 +771,10 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
     private static let pendingAlertID = scheduledSwitchAlertID("pending")
     private static let doneAlertID = scheduledSwitchAlertID("done")
     private static let failedAlertID = scheduledSwitchAlertID("failed")
+    private static let notActivatableAlertID = Alert.Identifier(
+        managerIdentifier: "trio.therapyProfiles",
+        alertIdentifier: "profilesNotActivatable"
+    )
 
     private func timeText(_ date: Date) -> String {
         date.formatted(Date.FormatStyle(date: .omitted, time: .shortened, timeZone: calendar.timeZone))
@@ -844,6 +860,33 @@ final class BaseTherapyProfileManager: TherapyProfileManager, Injectable, @unche
             } ?? String(localized: "Trio has not been able to switch to \(name) as scheduled at \(time). Open Trio."),
             trigger: .delayed(interval: fireDate.timeIntervalSince(now)),
             level: .timeSensitive
+        )
+    }
+
+    // MARK: Validation
+
+    func activationProblems(maxBasal: Decimal?) -> [String: String] {
+        let limits = maxBasal.map { TherapyBasalLimits(supportedRates: basalLimits.supportedRates, maxBasal: $0) } ?? basalLimits
+        var problems: [String: String] = [:]
+        for profile in profiles() {
+            if let reason = TherapyProfileValidator.validate(profile, basalLimits: limits) {
+                problems[profile.name] = reason
+            }
+        }
+        return problems
+    }
+
+    func alertProfilesNotActivatableWithPump() {
+        let names = activationProblems().keys.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+        guard !names.isEmpty else { return }
+        warning(.settings, "\(names.count) therapy profiles cannot be activated with the connected pump")
+        issue(
+            Self.notActivatableAlertID,
+            title: String(localized: "Profiles Need Attention"),
+            body: String(
+                localized: "These profiles cannot be activated until they are edited: \(names.joined(separator: ", ")). Open Therapy Profiles to see why."
+            ),
+            level: .active
         )
     }
 

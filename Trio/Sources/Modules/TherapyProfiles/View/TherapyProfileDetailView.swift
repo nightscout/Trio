@@ -45,6 +45,11 @@ struct TherapyProfileDetailView: View {
                         Label("Not active", systemImage: "circle")
                             .foregroundStyle(.secondary)
                     }
+                    if let problem = state.activationProblemText(profile) {
+                        Label(problem, systemImage: "exclamationmark.triangle.fill")
+                            .font(.footnote)
+                            .foregroundStyle(Color.orange)
+                    }
                 }
                 .listRowBackground(Color.chart)
 
@@ -95,18 +100,7 @@ struct TherapyProfileDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            if let next = state.nextStart() {
-                Text(
-                    "Trio sends this profile's basal rates to the pump and starts using its carb ratios, insulin sensitivities and glucose targets right away."
-                ) + Text(verbatim: " ") +
-                    Text(
-                        "\(profileName) stays active until \(next.profileName) starts \(TherapyProfiles.StateModel.startText(next))."
-                    )
-            } else {
-                Text(
-                    "Trio sends this profile's basal rates to the pump and starts using its carb ratios, insulin sensitivities and glucose targets right away."
-                )
-            }
+            activationMessage
         }
         .confirmationDialog("Delete \(profileName)?", isPresented: $isConfirmingDeletion, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
@@ -152,6 +146,23 @@ struct TherapyProfileDetailView: View {
         }
     }
 
+    private var activationMessage: Text {
+        var message = Text(
+            "Trio sends this profile's basal rates to the pump and starts using its carb ratios, insulin sensitivities and glucose targets right away."
+        )
+        if let next = state.nextStart() {
+            message = message + Text(verbatim: " ") +
+                Text(
+                    "\(profileName) stays active until \(next.profileName) starts \(TherapyProfiles.StateModel.startText(next))."
+                )
+        }
+        if let problem = state.activeProfileProblem {
+            message = Text("\(state.activeProfileName) cannot be activated again until it is edited: \(problem)") +
+                Text(verbatim: " ") + message
+        }
+        return message
+    }
+
     private func scheduleSection(
         title: String,
         editor: TherapyProfiles.Editor,
@@ -181,7 +192,7 @@ struct TherapyProfileDetailView: View {
                 Button("Activate Profile") {
                     isConfirmingActivation = true
                 }
-                .disabled(state.isBusy)
+                .disabled(state.isBusy || state.activationProblems[profile.name] != nil)
             }
             if !profile.isDefault {
                 Button("Rename Profile") {

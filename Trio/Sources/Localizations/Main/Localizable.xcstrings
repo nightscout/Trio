@@ -1089,6 +1089,30 @@
         }
       }
     },
+    "%@ cannot be activated again until it is edited: %@" : {
+
+    },
+    "%@ cannot be activated. This start will not switch until it is edited." : {
+
+    },
+    "Cannot be activated: %@" : {
+
+    },
+    "Cannot be switched back to after another profile is activated: %@" : {
+
+    },
+    "Profiles Need Attention" : {
+
+    },
+    "Some basal rates of this schedule are above the max basal rate or are not rates your pump supports. Each is shown as the nearest rate that can be saved. Check them before you save." : {
+
+    },
+    "These profiles cannot be activated until they are edited: %@. Open Therapy Profiles to see why." : {
+
+    },
+    "These profiles have basal rates above %@ U/hr and cannot be activated until they are edited: %@." : {
+
+    },
     " " : {
       "localizations" : {
         "bg" : {
@@ -279181,9 +279205,6 @@
           }
         }
       }
-    },
-    "Some basal rates of this schedule are not rates your pump supports. Each is shown as the nearest supported rate. Check them before you save." : {
-
     },
     "Some files didn't reach the Trio team's server. Please try again." : {
 

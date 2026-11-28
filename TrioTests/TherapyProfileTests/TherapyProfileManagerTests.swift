@@ -66,6 +66,47 @@ import Testing
         #expect(stored.inactiveProfiles.first?.hasSameValues(as: TherapyProfileFixtures.profile("Default")) == true)
     }
 
+    @Test(
+        "A profile above a lowered max basal is flagged, refused for a switch and fixed one schedule at a time"
+    ) func profileAboveLoweredMaxBasal() async throws {
+        let context = try await TherapyProfileTestContext.make()
+        let high = TherapyProfileFixtures.profile("High", basal: [(0, 2.5)])
+        try await context.manager.save(high, originalName: nil, baseFingerprint: nil)
+        #expect(context.manager.activationProblems().isEmpty)
+        #expect(context.manager.activationProblems(maxBasal: 2).keys.sorted() == ["High"])
+
+        context.recorder.basalLimits = TherapyBasalLimits(
+            supportedRates: context.recorder.basalLimits.supportedRates,
+            maxBasal: 2
+        )
+        #expect(context.manager.activationProblems().keys.sorted() == ["High"])
+        await #expect(throws: TherapyProfileError.self) {
+            try await context.manager.activate("High", expectedFingerprint: nil)
+        }
+
+        let newRatio = TherapyProfileFixtures.profile("High", basal: [(0, 2.5)], carbratio: [(0, 12)])
+        try await context.manager.save(newRatio, originalName: "High", baseFingerprint: high.fingerprint(units: .mgdL))
+        let fixed = TherapyProfileFixtures.profile("High", basal: [(0, 1.5)], carbratio: [(0, 12)])
+        try await context.manager.save(fixed, originalName: "High", baseFingerprint: newRatio.fingerprint(units: .mgdL))
+        #expect(context.manager.activationProblems().isEmpty)
+        try await context.manager.activate("High", expectedFingerprint: nil)
+        #expect(context.manager.activeProfileName == "High")
+    }
+
+    @Test("Profiles the pump's rates rule out are named in one alert") func pumpProblemAlert() async throws {
+        let context = try await TherapyProfileTestContext.make()
+        try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
+        context.manager.alertProfilesNotActivatableWithPump()
+        #expect(context.recorder.alerts.issuedAlerts.isEmpty)
+
+        context.recorder.basalLimits = TherapyBasalLimits(supportedRates: [1, 2], maxBasal: 3)
+        context.manager.alertProfilesNotActivatableWithPump()
+        let alert = try #require(
+            context.recorder.alerts.issuedAlerts.last { $0.identifier.alertIdentifier == "profilesNotActivatable" }
+        )
+        #expect(alert.backgroundContent.body.contains("Default, Sport"))
+    }
+
     @Test("A switch is kept until it is uploaded, a rename adds none") func switchKeptForUpload() async throws {
         let context = try await TherapyProfileTestContext.make()
         try await context.manager.save(sport, originalName: nil, baseFingerprint: nil)
@@ -419,7 +460,9 @@ import Testing
         }
     }
 
-    @Test("A rename keeps working after the pump's limits changed, a value change does not") func renameAfterLimitsChanged() async throws {
+    @Test(
+        "After the pump's limits changed, a rename and a change of a valid schedule are saved, an invalid basal change and a switch are not"
+    ) func renameAfterLimitsChanged() async throws {
         let context = try await TherapyProfileTestContext.make()
         let fine = TherapyProfileFixtures.profile("Fine", basal: [(0, 0.07)])
         context.recorder.basalLimits = TherapyBasalLimits(supportedRates: [TherapyProfileFixtures.decimal(0.07), 1], maxBasal: 3)
@@ -431,8 +474,10 @@ import Testing
         #expect(context.manager.profile(named: "Finer")?.hasSameValues(as: fine) == true)
 
         let changed = fine.renamed("Finer").withSensitivity(55)
+        try await context.manager.save(changed, originalName: "Finer", baseFingerprint: fingerprint)
+        let otherRate = TherapyProfileFixtures.profile("Finer", basal: [(0, 0.08)], sens: [(0, 55)])
         await #expect(throws: TherapyProfileError.self) {
-            try await context.manager.save(changed, originalName: "Finer", baseFingerprint: fingerprint)
+            try await context.manager.save(otherRate, originalName: "Finer", baseFingerprint: changed.fingerprint(units: .mgdL))
         }
         await #expect(throws: TherapyProfileError.self) {
             try await context.manager.activate("Finer", expectedFingerprint: nil)
