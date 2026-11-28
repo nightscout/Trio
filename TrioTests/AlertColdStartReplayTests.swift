@@ -127,6 +127,13 @@ import Testing
         }
     }
 
+    @Test("Mute skips non-critical, user-armed meal-time reminder pierces") func muteGateMealReminder() {
+        let reminder = entry(manager: "Trio.mealTimeReminder", alert: "eatReminder", level: 2)
+        if case .replay = decide(reminder, muted: true) {} else {
+            Issue.record("meal-time reminder should pierce mute")
+        }
+    }
+
     @Test("Rebuilt alert carries content on both surfaces, no sound") func rebuiltAlertShape() {
         guard case let .replay(alert) = decide(entry()) else {
             Issue.record("expected replay")

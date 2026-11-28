@@ -316,6 +316,7 @@
 				Sources/Localizations/Main/Localizable.xcstrings,
 				Sources/Services/LiveActivity/LiveActivityAttributes.swift,
 				Sources/Services/LiveActivity/LiveActivityGlucoseStyle.swift,
+				Sources/Services/LiveActivity/MealTimeReminderMetadata.swift,
 			);
 			target = 6B1A8D162B14D91500E76752 /* LiveActivityExtension */;
 		};
