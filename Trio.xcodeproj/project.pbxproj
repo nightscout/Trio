@@ -343,6 +343,7 @@
 				Sources/Models/TempTargetPresetWatch.swift,
 				Sources/Models/WatchComplicationValue.swift,
 				Sources/Models/WatchMessageKeys.swift,
+				Sources/Models/WatchUsageMode.swift,
 			);
 			target = BDFF797B2D25AA870016C40C /* Trio Watch App */;
 		};

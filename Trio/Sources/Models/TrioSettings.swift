@@ -57,6 +57,7 @@ struct TrioSettings: JSON, Equatable, Encodable {
     var maxProtein: Decimal = 250
     var confirmBolusFaster: Bool = false
     var showForecastWatch: Bool = false
+    var watchUsageMode: WatchUsageMode = .companion
     /// The watch’s own urgent low alarm sounds through Silent Mode.
     var useCriticalAlertsWatch: Bool = false
     var watchComplicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
@@ -324,6 +325,10 @@ extension TrioSettings: Decodable {
 
         if let showForecastWatch = try? container.decode(Bool.self, forKey: .showForecastWatch) {
             settings.showForecastWatch = showForecastWatch
+        }
+
+        if let watchUsageMode = try? container.decode(WatchUsageMode.self, forKey: .watchUsageMode) {
+            settings.watchUsageMode = watchUsageMode
         }
 
         if let useCriticalAlertsWatch = try? container.decode(Bool.self, forKey: .useCriticalAlertsWatch) {

@@ -52,6 +52,7 @@ enum WatchMessageKeys {
     static let maxProtein = "maxProtein"
     static let bolusIncrement = "bolusIncrement"
     static let confirmBolusFaster = "confirmBolusFaster"
+    static let watchUsageMode = "watchUsageMode"
 
     static let lowGlucoseLimit = "lowGlucoseLimit"
     static let highGlucoseLimit = "highGlucoseLimit"

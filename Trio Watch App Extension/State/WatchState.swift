@@ -62,6 +62,12 @@ import WidgetKit
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
 
+    /// Persisted so a relaunched watch app does not show restricted actions before the phone sends fresh state
+    var watchUsageMode: WatchUsageMode =
+        WatchUsageMode(rawValue: UserDefaults.standard.string(forKey: WatchMessageKeys.watchUsageMode) ?? "") ?? .companion {
+        didSet { UserDefaults.standard.set(watchUsageMode.rawValue, forKey: WatchMessageKeys.watchUsageMode) }
+    }
+
     var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
     var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
     var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
@@ -792,6 +798,14 @@ import WidgetKit
             if let booleanValue = confirmBolusFaster as? Bool {
                 self.confirmBolusFaster = booleanValue
             }
+        }
+
+        // Only assign on change, so the observable and UserDefaults aren't touched on every state push
+        if let rawValue = message[WatchMessageKeys.watchUsageMode] as? String,
+           let watchUsageMode = WatchUsageMode(rawValue: rawValue),
+           watchUsageMode != self.watchUsageMode
+        {
+            self.watchUsageMode = watchUsageMode
         }
 
         if let raw = message[WatchMessageKeys.complicationCornerValue] as? String {

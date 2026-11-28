@@ -230,6 +230,8 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
 
             let watchState: WatchState = await context.perform {
                 var watchState = WatchState(date: Date())
+                // Set first so the early return without recent glucose carries the mode too
+                watchState.watchUsageMode = self.settingsManager.settings.watchUsageMode
                 watchState.snoozeUntilDate = UserDefaults.standard
                     .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date ?? .distantPast
 
@@ -595,6 +597,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
             WatchMessageKeys.maxProtein: state.maxProtein,
             WatchMessageKeys.bolusIncrement: state.bolusIncrement,
             WatchMessageKeys.confirmBolusFaster: state.confirmBolusFaster,
+            WatchMessageKeys.watchUsageMode: state.watchUsageMode.rawValue,
             WatchMessageKeys.complicationCornerValue: state.complicationCornerValue.rawValue,
             WatchMessageKeys.complicationSecondaryValue: state.complicationSecondaryValue.rawValue,
             WatchMessageKeys.complicationStaleMinutes: state.complicationStaleMinutes,
@@ -954,9 +957,29 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
         }
     }
 
+    /// Checks the Watch Usage Mode before a watch action runs and rejects the request if it is not allowed.
+    /// Every handler for an action requested by the Watch must call this first, naming the permission it needs.
+    private func isWatchActionAllowed(_ permission: KeyPath<WatchUsageMode, Bool>, action: String) -> Bool {
+        let mode = settingsManager.settings.watchUsageMode
+        guard mode[keyPath: permission] else {
+            info(.watch, "Rejected watch \(action) request in watch usage mode \(mode.rawValue)")
+            sendAcknowledgment(
+                toWatch: false,
+                message: String(
+                    localized: "Not allowed by the Watch Usage Mode in Trio settings.",
+                    comment: "Failure message sent to watch when the watch usage mode does not allow the requested action"
+                ),
+                ackCode: .genericFailure
+            )
+            return false
+        }
+        return true
+    }
+
     /// Processes bolus requests received from the Watch
     /// - Parameter amount: The requested bolus amount in units
     private func handleBolusRequest(_ amount: Decimal) {
+        guard isWatchActionAllowed(\.allowsTreatments, action: "bolus") else { return }
         Task {
             await apsManager.enactBolus(amount: Double(amount), isSMB: false) { success, message in
                 // Acknowledge success or error of bolus
@@ -975,6 +998,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     ///   - amount: The carbs amount in grams
     ///   - date: Timestamp for the carbs entry
     private func handleCarbsRequest(_ amount: Int, _ date: Date) {
+        guard isWatchActionAllowed(\.allowsTreatments, action: "carbs") else { return }
         Task {
             let context = CoreDataStack.shared.newTaskContext()
 
@@ -1027,6 +1051,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     ///   - carbsAmount: The carbs amount in grams
     ///   - date: Timestamp for the carbs entry
     private func handleCombinedRequest(bolusAmount: Decimal, carbsAmount: Decimal, date: Date) {
+        guard isWatchActionAllowed(\.allowsTreatments, action: "meal bolus") else { return }
         Task {
             let context = CoreDataStack.shared.newTaskContext()
 
@@ -1105,6 +1130,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func handleCancelOverride() {
+        guard isWatchActionAllowed(\.allowsAdjustments, action: "override cancel") else { return }
         Task {
             do {
                 let outcome = try await adjustmentManager.cancelOverride(source: .watch)
@@ -1130,6 +1156,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func handleActivateOverride(_ presetName: String) {
+        guard isWatchActionAllowed(\.allowsAdjustments, action: "override") else { return }
         Task {
             do {
                 let outcome = try await adjustmentManager.activateOverride(.presetName(presetName), source: .watch)
@@ -1158,6 +1185,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func handleActivateTempTarget(_ presetName: String) {
+        guard isWatchActionAllowed(\.allowsAdjustments, action: "temp target") else { return }
         Task {
             do {
                 let outcome = try await adjustmentManager.activateTempTarget(.presetName(presetName), source: .watch)
@@ -1186,6 +1214,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     }
 
     private func handleCancelTempTarget() {
+        guard isWatchActionAllowed(\.allowsAdjustments, action: "temp target cancel") else { return }
         Task {
             do {
                 let outcome = try await adjustmentManager.cancelTempTarget(source: .watch)

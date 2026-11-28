@@ -30,6 +30,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
+    var watchUsageMode: WatchUsageMode = .companion
 
     var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
     var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
@@ -65,7 +66,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.glucoseRangeHigh == rhs.glucoseRangeHigh &&
             lhs.glucoseRangeTarget == rhs.glucoseRangeTarget &&
             lhs.glucoseColorScheme == rhs.glucoseColorScheme
-        guard watchSensorIsEqual else { return false }
+        guard watchSensorIsEqual, lhs.watchUsageMode == rhs.watchUsageMode else { return false }
         return lhs.date == rhs.date &&
             lhs.currentGlucose == rhs.currentGlucose &&
             lhs.trend == rhs.trend &&
@@ -132,6 +133,7 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(maxProtein)
         hasher.combine(bolusIncrement)
         hasher.combine(confirmBolusFaster)
+        hasher.combine(watchUsageMode)
         hasher.combine(complicationCornerValue)
         hasher.combine(complicationSecondaryValue)
         hasher.combine(complicationStaleMinutes)

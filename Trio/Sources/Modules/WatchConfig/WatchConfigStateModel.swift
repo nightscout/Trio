@@ -12,6 +12,7 @@ extension WatchConfig {
         @Published var devices: [IQDevice] = []
         @Published var confirmBolusFaster = false
         @Published var showForecastWatch = false
+        @Published var watchUsageMode: WatchUsageMode = .companion
         @Published var useCriticalAlertsWatch = false
         /// The CGM can pass its configuration to the watch, which then reads it itself.
         @Published var cgmSharesWithWatch = false
@@ -36,6 +37,7 @@ extension WatchConfig {
             subscribeSetting(\.garminSettings, on: $garminSettings) { garminSettings = $0 }
             subscribeSetting(\.confirmBolusFaster, on: $confirmBolusFaster) { confirmBolusFaster = $0 }
             subscribeSetting(\.showForecastWatch, on: $showForecastWatch) { showForecastWatch = $0 }
+            subscribeSetting(\.watchUsageMode, on: $watchUsageMode) { watchUsageMode = $0 }
             subscribeSetting(\.useCriticalAlertsWatch, on: $useCriticalAlertsWatch) { useCriticalAlertsWatch = $0 }
             subscribeSetting(\.watchComplicationCornerValue, on: $complicationCornerValue) { complicationCornerValue = $0 }
             subscribeSetting(\.watchComplicationSecondaryValue, on: $complicationSecondaryValue) {
