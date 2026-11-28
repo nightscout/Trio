@@ -161,16 +161,6 @@ extension Adjustments.RootView {
             return (span.formattedTimeSpan(), span.formattedSpokenTimeSpan())
         }()
 
-        let scheduledSMBString: String = {
-            guard preset.smbIsScheduledOff, preset.start != preset.end else { return "" }
-            return " \(formatTimeRange(start: preset.start?.stringValue, end: preset.end?.stringValue))"
-        }()
-
-        let smbString: String = {
-            guard preset.smbIsOff || preset.smbIsScheduledOff else { return "" }
-            return String(localized: "SMBs Off\(scheduledSMBString)")
-        }()
-
         let maxSmbMins: (text: String, spoken: String) = {
             guard smbMinutes != 0, preset.advancedSettings, !preset.smbIsOff,
                   smbMinutes != state.defaultSmbMinutes else { return ("", "") }
@@ -201,7 +191,7 @@ extension Adjustments.RootView {
 
         let percentageString = percentage == 100 ? "" : (percentage / 100).formatted(.wholePercent) + isfAndCrString
 
-        let otherLabels = [percentageString, targetString, smbString]
+        let otherLabels = [percentageString, targetString, preset.smbOffText]
         let labels = ([durationLabel.text] + otherLabels + [maxSmbMins.text, maxUamMins.text])
             .filter { !$0.isEmpty }
         let spokenLabels = ([durationLabel.spoken] + otherLabels + [maxSmbMins.spoken, maxUamMins.spoken])

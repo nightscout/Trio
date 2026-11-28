@@ -61,11 +61,8 @@ extension History {
                 ZStack(alignment: .center, content: {
                     VStack {
                         Picker("Mode", selection: $state.mode) {
-                            ForEach(
-                                Mode.allCases.indexed(),
-                                id: \.1
-                            ) { index, item in
-                                Text(item.name).tag(index)
+                            ForEach(Mode.allCases, id: \.self) { mode in
+                                Text(mode.name).tag(mode)
                             }
                         }
                         .pickerStyle(SegmentedPickerStyle())

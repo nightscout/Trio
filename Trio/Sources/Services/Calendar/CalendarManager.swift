@@ -26,13 +26,6 @@ final class BaseCalendarManager: CalendarManager, Injectable {
     private var subscriptions = Set<AnyCancellable>()
     private var previousDeterminationId: NSManagedObjectID?
 
-    private var iobFormatter: NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 1
-        return formatter
-    }
-
     private var cobFormatter: NumberFormatter {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -247,7 +240,7 @@ final class BaseCalendarManager: CalendarManager, Injectable {
 
             let deltaText = delta.formattedDelta(for: settingsManager.settings.units)
 
-            let iobText = iobFormatter.string(from: (iobService.currentIOB ?? 0) as NSNumber) ?? ""
+            let iobText = (iobService.currentIOB ?? 0).formattedIOB()
             let cobText = cobFormatter.string(from: determinationObject.cob as NSNumber) ?? ""
 
             var glucoseDisplayText = displayEmojis ? glucoseIcon + " " : ""
