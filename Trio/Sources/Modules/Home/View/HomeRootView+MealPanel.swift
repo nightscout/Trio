@@ -143,6 +143,7 @@ extension Home.RootView {
         // cf. https://github.com/nightscout/Trio/issues/1381
         let isSnoozed = state.alarmsSnoozeUntil > state.timerDate
         let remainingMinutes = max(Int(ceil(state.alarmsSnoozeUntil.timeIntervalSince(max(state.timerDate, Date())) / 60)), 0)
+        let remaining = Duration.seconds(remainingMinutes * 60)
 
         Button {
             showSnoozeSheet = true
@@ -152,7 +153,7 @@ extension Home.RootView {
                     HStack(spacing: 5) {
                         Image(systemName: "bell.slash.fill")
                             .font(.callout)
-                        Text("\(remainingMinutes) m")
+                        Text(remaining.formattedTimeSpan(.minutes))
                             .font(.callout).fontWeight(.bold).fontDesign(.rounded)
                     }
                     .padding(.vertical, 5)
@@ -180,8 +181,8 @@ extension Home.RootView {
         .accessibilityValue(Text(
             isSnoozed
                 ? String(
-                    format: String(localized: "snoozed, %d minutes remaining", comment: "Accessibility: alarm snooze"),
-                    remainingMinutes
+                    localized: "snoozed, \(remaining.formattedSpokenTimeSpan(.minutes)) remaining",
+                    comment: "Accessibility: alarm snooze; %@ is a duration like \"15 minutes\". Word it so %@ stays unchanged."
                 )
                 : String(localized: "active", comment: "Accessibility: alarms active")
         ))
