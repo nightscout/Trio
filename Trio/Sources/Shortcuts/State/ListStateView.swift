@@ -12,23 +12,14 @@ struct ListStateView: View {
         return formatter
     }
 
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter
-    }
-
     var body: some View {
         HStack(alignment: .center) {
             Spacer()
 
             HStack {
                 Text("IOB").font(.caption).foregroundColor(.secondary)
-                Text(
-                    (numberFormatter.string(from: (state.iob ?? 0) as NSNumber) ?? "0") +
-                        String(localized: " U", comment: "Insulin unit")
-                )
-                .font(.body).fontWeight(.bold)
+                Text(Decimal(state.iob ?? 0).formattedIOB() + String(localized: " U", comment: "Insulin unit"))
+                    .font(.body).fontWeight(.bold)
             }
             HStack {
                 Text("COB").font(.caption).foregroundColor(.secondary)

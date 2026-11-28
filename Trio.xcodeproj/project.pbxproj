@@ -13,7 +13,6 @@
 		03B15F4F3077CD6100DFEBE4 /* SyaiKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 03B15F4A3077CD4B00DFEBE4 /* SyaiKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		320D030F724170A637F06D50 /* (null) in Sources */ = {isa = PBXBuildFile; };
 		3811DE1025C9D37700A708ED /* Swinject in Frameworks */ = {isa = PBXBuildFile; productRef = 3811DE0F25C9D37700A708ED /* Swinject */; };
-		3833B46D26012030003021B3 /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 3833B46C26012030003021B3 /* Algorithms */; };
 		38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */ = {isa = PBXBuildFile; productRef = 38B17B6525DD90E0005CAE3D /* SwiftDate */; };
 		38E87401274F77E400975559 /* CoreNFC.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E873FD274F761800975559 /* CoreNFC.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		38E87403274F78C000975559 /* libswiftCoreNFC.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 38E87402274F78C000975559 /* libswiftCoreNFC.tbd */; settings = {ATTRIBUTES = (Weak, ); }; };
@@ -51,7 +50,6 @@
 		3B4BA7902D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; };
 		3B4BA7912D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA7892D8DC0EC0069D5B8 /* TidepoolServiceKitUI.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		3BD9687C2D8DDD4600899469 /* SlideButton in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687B2D8DDD4600899469 /* SlideButton */; };
-		3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 3BD9687E2D8DDD8800899469 /* CryptoSwift */; };
 		3E28F2AB2EB5337F00FB9EEB /* ConnectIQ in Frameworks */ = {isa = PBXBuildFile; productRef = 3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */; };
 		3E5308A53002BC970075629E /* AccuChekKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E5308A43002BC970075629E /* AccuChekKit.framework */; };
 		3E5308A63002BC970075629E /* AccuChekKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3E5308A43002BC970075629E /* AccuChekKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -73,7 +71,6 @@
 		B6E925132EB3932A0076D719 /* OmnipodKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6E925122EB3932A0076D719 /* OmnipodKit.framework */; };
 		B6E925142EB3932A0076D719 /* OmnipodKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B6E925122EB3932A0076D719 /* OmnipodKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B7C465E9472624D8A2BE2A6A /* (null) in Sources */ = {isa = PBXBuildFile; };
-		B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */ = {isa = PBXBuildFile; productRef = B958F1B62BA0711600484851 /* MKRingProgressView */; };
 		BD8207C42D2B42E60023339D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B1A8D182B14D91600E76752 /* WidgetKit.framework */; };
 		BD8207C52D2B42E60023339D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6B1A8D1A2B14D91600E76752 /* SwiftUI.framework */; };
 		BD8207CE2D2B42E70023339D /* Trio Watch Complication Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BD8207C32D2B42E50023339D /* Trio Watch Complication Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -91,8 +88,11 @@
 		CE95BF642BA771BE00DC3DE3 /* LoopTestingKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA70274C278200843DB3 /* LoopTestingKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		CEB434FD28B90B7C00B70274 /* SwiftCharts in Frameworks */ = {isa = PBXBuildFile; productRef = CEB434FC28B90B7C00B70274 /* SwiftCharts */; };
 		CEB434FE28B90B8C00B70274 /* SwiftCharts in Embed Frameworks */ = {isa = PBXBuildFile; productRef = CEB434FC28B90B7C00B70274 /* SwiftCharts */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		DD17A0292E3FE0BD008E1BF0 /* SwiftJWT in Frameworks */ = {isa = PBXBuildFile; productRef = DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */; };
 		E0CC2C5C275B9F0F00A7BC71 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E0CC2C5B275B9DAE00A7BC71 /* HealthKit.framework */; };
+		6D8C9F25D38C472594698C88 /* G7SensorKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; };
+		4B2E5E56B4A54D5EA8608486 /* LoopKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; };
+		A4CEF7BBB9594AD1A935A000 /* LoopKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3818AA4C274C26A300843DB3 /* LoopKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1EB5165261AB48C3AB179F12 /* G7SensorKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3B4BA75E2D8DBD690069D5B8 /* G7SensorKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -207,6 +207,18 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6CC9AF72ADDE4EF5AD9FE6CE /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A4CEF7BBB9594AD1A935A000 /* LoopKit.framework in Embed Frameworks */,
+				1EB5165261AB48C3AB179F12 /* G7SensorKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -269,7 +281,6 @@
 		CE94597929E9DF7B0047C9C6 /* ConnectIQ.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ConnectIQ.framework; path = "Dependencies/ios-armv7_arm64/ConnectIQ.framework"; sourceTree = "<group>"; };
 		CE95BF492BA5CED700DC3DE3 /* LoopKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE95BF4A2BA5CED700DC3DE3 /* LoopKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = LoopKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CEB434DB28B8F5B900B70274 /* MKRingProgressView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MKRingProgressView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC751D529D88262006E9D24 /* MinimedKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEC751D729D88262006E9D24 /* MinimedKitUI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = MinimedKitUI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDA9AC0A2D678DAD00E6F1A9 /* blacklisted-versions.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "blacklisted-versions.json"; sourceTree = "<group>"; };
@@ -311,12 +322,26 @@
 		3E1D6D4630B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Sources/APS/Extensions/DecimalExtensions.swift,
+				"Sources/APS/OpenAPSSwift/Extensions/Decimal+rounding.swift",
+				Sources/APS/OpenAPSSwift/Extensions/TimeExtensions.swift,
+				Sources/Helpers/ConvenienceExtensions.swift,
+				"Sources/Helpers/Decimal+Extensions.swift",
+				Sources/Helpers/DynamicGlucoseColor.swift,
+				Sources/Helpers/Formatters.swift,
+				Sources/Helpers/JSON.swift,
+				Sources/Helpers/Rounding.swift,
+				"Sources/Helpers/String+Extensions.swift",
+				"Sources/Helpers/TimeInterval+Convenience.swift",
 				Sources/Localizations/Main/Localizable.xcstrings,
 				Sources/Logger/Watch/WatchLogEntry.swift,
 				Sources/Logger/Watch/WatchLogRing.swift,
+				Sources/Models/BloodGlucose.swift,
+				Sources/Models/GlucoseColorScheme.swift,
 				Sources/Models/NotificationIdentifiers.swift,
 				Sources/Models/OverridePresetWatch.swift,
 				Sources/Models/TempTargetPresetWatch.swift,
+				Sources/Models/WatchComplicationValue.swift,
 				Sources/Models/WatchMessageKeys.swift,
 			);
 			target = BDFF797B2D25AA870016C40C /* Trio Watch App */;
@@ -324,7 +349,11 @@
 		3E1D6D4730B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				"Sources/APS/OpenAPSSwift/Extensions/Decimal+rounding.swift",
+				"Sources/Helpers/Decimal+Extensions.swift",
+				Sources/Helpers/Formatters.swift,
 				Sources/Localizations/Main/Localizable.xcstrings,
+				Sources/Models/WatchComplicationValue.swift,
 			);
 			target = BD8207C22D2B42E50023339D /* Trio Watch Complication Extension */;
 		};
@@ -343,13 +372,36 @@
 			);
 			target = 6B1A8D162B14D91500E76752 /* LiveActivityExtension */;
 		};
+		3E1D5E2D30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = BDFF797B2D25AA870016C40C /* Trio Watch App */;
+		};
+		3E1D5E2E30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ComplicationState.swift,
+				ComplicationViews.swift,
+			);
+			target = BD8207C22D2B42E50023339D /* Trio Watch Complication Extension */;
+		};
+		3E1D5E2F30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ComplicationState.swift,
+				ComplicationViews.swift,
+			);
+			target = 388E595725AD948C0019842D /* Trio */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3E1D5D7530B38477009336E6 /* TrioTests */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E0630B38478009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (OpenAPSSwiftTests/Parity/goldens, ); path = TrioTests; sourceTree = "<group>"; };
 		3E1D5E0A30B3847B009336E6 /* Trio Watch Complication */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E0E30B3847C009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch Complication"; sourceTree = "<group>"; };
 		3E1D5E1030B3847E009336E6 /* Trio Watch App Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App Tests"; sourceTree = "<group>"; };
-		3E1D5E2C30B38482009336E6 /* Trio Watch App Extension */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App Extension"; sourceTree = "<group>"; };
+		3E1D5E2C30B38482009336E6 /* Trio Watch App Extension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D5E2D30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D5E2E30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D5E2F30B38482009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App Extension"; sourceTree = "<group>"; };
 		3E1D5E4830B38484009336E6 /* Trio Watch App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Trio Watch App"; sourceTree = "<group>"; };
 		3E1D6A0A30B38579009336E6 /* Trio */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D6D4430B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D6D4530B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D6D4630B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 3E1D6D4730B38579009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (Resources/json, ); path = Trio; sourceTree = "<group>"; };
 		3E1D6D9530B385F1009336E6 /* Model */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3E1D6DDE30B385F2009336E6 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Model; sourceTree = "<group>"; };
@@ -384,21 +436,17 @@
 				3E5308A53002BC970075629E /* AccuChekKit.framework in Frameworks */,
 				3811DE1025C9D37700A708ED /* Swinject in Frameworks */,
 				3B4BA78E2D8DC0EC0069D5B8 /* TidepoolServiceKit.framework in Frameworks */,
-				B958F1B72BA0711600484851 /* MKRingProgressView in Frameworks */,
 				3B4BA7702D8DBD690069D5B8 /* G7SensorKit.framework in Frameworks */,
 				3B4BA76C2D8DBD690069D5B8 /* CGMBLEKitUI.framework in Frameworks */,
 				3E84DA402F48D96000033608 /* EversenseKit.framework in Frameworks */,
 				CE95BF5B2BA770C300DC3DE3 /* LoopKit.framework in Frameworks */,
 				38B17B6625DD90E0005CAE3D /* SwiftDate in Frameworks */,
-				3833B46D26012030003021B3 /* Algorithms in Frameworks */,
 				3B4BA7822D8DBD690069D5B8 /* RileyLinkBLEKit.framework in Frameworks */,
 				3B4BA76E2D8DBD690069D5B8 /* DanaKit.framework in Frameworks */,
 				3B47C6102DA0A28F00B0E5EF /* FirebaseCrashlytics in Frameworks */,
 				3B4BA7862D8DBD690069D5B8 /* RileyLinkKitUI.framework in Frameworks */,
 				CEB434FD28B90B7C00B70274 /* SwiftCharts in Frameworks */,
 				CE95BF5F2BA7715800DC3DE3 /* MockKit.framework in Frameworks */,
-				DD17A0292E3FE0BD008E1BF0 /* SwiftJWT in Frameworks */,
-				3BD9687F2D8DDD8800899469 /* CryptoSwift in Frameworks */,
 				3B4BA7842D8DBD690069D5B8 /* RileyLinkKit.framework in Frameworks */,
 				CE95BF612BA7715900DC3DE3 /* MockKitUI.framework in Frameworks */,
 				E0CC2C5C275B9F0F00A7BC71 /* HealthKit.framework in Frameworks */,
@@ -436,6 +484,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D8C9F25D38C472594698C88 /* G7SensorKit.framework in Frameworks */,
+				4B2E5E56B4A54D5EA8608486 /* LoopKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -502,7 +552,6 @@
 				CE398D17297C9EE800DF218F /* G7SensorKit.framework */,
 				CE398D012977349800DF218F /* CryptoKit.framework */,
 				CE6B025628F350FF000C5502 /* HealthKit.framework */,
-				CEB434DB28B8F5B900B70274 /* MKRingProgressView.framework */,
 				E0CC2C5B275B9DAE00A7BC71 /* HealthKit.framework */,
 				38E87402274F78C000975559 /* libswiftCoreNFC.tbd */,
 				38E873FD274F761800975559 /* CoreNFC.framework */,
@@ -591,13 +640,9 @@
 			packageProductDependencies = (
 				3811DE0F25C9D37700A708ED /* Swinject */,
 				38B17B6525DD90E0005CAE3D /* SwiftDate */,
-				3833B46C26012030003021B3 /* Algorithms */,
 				CEB434FC28B90B7C00B70274 /* SwiftCharts */,
-				B958F1B62BA0711600484851 /* MKRingProgressView */,
 				3BD9687B2D8DDD4600899469 /* SlideButton */,
-				3BD9687E2D8DDD8800899469 /* CryptoSwift */,
 				3B47C60F2DA0A28F00B0E5EF /* FirebaseCrashlytics */,
-				DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */,
 				3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */,
 				5E12FE112EBC0000000000B1 /* RoundWhiteDiscKit */,
 			);
@@ -676,6 +721,7 @@
 				BDFF79792D25AA870016C40C /* Frameworks */,
 				BDFF797A2D25AA870016C40C /* Resources */,
 				BD8207CF2D2B42E80023339D /* Embed Foundation Extensions */,
+				6CC9AF72ADDE4EF5AD9FE6CE /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -778,13 +824,9 @@
 			packageReferences = (
 				3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */,
 				38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */,
-				3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */,
-				B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */,
 				3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */,
-				3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */,
 				3B47C60E2DA0A28F00B0E5EF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */,
 				3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */,
 				5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */,
 			);
@@ -1343,6 +1385,8 @@
 		BD8207D02D2B42E80023339D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_GROUP_ID = "$(TRIO_APP_GROUP_ID)";
+				CODE_SIGN_ENTITLEMENTS = "Trio Watch Complication/TrioWatchComplication.entitlements";
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
@@ -1373,13 +1417,15 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Debug;
 		};
 		BD8207D12D2B42E80023339D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_GROUP_ID = "$(TRIO_APP_GROUP_ID)";
+				CODE_SIGN_ENTITLEMENTS = "Trio Watch Complication/TrioWatchComplication.entitlements";
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
@@ -1409,13 +1455,17 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Release;
 		};
 		BDFF79A12D25AA890016C40C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_GROUP_ID = "$(TRIO_APP_GROUP_ID)";
+				CODE_SIGN_ENTITLEMENTS = "Trio Watch App Extension/TrioWatchApp.entitlements";
+				INFOPLIST_FILE = "Trio Watch App Extension/Info.plist";
+				PRODUCT_MODULE_NAME = Trio;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1446,13 +1496,17 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Debug;
 		};
 		BDFF79A22D25AA890016C40C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APP_GROUP_ID = "$(TRIO_APP_GROUP_ID)";
+				CODE_SIGN_ENTITLEMENTS = "Trio Watch App Extension/TrioWatchApp.entitlements";
+				INFOPLIST_FILE = "Trio Watch App Extension/Info.plist";
+				PRODUCT_MODULE_NAME = Trio;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -1482,7 +1536,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Release;
 		};
@@ -1508,7 +1562,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Trio Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Trio Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Debug;
 		};
@@ -1533,7 +1587,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Trio Watch App.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Trio Watch App";
-				WATCHOS_DEPLOYMENT_TARGET = 10;
+				WATCHOS_DEPLOYMENT_TARGET = 10.6;
 			};
 			name = Release;
 		};
@@ -1621,14 +1675,6 @@
 				minimumVersion = 2.7.1;
 			};
 		};
-		3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/apple/swift-algorithms";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.3;
-			};
-		};
 		38B17B6425DD90E0005CAE3D /* XCRemoteSwiftPackageReference "SwiftDate" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/malcommac/SwiftDate";
@@ -1653,28 +1699,12 @@
 				kind = branch;
 			};
 		};
-		3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/krzyzanowskim/CryptoSwift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.8.2;
-			};
-		};
 		3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/garmin/connectiq-companion-app-sdk-ios";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.7.0;
-			};
-		};
-		B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/maxkonovalov/MKRingProgressView.git";
-			requirement = {
-				branch = master;
-				kind = branch;
 			};
 		};
 		CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */ = {
@@ -1685,14 +1715,6 @@
 				kind = branch;
 			};
 		};
-		DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "http://github.com/Kitura/Swift-JWT.git";
-			requirement = {
-				kind = exactVersion;
-				version = 4.0.1;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1700,11 +1722,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3811DE0E25C9D37700A708ED /* XCRemoteSwiftPackageReference "Swinject" */;
 			productName = Swinject;
-		};
-		3833B46C26012030003021B3 /* Algorithms */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3833B46B26012030003021B3 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
-			productName = Algorithms;
 		};
 		38B17B6525DD90E0005CAE3D /* SwiftDate */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1721,11 +1738,6 @@
 			package = 3BD9687A2D8DDD4600899469 /* XCRemoteSwiftPackageReference "SlideButton" */;
 			productName = SlideButton;
 		};
-		3BD9687E2D8DDD8800899469 /* CryptoSwift */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 3BD9687D2D8DDD8800899469 /* XCRemoteSwiftPackageReference "CryptoSwift" */;
-			productName = CryptoSwift;
-		};
 		3E28F2AA2EB5337F00FB9EEB /* ConnectIQ */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 3E28F2A92EB5337F00FB9EEB /* XCRemoteSwiftPackageReference "connectiq-companion-app-sdk-ios" */;
@@ -1736,20 +1748,10 @@
 			package = 5E12FE112EBC0000000000B0 /* XCLocalSwiftPackageReference "RoundWhiteDiscKit" */;
 			productName = RoundWhiteDiscKit;
 		};
-		B958F1B62BA0711600484851 /* MKRingProgressView */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B958F1B52BA0711600484851 /* XCRemoteSwiftPackageReference "MKRingProgressView" */;
-			productName = MKRingProgressView;
-		};
 		CEB434FC28B90B7C00B70274 /* SwiftCharts */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CEB434FB28B90B7C00B70274 /* XCRemoteSwiftPackageReference "SwiftCharts" */;
 			productName = SwiftCharts;
-		};
-		DD17A0282E3FE0BD008E1BF0 /* SwiftJWT */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = DD868FD92E381E1C005D3308 /* XCRemoteSwiftPackageReference "Swift-JWT" */;
-			productName = SwiftJWT;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

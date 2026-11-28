@@ -22,7 +22,7 @@ struct SnoozeAlertsSheetView: View {
                             Image(systemName: "moon.zzz.fill").foregroundStyle(.tint)
                             Text(String(
                                 format: String(localized: "Snoozed until %@"),
-                                snoozeUntilDate.formatted(date: .omitted, time: .shortened)
+                                snoozeUntilDate.formatted(.timeOfDay)
                             ))
                                 .font(.headline)
                         }
