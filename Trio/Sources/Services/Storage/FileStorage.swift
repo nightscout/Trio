@@ -223,7 +223,7 @@ extension FileStorage {
         value < threshold ? correctUnitParsingOffsets(value.asMgdL) : value
     }
 
-    /// Parses mmol/L settings stored on file to mg/dL if necessary and updates the preferences, settings,  insulin sensitivities, and glucose targets.
+    /// Parses mmol/L settings stored on file to mg/dL if necessary and updates the preferences and settings.
     /// - Returns: A boolean indicating whether any settings were parsed and updated.
     func parseOnFileSettingsToMgdL() -> Bool {
         var wasParsed = false
@@ -267,51 +267,8 @@ extension FileStorage {
             }
         }
 
-        // Retrieve and parse insulin sensitivities
-        if var sensitivities = retrieve(OpenAPS.Settings.insulinSensitivities, as: InsulinSensitivities.self),
-           sensitivities.units == .mmolL || sensitivities.userPreferredUnits == .mmolL
-        {
-            info(.storage, "Converting stored insulin sensitivities from mmol/L to mg/dL")
-
-            sensitivities.sensitivities = sensitivities.sensitivities.map { isf in
-                InsulinSensitivityEntry(
-                    sensitivity: parseSettingIfMmolL(value: isf.sensitivity),
-                    offset: isf.offset,
-                    start: isf.start
-                )
-            }
-            sensitivities.units = .mgdL
-            sensitivities.userPreferredUnits = .mgdL
-
-            save(sensitivities, as: OpenAPS.Settings.insulinSensitivities)
-            wasParsed = true
-        } else {
-            debug(.storage, "Stored insulin sensitivities already in mg/dL")
-        }
-
-        // Retrieve and parse glucose targets
-        if var glucoseTargets = retrieve(OpenAPS.Settings.bgTargets, as: BGTargets.self),
-           glucoseTargets.units == .mmolL || glucoseTargets.userPreferredUnits == .mmolL
-        {
-            info(.storage, "Converting stored glucose targets from mmol/L to mg/dL")
-
-            glucoseTargets.targets = glucoseTargets.targets.map { target in
-                BGTargetEntry(
-                    low: parseSettingIfMmolL(value: target.low),
-                    high: parseSettingIfMmolL(value: target.high),
-                    start: target.start,
-                    offset: target.offset
-                )
-            }
-            glucoseTargets.units = .mgdL
-            glucoseTargets.userPreferredUnits = .mgdL
-
-            save(glucoseTargets, as: OpenAPS.Settings.bgTargets)
-            wasParsed = true
-        } else {
-            debug(.storage, "Stored glucose targets already in mg/dL")
-        }
-
+        // Insulin sensitivities and glucose targets are in Core Data; `LegacyTherapySettingsImporter` converts them when it
+        // takes the settings files over.
         return wasParsed
     }
 }

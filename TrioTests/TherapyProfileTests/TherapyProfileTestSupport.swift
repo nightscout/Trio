@@ -63,7 +63,6 @@ final class FailableTherapyProfileStorage: TherapyProfileStorage, @unchecked Sen
     private let base: TherapyProfileStorage
     var failsToStore = false
     var failsToFetch = false
-    let fetchCount = LockedCounter()
     /// Runs before every store; a throw stops the store.
     var beforeStore: (() throws -> Void)?
 
@@ -71,8 +70,16 @@ final class FailableTherapyProfileStorage: TherapyProfileStorage, @unchecked Sen
         self.base = base
     }
 
+    func storedProfiles() throws -> StoredTherapyProfiles {
+        if failsToFetch { throw TherapyProfileError.storageFailed }
+        return try base.storedProfiles()
+    }
+
+    func blockProfiles(_ error: TherapyProfileStorageError) {
+        base.blockProfiles(error)
+    }
+
     func fetchProfiles() async throws -> StoredTherapyProfiles {
-        fetchCount.increment()
         if failsToFetch { throw TherapyProfileError.storageFailed }
         return try await base.fetchProfiles()
     }
@@ -212,25 +219,30 @@ struct TherapyProfileTestContext {
     let recorder: TherapyProfileTestRecorder
     let resolver: Resolver
 
-    var liveBasal: [Decimal] {
-        fileStorage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)?.map(\.rate) ?? []
-    }
+    /// The therapy settings in use, as every reader gets them.
+    var liveSettings: TrioTherapyProfile { profileStorage.liveSettings }
 
+    var liveBasal: [Decimal] { liveSettings.basal.map(\.value) }
+
+    /// A store whose Default profile is active with the values of `live`; an empty store when `live` is nil.
     static func make(
-        live: TrioTherapyProfile = TherapyProfileFixtures
+        live: TrioTherapyProfile? = TherapyProfileFixtures
             .profile("Default")
     ) async throws -> TherapyProfileTestContext {
-        let fileStorage = InMemoryFileStorage()
-        fileStorage.save(live.basalProfileEntries, as: OpenAPS.Settings.basalProfile)
-        fileStorage.save(live.carbRatios, as: OpenAPS.Settings.carbRatios)
-        fileStorage.save(live.insulinSensitivities, as: OpenAPS.Settings.insulinSensitivities)
-        fileStorage.save(live.bgTargets, as: OpenAPS.Settings.bgTargets)
-        let context = try make(coreDataStack: try await CoreDataStack.createForTests(), fileStorage: fileStorage)
-        await context.manager.completeInterruptedSwitch()
+        let context = try make(coreDataStack: try await CoreDataStack.createForTests(), fileStorage: InMemoryFileStorage())
+        if let live {
+            try await context.profileStorage.storeProfiles(
+                StoredTherapyProfiles(
+                    activeProfileName: TrioTherapyProfile.defaultName,
+                    inactiveProfiles: [],
+                    activeProfileValues: live.renamed(TrioTherapyProfile.defaultName)
+                )
+            )
+        }
         return context
     }
 
-    /// A new manager over the same Core Data store and settings files, as after an app restart.
+    /// A new manager and profile storage over the same Core Data store, as after an app restart.
     func relaunched() throws -> TherapyProfileTestContext {
         try Self.make(coreDataStack: coreDataStack, fileStorage: fileStorage)
     }
@@ -240,9 +252,7 @@ struct TherapyProfileTestContext {
             base: BaseTherapyProfileStorage(contextProvider: { coreDataStack.newTaskContext() })
         )
         let recorder = TherapyProfileTestRecorder()
-        recorder.liveBasal = {
-            fileStorage.retrieve(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)?.map(\.rate) ?? []
-        }
+        recorder.liveBasal = { profileStorage.liveSettings.basal.map(\.value) }
         let resolver = Assembler([
             StorageAssembly(),
             ServiceAssembly(),

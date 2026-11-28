@@ -30,15 +30,11 @@ extension Home {
         }
 
         func getBasalProfile() async -> [BasalProfileEntry] {
-            await storage.retrieveAsync(OpenAPS.Settings.basalProfile, as: [BasalProfileEntry].self)
-                ?? [BasalProfileEntry](from: OpenAPS.defaults(for: OpenAPS.Settings.basalProfile))
-                ?? []
+            therapyProfileStorage.liveSettings.basalProfileEntries
         }
 
         func getBGTargets() async -> BGTargets {
-            await storage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-                ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-                ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+            therapyProfileStorage.liveSettings.bgTargets
         }
     }
 }

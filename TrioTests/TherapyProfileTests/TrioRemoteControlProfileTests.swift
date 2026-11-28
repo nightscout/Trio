@@ -280,7 +280,7 @@ private final class ProfileTestAssembly: Assembly {
 
     @Test("Remote switch conflict and pump failure change nothing") func remoteSwitchFailures() async throws {
         try await manager.save(sport, originalName: nil, baseFingerprint: nil)
-        let before = context.fileStorage.files
+        let before = try await context.profileStorage.fetchProfiles()
         let conflict =
             try await send(command("switch_profile", ["profile_name": "Sport", "base_fingerprint": "1111111111111111"]))
         #expect(conflict["result"] as? String == "conflict")
@@ -293,7 +293,7 @@ private final class ProfileTestAssembly: Assembly {
         ]))
         #expect(pump["command_status"] as? String == "failed")
         #expect(body(pump)?.hasPrefix("Profile 'Sport' not activated:") == true)
-        #expect(context.fileStorage.sameContents(as: before))
+        #expect(try await context.profileStorage.fetchProfiles() == before)
         #expect(manager.activeProfileName == "Default")
 
         let missing = try await send(command("switch_profile", ["profile_name": "Nope", "base_fingerprint": "1111111111111111"]))

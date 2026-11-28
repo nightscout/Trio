@@ -139018,6 +139018,9 @@
         }
       }
     },
+    "Failed to import therapy settings. Trio cannot loop until they are imported. Restart Trio to try again." : {
+
+    },
     "Failed to Suspend Insulin Delivery" : {
       "comment" : "Alert title for suspend error",
       "extractionState" : "manual",
@@ -325695,9 +325698,6 @@
           }
         }
       }
-    },
-    "Trio uses the new settings, but could not store them with the active profile. Save again to retry." : {
-
     },
     "Trio v%@" : {
       "localizations" : {

@@ -156,12 +156,12 @@ import Testing
 
     @Test("A failed pump write changes nothing and is retried; success then says late") func pumpFailureRetried() async throws {
         let context = try await makeContext()
-        let before = context.fileStorage.files
+        let before = try await context.profileStorage.fetchProfiles()
         context.recorder.pumpError = PumpFailure()
         context.recorder.now = date("2026-11-14 07:01")
         await context.manager.runDueScheduledSwitch()
 
-        #expect(context.fileStorage.sameContents(as: before))
+        #expect(try await context.profileStorage.fetchProfiles() == before)
         #expect(context.manager.activeProfileName == "Default")
         #expect(try await settledAt(context) == date("2026-11-13 12:00"))
         let pending = try #require(issued(context, "pending").last)
@@ -243,13 +243,16 @@ import Testing
 
     @Test("A failed save is settled and reported, also when the pump restore fails") func commitFailure() async throws {
         let context = try await makeContext()
-        let before = context.fileStorage.files
+        let before = try await context.profileStorage.fetchProfiles()
         context.profileStorage.failsToStore = true
         context.recorder.pumpResults = [nil, PumpFailure()]
         context.recorder.now = date("2026-11-14 07:01")
         await context.manager.runDueScheduledSwitch()
 
-        #expect(context.fileStorage.sameContents(as: before))
+        // Only the settled instant is stored.
+        var after = try await context.profileStorage.fetchProfiles()
+        after.scheduledSwitchesSettledAt = before.scheduledSwitchesSettledAt
+        #expect(after == before)
         #expect(context.manager.activeProfileName == "Default")
         #expect(context.recorder.pumpWrites == 2)
         #expect(try await settledAt(context) == date("2026-11-14 07:01"))

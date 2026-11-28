@@ -105,13 +105,13 @@ extension TargetsEditor {
                 saveToProfile(profileName, base: editedProfile, updated: editedProfile.replacing(bgTargets: profile))
                 return
             }
-            guard let liveBase, let provider else { return }
+            guard let liveBase else { return }
             Task { @MainActor in
                 do {
                     self.liveBase = try await therapyProfileManager.saveLiveSettings(
                         expectedActiveName: liveBase.name,
                         expectedFingerprint: liveBase.fingerprint(units: .mgdL)
-                    ) { provider.saveProfile(profile) }
+                    ) { $0.replacing(bgTargets: profile) }
                 } catch {
                     profileSaveError = error.localizedDescription
                     return

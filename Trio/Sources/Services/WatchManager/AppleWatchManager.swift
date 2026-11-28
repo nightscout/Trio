@@ -37,6 +37,7 @@ final class BaseWatchManager: NSObject, WCSessionDelegate, Injectable, WatchMana
     @Injected() private var apsManager: APSManager!
     @Injected() private var settingsManager: SettingsManager!
     @Injected() private var fileStorage: FileStorage!
+    @Injected() private var therapyProfileStorage: TherapyProfileStorage!
     @Injected() private var glucoseStorage: GlucoseStorage!
     @Injected() private var determinationStorage: DeterminationStorage!
     @Injected() private var overrideStorage: OverrideStorage!
@@ -1241,9 +1242,7 @@ extension BaseWatchManager {
         let now = Date()
         let calendar = Calendar.current
 
-        let bgTargets = await fileStorage.retrieveAsync(OpenAPS.Settings.bgTargets, as: BGTargets.self)
-            ?? BGTargets(from: OpenAPS.defaults(for: OpenAPS.Settings.bgTargets))
-            ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
+        let bgTargets = therapyProfileStorage.liveSettings.bgTargets
         let entries: [(start: String, value: Decimal)] = bgTargets.targets.map { ($0.start, $0.low) }
 
         for (index, entry) in entries.enumerated() {

@@ -100,13 +100,13 @@ extension CarbRatioEditor {
                 saveToProfile(profileName, base: editedProfile, updated: editedProfile.replacing(carbRatios: profile))
                 return
             }
-            guard let liveBase, let provider else { return }
+            guard let liveBase else { return }
             Task { @MainActor in
                 do {
                     self.liveBase = try await therapyProfileManager.saveLiveSettings(
                         expectedActiveName: liveBase.name,
                         expectedFingerprint: liveBase.fingerprint(units: .mgdL)
-                    ) { provider.saveProfile(profile) }
+                    ) { $0.replacing(carbRatios: profile) }
                 } catch {
                     profileSaveError = error.localizedDescription
                     return

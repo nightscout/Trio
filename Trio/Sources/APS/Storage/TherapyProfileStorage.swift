@@ -1,16 +1,28 @@
 import CoreData
 import Foundation
 
-/// The active profile's values are the live settings files.
+/// The active profile's values are the therapy settings oref and the app use.
 struct StoredTherapyProfiles: Equatable, Sendable {
     /// Nil until the profiles are first stored; Default is active then.
     var activeProfileName: String?
     var inactiveProfiles: [TrioTherapyProfile]
-    /// The live settings when the profiles were stored, kept with the active profile's name.
+    /// Nil until therapy settings are first stored; the bundled defaults apply then.
     var activeProfileValues: TrioTherapyProfile?
     var scheduledSwitches: [ScheduledProfileSwitch] = []
     /// Occurrences of the scheduled switches up to this instant are done with. Kept with the active profile.
     var scheduledSwitchesSettledAt: Date?
+
+    static let empty = StoredTherapyProfiles(activeProfileName: nil, inactiveProfiles: [])
+
+    /// The active profile under its name, nil until therapy settings are first stored.
+    var activeProfile: TrioTherapyProfile? {
+        activeProfileValues?.renamed(activeProfileName ?? TrioTherapyProfile.defaultName)
+    }
+
+    /// The therapy settings in use: the active profile, or the bundled defaults until therapy settings are first stored.
+    var liveSettings: TrioTherapyProfile {
+        activeProfile ?? TrioTherapyProfile.bundledDefaults.renamed(activeProfileName ?? TrioTherapyProfile.defaultName)
+    }
 }
 
 /// A switch to another profile, kept until it is uploaded to Nightscout.
@@ -41,9 +53,18 @@ enum TherapyProfileStorageError: Error, Equatable {
     case duplicateName
     case valueOutOfRange(String)
     case noActiveProfile
+    /// The therapy settings of an earlier version could not be taken over, so the stored ones are not to be used.
+    case legacyImportFailed(String)
 }
 
 protocol TherapyProfileStorage {
+    /// The stored profiles, read from Core Data on first use and kept in memory from then on. Every change goes through
+    /// this storage, so the copy in memory is current. Safe to call from any thread. Throws when the store cannot be read,
+    /// and while the profiles are blocked.
+    func storedProfiles() throws -> StoredTherapyProfiles
+    /// Makes `storedProfiles` and every change throw `error` until the app restarts.
+    func blockProfiles(_ error: TherapyProfileStorageError)
+    /// Reads the profiles from Core Data.
     func fetchProfiles() async throws -> StoredTherapyProfiles
     /// Replaces every stored profile and scheduled switch in one save. With `switchDate`, the same save records that
     /// `profiles.activeProfileName` became active then. Throws without changing anything when two profiles have the same
@@ -69,24 +90,70 @@ extension TherapyProfileStorage {
     func storeProfiles(_ profiles: StoredTherapyProfiles) async throws {
         try await storeProfiles(profiles, switchDate: nil, switchTrigger: nil)
     }
+
+    /// The therapy settings oref doses with. Throws rather than fall back to other values when they cannot be read.
+    func requireLiveSettings() throws -> TrioTherapyProfile {
+        try storedProfiles().liveSettings
+    }
+
+    /// The therapy settings for display. The bundled defaults when the stored ones cannot be read.
+    var liveSettings: TrioTherapyProfile {
+        do {
+            return try requireLiveSettings()
+        } catch {
+            warning(.storage, "Therapy settings could not be read, using the defaults", error: error)
+            return TrioTherapyProfile.bundledDefaults
+        }
+    }
+
+    /// Nil until therapy settings are first stored, and when they cannot be read.
+    var storedLiveSettings: TrioTherapyProfile? {
+        (try? storedProfiles())?.activeProfile
+    }
 }
 
 final class BaseTherapyProfileStorage: TherapyProfileStorage {
     /// One context for all operations, so each replace of the stored profiles runs in order with every other read and write.
     private let context: NSManagedObjectContext
+    private let lock = NSLock()
+    private var cachedProfiles: StoredTherapyProfiles?
+    private var blockedBy: TherapyProfileStorageError?
 
     init(contextProvider: (() -> NSManagedObjectContext)? = nil) {
         context = contextProvider?() ?? CoreDataStack.shared.newTaskContext()
         context.name = "therapyProfileStorage"
     }
 
-    func fetchProfiles() async throws -> StoredTherapyProfiles {
-        try await context.perform { [context] in
-            Self.profiles(
-                in: try context.fetch(TherapyProfileStored.fetchRequest()),
-                switches: try context.fetch(ScheduledProfileSwitchStored.fetchRequest())
-            )
+    func storedProfiles() throws -> StoredTherapyProfiles {
+        let (cached, blockedBy) = lock.withLock { (cachedProfiles, self.blockedBy) }
+        if let blockedBy { throw blockedBy }
+        if let cached { return cached }
+        // Runs after the changes already queued on the context, so the result is current.
+        let fetched = try context.performAndWait { [context] in try Self.fetch(in: context) }
+        return lock.withLock {
+            if let cachedProfiles { return cachedProfiles }
+            cachedProfiles = fetched
+            return fetched
         }
+    }
+
+    func blockProfiles(_ error: TherapyProfileStorageError) {
+        lock.withLock { blockedBy = error }
+    }
+
+    private func checkNotBlocked() throws {
+        if let blockedBy = lock.withLock({ blockedBy }) { throw blockedBy }
+    }
+
+    func fetchProfiles() async throws -> StoredTherapyProfiles {
+        try await context.perform { [context] in try Self.fetch(in: context) }
+    }
+
+    private static func fetch(in context: NSManagedObjectContext) throws -> StoredTherapyProfiles {
+        profiles(
+            in: try context.fetch(TherapyProfileStored.fetchRequest()),
+            switches: try context.fetch(ScheduledProfileSwitchStored.fetchRequest())
+        )
     }
 
     private static func profiles(
@@ -109,12 +176,13 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
         switchTrigger: TherapyProfileSwitch.Trigger?
     ) async throws {
         do {
+            try checkNotBlocked()
             try Self.validate(profiles)
         } catch {
             warning(.storage, "Therapy profiles not saved", error: error)
             throw error
         }
-        try await context.perform { [context] in
+        try await context.perform { [context, lock] in
             do {
                 for row in try context.fetch(TherapyProfileStored.fetchRequest()) {
                     context.delete(row)
@@ -143,6 +211,9 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
                     ScheduledProfileSwitchStored.insert(entry, into: context)
                 }
                 try context.save()
+                // As a fetch returns them, so the copy in memory equals the next launch's.
+                let stored = try Self.fetch(in: context)
+                lock.withLock { self.cachedProfiles = stored }
             } catch {
                 context.rollback()
                 warning(.storage, "Saving therapy profiles failed", error: error)
@@ -152,7 +223,8 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
     }
 
     func settleScheduledSwitches(at date: Date) async throws {
-        try await context.perform { [context] in
+        try checkNotBlocked()
+        try await context.perform { [context, lock] in
             do {
                 let request = TherapyProfileStored.fetchRequest()
                 request.predicate = NSPredicate(format: "isActive == %@", true as NSNumber)
@@ -160,6 +232,7 @@ final class BaseTherapyProfileStorage: TherapyProfileStorage {
                 guard !rows.isEmpty else { throw TherapyProfileStorageError.noActiveProfile }
                 rows.forEach { $0.scheduledSwitchesSettledAt = date }
                 try context.save()
+                lock.withLock { self.cachedProfiles?.scheduledSwitchesSettledAt = date }
             } catch {
                 context.rollback()
                 warning(.storage, "Saving the settled instant of the scheduled profile switches failed", error: error)

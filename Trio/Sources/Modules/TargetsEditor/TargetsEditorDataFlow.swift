@@ -29,5 +29,4 @@ enum TargetsEditor {
 
 protocol TargetsEditorProvider: Provider {
     var profile: BGTargets { get }
-    func saveProfile(_ profile: BGTargets)
 }
