@@ -28,6 +28,8 @@ struct AddOverrideForm: View {
                 saveButton
             }
             .listSectionSpacing(10)
+            // iOS's default on iPhone; iPhone Duo defaults to 0, which put the first row under the sheet's bar
+            .contentMargins(.top, 35, for: .scrollContent)
             .padding(.top, 30)
             .ignoresSafeArea(edges: .top)
             .scrollContentBackground(.hidden)
@@ -77,7 +79,7 @@ struct AddOverrideForm: View {
                 HStack {
                     Text("Basal Rate Adjustment")
                     Spacer()
-                    Text("\(state.overridePercentage.formatted(.number)) %")
+                    Text((state.overridePercentage / 100).formatted(.wholePercent))
                         .foregroundColor(!displayPickerPercentage ? .primary : .accentColor)
                         .onTapGesture {
                             displayPickerPercentage = toggleScrollWheel(displayPickerPercentage)
@@ -90,7 +92,7 @@ struct AddOverrideForm: View {
                         VStack(alignment: .leading) {
                             // Radio buttons for step iteration
                             ForEach([1, 5], id: \.self) { step in
-                                RadioButton(isSelected: percentageStep == step, label: "\(step) %") {
+                                RadioButton(isSelected: percentageStep == step, label: step.formatted(.percent)) {
                                     percentageStep = step
                                     state.overridePercentage = Adjustments.StateModel.roundOverridePercentageToStep(
                                         state.overridePercentage,
@@ -112,7 +114,7 @@ struct AddOverrideForm: View {
                             ), label: Text("")
                         ) {
                             ForEach(Array(stride(from: 40, through: 150, by: percentageStep)), id: \.self) { percent in
-                                Text("\(percent) %").tag(percent)
+                                Text(percent.formatted(.percent)).tag(percent)
                             }
                         }
                         .pickerStyle(WheelPickerStyle())
@@ -212,27 +214,21 @@ struct AddOverrideForm: View {
                     HStack {
                         Text("From")
                         Spacer()
-                        Text(
-                            state.is24HourFormat() ? state.format24Hour(Int(truncating: state.start as NSNumber)) + ":00" :
-                                state.convertTo12HourFormat(Int(truncating: state.start as NSNumber))
-                        )
-                        .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
-                        .onTapGesture {
-                            displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
-                        }
+                        Text(Date(hourOfDay: Int(truncating: state.start as NSNumber)), format: .timeOfDay)
+                            .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                            .onTapGesture {
+                                displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
+                            }
                         Spacer()
                         Divider().frame(width: 1, height: 20)
                         Spacer()
                         Text("To")
                         Spacer()
-                        Text(
-                            state.is24HourFormat() ? state.format24Hour(Int(truncating: state.end as NSNumber)) + ":00" :
-                                state.convertTo12HourFormat(Int(truncating: state.end as NSNumber))
-                        )
-                        .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
-                        .onTapGesture {
-                            displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
-                        }
+                        Text(Date(hourOfDay: Int(truncating: state.end as NSNumber)), format: .timeOfDay)
+                            .foregroundColor(!displayPickerDisableSmbSchedule ? .primary : .accentColor)
+                            .onTapGesture {
+                                displayPickerDisableSmbSchedule = toggleScrollWheel(displayPickerDisableSmbSchedule)
+                            }
                         Spacer()
                     }
 
@@ -244,11 +240,7 @@ struct AddOverrideForm: View {
                                 set: { state.start = Decimal($0) }
                             ), label: Text("")) {
                                 ForEach(0 ..< 24, id: \.self) { hour in
-                                    Text(
-                                        state.is24HourFormat() ? state.format24Hour(hour) + ":00" : state
-                                            .convertTo12HourFormat(hour)
-                                    )
-                                    .tag(hour)
+                                    Text(Date(hourOfDay: hour), format: .timeOfDay).tag(hour)
                                 }
                             }
                             .pickerStyle(WheelPickerStyle())
@@ -260,11 +252,7 @@ struct AddOverrideForm: View {
                                 set: { state.end = Decimal($0) }
                             ), label: Text("")) {
                                 ForEach(0 ..< 24, id: \.self) { hour in
-                                    Text(
-                                        state.is24HourFormat() ? state.format24Hour(hour) + ":00" : state
-                                            .convertTo12HourFormat(hour)
-                                    )
-                                    .tag(hour)
+                                    Text(Date(hourOfDay: hour), format: .timeOfDay).tag(hour)
                                 }
                             }
                             .pickerStyle(WheelPickerStyle())
@@ -344,7 +332,7 @@ struct AddOverrideForm: View {
                     HStack {
                         Text("Duration")
                         Spacer()
-                        Text(state.formatHoursAndMinutes(Int(state.overrideDuration)))
+                        Text(Duration(minutes: state.overrideDuration).formattedTimeSpan())
                             .foregroundColor(!displayPickerDuration ? .primary : .accentColor)
                             .onTapGesture {
                                 displayPickerDuration = toggleScrollWheel(displayPickerDuration)

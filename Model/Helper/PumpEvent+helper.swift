@@ -70,6 +70,7 @@ public extension PumpEventStored {
         case nsAnnouncement = "Announcement"
         case nsSensorChange = "Sensor Start"
         case nsExercise = "Exercise"
+        case nsProfileSwitch = "Profile Switch"
         case capillaryGlucose = "BG Check"
     }
 
@@ -81,7 +82,7 @@ public extension PumpEventStored {
 
 extension NSPredicate {
     // NULL-tolerant: the keypath's LEFT JOIN drops bolus rows under NOT (... == YES)
-    private static let notScheduledBasal = "(tempBasal == nil OR tempBasal.isScheduledBasal == NO)"
+    static let notScheduledBasal = "(tempBasal == nil OR tempBasal.isScheduledBasal == NO)"
 
     private static let notMutable = "isMutable == NO"
 

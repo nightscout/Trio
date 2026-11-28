@@ -56,6 +56,9 @@ extension NSPredicate {
 
     static let none = NSPredicate(format: "FALSEPREDICATE")
 
+    /// GlucoseStored rows from a sensor, excluding manual entries.
+    static let cgmGlucose = NSPredicate(format: "isManual == NO")
+
     static var predicateForOneDayAgoInMinutes: NSPredicate {
         let date = Date.oneDayAgoInMinutes
         return NSPredicate(format: "date >= %@", date as NSDate)
@@ -113,21 +116,6 @@ extension NSPredicate {
 
     static var predicateForSixHoursAgo: NSPredicate {
         let date = Date.sixHoursAgo
-        return NSPredicate(format: "date >= %@", date as NSDate)
-    }
-
-    static var predicateForOneWeek: NSPredicate {
-        let date = Date.oneWeekAgo
-        return NSPredicate(format: "date >= %@", date as NSDate)
-    }
-
-    static var predicateForOneMonth: NSPredicate {
-        let date = Date.oneMonthAgo
-        return NSPredicate(format: "date >= %@", date as NSDate)
-    }
-
-    static var predicateForThreeMonths: NSPredicate {
-        let date = Date.threeMonthsAgo
         return NSPredicate(format: "date >= %@", date as NSDate)
     }
 

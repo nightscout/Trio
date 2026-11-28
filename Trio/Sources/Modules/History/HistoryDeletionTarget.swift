@@ -34,13 +34,11 @@ extension History {
         func message(units: GlucoseUnits) -> String? {
             switch self {
             case let .glucose(glucose):
-                let glucoseToDisplay = units == .mgdL
-                    ? glucose.glucose.description
-                    : Int(glucose.glucose).formattedAsMmolL
-                return Formatter.dateFormatter.string(from: glucose.date ?? Date())
+                let glucoseToDisplay = Decimal(glucose.glucose).formatted(for: units)
+                return (glucose.date ?? Date()).formatted(.timeOfDay)
                     + ", " + glucoseToDisplay + " " + units.rawValue
             case let .insulin(pumpEvent):
-                var text = Formatter.dateFormatter.string(from: pumpEvent.timestamp ?? Date())
+                var text = (pumpEvent.timestamp ?? Date()).formatted(.timeOfDay)
                     + ", "
                     + (Formatter.decimalFormatterWithThreeFractionDigits.string(from: pumpEvent.bolus?.amount ?? 0) ?? "0")
                     + String(localized: " U", comment: "Insulin unit")
@@ -50,7 +48,7 @@ extension History {
                 return text
             case let .carbs(carbEntry):
                 if carbEntry.fpuID == nil {
-                    return Formatter.dateFormatter.string(from: carbEntry.date ?? Date())
+                    return (carbEntry.date ?? Date()).formatted(.timeOfDay)
                         + ", "
                         + (Formatter.decimalFormatterWithTwoFractionDigits.string(for: carbEntry.carbs) ?? "0")
                         + String(localized: " g", comment: "gram of carbs")

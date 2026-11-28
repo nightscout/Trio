@@ -359,12 +359,12 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
         context.name = "replaceCarbs"
         context.transactionAuthor = "replaceCarbs"
 
-        // A fetch reads the store, so rows removed by a batch delete are not served from the row cache.
-        let rootRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
-        rootRequest.predicate = NSPredicate(format: "SELF == %@", treatmentObjectID)
-        rootRequest.fetchLimit = 1
-
         try await context.perform {
+            // A fetch reads the store, so rows removed by a batch delete are not served from the row cache.
+            let rootRequest: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+            rootRequest.predicate = NSPredicate(format: "SELF == %@", treatmentObjectID)
+            rootRequest.fetchLimit = 1
+
             guard let storedEntry = try context.fetch(rootRequest).first else {
                 throw CoreDataError.fetchError(function: #function, file: #file)
             }
@@ -392,29 +392,30 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     }
 
     private func saveFPUToCoreDataAsBatchInsert(entries: [CarbsEntry], areFetchedFromRemote: Bool) async {
-        let commonFPUID = UUID(
-            uuidString: entries.first?.fpuID ?? UUID()
-                .uuidString
-        ) // all fpus should only get ONE id per batch insert to be able to delete them referencing the fpuID
-        var entrySlice = ArraySlice(entries) // convert to ArraySlice
-        let batchInsert = NSBatchInsertRequest(entity: CarbEntryStored.entity()) { (managedObject: NSManagedObject) -> Bool in
-            guard let carbEntry = managedObject as? CarbEntryStored, let entry = entrySlice.popFirst(),
-                  let entryId = entry.id
-            else {
-                return true // return true to stop
-            }
-            carbEntry.date = entry.actualDate
-            carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
-            carbEntry.id = UUID.init(uuidString: entryId)
-            carbEntry.fpuID = commonFPUID
-            carbEntry.isFPU = true
-            carbEntry.isUploadedToNS = areFetchedFromRemote ? true : false
-            // do NOT set Health and Tidepool flags to ensure they will NOT be uploaded
-            return false // return false to continue
-        }
         let context = makeContext()
         context.name = "saveFPUToCoreDataAsBatchInsert"
+
         await context.perform {
+            let commonFPUID = UUID(
+                uuidString: entries.first?.fpuID ?? UUID()
+                    .uuidString
+            ) // all fpus should only get ONE id per batch insert to be able to delete them referencing the fpuID
+            var entrySlice = ArraySlice(entries) // convert to ArraySlice
+            let batchInsert = NSBatchInsertRequest(entity: CarbEntryStored.entity()) { (managedObject: NSManagedObject) -> Bool in
+                guard let carbEntry = managedObject as? CarbEntryStored, let entry = entrySlice.popFirst(),
+                      let entryId = entry.id
+                else {
+                    return true // return true to stop
+                }
+                carbEntry.date = entry.actualDate
+                carbEntry.carbs = Double(truncating: NSDecimalNumber(decimal: entry.carbs))
+                carbEntry.id = UUID.init(uuidString: entryId)
+                carbEntry.fpuID = commonFPUID
+                carbEntry.isFPU = true
+                carbEntry.isUploadedToNS = areFetchedFromRemote ? true : false
+                // do NOT set Health and Tidepool flags to ensure they will NOT be uploaded
+                return false // return false to continue
+            }
             do {
                 try context.execute(batchInsert)
                 debug(.storage, "Saved \(entries.count) fat and protein entries")
@@ -564,15 +565,16 @@ final class BaseCarbsStorage: CarbsStorage, Injectable {
     func fetchMealRoot(handle: UUID) async throws -> (objectID: NSManagedObjectID, snapshot: MealSnapshot)? {
         let context = makeContext()
         context.name = "fetchMealRoot"
-        let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
-        request.predicate = NSPredicate(
-            format: "(id == %@ OR fpuID == %@) AND isFPU == NO",
-            handle as CVarArg,
-            handle as CVarArg
-        )
-        request.fetchLimit = 2
 
         return try await context.perform {
+            let request: NSFetchRequest<CarbEntryStored> = CarbEntryStored.fetchRequest()
+            request.predicate = NSPredicate(
+                format: "(id == %@ OR fpuID == %@) AND isFPU == NO",
+                handle as CVarArg,
+                handle as CVarArg
+            )
+            request.fetchLimit = 2
+
             let rows = try context.fetch(request)
             guard let row = rows.first else { return nil }
             guard rows.count == 1 else { throw CarbsStorageError.ambiguousMealHandle(handle) }

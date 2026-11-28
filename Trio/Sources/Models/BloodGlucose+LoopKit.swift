@@ -12,7 +12,7 @@ extension BloodGlucose {
         StoredGlucoseSample(
             syncIdentifier: id,
             startDate: dateString.date,
-            quantity: HKQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose!)),
+            quantity: LoopQuantity(unit: .milligramsPerDeciliter, doubleValue: Double(glucose!)),
             wasUserEntered: isManualGlucose,
             device: HKDevice.local()
         )

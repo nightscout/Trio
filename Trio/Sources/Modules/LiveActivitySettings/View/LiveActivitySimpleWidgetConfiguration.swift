@@ -79,7 +79,7 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
                 HStack {
                     Text("Updated:")
                         .foregroundStyle(.secondary)
-                    Text(previewTimeText)
+                    Text(Date(), format: .timeOfDay)
                         .bold()
                         .foregroundStyle(.secondary)
                 }
@@ -99,18 +99,11 @@ struct LiveActivitySimpleWidgetConfiguration: BaseView {
     }
 
     private var previewGlucoseText: String {
-        LiveActivityAttributes.ContentState.formatGlucose(Self.previewGlucose, units: state.units, forceSign: false)
+        Self.previewGlucose.formatted(for: state.units)
     }
 
     private var previewDeltaText: String {
-        LiveActivityAttributes.ContentState.formatGlucose(Self.previewDelta, units: state.units, forceSign: true)
-    }
-
-    private var previewTimeText: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .none
-        formatter.timeStyle = .short
-        return formatter.string(from: Date())
+        Decimal(Self.previewDelta).formattedDelta(for: state.units)
     }
 
     private var previewReadingColor: Color {

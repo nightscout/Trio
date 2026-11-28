@@ -14,18 +14,18 @@ import Testing
     private typealias Fixtures = LoggingStressFixtures
 
     private class StubManager: DeviceManager {
-        class var pluginIdentifier: String { LoggingStressFixtures.pumpManager }
+        var pluginIdentifier: String { LoggingStressFixtures.pumpManager }
         var localizedTitle: String { "Stress Pump" }
         var debugDescription: String { "## StubManager\npumpSN: \(LoggingStressFixtures.pumpSerial)" }
         var rawState: RawStateValue { [:] }
         var isOnboarded: Bool { true }
+        var inSignalLoss: Bool { false }
+        var isInoperable: Bool { false }
 
         init() {}
         required init?(rawState _: RawStateValue) {}
 
-        func acknowledgeAlert(alertIdentifier _: Alert.AlertIdentifier, completion: @escaping (Error?) -> Void) {
-            completion(nil)
-        }
+        func acknowledgeAlert(alertIdentifier _: Alert.AlertIdentifier) async throws {}
 
         func getSoundBaseURL() -> URL? { nil }
         func getSounds() -> [Alert.Sound] { [] }
@@ -33,7 +33,7 @@ import Testing
     }
 
     private final class StubCGMManager: StubManager {
-        override class var pluginIdentifier: String { LoggingStressFixtures.cgmManager }
+        override var pluginIdentifier: String { LoggingStressFixtures.cgmManager }
         override var localizedTitle: String { "Stress CGM" }
         override var debugDescription: String { "## StubCGMManager\ntransmitterID: \(LoggingStressFixtures.transmitterID)" }
     }

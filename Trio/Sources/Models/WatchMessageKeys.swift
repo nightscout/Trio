@@ -38,6 +38,7 @@ enum WatchMessageKeys {
     static let iob = "iob"
     static let cob = "cob"
     static let lastLoopTime = "lastLoopTime"
+    static let lastLoopDate = "lastLoopDate"
     static let glucoseValues = "glucoseValues"
     static let minYAxisValue = "minYAxisValue"
     static let maxYAxisValue = "maxYAxisValue"
@@ -53,11 +54,36 @@ enum WatchMessageKeys {
     static let confirmBolusFaster = "confirmBolusFaster"
     static let watchUsageMode = "watchUsageMode"
 
+    static let lowGlucoseLimit = "lowGlucoseLimit"
+    static let highGlucoseLimit = "highGlucoseLimit"
+
+    static let complicationCornerValue = "complicationCornerValue"
+    static let complicationSecondaryValue = "complicationSecondaryValue"
+    static let complicationStaleMinutes = "complicationStaleMinutes"
+    static let complicationColorMode = "complicationColorMode"
+    static let complicationRingStops = "complicationRingStops"
+
     // Notification Actions
     static let snoozeDuration = "snoozeDuration"
+    static let snoozeUntilDate = "snoozeUntilDate"
 
     // Forecast
     static let showForecastWatch = "showForecastWatch"
+    /// Whether the watch's own urgent low alarm should use Critical Alerts.
+    static let useCriticalAlertsWatch = "useCriticalAlertsWatch"
+    /// Latest CGM export for the watch's own sensor link; can be absent while the phone is starting.
+    static let watchSensorConfiguration = "watchSensorConfiguration"
+    /// The CGM's Read on Apple Watch; independent of whether the phone's CGM manager is loaded yet.
+    static let watchReadsSensor = "watchReadsSensor"
+    /// mg/dL bounds, target and color scheme the watch colors its own readings by.
+    static let glucoseRangeLow = "glucoseRangeLow"
+    static let glucoseRangeHigh = "glucoseRangeHigh"
+    static let glucoseRangeTarget = "glucoseRangeTarget"
+    static let glucoseColorScheme = "glucoseColorScheme"
+    /// mg/dL of the phone's glucose alarms that are on, the most cautious of each; 0: none.
+    static let glucoseAlarmUrgentLow = "glucoseAlarmUrgentLow"
+    static let glucoseAlarmLow = "glucoseAlarmLow"
+    static let glucoseAlarmHigh = "glucoseAlarmHigh"
     static let isForecastCone = "isForecastCone"
     static let forecastData = "forecastData"
     static let forecastStartDate = "forecastStartDate"

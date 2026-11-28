@@ -14,6 +14,10 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     var iob: String?
     var cob: String?
     var lastLoopTime: String?
+    /// The watch ages it itself; `lastLoopTime` is only right when sent.
+    var lastLoopDate: Date?
+    var lowGlucoseLimit: Double?
+    var highGlucoseLimit: Double?
     var overridePresets: [OverridePresetWatch] = []
     var tempTargetPresets: [TempTargetPresetWatch] = []
 
@@ -26,17 +30,44 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
     // Pump specific dosing increment
     var bolusIncrement: Decimal = 0.05
     var confirmBolusFaster: Bool = false
+    var watchUsageMode: WatchUsageMode = .companion
+
+    var complicationCornerValue: WatchComplicationValue = WatchComplicationDefaults.cornerValue
+    var complicationSecondaryValue: WatchComplicationValue = WatchComplicationDefaults.secondaryValue
+    var complicationStaleMinutes: Int = WatchComplicationDefaults.staleMinutes
+    var complicationColorMode: WatchComplicationColorMode = WatchComplicationDefaults.colorMode
+    var complicationRingStops: [ComplicationRingStop] = []
 
     // Forecast options
     var showForecast: Bool = false
     var isForecastCone: Bool = false
+    /// Latest CGM export while the CGM's Read on Apple Watch is on; nil until the phone has loaded its CGM manager.
+    var watchSensorConfiguration: Data? = nil
+    var watchReadsSensor: Bool = false
+    var useCriticalAlertsWatch: Bool = false
+    /// The range and color scheme the watch colors its own readings by.
+    var glucoseRangeLow: Decimal = 70
+    var glucoseRangeHigh: Decimal = 180
+    var glucoseRangeTarget: Decimal = 100
+    var glucoseColorScheme: String = GlucoseColorScheme.staticColor.rawValue
     var forecastStartDate: Date? = nil
     var forecastConeMin: [Double] = []
     var forecastConeMax: [Double] = []
     var forecastLines: [String: [Double]] = [:] // "iob" / "cob" / "uam" / "zt" -> values
 
+    var snoozeUntilDate: Date = .distantPast
+
     static func == (lhs: WatchState, rhs: WatchState) -> Bool {
-        lhs.date == rhs.date &&
+        // apart from the chain below, which is at the edge of the type checker's budget
+        let watchSensorIsEqual = lhs.watchSensorConfiguration == rhs.watchSensorConfiguration &&
+            lhs.watchReadsSensor == rhs.watchReadsSensor &&
+            lhs.useCriticalAlertsWatch == rhs.useCriticalAlertsWatch &&
+            lhs.glucoseRangeLow == rhs.glucoseRangeLow &&
+            lhs.glucoseRangeHigh == rhs.glucoseRangeHigh &&
+            lhs.glucoseRangeTarget == rhs.glucoseRangeTarget &&
+            lhs.glucoseColorScheme == rhs.glucoseColorScheme
+        guard watchSensorIsEqual, lhs.watchUsageMode == rhs.watchUsageMode else { return false }
+        return lhs.date == rhs.date &&
             lhs.currentGlucose == rhs.currentGlucose &&
             lhs.trend == rhs.trend &&
             lhs.delta == rhs.delta &&
@@ -50,6 +81,9 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.iob == rhs.iob &&
             lhs.cob == rhs.cob &&
             lhs.lastLoopTime == rhs.lastLoopTime &&
+            lhs.lastLoopDate == rhs.lastLoopDate &&
+            lhs.lowGlucoseLimit == rhs.lowGlucoseLimit &&
+            lhs.highGlucoseLimit == rhs.highGlucoseLimit &&
             lhs.overridePresets == rhs.overridePresets &&
             lhs.tempTargetPresets == rhs.tempTargetPresets &&
             lhs.maxBolus == rhs.maxBolus &&
@@ -58,12 +92,18 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
             lhs.maxProtein == rhs.maxProtein &&
             lhs.bolusIncrement == rhs.bolusIncrement &&
             lhs.confirmBolusFaster == rhs.confirmBolusFaster &&
+            lhs.complicationCornerValue == rhs.complicationCornerValue &&
+            lhs.complicationSecondaryValue == rhs.complicationSecondaryValue &&
+            lhs.complicationStaleMinutes == rhs.complicationStaleMinutes &&
+            lhs.complicationColorMode == rhs.complicationColorMode &&
+            lhs.complicationRingStops == rhs.complicationRingStops &&
             lhs.showForecast == rhs.showForecast &&
             lhs.isForecastCone == rhs.isForecastCone &&
             lhs.forecastStartDate == rhs.forecastStartDate &&
             lhs.forecastConeMin == rhs.forecastConeMin &&
             lhs.forecastConeMax == rhs.forecastConeMax &&
-            lhs.forecastLines == rhs.forecastLines
+            lhs.forecastLines == rhs.forecastLines &&
+            lhs.snoozeUntilDate == rhs.snoozeUntilDate
     }
 
     func hash(into hasher: inout Hasher) {
@@ -82,6 +122,9 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(iob)
         hasher.combine(cob)
         hasher.combine(lastLoopTime)
+        hasher.combine(lastLoopDate)
+        hasher.combine(lowGlucoseLimit)
+        hasher.combine(highGlucoseLimit)
         hasher.combine(overridePresets)
         hasher.combine(tempTargetPresets)
         hasher.combine(maxBolus)
@@ -90,11 +133,25 @@ struct WatchState: Hashable, Equatable, Sendable, Encodable, Decodable {
         hasher.combine(maxProtein)
         hasher.combine(bolusIncrement)
         hasher.combine(confirmBolusFaster)
+        hasher.combine(watchUsageMode)
+        hasher.combine(complicationCornerValue)
+        hasher.combine(complicationSecondaryValue)
+        hasher.combine(complicationStaleMinutes)
+        hasher.combine(complicationColorMode)
+        hasher.combine(complicationRingStops)
         hasher.combine(showForecast)
         hasher.combine(isForecastCone)
+        hasher.combine(watchSensorConfiguration)
+        hasher.combine(watchReadsSensor)
+        hasher.combine(useCriticalAlertsWatch)
+        hasher.combine(glucoseRangeLow)
+        hasher.combine(glucoseRangeHigh)
+        hasher.combine(glucoseRangeTarget)
+        hasher.combine(glucoseColorScheme)
         hasher.combine(forecastStartDate)
         hasher.combine(forecastConeMin)
         hasher.combine(forecastConeMax)
         hasher.combine(forecastLines)
+        hasher.combine(snoozeUntilDate)
     }
 }

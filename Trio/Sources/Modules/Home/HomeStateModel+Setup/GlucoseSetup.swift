@@ -105,13 +105,14 @@ extension Home.StateModel {
         context.name = "HomeStateModel.computeStatsPanelStats"
 
         let startDate = range.startDate()
-        // dictionary rows keep three months of readings light
-        let request = NSFetchRequest<NSDictionary>(entityName: "GlucoseStored")
-        request.predicate = NSPredicate(format: "date >= %@", startDate as NSDate)
-        request.resultType = .dictionaryResultType
-        request.propertiesToFetch = ["glucose", "date"]
 
         return try await context.perform {
+            // dictionary rows keep three months of readings light
+            let request = NSFetchRequest<NSDictionary>(entityName: "GlucoseStored")
+            request.predicate = NSPredicate(format: "date >= %@", startDate as NSDate)
+            request.resultType = .dictionaryResultType
+            request.propertiesToFetch = ["glucose", "date"]
+
             let readings = try context.fetch(request).compactMap { row -> GlucoseReading? in
                 guard let value = (row["glucose"] as? NSNumber)?.intValue, let date = row["date"] as? Date else { return nil }
                 return GlucoseReading(value: value, date: date)

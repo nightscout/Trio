@@ -17,20 +17,6 @@ extension BolusCalculatorConfig {
         @Environment(\.colorScheme) var colorScheme
         @Environment(AppState.self) var appState
 
-        private var conversionFormatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            formatter.maximumFractionDigits = 1
-
-            return formatter
-        }
-
-        private var formatter: NumberFormatter {
-            let formatter = NumberFormatter()
-            formatter.numberStyle = .decimal
-            return formatter
-        }
-
         var body: some View {
             List {
                 SettingInputSection(
@@ -175,10 +161,10 @@ extension BolusCalculatorConfig {
                     verboseHint: VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "Triggers a confirmation dialog if you attempt to bolus when glucose is < \(state.units == .mgdL ? 54.description : 54.formattedAsMmolL) \(state.units.rawValue)."
+                            "Triggers a confirmation dialog if you attempt to bolus when glucose is < \(54.formatted(for: state.units)) \(state.units.rawValue)."
                         )
                         Text(
-                            "Also triggered when the lowest forecasted glucose (minPredBG) is < \(state.units == .mgdL ? 54.description : 54.formattedAsMmolL) \(state.units.rawValue)."
+                            "Also triggered when the lowest forecasted glucose (minPredBG) is < \(54.formatted(for: state.units)) \(state.units.rawValue)."
                         )
                         Text(
                             "Note: The forecast used for this warning does not include carbs or insulin that have been logged but not yet effective."

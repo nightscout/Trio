@@ -13,7 +13,7 @@ protocol NotificationCenter {
         forName name: NSNotification.Name?,
         object obj: Any?,
         queue: OperationQueue?,
-        using block: @escaping (Notification) -> Void
+        using block: @escaping @Sendable(Notification) -> Void
     ) -> NSObjectProtocol
 
     func publisher(for name: Notification.Name, object: AnyObject?) -> Foundation.NotificationCenter.Publisher

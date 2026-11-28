@@ -42,16 +42,16 @@ extension TargetBehavoir {
                         comment: "High Temp Target Raises Sensitivity"
                     ),
                     miniHint: String(
-                        localized: "Increase sensitivity when glucose is above target if a manual Temp Target > \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
+                        localized: "Increase sensitivity when glucose is above target if a manual Temp Target > \(100.formatted(for: state.units)) \(state.units.rawValue) is set."
                     ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When this feature is enabled, manually setting a temporary target above \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
+                            "When this feature is enabled, manually setting a temporary target above \(100.formatted(for: state.units)) \(state.units.rawValue) will decrease the Autosens Ratio used for ISF and basal adjustments, resulting in less insulin delivered overall. This scales with the temporary target set; the higher the temp target, the lower the Autosens Ratio used."
                         )
                         Text(
-                            "If Half Basal Exercise Target is set to \(state.units == .mgdL ? "160" : 160.formattedAsMmolL) \(state.units.rawValue), a temp target of \(state.units == .mgdL ? "120" : 120.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 0.75. A temp target of \(state.units == .mgdL ? "140" : 140.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 0.6."
+                            "If Half Basal Exercise Target is set to \(160.formatted(for: state.units)) \(state.units.rawValue), a temp target of \(120.formatted(for: state.units)) \(state.units.rawValue) uses an Autosens Ratio of 0.75. A temp target of \(140.formatted(for: state.units)) \(state.units.rawValue) uses an Autosens Ratio of 0.6."
                         )
                         Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
                     },
@@ -83,16 +83,16 @@ extension TargetBehavoir {
                     miniHint: state.dosingMode == .basalTesting
                         ? String(localized: "Basal Testing is on. Low temp targets will not lower sensitivity.")
                         : String(
-                            localized: "Decrease sensitivity when glucose is below target if a manual Temp Target < \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) is set."
+                            localized: "Decrease sensitivity when glucose is below target if a manual Temp Target < \(100.formatted(for: state.units)) \(state.units.rawValue) is set."
                         ),
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Default: OFF").bold()
                         Text(
-                            "When this feature is enabled, setting a temporary target below \(state.units == .mgdL ? "100" : 100.formattedAsMmolL) \(state.units.rawValue) will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used. It requires Algorithm Settings > Autosens > Autosens Max to be set to > 100% to work."
+                            "When this feature is enabled, setting a temporary target below \(100.formatted(for: state.units)) \(state.units.rawValue) will increase the Autosens Ratio used for ISF and basal adjustments, resulting in more insulin delivered overall. This scales with the temporary target set; the lower the Temp Target, the higher the Autosens Ratio used. It requires Algorithm Settings > Autosens > Autosens Max to be set to > 100% to work."
                         )
                         Text(
-                            "If Half Basal Exercise Target is \(state.units == .mgdL ? "160" : 160.formattedAsMmolL) \(state.units.rawValue), a Temp Target of \(state.units == .mgdL ? "95" : 95.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 1.09. A Temp Target of \(state.units == .mgdL ? "85" : 85.formattedAsMmolL) \(state.units.rawValue) uses an Autosens Ratio of 1.33."
+                            "If Half Basal Exercise Target is \(160.formatted(for: state.units)) \(state.units.rawValue), a Temp Target of \(95.formatted(for: state.units)) \(state.units.rawValue) uses an Autosens Ratio of 1.09. A Temp Target of \(85.formatted(for: state.units)) \(state.units.rawValue) uses an Autosens Ratio of 1.33."
                         )
                         Text("Note: The effect of this can be adjusted with the Half Basal Exercise Target")
                     }
@@ -162,14 +162,14 @@ extension TargetBehavoir {
                     verboseHint:
                     VStack(alignment: .leading, spacing: 10) {
                         Text(
-                            "Default: \(state.units == .mgdL ? "160" : 160.formattedAsMmolL) \(state.units.rawValue)"
+                            "Default: \(160.formatted(for: state.units)) \(state.units.rawValue)"
                         )
                         .bold()
                         Text(
                             "The Half Basal Exercise Target allows you to scale down your basal insulin during exercise or scale up your basal insulin when eating soon when a temporary glucose target is set."
                         )
                         Text(
-                            "For example, at a temp target of \(state.units == .mgdL ? "160" : 160.formattedAsMmolL) \(state.units.rawValue), your basal is reduced to 50%, but this scales depending on the target (e.g., 75% at \(state.units == .mgdL ? "120" : 120.formattedAsMmolL) \(state.units.rawValue), 60% at \(state.units == .mgdL ? "140" : 140.formattedAsMmolL) \(state.units.rawValue))."
+                            "For example, at a temp target of \(160.formatted(for: state.units)) \(state.units.rawValue), your basal is reduced to 50%, but this scales depending on the target (e.g., 75% at \(120.formatted(for: state.units)) \(state.units.rawValue), 60% at \(140.formatted(for: state.units)) \(state.units.rawValue))."
                         )
                         Text(
                             "Note: This setting is only utilized if the settings \"Low Temp Target Lowers Sensitivity\" OR \"High Temp Target Raises Sensitivity\" are enabled."

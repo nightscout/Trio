@@ -132,9 +132,9 @@ struct GlucosePercentileChart: View {
                     ("10-90%", Color.blue.opacity(0.3)),
                     ("25-75%", Color.blue.opacity(0.5)),
                     (String(localized: "Median"), Color.blue),
-                    (String(localized: "\(timeInRangeType.bottomThreshold.formatted(withUnits: units))"), Color.staticLow),
-                    (String(localized: "\(timeInRangeType.topThreshold.formatted(withUnits: units))"), Color.staticInRange),
-                    (String(localized: "\(highLimit.formatted(withUnits: units))"), Color.staticHigh)
+                    (timeInRangeType.bottomThreshold.formatted(withUnits: units), Color.staticLow),
+                    (timeInRangeType.topThreshold.formatted(withUnits: units), Color.staticInRange),
+                    (highLimit.formatted(withUnits: units), Color.staticHigh)
                 ]
 
                 let columns = [GridItem(.adaptive(minimum: 100), spacing: 4)]
@@ -198,17 +198,9 @@ struct AGPSelectionPopover: View {
 
     @Environment(\.colorScheme) var colorScheme
 
-    private var timeText: String {
-        if let hour = Calendar.current.dateComponents([.hour], from: time).hour {
-            return "\(hour):00-\(hour + 1):00"
-        } else {
-            return time.formatted(.dateTime.hour().minute())
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(timeText).bold().font(.subheadline)
+            Text(time.formattedHourRange()).bold().font(.subheadline)
 
             Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 4) {
                 GridRow {

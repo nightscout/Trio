@@ -1,0 +1,331 @@
+import Charts
+import SwiftUI
+import WatchKit
+
+struct TrioMainWatchView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var state = WatchState.shared
+
+    // misc
+    @State private var currentPage: Int = 0
+    @State private var rotationDegrees: Double = 0.0
+    @State private var showingTempTargetSheet = false
+
+    // view visbility
+    @State private var showingTreatmentMenuSheet: Bool = false
+    @State private var showingOverrideSheet: Bool = false
+    // navigation flag for meal bolus combo
+    @State private var continueToBolus = false
+    @State private var navigationPath = NavigationPath()
+
+    // treatments
+    @State private var selectedTreatment: TreatmentOption?
+
+    /// Ticks the bubble's staleness and the switch to the watch's own readings.
+    @State private var now = Date()
+    private static let ticker = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+
+    /// The bubble is dated by its newest reading, the watch's own included; without readings, by the last update.
+    private var isReadingDated: Bool {
+        guard let newestReading = state.glucoseValues.last?.date else { return isWatchStateDated }
+        return now.timeIntervalSince(newestReading) > 6 * 60
+    }
+
+    var isWatchStateDated: Bool {
+        // If `lastWatchStateUpdate` is nil, treat as "dated"
+        guard let lastUpdateTimestamp = state.lastWatchStateUpdate else { return true }
+        // Return true if last update older than 5 min, so 1 loop cycle
+        return now.timeIntervalSince1970 - lastUpdateTimestamp > 5 * 60
+    }
+
+    /// Left of the bubble: the phone while it syncs; the watch with waves while its link to the sensor is up; the
+    /// watch alone while the bubble shows a fresh reading of its own, not merely a sensor it was given. The watch is
+    /// yellow while the sensor needs a look (warmup, grace period, an unreliable reading), red once it has failed or
+    /// expired, and then always shown.
+    private var linkIndicator: (symbol: String, waves: Bool, tint: Color)? {
+        if state.showSyncingAnimation { return ("iphone.radiowaves.left.and.right", true, .primary) }
+        let host = WatchCGMHost.shared
+        let tint = host.sensorHasEnded ? Color.loopRed : host.hasSensorProblem ? Color.yellow : .primary
+        if host.isTalkingToSensor { return ("applewatch.radiowaves.left.and.right", true, tint) }
+        if state.newestReadingIsOwn || host.hasSensorProblem { return ("applewatch", false, tint) }
+        return nil
+    }
+
+    /// The phone sends its state after each loop, so it is often a few seconds past 5 min old: the loop's age is
+    /// counted on for two cycles before it counts as unknown.
+    private var isPhoneStateDated: Bool {
+        guard let lastUpdate = state.lastWatchStateUpdate else { return true }
+        return now.timeIntervalSince1970 - lastUpdate > 10 * 60
+    }
+
+    var isSessionUnreachable: Bool {
+        guard let session = state.session else {
+            return true // No session at all => unreachable
+        }
+        // Return true if not .activated OR not reachable
+        return session.activationState != .activated
+    }
+
+    // Active adjustment indicator
+    private func isAdjustmentActive<T>(for presets: [T], predicate: (T) -> Bool) -> Bool {
+        let sortedPresets = presets.sorted { predicate($0) && !predicate($1) }
+        return !sortedPresets.isEmpty && sortedPresets.first(where: predicate) != nil
+    }
+
+    private var isTempTargetActive: Bool {
+        isAdjustmentActive(for: state.tempTargetPresets) { $0.isEnabled }
+    }
+
+    private var isOverrideActive: Bool {
+        isAdjustmentActive(for: state.overridePresets) { $0.isEnabled }
+    }
+
+    private var trioBackgroundColor = LinearGradient(
+        gradient: Gradient(colors: [Color.bgDarkBlue, Color.bgDarkerDarkBlue]),
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    var body: some View {
+        NavigationStack(path: $navigationPath) {
+            TabView(selection: $currentPage) {
+                // Page 1: Current glucose trend in "BG bobble"
+                ZStack {
+                    GlucoseTrendView(
+                        state: state,
+                        rotationDegrees: rotationDegrees,
+                        isWatchStateDated: isReadingDated,
+                        sensorStateText: WatchCGMHost.shared.sensorStateText,
+                        isPhoneStateDated: isPhoneStateDated,
+                        now: now
+                    )
+
+                    if let linkIndicator {
+                        Image(systemName: linkIndicator.symbol)
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(linkIndicator.tint, Color.tabBar, Color.clear)
+                            .symbolEffect(.variableColor.iterative, options: .repeating, isActive: linkIndicator.waves)
+                            .position(
+                                x: 20,
+                                y: (WKInterfaceDevice.current().screenBounds.height / 4) -
+                                    7 // Font .body == 14, so half of default size for the SF Symbol image
+                            )
+                    }
+                }.tag(0)
+
+                // Page 2: Glucose chart
+                GlucoseChartView(
+                    state: state,
+                    glucoseValues: state.glucoseValues
+                )
+                .tag(1)
+
+                // Page 3: Alarm snooze
+                AlarmSnoozeView(state: state)
+                    .tag(2)
+            }
+            .onAppear {
+                /// Hard reset variables when main view appears
+                /// Reset `bolusAmount` and `recommendedBolus` to ensure no stale / old value is set when user opens bolus input or meal combo the next time.
+                state.bolusAmount = 0
+                state.recommendedBolus = 0
+            }
+            .background(trioBackgroundColor)
+            .tabViewStyle(.verticalPage)
+            .digitalCrownRotation($currentPage.doubleBinding(), from: 0, through: 2, by: 1)
+            .onChange(of: state.trend) { _, newTrend in
+                withAnimation {
+                    updateRotation(for: newTrend)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    VStack {
+                        Image(systemName: "syringe.fill")
+                            .foregroundStyle(Color.insulin)
+
+                        Text(isWatchStateDated || isSessionUnreachable ? "--" : state.iob ?? "--")
+                            .foregroundStyle(isWatchStateDated ? Color.secondary : Color.white)
+                            .frame(alignment: .leading)
+                            .minimumScaleFactor(0.5)
+                    }.font(.caption2)
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                    VStack {
+                        Image(systemName: "fork.knife")
+                            .foregroundStyle(Color.orange)
+
+                        Text(isWatchStateDated || isSessionUnreachable ? "--" : state.cob ?? "--")
+                            .foregroundStyle(isWatchStateDated || isSessionUnreachable ? Color.secondary : Color.white)
+                            .frame(alignment: .trailing)
+                            .minimumScaleFactor(0.5)
+                    }.font(.caption2)
+                }
+
+                ToolbarItemGroup(placement: .bottomBar) {
+                    if state.watchUsageMode.allowsAdjustments {
+                        Button {
+                            showingOverrideSheet = true
+                        } label: {
+                            Image(systemName: "clock.arrow.2.circlepath")
+                                .foregroundStyle(Color.primary, isOverrideActive ? Color.primary : Color.purple)
+                        }
+                        .tint(isOverrideActive ? Color.purple : nil)
+                        .disabled(isWatchStateDated || isSessionUnreachable)
+                    }
+
+                    if state.watchUsageMode.allowsTreatments {
+                        Button {
+                            showingTreatmentMenuSheet = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .foregroundStyle(Color.bgDarkerDarkBlue)
+                        }
+                        .controlSize(.large)
+                        .buttonStyle(WatchOSButtonStyle(deviceType: state.deviceType))
+                        .disabled(isWatchStateDated || isSessionUnreachable)
+                    }
+
+                    if state.watchUsageMode.allowsAdjustments {
+                        Button {
+                            showingTempTargetSheet = true
+                        } label: {
+                            Image(systemName: "target")
+                                .foregroundStyle(isTempTargetActive ? Color.primary : Color.loopGreen.opacity(0.75))
+                        }
+                        .tint(isTempTargetActive ? Color.loopGreen.opacity(0.75) : nil)
+                        .disabled(isWatchStateDated || isSessionUnreachable)
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $showingTreatmentMenuSheet) {
+                TreatmentMenuView(deviceType: state.deviceType, selectedTreatment: $selectedTreatment) {
+                    handleTreatmentSelection()
+                }
+                .onAppear {
+                    // reset the conditional navigation flag when opening
+                    continueToBolus = false
+                }
+            }
+            .sheet(isPresented: $showingOverrideSheet) {
+                OverridePresetsView(
+                    state: state,
+                    overridePresets: state.overridePresets
+                ) {
+                    showingOverrideSheet = false
+                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
+                }
+            }
+            .sheet(isPresented: $showingTempTargetSheet) {
+                TempTargetPresetsView(
+                    state: state,
+                    tempTargetPresets: state.tempTargetPresets
+                ) {
+                    showingTempTargetSheet = false
+                    navigationPath.append(NavigationDestinations.acknowledgmentPending)
+                }
+            }
+            .navigationDestination(for: NavigationDestinations.self) { destination in
+                switch destination {
+                case .acknowledgmentPending:
+                    AcknowledgementPendingView(
+                        navigationPath: $navigationPath,
+                        state: state,
+                        shouldNavigateToRoot: $state.shouldNavigateToRoot
+                    )
+                case .carbsInput:
+                    CarbsInputView(
+                        navigationPath: $navigationPath,
+                        state: state,
+                        continueToBolus: continueToBolus
+                    )
+                case .bolusInput:
+                    BolusInputView(
+                        navigationPath: $navigationPath,
+                        state: state
+                    )
+                case .bolusConfirm:
+                    BolusConfirmationView(
+                        navigationPath: $navigationPath,
+                        state: state,
+                        bolusAmount: $state.bolusAmount,
+                        confirmationProgress: $state.confirmationProgress
+                    )
+                }
+            }
+            .onChange(of: navigationPath) { _, newPath in
+                if newPath.isEmpty {
+                    // Reset conditional view navigation when returning to root view
+                    continueToBolus = false
+                    // Back on the main screen, so no entry is in progress
+                    state.clearEntry()
+                }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                // the ages tick every 30 s, and not at all while the app is in the background
+                if newPhase == .active { now = Date() }
+                // An entry left for more than 2 min (wrist down, app in the background) is
+                // cleared and the input screens are closed, so a stale amount can't be confirmed
+                if newPhase == .active, state.expireStaleEntry() {
+                    navigationPath = NavigationPath()
+                }
+            }
+            .onChange(of: state.watchUsageMode) { _, newMode in
+                // Close screens for actions the new mode no longer allows, instead of letting the user
+                // complete them only to have the phone reject the request
+                if !newMode.allowsTreatments {
+                    showingTreatmentMenuSheet = false
+                    navigationPath.removeLast(navigationPath.count)
+                }
+                if !newMode.allowsAdjustments {
+                    showingOverrideSheet = false
+                    showingTempTargetSheet = false
+                }
+            }
+        }
+        .ignoresSafeArea()
+        .onReceive(Self.ticker) { now = $0 }
+    }
+
+    private func updateRotation(for trend: String?) {
+        switch trend {
+        case "DoubleUp",
+             "SingleUp":
+            rotationDegrees = -90
+        case "FortyFiveUp":
+            rotationDegrees = -45
+        case "Flat":
+            rotationDegrees = 0
+        case "FortyFiveDown":
+            rotationDegrees = 45
+        case "DoubleDown",
+             "SingleDown":
+            rotationDegrees = 90
+        default:
+            rotationDegrees = 0
+        }
+    }
+
+    private func handleTreatmentSelection() {
+        showingTreatmentMenuSheet = false // Dismiss the sheet
+
+        guard let treatment = selectedTreatment else { return }
+
+        switch treatment {
+        case .meal:
+            navigationPath.append(NavigationDestinations.carbsInput)
+        case .bolus:
+            // Reset carbs amount when directly going to bolus input
+            state.carbsAmount = 0
+            navigationPath.append(NavigationDestinations.bolusInput)
+        case .mealBolusCombo:
+            continueToBolus = true // Explicitely set subsequent view navigation
+            navigationPath.append(NavigationDestinations.carbsInput)
+        }
+    }
+}
+
+#Preview {
+    TrioMainWatchView()
+}

@@ -35,7 +35,6 @@ extension Home {
         @State var showSnoozeSheet: Bool = false
         @State var showManualGlucose: Bool = false
         @State var showReleaseNotes: Bool = false
-        @State var alarmsSnoozeUntil: Date = .distantPast
         @ObservedObject var releaseNotesService = ReleaseNotesService.shared
         // Pull-down-to-force-loop (see HomeRootView+Refresh.swift)
         @State var pullOffset: CGFloat = 0
@@ -100,6 +99,26 @@ extension Home {
             .overlay(alignment: .bottomTrailing) {
                 chartInfoButton
                     .offset(x: 0, y: -18)
+            }
+            .overlay(alignment: .topLeading) {
+                if let profileName = state.activeTherapyProfileName {
+                    HStack(spacing: 3) {
+                        Image(systemName: "person.crop.circle")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(profileName)
+                            .font(.system(size: 13, weight: .semibold))
+                            .fontDesign(.rounded)
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .glassMaterialFill(Capsule())
+                    .frame(height: chartHeight * 0.10)
+                    .padding(.leading, 16)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("Active profile \(profileName)"))
+                }
             }
             .overlay(alignment: .topTrailing) {
                 // borderless capsule (not a control); centered in the basal
@@ -269,14 +288,9 @@ extension Home {
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .onAppear {
                 configureView()
-                refreshAlarmsSnooze()
             }
             .task {
                 await releaseNotesService.load()
-            }
-            // UserDefaults changes don't invalidate views; refresh on sheet dismissal
-            .onChange(of: showSnoozeSheet) {
-                if !showSnoozeSheet { refreshAlarmsSnooze() }
             }
             .navigationTitle("Home")
             .navigationBarHidden(true)
@@ -368,8 +382,15 @@ extension Home {
             }
         }
 
+        /// iOS 26 with UIDesignRequiresCompatibility draws the classic tab bar, not glass;
+        /// iOS 27 ignores the key
+        private static let designRequiresCompatibility: Bool = {
+            if #available(iOS 27.0, *) { return false }
+            return Bundle.main.object(forInfoDictionaryKey: "UIDesignRequiresCompatibility") as? Bool ?? false
+        }()
+
         @ViewBuilder func tabBar() -> some View {
-            if #available(iOS 26.0, *) {
+            if #available(iOS 26.0, *), !RootView.designRequiresCompatibility {
                 modernTabBar()
             } else {
                 legacyTabBar()
@@ -608,64 +629,6 @@ extension Home {
                     comment: "Alert body explaining that quick-pick treatments history is empty"
                 ))
             }
-        }
-    }
-}
-
-/// Checks if the device is using a 24-hour time format.
-func is24HourFormat() -> Bool {
-    let formatter = DateFormatter()
-    formatter.locale = Locale.current
-    formatter.dateStyle = .none
-    formatter.timeStyle = .short
-    let dateString = formatter.string(from: Date())
-
-    return !dateString.contains("AM") && !dateString.contains("PM")
-}
-
-/// Converts a duration in minutes to a formatted string (e.g., "1 h 30 m").
-func formatHrMin(_ durationInMinutes: Int) -> String {
-    let hours = durationInMinutes / 60
-    let minutes = durationInMinutes % 60
-
-    switch (hours, minutes) {
-    case let (0, m):
-        return "\(m)\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-    case let (h, 0):
-        return "\(h)\u{00A0}" + String(localized: "h", comment: "h")
-    default:
-        return hours.description + "\u{00A0}" + String(localized: "h", comment: "h") + "\u{00A0}" + minutes
-            .description + "\u{00A0}" + String(localized: "m", comment: "Abbreviation for Minutes")
-    }
-}
-
-// Helper function to convert a start and end hour to either 24-hour or AM/PM format
-func formatTimeRange(start: String?, end: String?) -> String {
-    guard let start = start, let end = end else {
-        return ""
-    }
-
-    // Check if the format is 24-hour or AM/PM
-    if is24HourFormat() {
-        // Return the original 24-hour format
-        return "\(start)-\(end)"
-    } else {
-        // Convert to AM/PM format using DateFormatter
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH"
-
-        if let startHour = Int(start), let endHour = Int(end) {
-            let startDate = Calendar.current.date(bySettingHour: startHour, minute: 0, second: 0, of: Date()) ?? Date()
-            let endDate = Calendar.current.date(bySettingHour: endHour, minute: 0, second: 0, of: Date()) ?? Date()
-
-            // Customize the format to "2p" or "2a"
-            formatter.dateFormat = "ha"
-            let startFormatted = formatter.string(from: startDate).lowercased().replacingOccurrences(of: "m", with: "")
-            let endFormatted = formatter.string(from: endDate).lowercased().replacingOccurrences(of: "m", with: "")
-
-            return "\(startFormatted)-\(endFormatted)"
-        } else {
-            return ""
         }
     }
 }

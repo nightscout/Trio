@@ -12,7 +12,8 @@ struct TidepoolSetupView: UIViewControllerRepresentable {
     func makeUIViewController(context _: UIViewControllerRepresentableContext<TidepoolSetupView>) -> UIViewController {
         let result = serviceUIType.setupViewController(
             colorPalette: .default,
-            pluginHost: pluginHost
+            pluginHost: pluginHost,
+            allowDebugFeatures: false
         )
         switch result {
         case let .createdAndOnboarded(serviceUI):
@@ -35,7 +36,7 @@ struct TidepoolSettingsView: UIViewControllerRepresentable {
     let serviceDelegate: CompletionDelegate?
 
     func makeUIViewController(context _: UIViewControllerRepresentableContext<TidepoolSettingsView>) -> UIViewController {
-        var vc = serviceUI.settingsViewController(colorPalette: .default)
+        var vc = serviceUI.settingsViewController(colorPalette: .default, allowDebugFeatures: false)
         vc.completionDelegate = serviceDelegate
         vc.serviceOnboardingDelegate = serviceOnBoardDelegate
         return vc

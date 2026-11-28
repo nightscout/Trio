@@ -119,11 +119,12 @@ extension Adjustments.RootView {
     var stickyStopTempTargetButton: some View {
         ZStack {
             Rectangle()
-                .frame(width: UIScreen.main.bounds.width, height: 65)
+                .frame(height: 65)
                 .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
                 .background(.thinMaterial)
                 .opacity(0.8)
                 .clipShape(Rectangle())
+                .ignoresSafeArea(edges: .horizontal)
 
             Button(action: {
                 showCancelTempTargetConfirmDialog = true
@@ -132,7 +133,8 @@ extension Adjustments.RootView {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(10)
             })
-                .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
+                .frame(height: 40)
                 .disabled(!state.isTempTargetEnabled)
                 .background(!state.isTempTargetEnabled ? Color(.systemGray4) : Color(.systemRed))
                 .tint(.white)
@@ -153,14 +155,13 @@ extension Adjustments.RootView {
             tempTarget.halfBasalTarget as? Double
                 .RawValue ?? Double(state.settingHalfBasalTarget)
         )
-        let percentage = Int(
-            TempTargetCalculations.computeAdjustedPercentage(
-                halfBasalTarget: tempTargetHalfBasal,
-                target: tempTargetValue,
-                autosensMax: state.autosensMax
-            )
-        )
+        let percentageText = (TempTargetCalculations.computeAdjustedPercentage(
+            halfBasalTarget: tempTargetHalfBasal,
+            target: tempTargetValue,
+            autosensMax: state.autosensMax
+        ) / 100).formatted(.wholePercent)
         let remainingTime = tempTarget.date?.timeIntervalSinceNow ?? 0
+        let duration = Duration(minutes: (tempTarget.duration ?? 0) as Decimal)
 
         let row = ZStack(alignment: .trailing) {
             HStack {
@@ -169,25 +170,22 @@ extension Adjustments.RootView {
                         Text(tempTarget.name ?? "")
                         Spacer()
                         if remainingTime > 0 {
-                            Text("Starts in \(formattedTimeRemaining(remainingTime))")
+                            Text("Starts in \(Duration.seconds(remainingTime).formattedTimeSpan(.largestTwoUnits))")
                                 .foregroundColor(colorScheme == .dark ? .orange : .accentColor)
                         }
                     }
                     HStack(spacing: 2) {
-                        Text(formattedGlucose(glucose: target as Decimal))
+                        Text((target as Decimal).formatted(withUnits: state.units))
                             .foregroundColor(.secondary)
                             .font(.caption)
                         Text("for")
                             .foregroundColor(.secondary)
                             .font(.caption)
-                        Text("\(Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber)!)")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                        Text("min")
+                        Text(duration.formattedTimeSpan())
                             .foregroundColor(.secondary)
                             .font(.caption)
                         if state.isAdjustSensEnabled(usingTarget: tempTargetValue) {
-                            Text(", \(percentage)%")
+                            Text(", " + percentageText)
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                         }
@@ -214,11 +212,10 @@ extension Adjustments.RootView {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(tempTarget.name ?? ""))
         .accessibilityValue(Text(
-            formattedGlucose(glucose: target as Decimal) + " "
+            (target as Decimal).formatted(withUnits: state.units) + " "
                 + String(localized: "for", comment: "duration connector") + " "
-                + (Formatter.integerFormatter.string(from: (tempTarget.duration ?? 0) as NSNumber) ?? "0") + " "
-                + String(localized: "min", comment: "minutes abbreviation")
-                + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", \(percentage)%" : "")
+                + duration.formattedSpokenTimeSpan()
+                + (state.isAdjustSensEnabled(usingTarget: tempTargetValue) ? ", " + percentageText : "")
         ))
         // Only tappable rows (presets) are buttons; scheduled rows are read-only, so they get
         // neither the button trait, an activation, nor a hint.

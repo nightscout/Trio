@@ -22,12 +22,14 @@ extension Home {
         @ObservationIgnored @Injected() var pluginCGMManager: PluginManager!
         @ObservationIgnored @Injected() var fetchGlucoseManager: FetchGlucoseManager!
         @ObservationIgnored @Injected() var nightscoutManager: NightscoutManager!
+        @ObservationIgnored @Injected() var tidepoolManager: TidepoolManager!
         @ObservationIgnored @Injected() var determinationStorage: DeterminationStorage!
         @ObservationIgnored @Injected() var glucoseStorage: GlucoseStorage!
         @ObservationIgnored @Injected() var carbsStorage: CarbsStorage!
         @ObservationIgnored @Injected() var tempTargetStorage: TempTargetsStorage!
         @ObservationIgnored @Injected() var overrideStorage: OverrideStorage!
         @ObservationIgnored @Injected() var bluetoothManager: BluetoothStateManager!
+        @ObservationIgnored @Injected() var therapyProfileManager: TherapyProfileManager!
         @ObservationIgnored @Injected() var iobService: IOBService!
         @ObservationIgnored @Injected() var fileStorage: FileStorage!
         @ObservationIgnored @Injected() var unlockmanager: UnlockManager!
@@ -43,7 +45,6 @@ extension Home {
         /// `maxChartHistorySeconds` when the user pans near the domain start.
         var endMarker = Date(timeIntervalSinceNow: TimeInterval(hours: 3))
         var manualGlucose: [BloodGlucose] = []
-        var uploadStats = false
         var recentGlucose: BloodGlucose?
         var maxBasal: Decimal = 2
         var basalProfile: [BasalProfileEntry] = []
@@ -51,6 +52,8 @@ extension Home {
             ?? BGTargets(units: .mgdL, userPreferredUnits: .mgdL, targets: [])
         var targetProfiles: [TargetProfile] = []
         var timerDate = Date()
+        var alarmsSnoozeUntil: Date = UserDefaults.standard
+            .object(forKey: "UserNotificationsManager.snoozeUntilDate") as? Date ?? .distantPast
         var dosingMode: DosingMode = .open
         var isLooping = false
         var statusTitle = ""
@@ -75,6 +78,8 @@ extension Home {
         var pumpDisplayState: PumpDisplayState?
         var alarm: GlucoseAlarm?
         var manualTempBasal = false
+        /// Nil while Default is the only profile.
+        var activeTherapyProfileName: String?
         var isSmoothingEnabled = false
         var maxIOB: Decimal = 0.0
         var currentIOB: Decimal = 0.0
@@ -123,6 +128,7 @@ extension Home {
         var pumpStatusHighlightMessage: String?
         var pumpStatusBadgeImage: UIImage?
         var pumpStatusBadgeColor: Color?
+        var tidepoolLoginRequired = false
         var cgmAvailable: Bool = false
         var cgmDisplayState: CgmDisplayState?
         var cgmProgressHighlight: DeviceLifecycleProgress?
@@ -543,7 +549,13 @@ extension Home {
                 .store(in: &subscriptions)
         }
 
+        private func updateActiveTherapyProfileName() {
+            activeTherapyProfileName = therapyProfileManager.profiles().count > 1 ? therapyProfileManager.activeProfileName : nil
+        }
+
         private func registerObservers() {
+            updateActiveTherapyProfileName()
+            broadcaster.register(TherapyProfilesObserver.self, observer: self)
             broadcaster.register(DeterminationObserver.self, observer: self)
             broadcaster.register(SettingsObserver.self, observer: self)
             broadcaster.register(PreferencesObserver.self, observer: self)
@@ -552,8 +564,9 @@ extension Home {
             broadcaster.register(BGTargetsObserver.self, observer: self)
             broadcaster.register(PumpReservoirObserver.self, observer: self)
             broadcaster.register(PumpDeactivatedObserver.self, observer: self)
+            broadcaster.register(SnoozeObserver.self, observer: self)
 
-            timer.eventHandler = {
+            timer.eventHandler = { [weak self] in
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.timerDate = Date()
@@ -640,6 +653,11 @@ extension Home {
             apsManager.lastLoopDateSubject
                 .receive(on: DispatchQueue.main)
                 .weakAssign(to: \.lastLoopDate, on: self)
+                .store(in: &lifetime)
+
+            tidepoolManager.tidepoolLoginRequired
+                .receive(on: DispatchQueue.main)
+                .weakAssign(to: \.tidepoolLoginRequired, on: self)
                 .store(in: &lifetime)
 
             apsManager.pumpName
@@ -858,7 +876,11 @@ extension Home {
 
                 if let schedule = BasalRateSchedule(
                     dailyItems: basalProfile
-                        .map { RepeatingScheduleValue(startTime: TimeInterval($0.minutes * 60), value: Double($0.rate)) }
+                        .map {
+                            RepeatingScheduleValue(
+                                startTime: TimeInterval($0.minutes * 60),
+                                value: Double($0.rate).roundedDouble(toPlaces: 3)
+                            ) }
                 ) {
                     self.pumpInitialSettings.basalSchedule = schedule
                 }
@@ -899,7 +921,7 @@ extension Home {
             switch manager {
             case let g7 as G7CGMManager:
                 // Once a G7 enters grace period, `sensorExpiresAt` is in the past
-                // and would collapse the bobble countdown to "<1m" while the arc
+                // and would collapse the bobble countdown to "< 1 min" while the arc
                 // (driven by lifecycle.percentComplete against `sensorEndsAt`) is
                 // still mid-progress. Fall back to `sensorEndsAt` so bobble and
                 // arc agree, and the user sees grace-period time remaining.
@@ -996,8 +1018,14 @@ extension Home.StateModel:
     BasalProfileObserver,
     BGTargetsObserver,
     PumpReservoirObserver,
-    PumpDeactivatedObserver
+    PumpDeactivatedObserver,
+    SnoozeObserver,
+    TherapyProfilesObserver
 {
+    @MainActor func snoozeDidChange(_ untilDate: Date) {
+        alarmsSnoozeUntil = untilDate
+    }
+
     func determinationDidUpdate(_: Determination) {
         waitForSuggestion = false
     }
@@ -1062,6 +1090,10 @@ extension Home.StateModel:
         }
     }
 
+    func therapyProfilesDidChange() {
+        updateActiveTherapyProfileName()
+    }
+
     func basalProfileDidChange(_: [BasalProfileEntry]) {
         Task {
             await setupBasalProfile()
@@ -1074,7 +1106,7 @@ extension Home.StateModel:
         }
     }
 
-    func pumpReservoirDidChange(_: Decimal) {
+    func pumpReservoirDidChange(_: Decimal?) {
         setupReservoir()
         displayPumpStatusHighlightMessage()
         displayPumpStatusBadge()

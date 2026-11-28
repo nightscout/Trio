@@ -55,14 +55,14 @@ struct GlucoseSectorChart: View {
                 let glucoseAverage = Decimal(sumReadings) / total
                 let medianGlucose = StatChartUtils.medianCalculation(array: justGlucoseArray)
 
-                let lowPercentage = Decimal(low) / total * 100
-                let tightPercentage = Decimal(tight) / total * 100
-                let inRangePercentage = Decimal(normal) / total * 100
-                let highPercentage = Decimal(high) / total * 100
-                let moderatelyLowPercentage = Decimal(moderatelyLow) / total * 100
-                let moderatelyHighPercentage = Decimal(moderatelyHigh) / total * 100
-                let veryLowPercentage = Decimal(veryLow) / total * 100
-                let veryHighPercentage = Decimal(veryHigh) / total * 100
+                let lowFraction = Decimal(low) / total
+                let tightFraction = Decimal(tight) / total
+                let inRangeFraction = Decimal(normal) / total
+                let highFraction = Decimal(high) / total
+                let moderatelyLowFraction = Decimal(moderatelyLow) / total
+                let moderatelyHighFraction = Decimal(moderatelyHigh) / total
+                let veryLowFraction = Decimal(veryLow) / total
+                let veryHighFraction = Decimal(veryHigh) / total
 
                 VStack(alignment: .leading, spacing: 10) {
                     VStack(alignment: .leading, spacing: 5) {
@@ -71,7 +71,7 @@ struct GlucoseSectorChart: View {
                         )
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
-                        Text(formatPercentage(inRangePercentage, tight: true))
+                        Text(inRangeFraction.formatted(.upToOneDecimalPercent))
                             .foregroundStyle(Color.dynamicTeal)
                     }
 
@@ -81,7 +81,7 @@ struct GlucoseSectorChart: View {
                         )
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
-                        Text(formatPercentage(tightPercentage, tight: true))
+                        Text(tightFraction.formatted(.upToOneDecimalPercent))
                             .foregroundStyle(Color.dynamicGreen)
                     }
                 }.padding(.leading, 5)
@@ -90,7 +90,7 @@ struct GlucoseSectorChart: View {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("> \(highLimit.formatted(for: units))").font(.subheadline)
                             .foregroundStyle(Color.secondary)
-                        Text(formatPercentage(highPercentage, tight: true))
+                        Text(highFraction.formatted(.upToOneDecimalPercent))
                             .foregroundStyle(showChart ? Color.dynamicPurple : Color.dynamicBlue)
                     }
 
@@ -100,7 +100,7 @@ struct GlucoseSectorChart: View {
                         )
                         .font(.subheadline)
                         .foregroundStyle(Color.secondary)
-                        Text(formatPercentage(lowPercentage, tight: true))
+                        Text(lowFraction.formatted(.upToOneDecimalPercent))
                             .foregroundStyle(showChart ? Color.dynamicRed : Color.dynamicOrange)
                     }
                 }
@@ -110,7 +110,7 @@ struct GlucoseSectorChart: View {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("> \(Decimal(220).formatted(for: units))").font(.subheadline)
                                 .foregroundStyle(Color.secondary)
-                            Text(formatPercentage(moderatelyHighPercentage, tight: true))
+                            Text(moderatelyHighFraction.formatted(.upToOneDecimalPercent))
                                 .foregroundStyle(Color.dynamicBlue)
                         }
 
@@ -120,7 +120,7 @@ struct GlucoseSectorChart: View {
                             )
                             .font(.subheadline)
                             .foregroundStyle(Color.secondary)
-                            Text(formatPercentage(moderatelyLowPercentage, tight: true))
+                            Text(moderatelyLowFraction.formatted(.upToOneDecimalPercent))
                                 .foregroundStyle(Color.dynamicOrange)
                         }
                     }
@@ -128,7 +128,7 @@ struct GlucoseSectorChart: View {
                         VStack(alignment: .leading, spacing: 5) {
                             Text("> \(Decimal(250).formatted(for: units))").font(.subheadline)
                                 .foregroundStyle(Color.secondary)
-                            Text(formatPercentage(veryHighPercentage, tight: true))
+                            Text(veryHighFraction.formatted(.upToOneDecimalPercent))
                                 .foregroundStyle(Color.dynamicPurple)
                         }
 
@@ -138,7 +138,7 @@ struct GlucoseSectorChart: View {
                             )
                             .font(.subheadline)
                             .foregroundStyle(Color.secondary)
-                            Text(formatPercentage(veryLowPercentage, tight: true))
+                            Text(veryLowFraction.formatted(.upToOneDecimalPercent))
                                 .foregroundStyle(Color.dynamicRed)
                         }
                     }
@@ -285,15 +285,15 @@ struct GlucoseSectorChart: View {
                 items: [
                     (
                         String(localized: "Very High (>\(Decimal(250).formatted(for: units)))"),
-                        formatPercentage(Decimal(veryHigh) / total * 100)
+                        (Decimal(veryHigh) / total).formatted(.upToOneDecimalPercent)
                     ),
                     (
                         String(localized: "High (\(highLimit.formatted(for: units))-\(Decimal(250).formatted(for: units)))"),
-                        formatPercentage(Decimal(high) / total * 100)
+                        (Decimal(high) / total).formatted(.upToOneDecimalPercent)
                     ),
                     (String(localized: "Average"), average.formatted(for: units)),
                     (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                    (String(localized: "SD"), standardDeviation.formatted(for: units))
                 ]
             )
 
@@ -312,17 +312,17 @@ struct GlucoseSectorChart: View {
                         String(
                             localized: "TIR (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(highLimit.formatted(for: units)))"
                         ),
-                        formatPercentage(Decimal(glucoseValues.count) / total * 100)
+                        (Decimal(glucoseValues.count) / total).formatted(.upToOneDecimalPercent)
                     ),
                     (
                         String(
                             localized: "TITR (\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units))-\(Decimal(timeInRangeType.topThreshold).formatted(for: units)))"
                         ),
-                        formatPercentage(Decimal(tight) / total * 100)
+                        (Decimal(tight) / total).formatted(.upToOneDecimalPercent)
                     ),
                     (String(localized: "Average"), average.formatted(for: units)),
                     (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                    (String(localized: "SD"), standardDeviation.formatted(for: units))
                 ]
             )
 
@@ -342,32 +342,18 @@ struct GlucoseSectorChart: View {
                         String(
                             localized: "Low (\(Decimal(54).formatted(for: units))-\(Decimal(timeInRangeType.bottomThreshold).formatted(for: units)))"
                         ),
-                        formatPercentage(Decimal(low) / total * 100)
+                        (Decimal(low) / total).formatted(.upToOneDecimalPercent)
                     ),
                     (
                         String(localized: "Very Low (<\(Decimal(54).formatted(for: units)))"),
-                        formatPercentage(Decimal(veryLow) / total * 100)
+                        (Decimal(veryLow) / total).formatted(.upToOneDecimalPercent)
                     ),
                     (String(localized: "Average"), average.formatted(for: units)),
                     (String(localized: "Median"), median.formatted(for: units)),
-                    (String(localized: "SD"), formatSD(standardDeviation))
+                    (String(localized: "SD"), standardDeviation.formatted(for: units))
                 ]
             )
         }
-    }
-
-    /// Formats a percentage value to a string with one decimal place.
-    /// - Parameter value: A decimal value representing the percentage.
-    /// - Returns: A formatted percentage string
-    private func formatPercentage(_ value: Decimal, tight: Bool = false) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .percent
-        formatter.minimumFractionDigits = value == 100 ? 0 : 1
-        formatter.maximumFractionDigits = value == 100 ? 0 : 1
-        if tight {
-            formatter.positiveSuffix = "%"
-        }
-        return formatter.string(from: NSDecimalNumber(decimal: value / 100)) ?? "0%"
     }
 
     /// Calculates statistical values for a given array of glucose readings.
@@ -386,15 +372,6 @@ struct GlucoseSectorChart: View {
 
         let standardDeviation = sqrt(sumOfSquares / Double(values.count))
         return (average, median, standardDeviation)
-    }
-
-    /// Formats the standard deviation value based on glucose units.
-    /// - Parameter sd: The standard deviation as a Double.
-    /// - Returns: A formatted string representing the standard deviation.
-    private func formatSD(_ sd: Double) -> String {
-        units == .mgdL ? sd.formatted(
-            .number.grouping(.never).rounded().precision(.fractionLength(0))
-        ) : sd.formattedAsMmolL
     }
 }
 

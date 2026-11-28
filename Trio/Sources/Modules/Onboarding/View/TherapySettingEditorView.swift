@@ -83,8 +83,8 @@ struct TherapySettingEditorView: View {
                                         Text("starts at").foregroundStyle(Color.secondary)
                                         let timeIndex = timeOptions.firstIndex { abs($0 - item.time) < 1 } ?? 0
                                         let time = timeOptions[timeIndex]
-                                        let date = Date(timeIntervalSince1970: time)
-                                        let timeString = timeFormatter.string(from: date)
+                                        let date = Date(minuteOfDay: Int(time) / 60)
+                                        let timeString = date.formatted(.timeOfDay)
                                         Text(timeString)
                                             .foregroundStyle(selectedItemID == item.id ? Color.accentColor : Color.primary)
                                     }
@@ -216,7 +216,7 @@ struct TherapySettingEditorView: View {
                     }
                 )) {
                     ForEach(valueOptions, id: \.self) { value in
-                        Text("\(displayText(for: unit, decimalValue: value)) \(unit.displayName)").tag(Double(value))
+                        Text(displayText(for: unit, decimalValue: value) + " " + unit.displayName).tag(Double(value))
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -233,7 +233,7 @@ struct TherapySettingEditorView: View {
                     }
                 )) {
                     ForEach(availableTimes, id: \.self) { time in
-                        Text(timeFormatter.string(from: Date(timeIntervalSince1970: time)))
+                        Text(Date(minuteOfDay: Int(time) / 60).formatted(.timeOfDay))
                             .tag(time)
                             .foregroundStyle(item.wrappedValue.time != 0 ? Color.primary : Color.secondary)
                     }
@@ -300,30 +300,24 @@ struct TherapySettingEditorView: View {
         validateOnDelete?()
     }
 
-    private var timeFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.timeStyle = .short
-        return formatter
-    }
-
     private func displayText(for unit: TherapySettingUnit, decimalValue: Decimal) -> String {
         switch unit {
         case .mmolL,
              .mmolLPerUnit:
-            return decimalValue.formattedAsMmolL
+            return decimalValue.formatted(for: .mmolL)
+        case .mgdL,
+             .mgdLPerUnit:
+            return decimalValue.formatted(for: .mgdL)
         case .unitPerHour:
             return basalFormatter.string(from: decimalValue as NSNumber) ?? ""
-        case .gramPerUnit,
-             .mgdL,
-             .mgdLPerUnit:
+        case .gramPerUnit:
             return decimalValue.description
         }
     }
 
     /// One spoken string per schedule entry, e.g. "1.2 U/hr, starts at 6:00 AM".
     private func entryAccessibilityLabel(for item: TherapySettingItem, unit: TherapySettingUnit) -> String {
-        let timeString = timeFormatter.string(from: Date(timeIntervalSince1970: item.time))
+        let timeString = Date(minuteOfDay: Int(item.time) / 60).formatted(.timeOfDay)
         return "\(displayText(for: unit, decimalValue: item.value)) \(unit.spokenName), " +
             String(localized: "starts at", comment: "Accessibility: schedule entry start time") + " \(timeString)"
     }

@@ -74,26 +74,6 @@ struct ChartSelectionRow: View {
     let glucoseColorScheme: GlucoseColorScheme
     let isSmoothingEnabled: Bool
 
-    private var glucoseToDisplay: Decimal {
-        units == .mgdL ? Decimal(selectedGlucose.glucose) : Decimal(selectedGlucose.glucose).asMmolL
-    }
-
-    /// mmol/L is written to one decimal even when it is a whole number — 8 reads as 8.0, the
-    /// way the rest of the app writes it — and both units go through a formatter so the
-    /// decimal separator follows the locale rather than `Decimal.description`'s hard dot.
-    private static let glucoseFormatter: (GlucoseUnits) -> NumberFormatter = { units in
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.locale = .current
-        formatter.minimumFractionDigits = units == .mgdL ? 0 : 1
-        formatter.maximumFractionDigits = units == .mgdL ? 0 : 1
-        return formatter
-    }
-
-    private func glucoseString(_ value: Decimal) -> String {
-        Self.glucoseFormatter(units).string(from: value as NSDecimalNumber) ?? value.description
-    }
-
     private var pointMarkColor: Color {
         selectionMarkColor(
             for: selectedGlucose,
@@ -105,7 +85,7 @@ struct ChartSelectionRow: View {
     }
 
     private var timeString: String {
-        selectedGlucose.date?.formatted(.dateTime.hour().minute(.twoDigits)) ?? ""
+        selectedGlucose.date?.formatted(.timeOfDay) ?? ""
     }
 
     /// Stand-in for a value the selection resolves to nothing: the item keeps its place and
@@ -141,8 +121,7 @@ struct ChartSelectionRow: View {
             // Both stay in the row when the scrub lands where oref produced no determination
             // — a gap in the data, or a loop that never ran — and show a dash instead.
             let iobUnit = Text(String(localized: " U", comment: "Insulin unit")).fontWeight(.regular)
-            let iobString = determination?.iob
-                .flatMap { Formatter.decimalFormatterWithTwoFractionDigits.string(from: $0) }
+            let iobString = determination?.iob?.decimalValue.formattedIOB()
             item(
                 icon: "syringe.fill",
                 tint: Color.insulin,
@@ -171,13 +150,13 @@ struct ChartSelectionRow: View {
     @ViewBuilder private var glucoseGroup: some View {
         // verbatim: brackets have nothing to translate, and Xcode would otherwise extract
         // them into the string catalog
-        let reading = Text(glucoseString(glucoseToDisplay)).foregroundStyle(pointMarkColor)
+        let reading = Text(Decimal(selectedGlucose.glucose).formatted(for: units)).foregroundStyle(pointMarkColor)
         let smoothed = smoothedToDisplay.map {
             (
                 Text(verbatim: "(")
                     + Text(Image(systemName: "sparkles"))
                     + Text(verbatim: " ")
-                    + Text(glucoseString($0))
+                    + Text($0.formatted(for: units))
                     + Text(verbatim: ")")
             ).foregroundStyle(.secondary)
         }
@@ -189,10 +168,10 @@ struct ChartSelectionRow: View {
         )
     }
 
-    /// The smoothed reading in display units, or nil with smoothing off or no smoothed value.
+    /// The smoothed reading in mg/dL, or nil with smoothing off or no smoothed value.
     private var smoothedToDisplay: Decimal? {
         guard isSmoothingEnabled, let smoothed = selectedGlucose.smoothedGlucose else { return nil }
-        return units == .mgdL ? smoothed.decimalValue : smoothed.decimalValue.asMmolL
+        return smoothed.decimalValue
     }
 
     /// One value plus its glyph.

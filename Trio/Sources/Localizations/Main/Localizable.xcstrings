@@ -1089,323 +1089,6 @@
         }
       }
     },
-    "%lld of %lld characters" : {
-
-    },
-    "Add Screenshots" : {
-
-    },
-    "Also Sent" : {
-
-    },
-    "Ask on Discord" : {
-
-    },
-    "Ask on Facebook" : {
-
-    },
-    "Attach My Logs" : {
-
-    },
-    "Build" : {
-
-    },
-    "Change Screenshots" : {
-
-    },
-    "Contact" : {
-
-    },
-    "Copy ID" : {
-
-    },
-    "Couldn't Delete Report" : {
-
-    },
-    "Couldn't Send Report" : {
-
-    },
-    "Delete Report" : {
-
-    },
-    "Delete Report?" : {
-
-    },
-    "Deleting" : {
-
-    },
-    "Deleting a report removes it and its files from the Trio team's server." : {
-
-    },
-    "Describe what happened and what you expected" : {
-
-    },
-    "Discord Name" : {
-
-    },
-    "Email" : {
-
-    },
-    "Fill in any of these so the team can follow up with you." : {
-
-    },
-    "Get help from other Trio users." : {
-
-    },
-    "GitHub Username" : {
-
-    },
-    "Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed." : {
-
-    },
-    "iOS Version" : {
-
-    },
-    "iPhone Model" : {
-
-    },
-    "One of the screenshots couldn't be read. Try choosing it again or leave it out." : {
-
-    },
-    "Open a GitHub Issue" : {
-
-    },
-    "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it." : {
-
-    },
-    "Public. Only for bugs you can describe without personal or health data." : {
-
-    },
-    "Report %@ and its files will be deleted from the Trio team's server." : {
-
-    },
-    "Report a Problem" : {
-
-    },
-    "Report Actions" : {
-
-    },
-    "Report Sent" : {
-
-    },
-    "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time." : {
-
-    },
-    "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed." : {
-
-    },
-    "Screenshot %lld" : {
-
-    },
-    "Screenshots" : {
-
-    },
-    "Send to the Trio Team" : {
-
-    },
-    "Sending" : {
-
-    },
-    "Some files didn't reach the Trio team's server. Please try again." : {
-
-    },
-    "Sending Report" : {
-
-    },
-    "Sent Reports" : {
-
-    },
-    "Stay Anonymous" : {
-
-    },
-    "Submit" : {
-
-    },
-    "Thank you. Your report ID is %@. Mention it if you ask about this on Discord or Facebook." : {
-
-    },
-    "The report is too large. Try fewer or smaller screenshots." : {
-
-    },
-    "The report won't include your name or contact details." : {
-
-    },
-    "The Trio team's server couldn't take the report right now (error %lld)." : {
-
-    },
-    "The Trio team's server sent an answer the app doesn't understand." : {
-
-    },
-    "This build of Trio can't send reports. Please share your logs on Discord or Facebook instead." : {
-
-    },
-    "Title (optional)" : {
-
-    },
-    "Trio couldn't confirm with Apple that this copy of the app is genuine. Please try again later." : {
-
-    },
-    "Try Again" : {
-
-    },
-    "Up to %lld screenshots or photos." : {
-
-    },
-    "You've sent several reports today. Please try again tomorrow." : {
-
-    },
-    "Your Logs" : {
-
-    },
-    "Your logs are too large to send. Turn off Attach My Logs and share them on Discord or Facebook instead." : {
-
-    },
-    "Your logs couldn't be prepared. Try again, or turn off Attach My Logs." : {
-
-    },
-    "Choose the preferred lower threshold for Time in Range statistics." : {
-      "comment" : "Short description of the lower range threshold setting.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the preferred lower threshold for Time in Range statistics."
-          }
-        }
-      }
-    },
-    "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)." : {
-      "comment" : "Explains that the lower threshold applies to both TIR and TITR. Placeholders are the upper thresholds including units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)."
-          }
-        }
-      }
-    },
-    "Extended (%@)" : {
-      "comment" : "Extended lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended (%@)"
-          }
-        }
-      }
-    },
-    "Extended Lower Threshold" : {
-      "comment" : "Search term for the extended lower range threshold setting.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended Lower Threshold"
-          }
-        }
-      }
-    },
-    "Extended:" : {
-      "comment" : "Heading for the extended lower range threshold description.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Extended:"
-          }
-        }
-      }
-    },
-    "TIR Lower Threshold" : {
-      "comment" : "Setting for the lower glucose boundary shared by TIR and TITR statistics.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TIR Lower Threshold"
-          }
-        }
-      }
-    },
-    "Standard (%@)" : {
-      "comment" : "Standard lower threshold for TIR and TITR statistics; placeholder includes glucose value and units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard (%@)"
-          }
-        }
-      }
-    },
-    "Standard Lower Threshold" : {
-      "comment" : "Search term for the standard lower range threshold setting.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard Lower Threshold"
-          }
-        }
-      }
-    },
-    "Standard:" : {
-      "comment" : "Heading for the standard lower range threshold description.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Standard:"
-          }
-        }
-      }
-    },
-    "TIR (%@-%@)" : {
-      "comment" : "Time in Range with the selected lower threshold and the upper threshold.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TIR (%@-%@)"
-          }
-        }
-      }
-    },
-    "TITR (%@-%@)" : {
-      "comment" : "Time in Tight Range with either the Standard or Extended lower threshold.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TITR (%@-%@)"
-          }
-        }
-      }
-    },
-    "Uses the established lower threshold of %@." : {
-      "comment" : "Standard lower range threshold description; placeholder includes glucose value and units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uses the established lower threshold of %@."
-          }
-        }
-      }
-    },
-    "Uses the newer Time in Normoglycemia (TING) lower threshold of %@." : {
-      "comment" : "Extended lower range threshold description; placeholder includes glucose value and units.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uses the newer Time in Normoglycemia (TING) lower threshold of %@."
-          }
-        }
-      }
-    },
     " " : {
       "localizations" : {
         "bg" : {
@@ -5502,7 +5185,12 @@
         }
       }
     },
+    "—" : {
+      "comment" : "A placeholder text that can be used in place of a value that is not yet available.",
+      "isCommentAutoGenerated" : true
+    },
     ", %lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8034,6 +7722,7 @@
     },
     "%" : {
       "comment" : "Percentage symbol",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8164,6 +7853,7 @@
       }
     },
     "%.0f%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -8826,7 +8516,52 @@
         }
       }
     },
+    "%@ · %@" : {
+      "comment" : "A sub-label that shows the date range and the number of charts in a saved report.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ · %@ · %@ (%@)" : {
+      "comment" : "PDF export header subtitle: data type, chart type, and range with its date span. Arguments: data type name, chart type name, range name, date range string.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ · %3$@ (%4$@)"
+          }
+        }
+      }
+    },
+    "%@ · %@ starts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ starts"
+          }
+        }
+      }
+    },
+    "%@ · loop %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · loop %2$@"
+          }
+        }
+      }
+    },
     "%@ (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9097,6 +8832,9 @@
           }
         }
       }
+    },
+    "%@ (paused)" : {
+
     },
     "%@ %@" : {
       "localizations" : {
@@ -9370,7 +9108,28 @@
         }
       }
     },
+    "%@ %@ at %@ is not a multiple of %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ at %3$@ is not a multiple of %4$@."
+          }
+        }
+      }
+    },
+    "%@ %@ at %@ is outside %@–%@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@ at %3$@ is outside %4$@–%5$@."
+          }
+        }
+      }
+    },
     "%@ %%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -9496,6 +9255,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ %%"
+          }
+        }
+      }
+    },
+    "%@ ago" : {
+      "comment" : "Accessibility: elapsed time; %@ is a duration like \"1 hour, 59 minutes\". Word it so %@ stays unchanged (German: \"%@ her\")."
+    },
+    "%@ ago · loop %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ ago · loop %2$@"
+          }
+        }
+      }
+    },
+    "%@ already starts %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ already starts %2$@."
           }
         }
       }
@@ -10567,6 +10349,136 @@
         }
       }
     },
+    "%@ Insulin" : {
+      "localizations" : {
+        "bg" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Инсулин"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Inzulín"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulina"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insuline %@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ אינסולין"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulina"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 인슐린"
+          }
+        },
+        "nb-NO" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insuline"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulina"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulina"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ Insulin"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Инсулин"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%@ Insulin"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Insulin"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 胰岛素"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 胰島素"
+          }
+        }
+      }
+    },
     "%@ is on. %@" : {
       "localizations" : {
         "bg" : {
@@ -10833,6 +10745,19 @@
         }
       }
     },
+    "%@ is used by %lld scheduled switches, which will be removed." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ is used by %2$lld scheduled switches, which will be removed."
+          }
+        }
+      }
+    },
+    "%@ is used by 1 scheduled switch, which will be removed." : {
+
+    },
     "%@ min" : {
       "localizations" : {
         "bg" : {
@@ -11094,6 +11019,49 @@
           }
         }
       }
+    },
+    "%@ starts %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ starts %2$@ %3$@"
+          }
+        }
+      }
+    },
+    "%@ starts every %@ and stays active until the next scheduled start." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ starts every %2$@ and stays active until the next scheduled start."
+          }
+        }
+      }
+    },
+    "%@ stays active until %@ starts %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ stays active until %2$@ starts %3$@."
+          }
+        }
+      }
+    },
+    "%@ to below %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ to below %2$@"
+          }
+        }
+      }
+    },
+    "%@ Trio imports its values as the Default profile." : {
+
     },
     "%@-%@" : {
       "localizations" : {
@@ -11366,6 +11334,31 @@
           }
         }
       }
+    },
+    "%@: each entry needs a start time and a value." : {
+
+    },
+    "%@: start times must be in ascending order." : {
+
+    },
+    "%@: start times must be on the hour or half hour." : {
+
+    },
+    "%@: the schedule has more than %lld entries." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: the schedule has more than %2$lld entries."
+          }
+        }
+      }
+    },
+    "%@: the schedule is empty." : {
+
+    },
+    "%@: the schedule must start at midnight." : {
+
     },
     "%@?" : {
       "localizations" : {
@@ -11763,136 +11756,6 @@
         }
       }
     },
-    "%@%% Insulin" : {
-      "localizations" : {
-        "bg" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Инсулин"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Inzulín"
-          }
-        },
-        "da" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulin"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulin"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulina"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Insuline %@ %%"
-          }
-        },
-        "he" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% אינסולין"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulina"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% 인슐린"
-          }
-        },
-        "nb-NO" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulin"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insuline"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulina"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulina"
-          }
-        },
-        "ro" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%@%% Insulin"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Инсулин"
-          }
-        },
-        "sv" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulin"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%@%% Insulin"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulin"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% Insulin"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% 胰岛素"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@%% 胰島素"
-          }
-        }
-      }
-    },
     "%1$@ for %2$@" : {
       "comment" : "Summary string for temporary basal rate configuration page",
       "extractionState" : "manual",
@@ -12033,6 +11896,7 @@
     },
     "%1$d days %2$d hours" : {
       "comment" : "Accessibility: pod time",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -12164,6 +12028,7 @@
     },
     "%1$d hours %2$d minutes" : {
       "comment" : "Accessibility: pod time",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -12426,6 +12291,7 @@
     },
     "%d hours" : {
       "comment" : "Accessibility: pod time",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -12557,6 +12423,7 @@
     },
     "%d minutes" : {
       "comment" : "Accessibility: pod time",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -12688,6 +12555,7 @@
     },
     "%d minutes ago" : {
       "comment" : "Accessibility: elapsed time",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -13341,6 +13209,7 @@
       }
     },
     "%lld %%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -13466,6 +13335,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld %%"
+          }
+        }
+      }
+    },
+    "%lld charts" : {
+      "comment" : "Plural chart count shown under a saved report preset's name. Argument: chart count.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld charts"
           }
         }
       }
@@ -13991,6 +13872,7 @@
       }
     },
     "%lld min" : {
+      "comment" : "Watch: age of the shown glucose reading",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -14119,6 +14001,15 @@
           }
         }
       }
+    },
+    "%lld of %lld characters" : {
+
+    },
+    "%lld scheduled switches could not be read." : {
+
+    },
+    "%lld starts paused." : {
+
     },
     "%lld x" : {
       "localizations" : {
@@ -14251,6 +14142,7 @@
       }
     },
     "%lld%%" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -23626,6 +23518,18 @@
         }
       }
     },
+    "1 chart" : {
+      "comment" : "Singular chart count shown under a saved report preset's name.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "1 chart"
+          }
+        }
+      }
+    },
     "1 U and over" : {
       "comment" : "Name to display for the \"1 U and over\" bolus display threshold option.",
       "localizations" : {
@@ -24414,6 +24318,10 @@
           }
         }
       }
+    },
+    "3-Month" : {
+      "comment" : "A full-word name for the 3-month period.",
+      "isCommentAutoGenerated" : true
     },
     "3. Tap on \"Data Access & Devices\"." : {
       "localizations" : {
@@ -27043,9 +26951,6 @@
         }
       }
     },
-    "54 to below 70 mg/dL" : {
-      "comment" : "Percentage of glucose readings in the low GRI range."
-    },
     "75%:" : {
       "localizations" : {
         "bg" : {
@@ -28086,6 +27991,9 @@
         }
       }
     },
+    "A bolus was in progress." : {
+
+    },
     "A display of On/On indicates both Dynamic ISF and CR are enabled. On/Off indicates only Dynamic ISF is enabled. Dynamic CR cannot be enabled when Dynamic ISF is disabled." : {
       "localizations" : {
         "bg" : {
@@ -28874,6 +28782,9 @@
         }
       }
     },
+    "A paused start does not run until you resume it. Nothing is switched when you resume; the start runs again at its next time." : {
+
+    },
     "A pre-condition to have Temp Targets adjust Sensitivity is that the respective Target Behavior settings High Temp Target Raises Sensitivity or Low Temp Target Lowers Sensitivity are set to enabled." : {
       "localizations" : {
         "bg" : {
@@ -29003,6 +28914,12 @@
           }
         }
       }
+    },
+    "A profile holds basal rates, carb ratios, insulin sensitivities and glucose targets. Trio always uses the active profile, and editing the therapy settings edits the active profile." : {
+
+    },
+    "A profile named %@ already exists." : {
+
     },
     "A Temporary Target replaces the current Target Glucose specified in Therapy settings." : {
       "localizations" : {
@@ -30054,11 +29971,18 @@
         }
       }
     },
-    "Above 180 through 250 mg/dL" : {
-      "comment" : "Percentage of glucose readings in the high GRI range."
+    "Above %@" : {
+
     },
-    "Above 250 mg/dL" : {
-      "comment" : "Percentage of glucose readings in the very high GRI range."
+    "Above %@ through %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Above %1$@ through %2$@"
+          }
+        }
+      }
     },
     "above range" : {
       "comment" : "Accessibility: glucose range",
@@ -30325,6 +30249,9 @@
           }
         }
       }
+    },
+    "Activate %@?" : {
+
     },
     "Activate an override" : {
       "localizations" : {
@@ -30716,6 +30643,12 @@
           }
         }
       }
+    },
+    "Activate Profile" : {
+
+    },
+    "Activating a profile sends its basal rates to the pump first. Only when the pump accepts them does Trio start using the profile's carb ratios, insulin sensitivities and glucose targets." : {
+
     },
     "active" : {
       "comment" : "Accessibility: alarms active",
@@ -31109,6 +31042,9 @@
           }
         }
       }
+    },
+    "Active profile %@" : {
+
     },
     "Active Time" : {
       "comment" : "description label for active time pod details rowdescription label for active time pod details row",
@@ -36005,6 +35941,12 @@
         }
       }
     },
+    "Add Scheduled Switch" : {
+
+    },
+    "Add Screenshots" : {
+
+    },
     "Add Simulator" : {
       "comment" : "Add Simulator pump",
       "extractionState" : "manual",
@@ -40390,6 +40332,10 @@
         }
       }
     },
+    "Alarms active" : {
+      "comment" : "A description of the alarms that are active.",
+      "isCommentAutoGenerated" : true
+    },
     "Alarms cannot alert you. Tap to fix." : {
       "localizations" : {
         "bg" : {
@@ -42776,6 +42722,9 @@
           }
         }
       }
+    },
+    "All starts are paused." : {
+
     },
     "Allow" : {
       "localizations" : {
@@ -46608,6 +46557,9 @@
           }
         }
       }
+    },
+    "Also Sent" : {
+
     },
     "Also triggered when the lowest forecasted glucose (minPredBG) is < %@ %@." : {
       "localizations" : {
@@ -52138,6 +52090,12 @@
         }
       }
     },
+    "Ask on Discord" : {
+
+    },
+    "Ask on Facebook" : {
+
+    },
     "at least" : {
       "localizations" : {
         "bg" : {
@@ -52397,6 +52355,12 @@
           }
         }
       }
+    },
+    "At those times the profile active before stays active until the next scheduled start." : {
+
+    },
+    "Attach My Logs" : {
+
     },
     "Attach Pod" : {
       "comment" : "-------------------------------------------------------------------------------------------\n  DASH strings",
@@ -57256,13 +57220,13 @@
         }
       }
     },
-    "Average of the Last 24 Hours" : {
-      "comment" : "Stats banner subtitle"
-    },
     "Average of the Last 3 Months" : {
       "comment" : "Stats banner subtitle"
     },
     "Average of the Last 7 Days" : {
+      "comment" : "Stats banner subtitle"
+    },
+    "Average of the Last 24 Hours" : {
       "comment" : "Stats banner subtitle"
     },
     "Average of the Last Month" : {
@@ -60182,6 +60146,26 @@
         }
       }
     },
+    "Basal rate %@ U/hr at %@ exceeds the max basal rate of %@ U/hr." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Basal rate %1$@ U/hr at %2$@ exceeds the max basal rate of %3$@ U/hr."
+          }
+        }
+      }
+    },
+    "Basal rate %@ U/hr at %@ is not supported by the pump." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Basal rate %1$@ U/hr at %2$@ is not supported by the pump."
+          }
+        }
+      }
+    },
     "Basal Rate Adjustment" : {
       "localizations" : {
         "bg" : {
@@ -60311,6 +60295,9 @@
           }
         }
       }
+    },
+    "Basal rate at %@ must be greater than 0 U/hr." : {
+
     },
     "Basal rate profile chart, 24 hours" : {
       "localizations" : {
@@ -62149,8 +62136,8 @@
         }
       }
     },
-    "Below 54 mg/dL" : {
-      "comment" : "Percentage of glucose readings in the very low GRI range."
+    "Below %@" : {
+
     },
     "Below is the exact JSON object Trio would send right now. No glucose, insulin, carbs, credentials, or settings values are included." : {
       "localizations" : {
@@ -62542,6 +62529,9 @@
           }
         }
       }
+    },
+    "BG" : {
+
     },
     "BGI" : {
       "localizations" : {
@@ -68880,6 +68870,9 @@
       "comment" : "Name of a spoken alert voice.",
       "isCommentAutoGenerated" : true
     },
+    "Build" : {
+
+    },
     "Build Number" : {
       "localizations" : {
         "bg" : {
@@ -72596,6 +72589,9 @@
           }
         }
       }
+    },
+    "Carb Ratio" : {
+
     },
     "Carb Ratio (%@)" : {
       "localizations" : {
@@ -77315,6 +77311,18 @@
         }
       }
     },
+    "CGM: %@ · Pump: %@ · iPhone: %@" : {
+      "comment" : "PDF export header line listing the CGM, pump, and iPhone model in use. Arguments: CGM name, pump name, iPhone model name.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "CGM: %1$@ · Pump: %2$@ · iPhone: %3$@"
+          }
+        }
+      }
+    },
     "Change CR" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -78269,6 +78277,9 @@
           }
         }
       }
+    },
+    "Change Screenshots" : {
+
     },
     "Changes the size of the current glucose reading and its trend arrow on the Simple Lock Screen widget. The delta and the time of the last reading are not affected." : {
 
@@ -80627,6 +80638,28 @@
         }
       }
     },
+    "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)." : {
+      "comment" : "Explains that the lower threshold applies to both TIR and TITR",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the preferred lower threshold for Time in Range statistics across all charts and displays. This applies to both Time in Range (TIR, upper threshold of %@) and Time in Tight Range (TITR, upper threshold of %@)."
+          }
+        }
+      }
+    },
+    "Choose the preferred lower threshold for Time in Range statistics." : {
+      "comment" : "Short description of the lower range threshold setting.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the preferred lower threshold for Time in Range statistics."
+          }
+        }
+      }
+    },
     "Choose the time span the home statistics panel covers." : {
 
     },
@@ -81152,6 +81185,7 @@
       }
     },
     "Choose type of time in range to be used for Trio's statistics." : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -81410,9 +81444,6 @@
           }
         }
       }
-    },
-    "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
-      "extractionState" : "stale"
     },
     "Choose what the statistics panel on the home screen shows by default. Tapping the panel always opens the full statistics view.\n\nTime in Range: today's time in range percentage with a glucose distribution bar.\n\nDistribution Bar Only: just the glucose distribution bar, without the percentage.\n\nToday's Averages: today's average glucose and GMI (Glucose Management Index).\n\nToday's Treatments: insulin delivered since midnight — no glucose statistics. Announced carbs (and fat and protein, if you log them) appear once logged that day.\n\nHide Statistics: shows no data at all, just a \"View Statistics\" shortcut." : {
       "extractionState" : "stale",
@@ -81945,6 +81976,7 @@
       }
     },
     "Choose which type of time in range Trio should adopt for all its statistical charts and displays:" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -83392,6 +83424,9 @@
         }
       }
     },
+    "COB %@" : {
+
+    },
     "COBpredBG" : {
       "localizations" : {
         "bg" : {
@@ -83521,6 +83556,9 @@
           }
         }
       }
+    },
+    "Collapsed" : {
+
     },
     "Color" : {
       "localizations" : {
@@ -83912,8 +83950,16 @@
         }
       }
     },
+    "Color: the glucose number uses the same colors as the Trio app on your iPhone.\n\nMonochrome: the glucose number is white. This can be easier to read in the dark.\n\nThe ring and the chart line always keep their colors. Small text, like the trend arrow, is always white." : {
+      "comment" : "The description of the color mode setting for watch complications.",
+      "isCommentAutoGenerated" : true
+    },
     "Combined score" : {
       "comment" : "Sum of the weighted GRI components before applying the cap."
+    },
+    "Coming soon" : {
+      "comment" : "A label that appears in the \"Coming soon\" section of the export menu.",
+      "isCommentAutoGenerated" : true
     },
     "Coming soon." : {
       "localizations" : {
@@ -84309,6 +84355,12 @@
           }
         }
       }
+    },
+    "Complication Previews" : {
+
+    },
+    "Complication Settings" : {
+
     },
     "Cone" : {
       "localizations" : {
@@ -88674,6 +88726,9 @@
         }
       }
     },
+    "Contact" : {
+
+    },
     "Contact Image" : {
       "localizations" : {
         "bg" : {
@@ -89990,6 +90045,9 @@
         }
       }
     },
+    "Copy ID" : {
+
+    },
     "Copy JSON" : {
       "localizations" : {
         "bg" : {
@@ -90379,6 +90437,12 @@
           }
         }
       }
+    },
+    "Corner Label" : {
+
+    },
+    "Corner Label is the curved text on Trio Glucose corner slots." : {
+
     },
     "Could not access documents directory" : {
       "localizations" : {
@@ -90780,6 +90844,10 @@
     "Could not prepare logs" : {
 
     },
+    "Could not render the PDF content." : {
+      "comment" : "Error message when rendering the PDF content fails.",
+      "isCommentAutoGenerated" : true
+    },
     "Could not save the change." : {
       "comment" : "Adjustment could not be saved",
       "localizations" : {
@@ -90910,6 +90978,12 @@
           }
         }
       }
+    },
+    "Couldn't Delete Report" : {
+
+    },
+    "Couldn't Send Report" : {
+
     },
     "Count" : {
       "localizations" : {
@@ -91833,6 +91907,9 @@
           }
         }
       }
+    },
+    "Critical Alerts on Watch" : {
+
     },
     "Crying" : {
       "comment" : "Name of a sound file that plays a crying sound.",
@@ -93425,6 +93502,9 @@
         }
       }
     },
+    "Curved text on Trio Glucose corner slots." : {
+
+    },
     "Custom" : {
       "comment" : "Custom temp target",
       "extractionState" : "manual",
@@ -94484,6 +94564,7 @@
     },
     "d" : {
       "comment" : "Abbreviation for Days\nabbreviation for days",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -94743,6 +94824,10 @@
           }
         }
       }
+    },
+    "Daily" : {
+      "comment" : "A full-word name for a daily stat.",
+      "isCommentAutoGenerated" : true
     },
     "Daily glucose distribution chart" : {
       "localizations" : {
@@ -105872,6 +105957,9 @@
         }
       }
     },
+    "Delete %@?" : {
+
+    },
     "Delete Alarm" : {
       "comment" : "A button that deletes an alarm.",
       "localizations" : {
@@ -107497,6 +107585,18 @@
         }
       }
     },
+    "Delete Profile" : {
+
+    },
+    "Delete Report" : {
+
+    },
+    "Delete Report?" : {
+
+    },
+    "Delete Scheduled Switch" : {
+
+    },
     "Delete Selected Preset" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -107764,6 +107864,17 @@
         }
       }
     },
+    "Delete the report preset \"%@\"?" : {
+      "comment" : "Delete confirmation title for report presets",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Delete the report preset \"%1$@\"?"
+          }
+        }
+      }
+    },
     "Delete the Temp Target Preset \"%@\"?" : {
       "comment" : "Delete confirmation title for temporary target presets",
       "localizations" : {
@@ -108024,6 +108135,12 @@
           }
         }
       }
+    },
+    "Deleting" : {
+
+    },
+    "Deleting a report removes it and its files from the Trio team's server." : {
+
     },
     "Delivery limits" : {
       "extractionState" : "manual",
@@ -108812,6 +108929,9 @@
           }
         }
       }
+    },
+    "Describe what happened and what you expected" : {
+
     },
     "Deselect All" : {
       "localizations" : {
@@ -112507,6 +112627,9 @@
         }
       }
     },
+    "Discord Name" : {
+
+    },
     "Dismiss" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -115728,7 +115851,7 @@
         }
       }
     },
-    "Displays real-time glucose readings from your CGM that were smoothed using the Savatzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM." : {
+    "Displays real-time glucose readings from your CGM that were smoothed using the Savitzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM." : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -115769,7 +115892,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Displays real-time glucose readings from your CGM that were smoothed using the Savatzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
+            "value" : "Displays real-time glucose readings from your CGM that were smoothed using the Savitzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
           }
         },
         "it" : {
@@ -115811,7 +115934,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Displays real-time glucose readings from your CGM that were smoothed using the Savatzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
+            "value" : "Displays real-time glucose readings from your CGM that were smoothed using the Savitzky-Golay filter. The displayed glucose readings may not match the actual readings from your CGM."
           }
         },
         "ru" : {
@@ -119906,6 +120029,18 @@
         }
       }
     },
+    "Dynamic ISF: %@ · SMB: %@ · UAM: %@ · Closed Loop: %@" : {
+      "comment" : "PDF export header line listing whether Dynamic ISF, SMB, UAM, and Closed Loop are enabled/active. Arguments: “On”/“Off” for each.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dynamic ISF: %1$@ · SMB: %2$@ · UAM: %3$@ · Closed Loop: %4$@"
+          }
+        }
+      }
+    },
     "Dynamic ISF/CR" : {
       "localizations" : {
         "bg" : {
@@ -120955,6 +121090,9 @@
         }
       }
     },
+    "Each scheduled switch needs its own id." : {
+
+    },
     "Edge" : {
       "localizations" : {
         "bg" : {
@@ -121214,6 +121352,9 @@
           }
         }
       }
+    },
+    "Edit %@" : {
+
     },
     "edit calibration clicked" : {
       "extractionState" : "manual",
@@ -122150,6 +122291,9 @@
     "Electronic" : {
       "comment" : "Themed alarm sound catalog for electronic sounds.",
       "isCommentAutoGenerated" : true
+    },
+    "Email" : {
+
     },
     "Emoji or short text" : {
       "localizations" : {
@@ -130716,6 +130860,12 @@
         }
       }
     },
+    "Enter a name for the new profile." : {
+
+    },
+    "Enter a new name for the profile." : {
+
+    },
     "Enter Meal Preset Name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -131900,6 +132050,9 @@
         }
       }
     },
+    "Entry expired after 2 minutes. Nothing was sent. Please enter it again." : {
+      "comment" : "Watch message when a carbs or bolus entry was too old to send"
+    },
     "Error" : {
       "comment" : "Error title",
       "localizations" : {
@@ -132558,6 +132711,9 @@
           }
         }
       }
+    },
+    "Error! Bolus amount must be greater than 0 U." : {
+      "comment" : "Error message when a bolus of zero or less is requested"
     },
     "Error! Bolus cancellation failed with error: %@" : {
       "comment" : "Error message for canceling a bolus",
@@ -134698,6 +134854,10 @@
         }
       }
     },
+    "Expanded" : {
+      "comment" : "A description of the expanded state of a section.",
+      "isCommentAutoGenerated" : true
+    },
     "Experimental" : {
       "comment" : "New Experimental feature",
       "extractionState" : "manual",
@@ -135111,6 +135271,10 @@
         }
       }
     },
+    "Export" : {
+      "comment" : "A button that triggers the export of a PDF.",
+      "isCommentAutoGenerated" : true
+    },
     "Export Categories" : {
       "localizations" : {
         "bg" : {
@@ -135500,6 +135664,10 @@
           }
         }
       }
+    },
+    "Export Failed" : {
+      "comment" : "The title of an alert that appears when an error occurs while exporting a PDF.",
+      "isCommentAutoGenerated" : true
     },
     "Export failed: %@" : {
       "localizations" : {
@@ -135905,6 +136073,10 @@
         }
       }
     },
+    "Export PDF" : {
+      "comment" : "The title of the export PDF menu.",
+      "isCommentAutoGenerated" : true
+    },
     "Export Settings" : {
       "comment" : "Export Settings menu item in Trio Settings Root View",
       "localizations" : {
@@ -136300,6 +136472,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "擴展"
+          }
+        }
+      }
+    },
+    "Extended (%@)" : {
+      "comment" : "Extended lower threshold for TIR and TITR statistics",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended (%@)"
+          }
+        }
+      }
+    },
+    "Extended Lower Threshold" : {
+      "comment" : "Search term for the extended lower range threshold setting.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended Lower Threshold"
+          }
+        }
+      }
+    },
+    "Extended:" : {
+      "comment" : "Heading for the extended lower range threshold description.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Extended:"
           }
         }
       }
@@ -139369,6 +139575,10 @@
         }
       }
     },
+    "Failed to write PDF file: %@" : {
+      "comment" : "A description of an error that might occur when exporting a view as a PDF. The argument is the error describing the underlying failure.",
+      "isCommentAutoGenerated" : true
+    },
     "falling" : {
       "comment" : "Accessibility: glucose trend",
       "localizations" : {
@@ -141737,6 +141947,9 @@
           }
         }
       }
+    },
+    "Fill in any of these so the team can follow up with you." : {
+
     },
     "Filter" : {
       "localizations" : {
@@ -144743,7 +144956,7 @@
         }
       }
     },
-    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result." : {
+    "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result." : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -144784,7 +144997,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
+            "value" : "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result."
           }
         },
         "it" : {
@@ -144826,7 +145039,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algothim's result."
+            "value" : "For simplicity reasons, oref's various forecast curves are displayed as a \"Cone of Uncertainty\" that depicts a possible, forecasted range of future glucose fluctuation based on the current data and the algorithm's result."
           }
         },
         "ru" : {
@@ -149086,6 +149299,14 @@
         }
       }
     },
+    "Generated %@" : {
+      "comment" : "A label that shows the date and time when the report was generated.",
+      "isCommentAutoGenerated" : true
+    },
+    "Generated by Trio" : {
+      "comment" : "The name of the app.",
+      "isCommentAutoGenerated" : true
+    },
     "Get Started" : {
       "localizations" : {
         "bg" : {
@@ -149476,6 +149697,9 @@
           }
         }
       }
+    },
+    "GitHub Username" : {
+
     },
     "Give Apple Health Write Permissions" : {
       "localizations" : {
@@ -150538,6 +150762,9 @@
           }
         }
       }
+    },
+    "Glucose and trend. Small Line sits under the glucose on circular slots, Corner Label on corners." : {
+      "comment" : "Description of the glucose watch complication"
     },
     "Glucose App Badge" : {
       "localizations" : {
@@ -153034,6 +153261,9 @@
         }
       }
     },
+    "Glucose inside a ring that fills from low to high. Rectangular slots add Small Line, IOB and COB." : {
+      "comment" : "Description of the glucose ring watch complication"
+    },
     "Glucose is stale for calibration" : {
       "localizations" : {
         "bg" : {
@@ -153560,6 +153790,12 @@
           }
         }
       }
+    },
+    "Glucose number in color or in white." : {
+
+    },
+    "Glucose on the Watch" : {
+
     },
     "Glucose out of range: %@." : {
       "localizations" : {
@@ -155010,6 +155246,9 @@
         }
       }
     },
+    "Glucose Targets: each entry needs a start time, a low and a high value." : {
+
+    },
     "Glucose trace WILL NOT be affected by any insulin or carb entries." : {
       "localizations" : {
         "bg" : {
@@ -155935,6 +156174,9 @@
         }
       }
     },
+    "Glucose, the Small Line and IOB next to the last three hours of readings. Rectangular slots only." : {
+      "comment" : "Description of the glucose chart watch complication"
+    },
     "Glucose, Trend, Delta" : {
       "comment" : "Live Activity widget icon label for Glucose, Trend, Delta",
       "localizations" : {
@@ -156481,6 +156723,10 @@
           }
         }
       }
+    },
+    "Grace period" : {
+      "comment" : "Text displayed in a notification when a sensor is in the grace period.",
+      "isCommentAutoGenerated" : true
     },
     "Gradient Purple = As readings approach and exceed above target, they become more purple." : {
       "localizations" : {
@@ -157553,6 +157799,7 @@
     },
     "h" : {
       "comment" : "Abbreviation for Hours\nabbreviation for hours\nh",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -158080,6 +158327,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "硬體"
+          }
+        }
+      }
+    },
+    "Hardware in use" : {
+      "comment" : "PDF export header section label for the hardware (CGM, pump, phone) in use.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hardware in use"
           }
         }
       }
@@ -162329,6 +162588,9 @@
         }
       }
     },
+    "Home Statistics Range" : {
+
+    },
     "Home View Button Panel " : {
       "comment" : "UI/UX option",
       "extractionState" : "manual",
@@ -164586,14 +164848,12 @@
       "comment" : "The vertical axis label in the GRI risk grid.",
       "isCommentAutoGenerated" : true
     },
-    "Hypoglycemia %@ percent, hyperglycemia %@ percent" : {
-      "comment" : "A textual representation of the GRI risk grid, including the values for hypoglycemia and hyperglycemia.",
-      "isCommentAutoGenerated" : true,
+    "Hypoglycemia %@, hyperglycemia %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Hypoglycemia %1$@ percent, hyperglycemia %2$@ percent"
+            "value" : "Hypoglycemia %1$@, hyperglycemia %2$@"
           }
         }
       }
@@ -165127,7 +165387,7 @@
         }
       }
     },
-    "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay." : {
+    "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be addressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay." : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -165168,7 +165428,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
+            "value" : "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be addressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
           }
         },
         "it" : {
@@ -165210,7 +165470,7 @@
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be adressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
+            "value" : "If carb entries decay too slowly, it is possible to set a lower than default setting. But this should typically be addressed by tuning ISF and CR settings instead, which in combination determines the rate of carb decay."
           }
         },
         "ru" : {
@@ -169347,6 +169607,18 @@
         }
       }
     },
+    "Important settings" : {
+      "comment" : "PDF export header section label for key algorithm settings (Dynamic ISF, SMB, UAM, Closed Loop).",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Important settings"
+          }
+        }
+      }
+    },
     "Important: Autosens Min and Autosens Max do not affect Temp Targets in the same way. Autosens Max limits how much insulin can be increased, but Autosens Min does not remove the 15% minimum when insulin is reduced." : {
       "localizations" : {
         "bg" : {
@@ -170269,6 +170541,10 @@
         }
       }
     },
+    "Include" : {
+      "comment" : "A heading for the list of charts to include in the report.",
+      "isCommentAutoGenerated" : true
+    },
     "Include IOB & COB in the calendar event data." : {
       "localizations" : {
         "bg" : {
@@ -170398,6 +170674,9 @@
           }
         }
       }
+    },
+    "Includes glucose, insulin, carbs and your settings. Passwords and serial numbers are removed." : {
+
     },
     "Increase sensitivity when glucose is above target if a manual Temp Target > %@ %@ is set." : {
       "localizations" : {
@@ -172381,6 +172660,15 @@
         }
       }
     },
+    "Insulin delivery is suspended. Resume delivery before changing the basal rates." : {
+
+    },
+    "Insulin doses will be decreased by %@." : {
+      "comment" : "Adjustment footer; the value is a percentage, e.g. 20%"
+    },
+    "Insulin doses will be increased by %@." : {
+      "comment" : "Adjustment footer; the value is a percentage, e.g. 20%"
+    },
     "Insulin Limit Reached" : {
       "localizations" : {
         "bg" : {
@@ -173031,6 +173319,9 @@
           }
         }
       }
+    },
+    "Insulin on board first, with COB and glucose alongside. Fixed layout; only Mark Stale After applies." : {
+      "comment" : "Description of the insulin on board watch complication"
     },
     "Insulin Peak Time" : {
       "comment" : "Insulin Peak Time",
@@ -175831,6 +176122,9 @@
         }
       }
     },
+    "Invalid start time %@." : {
+
+    },
     "Invalid URL" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -175967,6 +176261,9 @@
           }
         }
       }
+    },
+    "Invalid value %@." : {
+
     },
     "IOB" : {
       "localizations" : {
@@ -176228,6 +176525,19 @@
         }
       }
     },
+    "IOB %@" : {
+
+    },
+    "IOB %@ · COB %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "IOB %1$@ · COB %2$@"
+          }
+        }
+      }
+    },
     "IOBpredBG" : {
       "localizations" : {
         "bg" : {
@@ -176357,6 +176667,15 @@
           }
         }
       }
+    },
+    "iOS Version" : {
+
+    },
+    "iPhone Model" : {
+
+    },
+    "iPhone not reachable. Nothing was sent." : {
+      "comment" : "Watch message when a request could not be sent to the phone"
     },
     "is running" : {
       "localizations" : {
@@ -177790,6 +178109,9 @@
         }
       }
     },
+    "Its profile was not imported." : {
+
+    },
     "Its Widget Configuration lets you set the size of the glucose reading." : {
 
     },
@@ -178446,12 +178768,6 @@
         }
       }
     },
-    "last 24 hours" : {
-      "comment" : "Stats banner scope"
-    },
-    "Last 24 Hours" : {
-      "comment" : "Home stats panel range option"
-    },
     "Last 3 Days" : {
 
     },
@@ -178465,6 +178781,12 @@
       "comment" : "Stats banner scope"
     },
     "Last 7 Days" : {
+      "comment" : "Home stats panel range option"
+    },
+    "last 24 hours" : {
+      "comment" : "Stats banner scope"
+    },
+    "Last 24 Hours" : {
       "comment" : "Home stats panel range option"
     },
     "Last Blood Sugar prediction" : {
@@ -178734,6 +179056,10 @@
           }
         }
       }
+    },
+    "Last loop" : {
+      "comment" : "A label displayed under the time of the last loop.",
+      "isCommentAutoGenerated" : true
     },
     "last loop %@" : {
       "comment" : "Accessibility: loop age",
@@ -180839,6 +181165,9 @@
           }
         }
       }
+    },
+    "less than a minute" : {
+      "comment" : "Accessibility: a duration under one minute"
     },
     "less than a minute ago" : {
       "comment" : "Accessibility: elapsed time",
@@ -187422,6 +187751,22 @@
         }
       }
     },
+    "Loop" : {
+
+    },
+    "Loop –" : {
+      "comment" : "Watch: the phone's last loop is not known"
+    },
+    "Loop %@" : {
+      "comment" : "A label that displays the time of the last loop.",
+      "isCommentAutoGenerated" : true
+    },
+    "Loop %lld min" : {
+      "comment" : "Watch: minutes since the phone's last loop"
+    },
+    "Loop Age" : {
+      "comment" : "Minutes since the last loop"
+    },
     "Loop at %@ failed." : {
       "localizations" : {
         "bg" : {
@@ -191914,6 +192259,7 @@
     },
     "m" : {
       "comment" : "Abbreviation for Minutes\nabbreviation for minutes",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -194284,6 +194630,12 @@
           }
         }
       }
+    },
+    "Mark Stale After" : {
+
+    },
+    "Mark Stale After applies to every complication: once the reading is older than this, the glucose shows -- with the reading's age, and IOB and COB show -- when the loop has not run within that time.\n\nComplications can fall behind the phone, sometimes by a lot: with the watch app closed, watchOS limits how often they refresh. The Contact Image updates with every reading, so use it if you want every reading on your watch face." : {
+
     },
     "Marks when a short-term temporary glucose target is or was active, (potentially) altering when or how much insulin is delivered." : {
       "localizations" : {
@@ -203646,7 +203998,7 @@
       }
     },
     "min" : {
-      "comment" : "Minutes abbreviation\nShort form for minutes\nminutes abbreviation",
+      "comment" : "Minutes abbreviation",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -207359,6 +207711,10 @@
         }
       }
     },
+    "Monthly" : {
+      "comment" : "A full-word name for a monthly stat.",
+      "isCommentAutoGenerated" : true
+    },
     "Mood Synth" : {
       "comment" : "Display name for the \"Mood Synth\" alarm sound.",
       "localizations" : {
@@ -209070,6 +209426,9 @@
         }
       }
     },
+    "New Profile" : {
+
+    },
     "New Release v%@" : {
       "comment" : "Home panel title offering the release notes; the placeholder is a version number",
       "localizations" : {
@@ -209595,6 +209954,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下一個欄位"
+          }
+        }
+      }
+    },
+    "Next: %@ starts %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Next: %1$@ starts %2$@."
           }
         }
       }
@@ -210911,6 +211280,9 @@
         }
       }
     },
+    "No answer from iPhone. Check Trio on your iPhone before trying again." : {
+      "comment" : "Watch message when the phone did not confirm a request"
+    },
     "No biometric identities are enrolled. Please set up Face ID or Touch ID." : {
       "localizations" : {
         "bg" : {
@@ -211569,6 +211941,9 @@
           }
         }
       }
+    },
+    "no data" : {
+
     },
     "No data." : {
       "localizations" : {
@@ -213672,6 +214047,9 @@
         }
       }
     },
+    "No pump is connected, so the basal rates cannot be sent to the pump." : {
+
+    },
     "No recent determination." : {
       "localizations" : {
         "bg" : {
@@ -214199,6 +214577,13 @@
           }
         }
       }
+    },
+    "No schedule saved." : {
+      "comment" : "A message displayed when a user has not saved a therapy schedule.",
+      "isCommentAutoGenerated" : true
+    },
+    "No scheduled switches. Trio keeps the active profile until you switch." : {
+
     },
     "No Sensor Detected" : {
       "comment" : "No Sensor Detected",
@@ -216059,6 +216444,7 @@
       }
     },
     "Normal (%@-%@)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -216469,6 +216855,9 @@
           }
         }
       }
+    },
+    "Not active" : {
+
     },
     "Not allowed" : {
       "localizations" : {
@@ -220659,6 +221048,9 @@
     "Notes carry the state name the CGM itself uses, such as sensorFailed or warmup. Each state is noted once, and a state that returns after usable readings resume is noted again." : {
 
     },
+    "Nothing" : {
+      "comment" : "Complication slot shows nothing"
+    },
     "Nothing is currently running." : {
       "comment" : "No active adjustment to cancel",
       "localizations" : {
@@ -224481,6 +224873,9 @@
         }
       }
     },
+    "One of the screenshots couldn't be read. Try choosing it again or leave it out." : {
+
+    },
     "Only adjust these settings if you’re an advanced or returning user who knows what they’re doing." : {
       "localizations" : {
         "bg" : {
@@ -225269,9 +225664,15 @@
         }
       }
     },
+    "Open a GitHub Issue" : {
+
+    },
     "Open Can" : {
       "comment" : "Name of a sound file.",
       "isCommentAutoGenerated" : true
+    },
+    "Open CGM Settings" : {
+
     },
     "Open failed" : {
       "localizations" : {
@@ -231223,6 +231624,9 @@
     "Overrides and temp targets only. No bolus, carb or meal entries." : {
 
     },
+    "Overrides and temporary targets are not part of a profile. One that is running stays on and applies on top of the newly active profile." : {
+
+    },
     "Overrides Focus" : {
       "localizations" : {
         "bg" : {
@@ -232539,6 +232943,13 @@
         }
       }
     },
+    "Pairing: keep Trio open at the next reading" : {
+      "comment" : "Text displayed in the status bar when the watch is pairing with a CGM.",
+      "isCommentAutoGenerated" : true
+    },
+    "Pairing: keep Trio open, accept the request" : {
+
+    },
     "Pairinginfo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -233755,6 +234166,16 @@
         }
       }
     },
+    "Patient Name" : {
+      "comment" : "A label for the patient name input field in the export PDF sheet.",
+      "isCommentAutoGenerated" : true
+    },
+    "Pause" : {
+
+    },
+    "Paused" : {
+
+    },
     "per" : {
       "comment" : "Accessibility: unit separator, as in grams per unit",
       "localizations" : {
@@ -233888,6 +234309,7 @@
     },
     "percent" : {
       "comment" : "Accessibility: spoken unit",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -239037,6 +239459,18 @@
         }
       }
     },
+    "Preset name" : {
+      "comment" : "Placeholder for the text field where the user names a report preset.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Preset name"
+          }
+        }
+      }
+    },
     "Presets" : {
       "localizations" : {
         "bg" : {
@@ -239559,6 +239993,9 @@
           }
         }
       }
+    },
+    "Previews use sample data in your units and follow your complication settings. Add them from the watch face editor under Trio. Corner slots curve the label round the face." : {
+
     },
     "Previous field" : {
       "localizations" : {
@@ -240479,6 +240916,9 @@
         }
       }
     },
+    "Private. Describe the problem, add screenshots and your logs. Only the Trio team can see it." : {
+
+    },
     "Proceed" : {
       "comment" : "Button Label to Proceed to Bolus on Watch",
       "localizations" : {
@@ -241138,135 +241578,150 @@
         }
       }
     },
-    "Profile at 100 %" : {
+    "Profile %@" : {
+
+    },
+    "Profile %@ became active while you were editing, so your changes were not saved. Open this screen again to edit the current values." : {
+
+    },
+    "Profile %@ has changed since it was loaded. Reload and try again." : {
+
+    },
+    "Profile %@ was changed while you were editing, so your changes were not saved. Open this screen again to edit the current values." : {
+
+    },
+    "Profile at %@" : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Профил при 100 %"
+            "value" : "Профил при %@"
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil ve 100 %"
+            "value" : "Profil ve %@"
           }
         },
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil ved 100 %"
+            "value" : "Profil ved %@"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil bei 100 %"
+            "value" : "Profil bei %@"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Perfil al 100 %"
+            "value" : "Perfil al %@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil à 100 %"
+            "value" : "Profil à %@"
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Profile at 100 %"
+            "value" : "Profile at %@"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profilo al 100 %"
+            "value" : "Profilo al %@"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "100% 프로필"
+            "value" : "%@ 프로필"
           }
         },
         "nb-NO" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil på 100%"
+            "value" : "Profil på %@"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profiel op 100% %"
+            "value" : "Profiel op %@"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil na 100 %"
+            "value" : "Profil na %@"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Perfil a 100 %"
+            "value" : "Perfil a %@"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Profile at 100 %"
+            "value" : "Profile at %@"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Профиль на 100 %"
+            "value" : "Профиль на %@"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Profil på 100 %"
+            "value" : "Profil på %@"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Profile at 100 %"
+            "value" : "Profile at %@"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Профіль у 100%"
+            "value" : "Профіль у %@"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hồ sơ ở mức 100%"
+            "value" : "Hồ sơ ở mức %@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "配置文件倍率 100%"
+            "value" : "配置文件倍率 %@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "設定檔 100 %"
+            "value" : "設定檔 %@"
           }
         }
       }
+    },
+    "Profile Not Changed" : {
+
     },
     "Profile Override" : {
       "comment" : "Service Section",
@@ -241406,6 +241861,9 @@
         }
       }
     },
+    "Profile Switched" : {
+
+    },
     "Profiles" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -241543,6 +242001,9 @@
         }
       }
     },
+    "Programmed on pump" : {
+      "comment" : "Accessibility label for bolus programmed on the pump itself"
+    },
     "Protein" : {
       "comment" : "Add Protein",
       "localizations" : {
@@ -241673,9 +242134,6 @@
           }
         }
       }
-    },
-    "Programmed on pump" : {
-      "comment" : "Accessibility label for bolus programmed on the pump itself"
     },
     "Protein / Fat" : {
       "comment" : "Treatment type",
@@ -242197,6 +242655,9 @@
           }
         }
       }
+    },
+    "Public. Only for bugs you can describe without personal or health data." : {
+
     },
     "Pull down to force loop" : {
       "localizations" : {
@@ -248100,6 +248561,9 @@
         }
       }
     },
+    "Read on Apple Watch" : {
+
+    },
     "Read the full release notes" : {
       "comment" : "Link to the complete release notes on GitHub",
       "localizations" : {
@@ -252427,6 +252891,12 @@
         }
       }
     },
+    "Rename" : {
+
+    },
+    "Rename Profile" : {
+
+    },
     "Replace CGM Sensor" : {
       "comment" : "Title of an alert that instructs the user to replace a CGM sensor.",
       "localizations" : {
@@ -252688,6 +253158,21 @@
           }
         }
       }
+    },
+    "Report %@ and its files will be deleted from the Trio team's server." : {
+
+    },
+    "Report a Problem" : {
+
+    },
+    "Report Actions" : {
+
+    },
+    "Report Sent" : {
+
+    },
+    "Reports go only to the Trio team and are deleted after 90 days. You can delete a report yourself at any time." : {
+
     },
     "Represents carb equivalent for fat and protein, calculated using the Warsaw Method." : {
       "localizations" : {
@@ -253216,6 +253701,7 @@
       }
     },
     "Reservoir is empty" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -257958,6 +258444,18 @@
         }
       }
     },
+    "Save as Preset…" : {
+      "comment" : "Button that saves the current report range and chart selection as a named, reusable preset.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save as Preset…"
+          }
+        }
+      }
+    },
     "Save as Profile" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -258232,6 +258730,9 @@
         }
       }
     },
+    "Save Current Settings as New Profile" : {
+
+    },
     "Save on Pump" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -258499,6 +259000,21 @@
         }
       }
     },
+    "Save Report Preset" : {
+      "comment" : "Title of the alert prompting for a name when saving a report preset.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Save Report Preset"
+          }
+        }
+      }
+    },
+    "Save the file or send it to someone helping you on Discord or Facebook. Contains glucose, insulin and carbs; passwords and serial numbers are removed." : {
+
+    },
     "Saved Food" : {
       "comment" : "Saved Food Presets",
       "localizations" : {
@@ -258626,6 +259142,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已儲存的食物"
+          }
+        }
+      }
+    },
+    "Saved Reports" : {
+      "comment" : "Section header listing the user's saved report presets.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Saved Reports"
           }
         }
       }
@@ -258763,6 +259291,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已儲存至 %@"
+          }
+        }
+      }
+    },
+    "Saves the current range and chart selection for reuse." : {
+      "comment" : "Explanatory message shown in the Save Report Preset alert.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Saves the current range and chart selection for reuse."
           }
         }
       }
@@ -259834,6 +260374,18 @@
         }
       }
     },
+    "Scheduled Switch" : {
+
+    },
+    "Scheduled Switch Not Done" : {
+
+    },
+    "Scheduled Switches" : {
+
+    },
+    "Scheduled Switches Not Changed" : {
+
+    },
     "Scheduled Temp Targets" : {
       "localizations" : {
         "bg" : {
@@ -260104,6 +260656,12 @@
     "Score calculation" : {
       "comment" : "Expandable breakdown of the GRI score for the selected period."
     },
+    "Screenshot %lld" : {
+
+    },
+    "Screenshots" : {
+
+    },
     "SD" : {
       "comment" : "SD",
       "localizations" : {
@@ -260364,6 +260922,9 @@
           }
         }
       }
+    },
+    "Second line on Trio Glucose, Trio Gauge and Trio Chart." : {
+
     },
     "Secondary Font Size" : {
       "localizations" : {
@@ -262717,6 +263278,15 @@
         }
       }
     },
+    "Send to the Trio Team" : {
+
+    },
+    "Sending" : {
+
+    },
+    "Sending Report" : {
+
+    },
     "Sens Ratio" : {
       "comment" : "Name of the secondary attribute choice for the SwissAlpine watchface.",
       "localizations" : {
@@ -264048,6 +264618,10 @@
         }
       }
     },
+    "Sensor code needed" : {
+      "comment" : "Text displayed in a watch when the CGM's sensor needs a code to be paired.",
+      "isCommentAutoGenerated" : true
+    },
     "Sensor Ending Soon" : {
       "comment" : "Sensor Ending Soon",
       "extractionState" : "manual",
@@ -264323,6 +264897,10 @@
         }
       }
     },
+    "Sensor expired" : {
+      "comment" : "Text displayed in a notification when a sensor has expired.",
+      "isCommentAutoGenerated" : true
+    },
     "Sensor expires soon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -264459,6 +265037,10 @@
           }
         }
       }
+    },
+    "Sensor failed" : {
+      "comment" : "Text displayed in a notification when a CGM sensor has failed.",
+      "isCommentAutoGenerated" : true
     },
     "Sensor Footer checksum" : {
       "extractionState" : "manual",
@@ -264733,6 +265315,10 @@
           }
         }
       }
+    },
+    "Sensor issue" : {
+      "comment" : "Text displayed in a notification when a sensor has a temporary issue.",
+      "isCommentAutoGenerated" : true
     },
     "Sensor Lifecycle Scenario" : {
       "localizations" : {
@@ -265549,6 +266135,13 @@
           }
         }
       }
+    },
+    "Sensor warmup" : {
+      "comment" : "Text displayed in a notification when a CGM sensor is warming up.",
+      "isCommentAutoGenerated" : true
+    },
+    "Sent Reports" : {
+
     },
     "Series" : {
       "localizations" : {
@@ -267804,7 +268397,7 @@
         }
       }
     },
-    "Setup & Configuraton" : {
+    "Setup & Configuration" : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -267821,7 +268414,7 @@
         "da" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "de" : {
@@ -267833,7 +268426,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "fr" : {
@@ -267845,13 +268438,13 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "ko" : {
@@ -267869,7 +268462,7 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "pl" : {
@@ -267881,19 +268474,19 @@
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "sv" : {
@@ -267911,7 +268504,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Setup & Configuraton"
+            "value" : "Setup & Configuration"
           }
         },
         "vi" : {
@@ -269387,6 +269980,9 @@
           }
         }
       }
+    },
+    "Show -- once data is older than this. Complications can lag." : {
+
     },
     "Show All" : {
       "comment" : "Name of the bolus display threshold option that shows all bolus amounts.",
@@ -271487,6 +272083,9 @@
         }
       }
     },
+    "Shown in the report header. Leave blank to omit." : {
+
+    },
     "Shows an insulin dose, which can be a small automated dose (super-micro-bolus), a manually entered dose, or one given externally (e.g., a pen shot)." : {
       "localizations" : {
         "bg" : {
@@ -271881,6 +272480,9 @@
     "Shows Glycemia Risk Index details" : {
       "comment" : "An accessibility hint for the \"GRI\" button that triggers the sheet.",
       "isCommentAutoGenerated" : true
+    },
+    "Shows if Trio is looping. Green: looped in the last 5 minutes. Yellow: up to 10 minutes ago. Red: longer ago. Below is the time of the last loop." : {
+      "comment" : "Description of the loop status watch complication"
     },
     "Shows the COB value calculated by the algorithm at a specific time in the past. These values are snapshots and won’t change if carbs are added or removed after the fact." : {
       "localizations" : {
@@ -274507,6 +275109,12 @@
     },
     "Small" : {
       "comment" : "Live Activity glucose reading font size"
+    },
+    "Small Line" : {
+
+    },
+    "Small Line is the text under the glucose on Trio Glucose circular slots, beside the ring on Trio Gauge rectangular slots, and the second line of Trio Chart. Trio IOB has a fixed layout." : {
+
     },
     "Smaller iPhone Screens" : {
       "comment" : "UI/UX option",
@@ -278455,6 +279063,9 @@
         }
       }
     },
+    "snoozed, %@ remaining" : {
+      "comment" : "Accessibility: alarm snooze; %@ is a duration like \"15 minutes\". Word it so %@ stays unchanged."
+    },
     "snoozed, %d minutes remaining" : {
       "comment" : "Accessibility: alarm snooze",
       "localizations" : {
@@ -278585,6 +279196,24 @@
           }
         }
       }
+    },
+    "Software in use" : {
+      "comment" : "PDF export header section label for the Trio software version and build date in use.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Software in use"
+          }
+        }
+      }
+    },
+    "Some basal rates of this schedule are not rates your pump supports. Each is shown as the nearest supported rate. Check them before you save." : {
+
+    },
+    "Some files didn't reach the Trio team's server. Please try again." : {
+
     },
     "Some helpful reminders:" : {
       "localizations" : {
@@ -278975,6 +279604,9 @@
           }
         }
       }
+    },
+    "Some Profiles Were Not Imported" : {
+
     },
     "Some ui element was incorrectly specified" : {
       "extractionState" : "manual",
@@ -280021,6 +280653,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "過期資料"
+          }
+        }
+      }
+    },
+    "Standard (%@)" : {
+      "comment" : "Standard lower threshold for TIR and TITR statistics",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard (%@)"
+          }
+        }
+      }
+    },
+    "Standard Lower Threshold" : {
+      "comment" : "Search term for the standard lower range threshold setting.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard Lower Threshold"
+          }
+        }
+      }
+    },
+    "Standard:" : {
+      "comment" : "Heading for the standard lower range threshold description.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standard:"
           }
         }
       }
@@ -282674,7 +283340,10 @@
         }
       }
     },
-    "Home Statistics Range" : {
+    "Status" : {
+
+    },
+    "Stay Anonymous" : {
 
     },
     "Stay in open loop (no automated dosing) for a bit to help Trio catch up to keep you safe" : {
@@ -285425,6 +286094,9 @@
           }
         }
       }
+    },
+    "Submit" : {
+
     },
     "Submodules" : {
       "localizations" : {
@@ -293845,6 +294517,15 @@
         }
       }
     },
+    "Thank you. Your report ID is %@. Mention it if you ask about this on Discord or Facebook." : {
+
+    },
+    "The active Nightscout profile %@ can not be imported: %@" : {
+
+    },
+    "The active profile cannot be deleted." : {
+
+    },
     "The Adjustment Factor (AF) allows you to control how quickly and effectively Dynamic ISF responds to changes in glucose levels." : {
       "localizations" : {
         "bg" : {
@@ -295566,6 +296247,15 @@
           }
         }
       }
+    },
+    "The Default profile cannot be deleted." : {
+
+    },
+    "The Default profile cannot be renamed." : {
+
+    },
+    "The Default profile takes the values of the active profile %@." : {
+
     },
     "The default setting is based on this calculation:" : {
       "localizations" : {
@@ -298300,6 +298990,24 @@
         }
       }
     },
+    "The name %@ is reserved." : {
+
+    },
+    "The name must be at most %lld characters." : {
+
+    },
+    "The name must not be empty." : {
+
+    },
+    "The name must not contain a period." : {
+
+    },
+    "The name must not start or end with spaces." : {
+
+    },
+    "The name must not start with $." : {
+
+    },
     "The Night window runs from 'Night Starts' back around to 'Day Starts' — so by default, Night covers %1$@ through %2$@ the next morning." : {
       "localizations" : {
         "bg" : {
@@ -299218,6 +299926,25 @@
         }
       }
     },
+    "The profile could not be read." : {
+
+    },
+    "The profiles could not be saved, and the pump may still hold the basal rates of profile %@ while Trio uses those of profile %@. Check the basal schedule on the pump." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The profiles could not be saved, and the pump may still hold the basal rates of profile %1$@ while Trio uses those of profile %2$@. Check the basal schedule on the pump."
+          }
+        }
+      }
+    },
+    "The profiles could not be saved." : {
+
+    },
+    "The pump did not accept the basal rates: %@" : {
+
+    },
     "The ratio of how sensitive or resistant to insulin you are in the current loop cycle. Baseline = 1.0, Sensitive < 1.0, Resistant > 1.0" : {
       "localizations" : {
         "bg" : {
@@ -299477,6 +300204,29 @@
           }
         }
       }
+    },
+    "The report has no pages to export." : {
+      "comment" : "Error message when attempting to export a report with no pages.",
+      "isCommentAutoGenerated" : true
+    },
+    "The report is too large. Try fewer or smaller screenshots." : {
+
+    },
+    "The report won't include your name or contact details." : {
+
+    },
+    "The scheduled switch to %@ did not happen: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The scheduled switch to %1$@ did not happen: %2$@"
+          }
+        }
+      }
+    },
+    "The scheduled switches have changed since they were loaded. Reload and try again." : {
+
     },
     "The Sensitivity Ratio is used to calculate the amount of adjustment needed to basal rates and ISF." : {
       "localizations" : {
@@ -300128,6 +300878,15 @@
         }
       }
     },
+    "The time of a scheduled switch must be a whole minute of the day." : {
+
+    },
+    "The Trio team's server couldn't take the report right now (error %lld)." : {
+
+    },
+    "The Trio team's server sent an answer the app doesn't understand." : {
+
+    },
     "The Upload Treatments toggle enables uploading of the following data sets to your connected Nightscout URL:" : {
       "localizations" : {
         "bg" : {
@@ -300388,6 +301147,12 @@
         }
       }
     },
+    "The watch’s urgent low alarm sounds through Silent Mode" : {
+
+    },
+    "The weekday of a scheduled switch must be 1 to 7." : {
+
+    },
     "Therapy" : {
       "comment" : "Therapy menu item in the Settings main view.",
       "localizations" : {
@@ -300519,6 +301284,9 @@
         }
       }
     },
+    "Therapy Profiles" : {
+
+    },
     "Therapy Settings" : {
       "localizations" : {
         "bg" : {
@@ -300648,6 +301416,9 @@
           }
         }
       }
+    },
+    "Therapy settings show the current schedules. The range doesn't apply to them." : {
+
     },
     "There are also options to override your Max SMB Minutes and Max UAM SMB Minutes, as well as to disable SMBs." : {
       "localizations" : {
@@ -300779,6 +301550,12 @@
         }
       }
     },
+    "There can be at most %lld profiles. Delete a profile before creating another." : {
+
+    },
+    "There can be at most %lld scheduled switches." : {
+
+    },
     "There has been no empirical data analysis to support the use of the Sigmoid Formula for dynamic sensitivity determination." : {
       "localizations" : {
         "bg" : {
@@ -300908,6 +301685,9 @@
           }
         }
       }
+    },
+    "There is no profile named %@." : {
+
     },
     "There is no undo" : {
       "extractionState" : "manual",
@@ -302353,6 +303133,9 @@
           }
         }
       }
+    },
+    "This build of Trio can't send reports. Please share your logs on Discord or Facebook instead." : {
+
     },
     "This cap prevents the system from overestimating how much insulin is needed when carb absorption isn't visible, offering a safeguard for accurate dosing." : {
       "localizations" : {
@@ -310801,6 +311584,9 @@
         }
       }
     },
+    "Tidepool Login Required" : {
+
+    },
     "Time" : {
       "comment" : "Time basal profile",
       "localizations" : {
@@ -311063,6 +311849,7 @@
       }
     },
     "Time in Normoglycemia (TING)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311193,6 +311980,7 @@
       }
     },
     "Time in Normoglycemia (TING):" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311584,6 +312372,7 @@
       }
     },
     "Time in Range Type" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311714,6 +312503,7 @@
       }
     },
     "Time in Tight Range (TITR)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -311844,6 +312634,7 @@
       }
     },
     "Time in Tight Range (TITR):" : {
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -312243,6 +313034,7 @@
     },
     "time unknown" : {
       "comment" : "Accessibility: elapsed time unavailable",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -313538,6 +314330,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提示：當您開始添加脂肪和蛋白質的輸入時，您會發現您的正常碳水比需要增加到更大的數字。因此，最好從約 50% 的因子開始。"
+          }
+        }
+      }
+    },
+    "TIR (%@-%@)" : {
+      "comment" : "Time in Range with the selected lower threshold and the upper threshold.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIR (%@-%@)"
+          }
+        }
+      }
+    },
+    "TIR Lower Threshold" : {
+      "comment" : "Setting for the lower glucose boundary shared by TIR and TITR statistics.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TIR Lower Threshold"
+          }
+        }
+      }
+    },
+    "Title (optional)" : {
+
+    },
+    "TITR (%@-%@)" : {
+      "comment" : "Time in Tight Range with either the Standard or Extended lower threshold.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TITR (%@-%@)"
           }
         }
       }
@@ -319203,6 +320031,22 @@
         }
       }
     },
+    "Trio — Statistics Report" : {
+      "comment" : "The title of the PDF export.",
+      "isCommentAutoGenerated" : true
+    },
+    "Trio %@ · Build %@" : {
+      "comment" : "PDF export header line listing the Trio app version and build date. Arguments: Trio version, build date.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio %1$@ · Build %2$@"
+          }
+        }
+      }
+    },
     "Trio adjusts your insulin automatically." : {
       "localizations" : {
         "bg" : {
@@ -319332,6 +320176,9 @@
           }
         }
       }
+    },
+    "Trio always uses the active profile." : {
+
     },
     "Trio Backup" : {
       "localizations" : {
@@ -319852,6 +320699,9 @@
           }
         }
       }
+    },
+    "Trio Chart" : {
+      "comment" : "Name of the glucose chart watch complication"
     },
     "Trio checks your glucose every five minutes and changes your insulin for you. You need a working CGM and a connected pump." : {
       "localizations" : {
@@ -320634,6 +321484,12 @@
         }
       }
     },
+    "Trio could not switch within 24 hours of the scheduled time." : {
+
+    },
+    "Trio couldn't confirm with Apple that this copy of the app is genuine. Please try again later." : {
+
+    },
     "Trio Docs" : {
       "localizations" : {
         "bg" : {
@@ -321154,6 +322010,32 @@
         }
       }
     },
+    "Trio Gauge" : {
+      "comment" : "Name of the glucose ring watch complication"
+    },
+    "Trio Glucose" : {
+      "comment" : "Name of the glucose watch complication"
+    },
+    "Trio has not been able to switch to %@ as scheduled at %@: %@ Open Trio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio has not been able to switch to %1$@ as scheduled at %2$@: %3$@ Open Trio."
+          }
+        }
+      }
+    },
+    "Trio has not been able to switch to %@ as scheduled at %@. Open Trio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio has not been able to switch to %1$@ as scheduled at %2$@. Open Trio."
+          }
+        }
+      }
+    },
     "Trio has not looped in %lld minutes." : {
       "localizations" : {
         "bg" : {
@@ -321544,6 +322426,9 @@
         }
       }
     },
+    "Trio imported the other profiles. You can create the missing ones later in Settings > Therapy > Therapy Profiles." : {
+
+    },
     "Trio includes several algorithm settings that allow you to customize the oref algorithm behavior to suit your specific needs." : {
       "localizations" : {
         "bg" : {
@@ -321803,6 +322688,9 @@
           }
         }
       }
+    },
+    "Trio IOB" : {
+      "comment" : "Name of the insulin on board watch complication"
     },
     "Trio is a powerful app that helps you manage your diabetes. Let's get started by setting up a few important parameters that will help Trio work effectively for you." : {
       "localizations" : {
@@ -322454,6 +323342,9 @@
         }
       }
     },
+    "Trio keeps at most %lld profiles." : {
+
+    },
     "Trio leaves your basal alone unless your glucose goes low." : {
       "localizations" : {
         "bg" : {
@@ -322843,6 +323734,9 @@
           }
         }
       }
+    },
+    "Trio Loop" : {
+      "comment" : "Name of the loop status watch complication"
     },
     "Trio may lower or stop your basal insulin when it forecasts you are heading low. It will never give extra insulin to bring a high down.\nTrio does not wait for one set glucose number. It watches your forecast and lowers basal early. While this mode is on, Trio acts as if your Max IOB is 0. Your saved setting does not change." : {
       "extractionState" : "stale",
@@ -324150,6 +325044,9 @@
         }
       }
     },
+    "Trio sends this profile's basal rates to the pump and starts using its carb ratios, insulin sensitivities and glucose targets right away." : {
+
+    },
     "Trio State Result" : {
       "localizations" : {
         "bg" : {
@@ -324670,6 +325567,29 @@
         }
       }
     },
+    "Trio switched to %@ as scheduled (%@)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio switched to %1$@ as scheduled (%2$@)."
+          }
+        }
+      }
+    },
+    "Trio switched to %@, scheduled for %@, done at %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trio switched to %1$@, scheduled for %2$@, done at %3$@."
+          }
+        }
+      }
+    },
+    "Trio switches the active profile at the scheduled starts. A profile stays active until the next scheduled start, also after a switch you make yourself. A paused start does not run until you resume it." : {
+
+    },
     "Trio Up-Time" : {
       "localizations" : {
         "bg" : {
@@ -324799,6 +325719,9 @@
           }
         }
       }
+    },
+    "Trio uses the new settings, but could not store them with the active profile. Save again to retry." : {
+
     },
     "Trio v%@" : {
       "localizations" : {
@@ -326366,6 +327289,9 @@
         }
       }
     },
+    "Try Again" : {
+
+    },
     "Try again in a moment, or configure your Therapy Settings manually instead." : {
       "localizations" : {
         "bg" : {
@@ -327017,7 +327943,7 @@
         }
       }
     },
-    "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs." : {
+    "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs." : {
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -327046,7 +327972,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "fr" : {
@@ -327058,7 +327984,7 @@
         "he" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "it" : {
@@ -327100,13 +328026,13 @@
         "ro" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "sv" : {
@@ -327124,7 +328050,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before injesting the suggested quanitity of carbs."
+            "value" : "Turning this on will show the grams of carbs needed to prevent a low as a notification badge on the Trio home screen located above the main icon.\n\nOnce enabled, set the Carbs Required Threshold to the lowest number of carbs you'd like to be recommended. A recommendation will not be given if carbs required is below this number.\n\nNote: The carbs suggested with this feature are to be used as a recommendation, not as a requirement. Depending on the current accuracy of your sensor and the accuracy of your settings, the suggested carbs can vary widely. Use your best judgement before ingesting the suggested quantity of carbs."
           }
         },
         "vi" : {
@@ -327143,6 +328069,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟用這個功能後，將在 Trio 主畫面上的圖示上方顯示防止低血糖所需的碳水化合物克數作為通知標籤。\n\n啟用後，將碳水所需門檻值設為您希望推薦的碳水化合物的最低數量。如果所需碳水化合物低於此數量，則不會提供推薦。\n\n注意：使用此功能建議的碳水化合物數量僅供參考，並非必需。根據您傳感器的當前準確性和設定的準確性，建議的碳水化合物數量可能會有很大變化。請在攝入建議的碳水化合物數量前谨慎考量。"
+          }
+        }
+      }
+    },
+    "Two scheduled switches start on %@ at %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Two scheduled switches start on %1$@ at %2$@."
           }
         }
       }
@@ -330446,6 +331382,9 @@
         }
       }
     },
+    "Unknown glucose units %@." : {
+
+    },
     "Unsuspend If No Temp" : {
       "comment" : "Unsuspend If No Temp",
       "localizations" : {
@@ -330577,6 +331516,9 @@
         }
       }
     },
+    "until %@" : {
+
+    },
     "Until %@" : {
       "localizations" : {
         "bg" : {
@@ -330706,6 +331648,9 @@
           }
         }
       }
+    },
+    "Up to %lld screenshots or photos." : {
+
     },
     "up to date" : {
       "comment" : "Accessibility: version status",
@@ -332948,6 +333893,9 @@
           }
         }
       }
+    },
+    "Uploads to Tidepool are paused. Tap to log in." : {
+
     },
     "Upper limit of the Autosens Ratio." : {
       "localizations" : {
@@ -335203,6 +336151,9 @@
         }
       }
     },
+    "Use this if the Trio complications lag. It shows every new reading on your watch face." : {
+
+    },
     "Use this to check whether your basal rates hold you steady. Trio makes no changes unless your glucose goes low. Then it stops your basal until you come back up.\nTrio also stops adjusting for sensitivity, so you see your own settings at work. Turning this on cancels any temp basal Trio set. Use it for short, planned times." : {
       "localizations" : {
         "bg" : {
@@ -335332,6 +336283,10 @@
           }
         }
       }
+    },
+    "Use this when the Trio complications fall behind. Your watch only lets complications update a few times an hour, so they can show old numbers. The Contact Image does not have this limit: it changes with every new reading.\n\nTrio draws your data into the photo of a contact on your iPhone. You pick what it shows, like glucose, trend, IOB, COB or the last loop. Add that contact to a watch face with the Contacts complication." : {
+      "comment" : "A hint for the Contact Image setting.",
+      "isCommentAutoGenerated" : true
     },
     "Use your Tidepool credentials to log in. If you don't have a Tidepool account, you can sign up on the login page.\n\nWhen connected, Trio uploads your glucose, carb entries, insulin (bolus and basal), pump settings, and therapy settings to Tidepool.\n\nTherapy settings include basal schedules, carb ratios, insulin sensitivities, and glucose targets." : {
       "localizations" : {
@@ -335723,8 +336678,20 @@
         }
       }
     },
+    "Uses the established lower threshold of %@." : {
+      "comment" : "Standard lower range threshold description",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the established lower threshold of %@."
+          }
+        }
+      }
+    },
     "Uses the fairly established Time in Tight Range definition, which is defined as time between %@ and %@  %@." : {
       "comment" : "Time in Tight Range (TITR) verbose hint description",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -335990,8 +336957,20 @@
         }
       }
     },
+    "Uses the newer Time in Normoglycemia (TING) lower threshold of %@." : {
+      "comment" : "Extended lower range threshold description",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uses the newer Time in Normoglycemia (TING) lower threshold of %@."
+          }
+        }
+      }
+    },
     "Uses the very new – first discussed at ATTD 2025 in Amsterdam, NL – Time in Normoglycemia definition, which adopts its range as all values between the normoglycemic minimum threshold (%@ %@) and %@ %@." : {
       "comment" : "Time in Normoglycemia (TING) verbose hint description",
+      "extractionState" : "stale",
       "localizations" : {
         "bg" : {
           "stringUnit" : {
@@ -338371,6 +339350,9 @@
           }
         }
       }
+    },
+    "Warmup %lld min" : {
+      "comment" : "Watch: minutes left of the sensor's warmup"
     },
     "Warning when bolusing with a very low or forecasted very low glucose." : {
       "localizations" : {
@@ -341029,6 +342011,13 @@
           }
         }
       }
+    },
+    "Weekday" : {
+
+    },
+    "Weekly" : {
+      "comment" : "A full-word name for a weekly stat.",
+      "isCommentAutoGenerated" : true
     },
     "Weight of 24-hr TDD against 10-day TDD." : {
       "localizations" : {
@@ -345219,6 +346208,9 @@
         }
       }
     },
+    "When this is on, the urgent low alarm the watch raises for its own readings sounds even in Silent Mode. The watch asks for permission the first time." : {
+
+    },
     "When true, raises BG target when autosens detects sensitivity" : {
       "comment" : "”Sensitivity Raises Target\"",
       "extractionState" : "manual",
@@ -348912,6 +349904,9 @@
         }
       }
     },
+    "You've sent several reports today. Please try again tomorrow." : {
+
+    },
     "You've successfully completed the initial setup of Trio. Tap 'Get Started' to save your settings and start using Trio." : {
       "localizations" : {
         "bg" : {
@@ -350480,6 +351475,15 @@
         }
       }
     },
+    "Your Logs" : {
+
+    },
+    "Your logs are too large to send. Turn off Attach My Logs and share them on Discord or Facebook instead." : {
+
+    },
+    "Your logs couldn't be prepared. Try again, or turn off Attach My Logs." : {
+
+    },
     "Your most-used amounts at similar times on similar days. Tap a bolus, a carb amount, or both." : {
       "comment" : "Subtitle of the quick-pick treatments pill rows",
       "localizations" : {
@@ -351278,6 +352282,21 @@
           }
         }
       }
+    },
+    "Your watch can get readings straight from your %@. This helps when your iPhone is out of reach.\n\nYour watch shows the readings from your iPhone first. If they stop coming, your watch reads the sensor itself. You then see a small watch symbol in the glucose bubble.\n\nTo turn this on or off, open your %@ settings and use “Read on Apple Watch”." : {
+      "comment" : "A description of how to enable or disable the \"Read on Apple Watch\" feature for a specific CGM device. The argument is the name of the CGM device.",
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your watch can get readings straight from your %1$@. This helps when your iPhone is out of reach.\n\nYour watch shows the readings from your iPhone first. If they stop coming, your watch reads the sensor itself. You then see a small watch symbol in the glucose bubble.\n\nTo turn this on or off, open your %2$@ settings and use “Read on Apple Watch”."
+          }
+        }
+      }
+    },
+    "Your watch can read your %@ by itself when your iPhone is out of reach." : {
+
     },
     "Zone %@" : {
       "comment" : "A label displaying the glycemic risk index zone. The argument is the zone letter (A through E).",

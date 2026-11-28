@@ -127,8 +127,7 @@ struct DeliveryLimitsStepView: View {
         case .maxCOB:
             return "\(decimalValue) \(String(localized: "g", comment: "Gram abbreviation"))"
         case .minimumSafetyThreshold:
-            let optionallyParsedValue = state.units == .mgdL ? decimalValue : decimalValue.asMmolL
-            return "\(optionallyParsedValue) \(state.units.rawValue)"
+            return decimalValue.formatted(withUnits: state.units)
         }
     }
 
@@ -143,8 +142,7 @@ struct DeliveryLimitsStepView: View {
         case .maxCOB:
             return "\(decimalValue) \(UnitSpelling.spoken("g"))"
         case .minimumSafetyThreshold:
-            let optionallyParsedValue = state.units == .mgdL ? decimalValue : decimalValue.asMmolL
-            return "\(optionallyParsedValue) \(state.units.spokenValue)"
+            return decimalValue.formatted(for: state.units) + " " + state.units.spokenValue
         }
     }
 }

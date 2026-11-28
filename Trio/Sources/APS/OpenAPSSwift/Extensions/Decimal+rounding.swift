@@ -21,7 +21,7 @@ extension Decimal {
     /// and do a floor operation, which is what we're doing here. This ends up mattering
     /// for values that are negative and end with .5 exactly
     func jsRounded(scale: Int) -> Decimal {
-        var multiplier = (0 ..< scale).reduce(Decimal(1)) { result, _ in result * 10 }
+        let multiplier = (0 ..< scale).reduce(Decimal(1)) { result, _ in result * 10 }
         return (self * multiplier + 0.5).rounded(scale: 0, roundingMode: .down) / multiplier
     }
 

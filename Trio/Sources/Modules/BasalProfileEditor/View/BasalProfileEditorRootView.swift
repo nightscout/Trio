@@ -1,13 +1,13 @@
-import Charts
 import SwiftUI
 import Swinject
 
 extension BasalProfileEditor {
     struct RootView: BaseView {
         let resolver: Resolver
+        /// A stored profile to edit; nil edits the live settings.
+        var profileName: String? = nil
         @State var state = StateModel()
         @State private var refreshUI = UUID()
-        @State private var now = Date()
         @Namespace private var bottomID
 
         @Environment(\.colorScheme) var colorScheme
@@ -21,66 +21,14 @@ extension BasalProfileEditor {
 
         // Chart for visualizing basal profile
         private var basalProfileChart: some View {
-            Chart {
-                ForEach(Array(state.items.enumerated()), id: \.element.id) { index, item in
-                    let displayValue = state.rateValues[item.rateIndex]
-
-                    let startDate = Calendar.current
-                        .startOfDay(for: now)
-                        .addingTimeInterval(state.timeValues[item.timeIndex])
-
-                    var offset: TimeInterval {
-                        if state.items.count > index + 1 {
-                            return state.timeValues[state.items[index + 1].timeIndex]
-                        } else {
-                            return state.timeValues.last! + 30 * 60
-                        }
-                    }
-
-                    let endDate = Calendar.current.startOfDay(for: now).addingTimeInterval(offset)
-
-                    RectangleMark(
-                        xStart: .value("start", startDate),
-                        xEnd: .value("end", endDate),
-                        yStart: .value("rate-start", displayValue),
-                        yEnd: .value("rate-end", 0)
-                    ).foregroundStyle(
-                        .linearGradient(
-                            colors: [
-                                Color.purple.opacity(0.6),
-                                Color.purple.opacity(0.1)
-                            ],
-                            startPoint: .bottom,
-                            endPoint: .top
-                        )
-                    ).alignsMarkStylesWithPlotArea()
-
-                    LineMark(x: .value("End Date", startDate), y: .value("Rate", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.purple)
-
-                    LineMark(x: .value("Start Date", endDate), y: .value("Rate", displayValue))
-                        .lineStyle(.init(lineWidth: 1)).foregroundStyle(Color.purple)
-                }
-            }
-            .id(refreshUI) // Force chart update
-            .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
-                    AxisValueLabel(format: .dateTime.hour())
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }
-            .chartXScale(
-                domain: Calendar.current.startOfDay(for: now) ... Calendar.current.startOfDay(for: now)
-                    .addingTimeInterval(60 * 60 * 24)
+            TherapyProfileChart(
+                entries: state.items.map {
+                    TherapyProfileChart.Entry(start: state.timeValues[$0.timeIndex], value: state.rateValues[$0.rateIndex])
+                },
+                color: .purple,
+                accessibilityLabel: Text("Basal rate profile chart, 24 hours")
             )
-            .chartYAxis {
-                AxisMarks(values: .automatic(desiredCount: 4)) { _ in
-                    AxisValueLabel()
-                    AxisGridLine(centered: true, stroke: StrokeStyle(lineWidth: 1, dash: [2, 4]))
-                }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("Basal rate profile chart, 24 hours"))
+            .id(refreshUI) // Force chart update
         }
 
         var saveButton: some View {
@@ -88,11 +36,12 @@ extension BasalProfileEditor {
                 let shouldDisableButton = state.syncInProgress || state.items.isEmpty || !state.hasChanges
 
                 Rectangle()
-                    .frame(width: UIScreen.main.bounds.width, height: 65)
+                    .frame(height: 65)
                     .foregroundStyle(colorScheme == .dark ? Color.bgDarkerDarkBlue : Color.white)
                     .background(.thinMaterial)
                     .opacity(0.8)
                     .clipShape(Rectangle())
+                    .ignoresSafeArea(edges: .horizontal)
 
                 Group {
                     HStack {
@@ -107,10 +56,11 @@ extension BasalProfileEditor {
                                 }
                                 Text(state.syncInProgress ? "Saving..." : "Save")
                             }
-                            .frame(width: UIScreen.main.bounds.width * 0.9, alignment: .center)
+                            .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
                             .padding(10)
                         })
-                            .frame(width: UIScreen.main.bounds.width * 0.9, height: 40, alignment: .center)
+                            .containerRelativeFrame(.horizontal) { width, _ in width * 0.9 }
+                            .frame(height: 40)
                             .disabled(shouldDisableButton)
                             .background(shouldDisableButton ? Color(.systemGray4) : Color(.systemBlue))
                             .tint(.white)
@@ -137,6 +87,17 @@ extension BasalProfileEditor {
                     topTrailingRadius: 10
                 )
             )
+        }
+
+        var unsupportedRatesWarning: some View {
+            Text(
+                "Some basal rates of this schedule are not rates your pump supports. Each is shown as the nearest supported rate. Check them before you save."
+            )
+            .bold()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color.tabBar)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
         }
 
         var totalBasalRow: some View {
@@ -168,6 +129,15 @@ extension BasalProfileEditor {
                     ScrollView {
                         LazyVStack {
                             VStack(alignment: .leading, spacing: 0) {
+                                if let bannerInfo = state.bannerInfo {
+                                    TherapyProfileBanner(info: bannerInfo)
+                                }
+
+                                if state.hasUnsupportedRates {
+                                    unsupportedRatesWarning
+                                        .padding()
+                                }
+
                                 if !state.canAdd {
                                     fullScheduleWarning
                                         .padding()
@@ -226,6 +196,17 @@ extension BasalProfileEditor {
                     }
 
                     saveButton
+                        .alert(
+                            "Unable to Save",
+                            isPresented: Binding(
+                                get: { state.profileSaveError != nil },
+                                set: { if !$0 { state.profileSaveError = nil } }
+                            )
+                        ) {
+                            Button("OK", role: .cancel) {}
+                        } message: {
+                            Text(state.profileSaveError ?? "")
+                        }
                 }
                 .background(appState.trioBackgroundColor(for: colorScheme))
                 .alert(isPresented: $state.showAlert) {
@@ -238,7 +219,7 @@ extension BasalProfileEditor {
                 .navigationTitle("Basal Rates")
                 .navigationBarTitleDisplayMode(.automatic)
                 .onAppear {
-                    configureView()
+                    configureView { state.profileName = profileName }
                     state.validate()
                     state.therapyItems = state.getTherapyItems()
                 }
