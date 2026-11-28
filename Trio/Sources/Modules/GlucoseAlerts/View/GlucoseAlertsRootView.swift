@@ -148,6 +148,7 @@ extension GlucoseAlerts {
             }
             .onAppear {
                 configureView()
+                store.applyUnitDefaults(state.units)
                 state.refreshCGMOwnership()
             }
         }
@@ -156,7 +157,7 @@ extension GlucoseAlerts {
             guard let type = pendingNewType else { return }
             pendingNewType = nil
             DispatchQueue.main.async {
-                var seed = GlucoseAlert(type: type)
+                var seed = GlucoseAlert(type: type, units: state.units)
                 // Default new alarm to the first available window so it
                 // doesn't overlap with whatever is already configured.
                 let available = store.availableActiveOptions(forNewAlarmOfType: type)
@@ -298,6 +299,8 @@ extension GlucoseAlerts {
                 switch alarm.type {
                 case .high: return String(localized: "above")
                 case .carbsRequired: return String(localized: "at least")
+                case .fallingFast: return String(localized: "falling")
+                case .risingFast: return String(localized: "rising")
                 default: return String(localized: "below")
                 }
             }()
@@ -306,6 +309,12 @@ extension GlucoseAlerts {
                 // mg/dL ↔ mmol/L conversion and a fixed "g" unit label.
                 if alarm.type == .carbsRequired {
                     return "\(alarm.thresholdMgDL) \(String(localized: "g", comment: "gram of carbs"))"
+                }
+                if alarm.type.isRateDriven {
+                    let rate = GlucoseAlertType.formattedRate(alarm.thresholdMgDL, units: state.units)
+                    guard let limit = alarm.glucoseLimitMgDL else { return rate }
+                    let side = alarm.type == .fallingFast ? String(localized: "below") : String(localized: "above")
+                    return "\(rate) • \(side.localizedCapitalized) \(limit.formatted(for: state.units)) \(state.units.rawValue)"
                 }
                 return "\(alarm.thresholdMgDL.formatted(for: state.units)) \(state.units.rawValue)"
             }()

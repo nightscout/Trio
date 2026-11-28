@@ -129,6 +129,69 @@ import Testing
         #expect(decoded.activeOption == .always)
         #expect(decoded.snoozedUntil == nil)
         #expect(decoded.isEnabled == true)
+        #expect(decoded.glucoseLimitMgDL == nil)
+    }
+
+    @Test("Rate alarm without glucoseLimitMgDL decodes the type default") func decodeRateAlarmGlucoseLimitDefault() throws {
+        let json = """
+        {
+            "id": "55555555-5555-5555-5555-555555555555",
+            "type": "fallingFast",
+            "name": "Falling Fast",
+            "thresholdMgDL": 10
+        }
+        """
+        let decoded = try JSONDecoder().decode(GlucoseAlert.self, from: Data(json.utf8))
+        #expect(decoded.glucoseLimitMgDL == 140)
+    }
+
+    @Test("Rate alarms default to 10 mg/dL or 0.5 mmol/L per 5 min; level types ignore units") func rateDefaultsPerUnits() {
+        for type in [GlucoseAlertType.fallingFast, .risingFast] {
+            #expect(GlucoseAlert(type: type).thresholdMgDL == 10)
+            #expect(GlucoseAlert(type: type, units: .mmolL).thresholdMgDL == 9)
+            #expect(GlucoseAlert(type: type).glucoseLimitMgDL == 140)
+            #expect(GlucoseAlert(type: type, units: .mmolL).glucoseLimitMgDL == 144)
+        }
+        #expect(Decimal(144).formatted(for: .mmolL, locale: Locale(identifier: "en_US")) == "8.0")
+        #expect(Decimal(9).formatted(for: .mmolL, locale: Locale(identifier: "en_US")) == "0.5")
+        #expect(GlucoseAlert(type: .high, units: .mmolL).thresholdMgDL == 270)
+        #expect(GlucoseAlert(type: .high).glucoseLimitMgDL == nil)
+    }
+
+    // MARK: - Glucose limit picker
+
+    @Test("mg/dL glucose limit picker steps by 10 from 70 to 400") func glucoseLimitPickerMgDL() {
+        let values = AlarmBGSection.pickerValues(
+            range: GlucoseAlertType.glucoseLimitRange, step: 10, mmolStep: 0.5, units: .mgdL, current: 140
+        )
+        #expect(values.first == 70)
+        #expect(values.last == 400)
+        #expect(values.count == 34)
+    }
+
+    @Test("mmol/L glucose limit picker steps by 0.5 from 4.0 to 22.0") func glucoseLimitPickerMmolL() {
+        let values = AlarmBGSection.pickerValues(
+            range: GlucoseAlertType.glucoseLimitRange, step: 10, mmolStep: 0.5, units: .mmolL, current: 144
+        )
+        let shown = values.map { $0.formatted(for: .mmolL, locale: Locale(identifier: "en_US")) }
+        #expect(shown.first == "4.0")
+        #expect(shown.last == "22.0")
+        #expect(values.count == 37)
+        #expect(Set(shown).count == values.count)
+        #expect(values.contains(144))
+    }
+
+    @Test("Stepped picker keeps an off-grid value selectable") func glucoseLimitPickerKeepsCurrent() {
+        let values = AlarmBGSection.pickerValues(
+            range: GlucoseAlertType.glucoseLimitRange, step: 10, mmolStep: 0.5, units: .mmolL, current: 140
+        )
+        #expect(values.contains(140))
+        #expect(values == values.sorted())
+    }
+
+    @Test("Pickers without mmolStep are unchanged") func plainPickerUnchanged() {
+        let values = AlarmBGSection.pickerValues(range: 100 ... 400, step: 1, mmolStep: nil, units: .mgdL, current: 180)
+        #expect(values == Array(stride(from: Decimal(100), through: 400, by: 1)))
     }
 
     @Test("urgentLow with overridesSilenceAndDND omitted uses type defaults") func decodeUrgentLowOverrideDefault() throws {
@@ -152,6 +215,7 @@ import Testing
         original.name = "Custom Low Alarm"
         original.isEnabled = false
         original.thresholdMgDL = 65
+        original.glucoseLimitMgDL = 120
         original.soundFilename = "custom_sound.caf"
         original.playsSound = false
         original.overridesSilenceAndDND = true
