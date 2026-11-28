@@ -39,8 +39,8 @@ struct InsulinView: ChartContent {
                 )
                 .symbolSize(0)
                 .annotation(position: .top) {
-                    if amount as Decimal >= bolusDisplayThreshold.rawValue {
-                        Text(Formatter.bolusFormatter.string(from: amount) ?? "")
+                    if amount.decimalValue >= bolusDisplayThreshold.rawValue {
+                        Text(amount.decimalValue.formatted(.insulin))
                             .font(.caption2)
                             .foregroundStyle(Color.primary)
                     }

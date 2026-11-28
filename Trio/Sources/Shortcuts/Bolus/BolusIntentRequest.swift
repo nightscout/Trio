@@ -37,7 +37,7 @@ final class BolusIntentRequest: BaseIntentsRequest {
         if Decimal(bolusAmount) > maxExternal {
             return String(
                 localized:
-                "The external bolus cannot be larger than 3 x the pump setting max bolus (\(settingsManager.pumpSettings.maxBolus.description))."
+                "The external bolus cannot be larger than 3 x the pump setting max bolus (\(settingsManager.pumpSettings.maxBolus.formatted(.insulin)))."
             )
         } else {
             bolusQuantity = apsManager.roundBolus(amount: Decimal(bolusAmount))
@@ -59,7 +59,7 @@ private extension BolusSafetyRejection {
         case .exceedsMaxBolus:
             return String(
                 localized:
-                "The bolus cannot be larger than the pump setting max bolus (\(pumpMaxBolus.description))."
+                "The bolus cannot be larger than the pump setting max bolus (\(pumpMaxBolus.formatted(.insulin)))."
             )
         case .iobUnavailable:
             return String(

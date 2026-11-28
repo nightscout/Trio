@@ -35,7 +35,7 @@ struct QuickPickTreatmentsView: View {
                             amounts: displayedCarbSuggestions,
                             selected: selectedCarbAmount,
                             accentColor: Color.orange,
-                            formatter: Formatter.integerFormatter,
+                            format: .number.precision(.fractionLength(0)),
                             unit: carbUnitLabel,
                             unitSpoken: String(localized: "grams", comment: "Accessibility: carb unit spoken"),
                             select: toggleCarbSelection
@@ -48,7 +48,7 @@ struct QuickPickTreatmentsView: View {
                             amounts: displayedBolusSuggestions,
                             selected: selectedBolusAmount,
                             accentColor: Color.accentColor,
-                            formatter: Formatter.bolusFormatter,
+                            format: .insulin,
                             unit: bolusUnitLabel,
                             unitSpoken: String(localized: "units", comment: "Accessibility: insulin unit spoken"),
                             select: toggleBolusSelection
@@ -311,7 +311,7 @@ struct QuickPickTreatmentsView: View {
         amounts: [Decimal],
         selected: Decimal?,
         accentColor: Color,
-        formatter: NumberFormatter,
+        format: Decimal.FormatStyle,
         unit: String,
         unitSpoken: String,
         select: @escaping (Decimal) -> Void
@@ -325,7 +325,7 @@ struct QuickPickTreatmentsView: View {
                     amount: amount,
                     isSelected: selected == amount,
                     accentColor: accentColor,
-                    formatter: formatter,
+                    format: format,
                     unit: unit,
                     unitSpoken: unitSpoken,
                     action: { select(amount) }
@@ -342,12 +342,12 @@ struct QuickPickTreatmentsView: View {
         amount: Decimal,
         isSelected: Bool,
         accentColor: Color,
-        formatter: NumberFormatter,
+        format: Decimal.FormatStyle,
         unit: String,
         unitSpoken: String,
         action: @escaping () -> Void
     ) -> some View {
-        let formatted = formatter.string(from: amount as NSDecimalNumber) ?? amount.description
+        let formatted = amount.formatted(format)
 
         return Button(action: action) {
             HStack(alignment: .firstTextBaseline, spacing: 2) {

@@ -234,9 +234,9 @@ struct SettingInputSection<VerboseHint: View>: View {
         case .factor:
             return decimalValue.formatted(.wholePercent)
         case .insulinUnit:
-            return "\(decimalValue) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
+            return "\(decimalValue.formatted(.insulin)) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
         case .insulinUnitPerHour:
-            return "\(decimalValue) \(String(localized: "U/hr", comment: "Insulin unit per hour abbreviation"))"
+            return "\(decimalValue.formatted(.insulin)) \(String(localized: "U/hr", comment: "Insulin unit per hour abbreviation"))"
         case .gram:
             return "\(decimalValue) \(String(localized: "g", comment: "Gram abbreviation"))"
         case .minute:
@@ -254,9 +254,9 @@ struct SettingInputSection<VerboseHint: View>: View {
         case .factor:
             return decimalValue.formatted(.wholePercent)
         case .insulinUnit:
-            return "\(decimalValue) \(UnitSpelling.spoken("U"))"
+            return "\(decimalValue.formatted(.insulin)) \(UnitSpelling.spoken("U"))"
         case .insulinUnitPerHour:
-            return "\(decimalValue) \(UnitSpelling.spoken("U/hr"))"
+            return "\(decimalValue.formatted(.insulin)) \(UnitSpelling.spoken("U/hr"))"
         case .gram:
             return "\(decimalValue) \(UnitSpelling.spoken("g"))"
         case .minute:

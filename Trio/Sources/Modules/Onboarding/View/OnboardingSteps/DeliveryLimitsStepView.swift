@@ -120,10 +120,10 @@ struct DeliveryLimitsStepView: View {
     private func displayString(for substep: DeliveryLimitSubstep, decimalValue: Decimal) -> String {
         switch substep {
         case .maxBasal:
-            return "\(decimalValue) \(String(localized: "U/hr", comment: "Insulin unit per hour abbreviation"))"
+            return "\(decimalValue.formatted(.insulin)) \(String(localized: "U/hr", comment: "Insulin unit per hour abbreviation"))"
         case .maxBolus,
              .maxIOB:
-            return "\(decimalValue) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
+            return "\(decimalValue.formatted(.insulin)) \(String(localized: "U", comment: "Insulin unit abbreviation"))"
         case .maxCOB:
             return "\(decimalValue) \(String(localized: "g", comment: "Gram abbreviation"))"
         case .minimumSafetyThreshold:
@@ -135,10 +135,10 @@ struct DeliveryLimitsStepView: View {
     private func accessibilityValueString(for substep: DeliveryLimitSubstep, decimalValue: Decimal) -> String {
         switch substep {
         case .maxBasal:
-            return "\(decimalValue) \(UnitSpelling.spoken("U/hr"))"
+            return "\(decimalValue.formatted(.insulin)) \(UnitSpelling.spoken("U/hr"))"
         case .maxBolus,
              .maxIOB:
-            return "\(decimalValue) \(UnitSpelling.spoken("U"))"
+            return "\(decimalValue.formatted(.insulin)) \(UnitSpelling.spoken("U"))"
         case .maxCOB:
             return "\(decimalValue) \(UnitSpelling.spoken("g"))"
         case .minimumSafetyThreshold:

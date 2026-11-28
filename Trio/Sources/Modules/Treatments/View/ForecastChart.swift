@@ -60,7 +60,7 @@ struct ForecastChart: View {
             HStack {
                 Image(systemName: "syringe.fill")
                 Text(
-                    "\(Formatter.bolusFormatter.string(from: state.amount as NSNumber) ?? state.amount.description) "
+                    "\(state.amount.formatted(.insulin)) "
                 ) + Text(String(localized: "U", comment: "Insulin unit"))
             }
 

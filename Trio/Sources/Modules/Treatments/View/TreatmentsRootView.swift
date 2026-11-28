@@ -271,10 +271,7 @@ extension Treatments {
                     state.amount = state.insulinCalculated
                 } label: {
                     HStack {
-                        Text(
-                            formatter
-                                .string(from: Double(state.insulinCalculated) as NSNumber) ?? ""
-                        )
+                        Text(state.insulinCalculated.formatted(.insulin))
 
                         Text(
                             String(
@@ -289,7 +286,7 @@ extension Treatments {
                 .buttonStyle(.bordered).padding(.trailing, -10)
                 .accessibilityLabel(Text(
                     "Use recommended bolus, "
-                        + (formatter.string(from: Double(state.insulinCalculated) as NSNumber) ?? "")
+                        + state.insulinCalculated.formatted(.insulin)
                         + " " + String(localized: "units", comment: "Insulin units, spoken")
                 ))
                 .accessibilityHint(Text("Copies the recommended amount into the bolus field"))
@@ -582,7 +579,7 @@ extension Treatments {
                     .shadow(radius: 3)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .glassActionSheet(
-                        Text(bolusWarning.warningMessage + " Bolus \(state.amount.description) U?"),
+                        Text(bolusWarning.warningMessage + " Bolus \(state.amount.formatted(.insulin)) U?"),
                         isPresented: $showConfirmDialogForBolusing,
                         actions: [
                             GlassSheetAction(
@@ -619,7 +616,7 @@ extension Treatments {
                 guard let bolusTotal = bolusTotal else { return String(localized: "Bolus In Progress...") }
                 return (bolusProgressFormatter.string(from: bolusFraction as NSNumber) ?? "0")
                     + String(localized: " of ", comment: "Bolus string partial message: 'x U of y U' in home view")
-                    + (Formatter.decimalFormatterWithThreeFractionDigits.string(from: bolusTotal as NSNumber) ?? "0")
+                    + bolusTotal.formatted(.insulin)
                     + String(localized: " U", comment: "Insulin unit")
             }()
             let bolusLabel = state.bolusStatus == .inProgress ? String(localized: "Bolusing") : String(localized: "Initiating…")
@@ -684,9 +681,9 @@ extension Treatments {
 
         private var taskButtonLabel: some View {
             if pumpBolusLimitExceeded {
-                return Text("Max Bolus of \(state.maxBolus.description) U Exceeded")
+                return Text("Max Bolus of \(state.maxBolus.formatted(.insulin)) U Exceeded")
             } else if externalBolusLimitExceeded {
-                return Text("Max External Bolus of \(state.maxExternal.description) U Exceeded")
+                return Text("Max External Bolus of \(state.maxExternal.formatted(.insulin)) U Exceeded")
             } else if carbLimitExceeded {
                 return Text("Max Carbs of \(state.maxCarbs.description) g Exceeded")
             } else if fatLimitExceeded {
