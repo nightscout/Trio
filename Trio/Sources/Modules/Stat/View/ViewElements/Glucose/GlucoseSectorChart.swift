@@ -327,8 +327,8 @@ struct GlucoseSectorChart: View {
             )
 
         case .low:
-            let veryLow = glucose.filter { $0.glucose <= 54 }.count
-            let low = glucose.filter { $0.glucose > 54 && $0.glucose < timeInRangeType.bottomThreshold }.count
+            let veryLow = glucose.filter { $0.glucose < 54 }.count
+            let low = glucose.filter { $0.glucose >= 54 && $0.glucose < timeInRangeType.bottomThreshold }.count
 
             let lowGlucoseValues = glucose.filter { $0.glucose < timeInRangeType.bottomThreshold }
             let lowGlucoseValuesAsInt = lowGlucoseValues.map { Int($0.glucose) }
